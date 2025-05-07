@@ -157,7 +157,7 @@ vips_subtract_buffer(VipsArithmetic *arithmetic,
 #define DX VIPS_FORMAT_DPCOMPLEX
 
 /* Type promotion for subtraction. Sign and value preserving. Make sure these
- * match the case statement in [func@subtract_buffer] above.
+ * match the case statement in vips_subtract_buffer() above.
  */
 static const VipsBandFormat vips_subtract_format_table[10] = {
 	/* Band format:  UC C  US S  UI I  F  X  D  DX */

@@ -1,7 +1,7 @@
 /* repeatedly convolve with a rotating mask
  *
  * 23/10/13
- * 	- from [method@Image.conv]
+ * 	- from vips_conv()
  * 8/5/17
  *      - default to float ... int will often lose precision and should not be
  *        the default

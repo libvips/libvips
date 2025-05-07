@@ -5,7 +5,7 @@
  * 	- fix GraphicsMagick support
  * 17/2/19
  * 	- support ICC, XMP, EXIF, IPTC metadata
- * 	- write with a single call to [method@Image.sink_disc]
+ * 	- write with a single call to vips_sink_disc()
  * 29/6/19
  * 	- support "strip" option
  * 6/7/19 [deftomat]

@@ -116,8 +116,8 @@ typedef struct _VipsThumbnail {
 	gboolean no_rotate;
 	VipsInteresting crop;
 	gboolean linear;
-	char *export_profile;
-	char *import_profile;
+	char *output_profile;
+	char *input_profile;
 	VipsIntent intent;
 	VipsFailOn fail_on;
 
@@ -695,8 +695,8 @@ vips_thumbnail_build(VipsObject *object)
 	 */
 	preshrunk_page_height = vips_image_get_page_height(in);
 
-	needs_icc_transform = thumbnail->export_profile &&
-		(thumbnail->import_profile ||
+	needs_icc_transform = thumbnail->output_profile &&
+		(thumbnail->input_profile ||
 			vips_image_get_typeof(in, VIPS_META_ICC_NAME));
 
 	/* RAD needs special unpacking.
@@ -716,20 +716,20 @@ vips_thumbnail_build(VipsObject *object)
 	 */
 	have_imported = FALSE;
 	if (thumbnail->linear) {
-		/* If we are doing colour management (there's an import
+		/* If we are doing colour management (there's an input
 		 * profile), then we can use XYZ PCS as the resize space.
 		 */
 		if (in->Coding == VIPS_CODING_NONE &&
 			(in->BandFmt == VIPS_FORMAT_UCHAR ||
 				in->BandFmt == VIPS_FORMAT_USHORT) &&
 			(vips_image_get_typeof(in, VIPS_META_ICC_NAME) ||
-				thumbnail->import_profile)) {
+				thumbnail->input_profile)) {
 			g_info("importing to XYZ PCS");
-			if (thumbnail->import_profile)
-				g_info("fallback input profile %s", thumbnail->import_profile);
+			if (thumbnail->input_profile)
+				g_info("fallback input profile %s", thumbnail->input_profile);
 
 			if (vips_icc_import(in, &t[2],
-					"input_profile", thumbnail->import_profile,
+					"input_profile", thumbnail->input_profile,
 					"embedded", TRUE,
 					"intent", thumbnail->intent,
 					"pcs", VIPS_PCS_XYZ,
@@ -844,11 +844,11 @@ vips_thumbnail_build(VipsObject *object)
 	if (have_imported) {
 		/* We are in PCS. Export with the output profile, if any (this
 		 * will export with the embedded input profile if there's no
-		 * export profile).
+		 * output profile).
 		 */
 		g_info("exporting to device space with a profile");
 		if (vips_icc_export(in, &t[9],
-				"output_profile", thumbnail->export_profile,
+				"output_profile", thumbnail->output_profile,
 				"intent", thumbnail->intent,
 				"depth", 8,
 				NULL))
@@ -859,8 +859,8 @@ vips_thumbnail_build(VipsObject *object)
 		/* We can transform to the output with a pair of ICC profiles.
 		 */
 		g_info("transforming with supplied profiles");
-		if (vips_icc_transform(in, &t[9], thumbnail->export_profile,
-				"input_profile", thumbnail->import_profile,
+		if (vips_icc_transform(in, &t[9], thumbnail->output_profile,
+				"input_profile", thumbnail->input_profile,
 				"intent", thumbnail->intent,
 				"embedded", TRUE,
 				"depth", 8,
@@ -869,14 +869,14 @@ vips_thumbnail_build(VipsObject *object)
 
 		in = t[9];
 	}
-	else if (thumbnail->export_profile) {
+	else if (thumbnail->output_profile) {
 		/* We are in one of the resize space (sRGB, scRGB, B_W, GREY16, etc.)
 		 * and need to go to PCS, then export.
 		 */
-		g_info("exporting with %s", thumbnail->export_profile);
+		g_info("exporting with %s", thumbnail->output_profile);
 		if (vips_colourspace(in, &t[9], VIPS_INTERPRETATION_XYZ, NULL) ||
 			vips_icc_export(t[9], &t[10],
-				"output_profile", thumbnail->export_profile,
+				"output_profile", thumbnail->output_profile,
 				"intent", thumbnail->intent,
 				"depth", 8,
 				NULL))
@@ -885,7 +885,7 @@ vips_thumbnail_build(VipsObject *object)
 	}
 	else if (thumbnail->linear) {
 		/* We are in one of the scRGB or GREY16 spaces and there's
-		 * no export profile. Output to sRGB or B_W.
+		 * no output profile. Output to sRGB or B_W.
 		 */
 		VipsInterpretation interpretation;
 
@@ -1012,18 +1012,18 @@ vips_thumbnail_class_init(VipsThumbnailClass *class)
 		G_STRUCT_OFFSET(VipsThumbnail, linear),
 		FALSE);
 
-	VIPS_ARG_STRING(class, "import_profile", 118,
-		_("Import profile"),
-		_("Fallback import profile"),
+	VIPS_ARG_STRING(class, "input_profile", 118,
+		_("Input profile"),
+		_("Fallback input profile"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsThumbnail, import_profile),
+		G_STRUCT_OFFSET(VipsThumbnail, input_profile),
 		NULL);
 
-	VIPS_ARG_STRING(class, "export_profile", 119,
-		_("Export profile"),
-		_("Fallback export profile"),
+	VIPS_ARG_STRING(class, "output_profile", 119,
+		_("Output profile"),
+		_("Fallback output profile"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsThumbnail, export_profile),
+		G_STRUCT_OFFSET(VipsThumbnail, output_profile),
 		NULL);
 
 	VIPS_ARG_ENUM(class, "intent", 120,
@@ -1046,12 +1046,30 @@ vips_thumbnail_class_init(VipsThumbnailClass *class)
 	 * This is now replaced (though still functional) with "no-rotate",
 	 * see above.
 	 */
-	VIPS_ARG_BOOL(class, "auto_rotate", 121,
+	VIPS_ARG_BOOL(class, "auto_rotate", 130,
 		_("Auto rotate"),
 		_("Use orientation tags to rotate image upright"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET(VipsThumbnail, auto_rotate),
 		TRUE);
+
+	/* Renamed as input-profile and output-profile for consistency with the
+	 * rest of the API.
+	 */
+
+	VIPS_ARG_STRING(class, "import_profile", 131,
+		_("Import profile"),
+		_("Fallback import profile"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET(VipsThumbnail, input_profile),
+		NULL);
+
+	VIPS_ARG_STRING(class, "export_profile", 132,
+		_("Export profile"),
+		_("Fallback export profile"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET(VipsThumbnail, output_profile),
+		NULL);
 }
 
 static void
@@ -1217,7 +1235,7 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * Make a thumbnail from a file.
  *
  * Shrinking is done in three stages: using any
- * shrink-on-load features available in the file import library, using a block
+ * shrink-on-load features available in the image load library, using a block
  * shrink, and using a lanczos3 shrink. At least the final 200% is done with
  * lanczos3. The output should be high quality, and the operation should be
  * quick.
@@ -1256,9 +1274,9 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * also be far slower, since tricks like JPEG shrink-on-load cannot be used in
  * linear space.
  *
- * If you set @export_profile to the filename of an ICC profile, the image
+ * If you set @output_profile to the filename of an ICC profile, the image
  * will be transformed to the target colourspace before writing to the
- * output. You can also give an @import_profile which will be used if the
+ * output. You can also give an @input_profile which will be used if the
  * input image has no ICC profile, or if the profile embedded in the
  * input image is broken.
  *
@@ -1274,8 +1292,8 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
  *     * @linear: %gboolean, perform shrink in linear light
- *     * @import_profile: %gchararray, fallback import ICC profile
- *     * @export_profile: %gchararray, export ICC profile
+ *     * @input_profile: %gchararray, fallback input ICC profile
+ *     * @output_profile: %gchararray, output ICC profile
  *     * @intent: [enum@Intent], rendering intent
  *     * @fail_on: [enum@FailOn], load error types to fail on
  *
@@ -1482,8 +1500,8 @@ vips_thumbnail_buffer_init(VipsThumbnailBuffer *buffer)
  *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
  *     * @linear: %gboolean, perform shrink in linear light
- *     * @import_profile: %gchararray, fallback import ICC profile
- *     * @export_profile: %gchararray, export ICC profile
+ *     * @input_profile: %gchararray, fallback input ICC profile
+ *     * @output_profile: %gchararray, output ICC profile
  *     * @intent: [enum@Intent], rendering intent
  *     * @fail_on: [enum@FailOn], load error types to fail on
  *     * @option_string: %gchararray, extra loader options
@@ -1696,8 +1714,8 @@ vips_thumbnail_source_init(VipsThumbnailSource *source)
  *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
  *     * @linear: %gboolean, perform shrink in linear light
- *     * @import_profile: %gchararray, fallback import ICC profile
- *     * @export_profile: %gchararray, export ICC profile
+ *     * @input_profile: %gchararray, fallback input ICC profile
+ *     * @output_profile: %gchararray, output ICC profile
  *     * @intent: [enum@Intent], rendering intent
  *     * @fail_on: [enum@FailOn], load error types to fail on
  *     * @option_string: %gchararray, extra loader options
@@ -1815,8 +1833,8 @@ vips_thumbnail_image_init(VipsThumbnailImage *image)
  *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
  *     * @linear: %gboolean, perform shrink in linear light
- *     * @import_profile: %gchararray, fallback import ICC profile
- *     * @export_profile: %gchararray, export ICC profile
+ *     * @input_profile: %gchararray, fallback input ICC profile
+ *     * @output_profile: %gchararray, output ICC profile
  *     * @intent: [enum@Intent], rendering intent
  *     * @fail_on: [enum@FailOn], load error types to fail on
  *

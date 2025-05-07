@@ -14,7 +14,7 @@
  * 2/11/13
  * 	- add @point to force point sample mode
  * 22/1/16
- * 	- remove SEQUENTIAL hint, it confuses [method@Image.sequential]
+ * 	- remove SEQUENTIAL hint, it confuses vips_sequential()
  */
 
 /*
@@ -260,7 +260,7 @@ vips_subsample_class_init(VipsSubsampleClass *class)
 	vobject_class->build = vips_subsample_build;
 
 	/* We don't work well as sequential: we can easily skip the first few
-	 * scanlines, and that confuses [method@Image.sequential].
+	 * scanlines, and that confuses vips_sequential().
 	 */
 
 	VIPS_ARG_IMAGE(class, "input", 1,

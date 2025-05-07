@@ -103,8 +103,8 @@ typedef struct _Buffer {
 } Buffer;
 
 /* What we track during a flood. We have this in a separate struct so that we
- * can support [func@_draw_flood_direct] ... a fast path for
- * [method@Image.labelregions] that avoids all of the GObject call overhead. This
+ * can support vips__draw_flood_direct() ... a fast path for
+ * vips_labelregions() that avoids all of the GObject call overhead. This
  * gives a huge speedup, >x10 in many cases.
  */
 typedef struct _Flood {
@@ -623,7 +623,7 @@ vips_draw_flood_init(VipsDrawFlood *draw_flood)
 {
 }
 
-/* Direct path to flood for [method@Image.labelregions]. We need to avoid the function
+/* Direct path to flood for vips_labelregions(). We need to avoid the function
  * dispatch system for speed.
  *
  * Equivalent to:

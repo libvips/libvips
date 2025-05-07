@@ -141,10 +141,10 @@ vips_percent_init(VipsPercent *percent)
  * [method@Image.percent] returns (through the @threshold parameter) the threshold
  * below which there are @percent values of @in. For example:
  *
- * |[
+ * ```bash
  * $ vips percent k2.jpg 90
  * 214
- * ]|
+ * ```
  *
  * Means that 90% of pixels in `k2.jpg` have a value less than 214.
  *

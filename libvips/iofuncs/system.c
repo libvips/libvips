@@ -7,7 +7,7 @@
  * 10/3/03 JC
  *	- out can be NULL
  * 23/12/04
- *	- use [func@GLib.mkstemp]
+ *	- use g_mkstemp()
  * 8/9/09
  * 	- add .v suffix (thanks Roland)
  * 	- use vipsbuf

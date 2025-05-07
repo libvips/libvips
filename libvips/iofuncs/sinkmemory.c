@@ -76,7 +76,7 @@ typedef struct _SinkMemory {
 	SinkMemoryArea *old_area;
 
 	/* A region covering the whole of the output image ... we write to
-	 * this from many workers with [method@Region.prepare_to].
+	 * this from many workers with vips_region_prepare_to().
 	 */
 	VipsRegion *region;
 } SinkMemory;

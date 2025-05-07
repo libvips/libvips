@@ -1,4 +1,4 @@
-/* [method@Image.sink_screen] as an operation.
+/* vips_sink_screen() as an operation.
  *
  * 13/1/12
  * 	- from tilecache.c

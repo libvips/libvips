@@ -71,7 +71,7 @@ vips_round_build(VipsObject *object)
 {
 	VipsUnary *unary = (VipsUnary *) object;
 
-	/* Is this one of the int types? Degenerate to [method@Image.copy] if it
+	/* Is this one of the int types? Degenerate to vips_copy() if it
 	 * is.
 	 */
 	if (unary->in &&

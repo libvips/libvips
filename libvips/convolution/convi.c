@@ -1270,9 +1270,9 @@ vips_convi_init(VipsConvi *convi)
  * @mask is converted to an integer mask with rint() of each element, rint of
  * scale and rint of offset. Each output pixel is then calculated as
  *
- * |[
+ * ```
  * sigma[i]{pixel[i] * mask[i]} / scale + offset
- * ]|
+ * ```
  *
  * The output image always has the same [enum@BandFormat] as the input image.
  *

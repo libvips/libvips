@@ -62,7 +62,7 @@
  * 16/10/14
  * 	- add "autorotate" option
  * 20/1/15
- * 	- don't call jpe[func@GLib.finish_decompress], all it does is read and check
+ * 	- don't call jpeg_finish_decompress(), all it does is read and check
  * 	  the tail of the file
  * 26/2/15
  * 	- close the jpeg read down early for a header read ... this saves an
@@ -421,9 +421,9 @@ readjpeg_free(ReadJpeg *jpeg)
 		jpeg->eman.pub.num_warnings = 0;
 	}
 
-	/* Don't call jpe[func@GLib.finish_decompress]. It just checks the tail of the
+	/* Don't call jpeg_finish_decompress(). It just checks the tail of the
 	 * file and who cares about that. All mem is freed in
-	 * jpe[func@GLib.destroy_decompress].
+	 * jpeg_destroy_decompress().
 	 */
 
 	/* I don't think this can fail. It's harmless to call many times.

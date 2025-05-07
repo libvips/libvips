@@ -161,7 +161,7 @@ vips_Lab2LabQ_init(VipsLab2LabQ *Lab2LabQ)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Convert a Lab three-band float image to LabQ ([enum@Vips.Coding.LABQ)].
+ * Convert a Lab three-band float image to LabQ ([enum@Vips.Coding.LABQ]).
  *
  * ::: seealso
  *     [method@Image.LabQ2Lab].

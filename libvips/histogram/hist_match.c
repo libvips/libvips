@@ -188,7 +188,7 @@ vips_hist_match_init(VipsHistMatch *match)
  *
  * ::: seealso
  *     [method@Image.maplut], [method@Image.hist_find], [method@Image.hist_norm],
- * [method@Image.hist_cum].
+ *     [method@Image.hist_cum].
  *
  * Returns: 0 on success, -1 on error
  */

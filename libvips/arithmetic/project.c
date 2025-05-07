@@ -6,7 +6,7 @@
  * 	- gtkdoc
  * 	- small celanups
  * 11/9/13
- * 	- redo as a class, from [method@Image.hist_find]
+ * 	- redo as a class, from vips_hist_find()
  */
 
 /*

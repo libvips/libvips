@@ -206,7 +206,7 @@ vips_rad2float_init(VipsRad2float *rad2float)
  * @out: (out): output image
  * @...: %NULL-terminated list of optional named arguments
  *
- * Unpack a RAD ([enum@Vips.Coding.RAD)] image to a three-band float image.
+ * Unpack a RAD ([enum@Vips.Coding.RAD]) image to a three-band float image.
  *
  * ::: seealso
  *     [method@Image.float2rad], [method@Image.LabQ2LabS].
