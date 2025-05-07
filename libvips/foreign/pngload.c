@@ -409,7 +409,7 @@ vips_foreign_load_png_buffer_init(VipsForeignLoadPngBuffer *buffer)
  * vips_pngload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a PNG file into a VIPS image. It can read all png images, including 8-
  * and 16-bit images, 1 and 3 channel, with and without an alpha channel.
@@ -426,7 +426,7 @@ vips_foreign_load_png_buffer_init(VipsForeignLoadPngBuffer *buffer)
  *
  * ::: tip "Optional arguments"
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @unlimited: %gboolean, Remove all denial of service limits
+ *     * @unlimited: `gboolean`, Remove all denial of service limits
  *
  * ::: seealso
  *     [ctor@Image.new_from_file].
@@ -451,7 +451,7 @@ vips_pngload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.pngload], but read from a PNG-formatted memory block.
  *
@@ -460,7 +460,7 @@ vips_pngload(const char *filename, VipsImage **out, ...)
  *
  * ::: tip "Optional arguments"
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @unlimited: %gboolean, Remove all denial of service limits
+ *     * @unlimited: `gboolean`, Remove all denial of service limits
  *
  * ::: seealso
  *     [ctor@Image.pngload].
@@ -491,13 +491,13 @@ vips_pngload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_pngload_source:
  * @source: source to load from
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.pngload], but read from a source.
  *
  * ::: tip "Optional arguments"
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @unlimited: %gboolean, Remove all denial of service limits
+ *     * @unlimited: `gboolean`, Remove all denial of service limits
  *
  * ::: seealso
  *     [ctor@Image.pngload].

@@ -1438,7 +1438,7 @@ vips_icc_is_compatible_profile(VipsImage *image,
  * vips_icc_import: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Import an image from device space to D65 LAB with an ICC profile.
  *
@@ -1464,9 +1464,9 @@ vips_icc_is_compatible_profile(VipsImage *image,
  * ::: tip "Optional arguments"
  *     * @pcs: [enum@PCS], use XYZ or LAB PCS
  *     * @intent: [enum@Intent], transform with this intent
- *     * @black_point_compensation: %gboolean, enable black point compensation
- *     * @embedded: %gboolean, use profile embedded in input image
- *     * @input_profile: %gchararray, get the input profile from here
+ *     * @black_point_compensation: `gboolean`, enable black point compensation
+ *     * @embedded: `gboolean`, use profile embedded in input image
+ *     * @input_profile: `gchararray`, get the input profile from here
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1487,7 +1487,7 @@ vips_icc_import(VipsImage *in, VipsImage **out, ...)
  * vips_icc_export: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Export an image from D65 LAB to device space with an ICC profile.
  *
@@ -1502,9 +1502,9 @@ vips_icc_import(VipsImage *in, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @pcs: [enum@PCS],  use XYZ or LAB PCS
  *     * @intent: [enum@Intent], transform with this intent
- *     * @black_point_compensation: %gboolean, enable black point compensation
- *     * @output_profile: %gchararray, get the output profile from here
- *     * @depth: %gint, depth of output image in bits
+ *     * @black_point_compensation: `gboolean`, enable black point compensation
+ *     * @output_profile: `gchararray`, get the output profile from here
+ *     * @depth: `gint`, depth of output image in bits
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1526,7 +1526,7 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  * @in: input image
  * @out: (out): output image
  * @output_profile: get the output profile from here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Transform an image with a pair of ICC profiles.
  *
@@ -1561,10 +1561,10 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @pcs: [enum@PCS], use XYZ or LAB PCS
  *     * @intent: [enum@Intent], transform with this intent
- *     * @black_point_compensation: %gboolean, enable black point compensation
- *     * @embedded: %gboolean, use profile embedded in input image
- *     * @input_profile: %gchararray, get the input profile from here
- *     * @depth: %gint, depth of output image in bits
+ *     * @black_point_compensation: `gboolean`, enable black point compensation
+ *     * @embedded: `gboolean`, use profile embedded in input image
+ *     * @input_profile: `gchararray`, get the input profile from here
+ *     * @depth: `gint`, depth of output image in bits
  *
  * Returns: 0 on success, -1 on error.
  */

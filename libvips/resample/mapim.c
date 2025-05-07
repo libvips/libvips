@@ -598,7 +598,7 @@ vips_mapim_init(VipsMapim *mapim)
  * @in: input image
  * @out: (out): output image
  * @index: index image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operator resamples @in using @index to look up pixels.
  *
@@ -635,7 +635,7 @@ vips_mapim_init(VipsMapim *mapim)
  *     * @interpolate: [class@Interpolate], interpolate pixels with this
  *     * @extend: [enum@Vips.Extend], how to generate new pixels
  *     * @background: [struct@ArrayDouble], colour for new pixels
- *     * @premultiplied: %gboolean, images are already premultiplied
+ *     * @premultiplied: `gboolean`, images are already premultiplied
  *
  * ::: seealso
  *     [ctor@Image.xyz], [method@Image.affine], [method@Image.resize],

@@ -248,7 +248,7 @@ vips_avg_init(VipsAvg *avg)
  * vips_avg: (method)
  * @in: input [class@Image]
  * @out: (out): output pixel average
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation finds the average value in an image. It operates on all
  * bands of the input image: use [method@Image.stats] if you need to calculate an

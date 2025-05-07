@@ -66,7 +66,7 @@ vips_dbuf_init(VipsDbuf *dbuf)
  *
  * Make sure @dbuf is at least @size bytes.
  *
- * Returns: %FALSE on out of memory, %TRUE otherwise.
+ * Returns: `FALSE` on out of memory, `TRUE` otherwise.
  */
 gboolean
 vips_dbuf_minimum_size(VipsDbuf *dbuf, size_t size)
@@ -96,7 +96,7 @@ vips_dbuf_minimum_size(VipsDbuf *dbuf, size_t size)
  *
  * Make sure @dbuf has at least @size bytes available after the write point.
  *
- * Returns: %FALSE on out of memory, %TRUE otherwise.
+ * Returns: `FALSE` on out of memory, `TRUE` otherwise.
  */
 gboolean
 vips_dbuf_allocate(VipsDbuf *dbuf, size_t size)
@@ -165,7 +165,7 @@ vips_dbuf_get_write(VipsDbuf *dbuf, size_t *size)
  *
  * Append @size bytes from @data. @dbuf expands if necessary.
  *
- * Returns: %FALSE on out of memory, %TRUE otherwise.
+ * Returns: `FALSE` on out of memory, `TRUE` otherwise.
  */
 gboolean
 vips_dbuf_write(VipsDbuf *dbuf, const unsigned char *data, size_t size)
@@ -188,7 +188,7 @@ vips_dbuf_write(VipsDbuf *dbuf, const unsigned char *data, size_t size)
  *
  * Format the string and write to @dbuf.
  *
- * Returns: %FALSE on out of memory, %TRUE otherwise.
+ * Returns: `FALSE` on out of memory, `TRUE` otherwise.
  */
 gboolean
 vips_dbuf_writef(VipsDbuf *dbuf, const char *fmt, ...)
@@ -222,7 +222,7 @@ vips_dbuf_writef(VipsDbuf *dbuf, const char *fmt, ...)
  * - Don't escape \n, \t, \r
  * - Do escape the other ASCII codes.
  *
- * Returns: %FALSE on out of memory, %TRUE otherwise.
+ * Returns: `FALSE` on out of memory, `TRUE` otherwise.
  */
 gboolean
 vips_dbuf_write_amp(VipsDbuf *dbuf, const char *str)
@@ -301,7 +301,7 @@ vips_dbuf_destroy(VipsDbuf *dbuf)
  * @offset: how to move the write point
  * @whence: from start, from end, from current
  *
- * Move the write point. @whence can be %SEEK_SET, %SEEK_CUR, %SEEK_END, with
+ * Move the write point. @whence can be `SEEK_SET`, `SEEK_CUR`, `SEEK_END`, with
  * the usual meaning.
  */
 gboolean
@@ -380,7 +380,7 @@ vips_dbuf_tell(VipsDbuf *dbuf)
  *
  * This makes it safe to treat the dbuf contents as a C string.
  *
- * Returns: %FALSE on out of memory, %TRUE otherwise.
+ * Returns: `FALSE` on out of memory, `TRUE` otherwise.
  */
 static gboolean
 vips_dbuf_null_terminate(VipsDbuf *dbuf)

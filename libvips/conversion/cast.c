@@ -563,20 +563,20 @@ vips_castv(VipsImage *in, VipsImage **out, VipsBandFormat format, va_list ap)
  * @in: input image
  * @out: (out): output image
  * @format: format to convert to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to @format. You can convert between any pair of formats.
  * Floats are truncated (not rounded). Out of range values are clipped.
  *
  * Casting from complex to real returns the real part.
  *
- * If @shift is %TRUE, integer values are shifted up and down. For example,
+ * If @shift is `TRUE`, integer values are shifted up and down. For example,
  * casting from unsigned 8 bit to unsigned 16 bit would
  * shift every value left by 8 bits. The bottom bit is copied into the new
  * bits, so 255 would become 65535.
  *
  * ::: tip "Optional arguments"
- *     * @shift: %gboolean, integer values are shifted
+ *     * @shift: `gboolean`, integer values are shifted
  *
  * ::: seealso
  *     [method@Image.scale], [method@Image.complexform], [method@Image.real],
@@ -601,12 +601,12 @@ vips_cast(VipsImage *in, VipsImage **out, VipsBandFormat format, ...)
  * vips_cast_uchar: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.UCHAR]. See [method@Image.cast].
  *
  * ::: tip "Optional arguments"
- *     * @shift: %gboolean, integer values are shifted
+ *     * @shift: `gboolean`, integer values are shifted
  *
  * Returns: 0 on success, -1 on error
  */
@@ -627,12 +627,12 @@ vips_cast_uchar(VipsImage *in, VipsImage **out, ...)
  * vips_cast_char: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.CHAR]. See [method@Image.cast].
  *
  * ::: tip "Optional arguments"
- *     * @shift: %gboolean, integer values are shifted
+ *     * @shift: `gboolean`, integer values are shifted
  *
  * Returns: 0 on success, -1 on error
  */
@@ -653,12 +653,12 @@ vips_cast_char(VipsImage *in, VipsImage **out, ...)
  * vips_cast_ushort: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.USHORT]. See [method@Image.cast].
  *
  * ::: tip "Optional arguments"
- *     * @shift: %gboolean, integer values are shifted
+ *     * @shift: `gboolean`, integer values are shifted
  *
  * Returns: 0 on success, -1 on error
  */
@@ -679,12 +679,12 @@ vips_cast_ushort(VipsImage *in, VipsImage **out, ...)
  * vips_cast_short: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.SHORT]. See [method@Image.cast].
  *
  * ::: tip "Optional arguments"
- *     * @shift: %gboolean, integer values are shifted
+ *     * @shift: `gboolean`, integer values are shifted
  *
  * Returns: 0 on success, -1 on error
  */
@@ -705,12 +705,12 @@ vips_cast_short(VipsImage *in, VipsImage **out, ...)
  * vips_cast_uint: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.UINT]. See [method@Image.cast].
  *
  * ::: tip "Optional arguments"
- *     * @shift: %gboolean, integer values are shifted
+ *     * @shift: `gboolean`, integer values are shifted
  *
  * Returns: 0 on success, -1 on error
  */
@@ -731,12 +731,12 @@ vips_cast_uint(VipsImage *in, VipsImage **out, ...)
  * vips_cast_int: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.INT]. See [method@Image.cast].
  *
  * ::: tip "Optional arguments"
- *     * @shift: %gboolean, integer values are shifted
+ *     * @shift: `gboolean`, integer values are shifted
  *
  * Returns: 0 on success, -1 on error
  */
@@ -757,7 +757,7 @@ vips_cast_int(VipsImage *in, VipsImage **out, ...)
  * vips_cast_float: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.FLOAT]. See [method@Image.cast].
  *
@@ -780,7 +780,7 @@ vips_cast_float(VipsImage *in, VipsImage **out, ...)
  * vips_cast_double: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.DOUBLE]. See [method@Image.cast].
  *
@@ -803,7 +803,7 @@ vips_cast_double(VipsImage *in, VipsImage **out, ...)
  * vips_cast_complex: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.COMPLEX]. See [method@Image.cast].
  *
@@ -826,7 +826,7 @@ vips_cast_complex(VipsImage *in, VipsImage **out, ...)
  * vips_cast_dpcomplex: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert @in to [enum@Vips.BandFormat.DPCOMPLEX]. See [method@Image.cast].
  *

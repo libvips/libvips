@@ -371,7 +371,7 @@ vips_foreign_load_rad_buffer_init(VipsForeignLoadRadBuffer *buffer)
  * vips_radload:
  * @filename: file to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a Radiance (HDR) file into a VIPS image.
  *
@@ -410,7 +410,7 @@ vips_radload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.radload], but read from a HDR-formatted memory block.
  *
@@ -446,7 +446,7 @@ vips_radload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_radload_source:
  * @source: source to load from
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.radload], but read from a source.
  *

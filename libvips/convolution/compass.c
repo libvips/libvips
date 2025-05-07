@@ -218,19 +218,19 @@ vips_compass_init(VipsCompass *compass)
  * @in: input image
  * @out: (out): output image
  * @mask: convolve with this mask
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This convolves @in with @mask @times times, rotating @mask by @angle
  * each time. By default, it comvolves twice, rotating by 90 degrees, taking
  * the maximum result.
  *
  * ::: tip "Optional arguments"
- *     * @times: %gint, how many times to rotate and convolve
+ *     * @times: `gint`, how many times to rotate and convolve
  *     * @angle: [enum@Angle45], rotate mask by this much between colvolutions
  *     * @combine: [enum@Combine], combine results like this
  *     * @precision: [enum@Precision], precision for blur, default float
- *     * @layers: %gint, number of layers for approximation
- *     * @cluster: %gint, cluster lines closer than this distance
+ *     * @layers: `gint`, number of layers for approximation
+ *     * @cluster: `gint`, cluster lines closer than this distance
  *
  * ::: seealso
  *     [method@Image.conv].

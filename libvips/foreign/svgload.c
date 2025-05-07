@@ -1038,7 +1038,7 @@ vips_foreign_load_svg_buffer_init(VipsForeignLoadSvgBuffer *buffer)
  * vips_svgload:
  * @filename: file to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Render a SVG file into a VIPS image.
  *
@@ -1058,10 +1058,10 @@ vips_foreign_load_svg_buffer_init(VipsForeignLoadSvgBuffer *buffer)
  * User Origin. This feature requires librsvg 2.48.0 or later.
  *
  * ::: tip "Optional arguments"
- *     * @dpi: %gdouble, render at this DPI
- *     * @scale: %gdouble, scale render by this factor
- *     * @unlimited: %gboolean, allow SVGs of any size
- *     * @stylesheet: %gchararray, custom CSS
+ *     * @dpi: `gdouble`, render at this DPI
+ *     * @scale: `gdouble`, scale render by this factor
+ *     * @unlimited: `gboolean`, allow SVGs of any size
+ *     * @stylesheet: `gchararray`, custom CSS
  *
  * ::: seealso
  *     [ctor@Image.new_from_file].
@@ -1086,7 +1086,7 @@ vips_svgload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a SVG-formatted memory block into a VIPS image. Exactly as
  * [ctor@Image.svgload], but read from a memory buffer.
@@ -1095,10 +1095,10 @@ vips_svgload(const char *filename, VipsImage **out, ...)
  * [signal@Object::postclose] signal on @out is a good place to free.
  *
  * ::: tip "Optional arguments"
- *     * @dpi: %gdouble, render at this DPI
- *     * @scale: %gdouble, scale render by this factor
- *     * @unlimited: %gboolean, allow SVGs of any size
- *     * @stylesheet: %gchararray, custom CSS
+ *     * @dpi: `gdouble`, render at this DPI
+ *     * @scale: `gdouble`, scale render by this factor
+ *     * @unlimited: `gboolean`, allow SVGs of any size
+ *     * @stylesheet: `gchararray`, custom CSS
  *
  * ::: seealso
  *     [ctor@Image.svgload].
@@ -1129,16 +1129,16 @@ vips_svgload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_svgload_string:
  * @str: string to load
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.svgload], but read from a string. This function
  * takes a copy of the string.
  *
  * ::: tip "Optional arguments"
- *     * @dpi: %gdouble, render at this DPI
- *     * @scale: %gdouble, scale render by this factor
- *     * @unlimited: %gboolean, allow SVGs of any size
- *     * @stylesheet: %gchararray, custom CSS
+ *     * @dpi: `gdouble`, render at this DPI
+ *     * @scale: `gdouble`, scale render by this factor
+ *     * @unlimited: `gboolean`, allow SVGs of any size
+ *     * @stylesheet: `gchararray`, custom CSS
  *
  * ::: seealso
  *     [ctor@Image.svgload].
@@ -1169,7 +1169,7 @@ vips_svgload_string(const char *str, VipsImage **out, ...)
  * vips_svgload_source:
  * @source: source to load from
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.svgload], but read from a source.
  *

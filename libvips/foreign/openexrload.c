@@ -164,7 +164,7 @@ vips_foreign_load_openexr_init(VipsForeignLoadOpenexr *openexr)
  * vips_openexrload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a OpenEXR file into a VIPS image.
  *

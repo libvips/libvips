@@ -160,7 +160,7 @@ vips_countlines_init(VipsCountlines *countlines)
  * @in: input image
  * @nolines: (out): output average number of lines
  * @direction: count lines horizontally or vertically
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Function which calculates the number of transitions
  * between black and white for the horizontal or the vertical

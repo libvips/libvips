@@ -323,7 +323,7 @@ vips_system_init(VipsSystem *system)
 /**
  * vips_system:
  * @cmd_format: command to run
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * ::: note "Optional arguments"
  *     * @in: array of input images
@@ -349,7 +349,7 @@ vips_system_init(VipsSystem *system)
  * You can put a number between the `%` and the `s` to change the order
  * in which the substitution occurs.
  *
- * The command is executed with popen() and the output captured in @log.
+ * The command is executed with [`popen()`](man:popen(3)) and the output captured in @log.
  *
  * After the command finishes, if @out_format is set, the output image is
  * opened and returned in @out. You can append `[options]` to @out_format to

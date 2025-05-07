@@ -456,7 +456,7 @@ vips_foreign_save_nifti_init(VipsForeignSaveNifti *nifti)
  * vips_niftisave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image to a file in NIFTI format.
  *

@@ -186,7 +186,7 @@ vips_transpose3d_init(VipsTranspose3d *transpose3d)
  * vips_transpose3d: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Transpose a volumetric image.
  *
@@ -203,7 +203,7 @@ vips_transpose3d_init(VipsTranspose3d *transpose3d)
  * input image.
  *
  * ::: tip "Optional arguments"
- *     * @page_height: %gint, size of each input page
+ *     * @page_height: `gint`, size of each input page
  *
  * ::: seealso
  *     [method@Image.grid].

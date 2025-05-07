@@ -1230,7 +1230,7 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * @filename: file to read from
  * @out: (out): output image
  * @width: target width in pixels
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Make a thumbnail from a file.
  *
@@ -1264,7 +1264,7 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * and the image will be forced to fit the target.
  *
  * Normally any orientation tags on the input image (such as EXIF tags) are
- * interpreted to rotate the image upright. If you set @no_rotate to %TRUE,
+ * interpreted to rotate the image upright. If you set @no_rotate to `TRUE`,
  * these tags will not be interpreted.
  *
  * Shrinking is normally done in sRGB colourspace. Set @linear to shrink in
@@ -1285,13 +1285,13 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * The default is [enum@Vips.FailOn.NONE], ie. thumbnail is permissive.
  *
  * ::: tip "Optional arguments"
- *     * @height: %gint, target height in pixels
+ *     * @height: `gint`, target height in pixels
  *     * @size: [enum@Size], upsize, downsize, both or force
- *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
+ *     * @no_rotate: `gboolean`, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
- *     * @linear: %gboolean, perform shrink in linear light
- *     * @input_profile: %gchararray, fallback input ICC profile
- *     * @output_profile: %gchararray, output ICC profile
+ *     * @linear: `gboolean`, perform shrink in linear light
+ *     * @input_profile: `gchararray`, fallback input ICC profile
+ *     * @output_profile: `gchararray`, output ICC profile
  *     * @intent: [enum@Intent], rendering intent
  *     * @fail_on: [enum@FailOn], load error types to fail on
  *
@@ -1485,7 +1485,7 @@ vips_thumbnail_buffer_init(VipsThumbnailBuffer *buffer)
  * @len: (type gsize): size of memory area
  * @out: (out): output image
  * @width: target width in pixels
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.thumbnail], but read from a memory buffer.
  *
@@ -1493,16 +1493,16 @@ vips_thumbnail_buffer_init(VipsThumbnailBuffer *buffer)
  * underlying loader.
  *
  * ::: tip "Optional arguments"
- *     * @height: %gint, target height in pixels
+ *     * @height: `gint`, target height in pixels
  *     * @size: [enum@Size], upsize, downsize, both or force
- *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
+ *     * @no_rotate: `gboolean`, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
- *     * @linear: %gboolean, perform shrink in linear light
- *     * @input_profile: %gchararray, fallback input ICC profile
- *     * @output_profile: %gchararray, output ICC profile
+ *     * @linear: `gboolean`, perform shrink in linear light
+ *     * @input_profile: `gchararray`, fallback input ICC profile
+ *     * @output_profile: `gchararray`, output ICC profile
  *     * @intent: [enum@Intent], rendering intent
  *     * @fail_on: [enum@FailOn], load error types to fail on
- *     * @option_string: %gchararray, extra loader options
+ *     * @option_string: `gchararray`, extra loader options
  *
  * ::: seealso
  *     [ctor@Image.thumbnail].
@@ -1698,7 +1698,7 @@ vips_thumbnail_source_init(VipsThumbnailSource *source)
  * @source: source to thumbnail
  * @out: (out): output image
  * @width: target width in pixels
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.thumbnail], but read from a source.
  *
@@ -1707,16 +1707,16 @@ vips_thumbnail_source_init(VipsThumbnailSource *source)
  * loader.
  *
  * ::: tip "Optional arguments"
- *     * @height: %gint, target height in pixels
+ *     * @height: `gint`, target height in pixels
  *     * @size: [enum@Size], upsize, downsize, both or force
- *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
+ *     * @no_rotate: `gboolean`, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
- *     * @linear: %gboolean, perform shrink in linear light
- *     * @input_profile: %gchararray, fallback input ICC profile
- *     * @output_profile: %gchararray, output ICC profile
+ *     * @linear: `gboolean`, perform shrink in linear light
+ *     * @input_profile: `gchararray`, fallback input ICC profile
+ *     * @output_profile: `gchararray`, output ICC profile
  *     * @intent: [enum@Intent], rendering intent
  *     * @fail_on: [enum@FailOn], load error types to fail on
- *     * @option_string: %gchararray, extra loader options
+ *     * @option_string: `gchararray`, extra loader options
  *
  * ::: seealso
  *     [ctor@Image.thumbnail].
@@ -1816,7 +1816,7 @@ vips_thumbnail_image_init(VipsThumbnailImage *image)
  * @in: input image
  * @out: (out): output image
  * @width: target width in pixels
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.thumbnail], but read from an existing image.
  *
@@ -1826,13 +1826,13 @@ vips_thumbnail_image_init(VipsThumbnailImage *image)
  * output. Only use this operation if you really have to.
  *
  * ::: tip "Optional arguments"
- *     * @height: %gint, target height in pixels
+ *     * @height: `gint`, target height in pixels
  *     * @size: [enum@Size], upsize, downsize, both or force
- *     * @no_rotate: %gboolean, don't rotate upright using orientation tag
+ *     * @no_rotate: `gboolean`, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
- *     * @linear: %gboolean, perform shrink in linear light
- *     * @input_profile: %gchararray, fallback input ICC profile
- *     * @output_profile: %gchararray, output ICC profile
+ *     * @linear: `gboolean`, perform shrink in linear light
+ *     * @input_profile: `gchararray`, fallback input ICC profile
+ *     * @output_profile: `gchararray`, output ICC profile
  *     * @intent: [enum@Intent], rendering intent
  *     * @fail_on: [enum@FailOn], load error types to fail on
  *

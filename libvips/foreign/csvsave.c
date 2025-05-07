@@ -338,7 +338,7 @@ vips_foreign_save_csv_target_init(VipsForeignSaveCsvTarget *target)
  * vips_csvsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Writes the pixels in @in to the @filename as CSV (comma-separated values).
  *
@@ -375,7 +375,7 @@ vips_csvsave(VipsImage *in, const char *filename, ...)
  * vips_csvsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.csvsave], but save to a target.
  *

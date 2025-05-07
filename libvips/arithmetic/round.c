@@ -202,7 +202,7 @@ vips_roundv(VipsImage *in, VipsImage **out,
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
  * @round: [class@Operation]Round rounding operation to perform
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Round to an integral value.
  *
@@ -234,7 +234,7 @@ vips_round(VipsImage *in, VipsImage **out, VipsOperationRound round, ...)
  * vips_floor: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Round to an integral value with [enum@Vips.OperationRound.FLOOR]. See
  * [method@Image.round].
@@ -258,7 +258,7 @@ vips_floor(VipsImage *in, VipsImage **out, ...)
  * vips_ceil: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Round to an integral value with [enum@Vips.OperationRound.CEIL]. See
  * [method@Image.round].
@@ -282,7 +282,7 @@ vips_ceil(VipsImage *in, VipsImage **out, ...)
  * vips_rint: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Round to an integral value with [enum@Vips.OperationRound.RINT]. See
  * [method@Image.round].

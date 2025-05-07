@@ -76,7 +76,7 @@ vips_dECMC_init(VipsdECMC *dECMC)
  * @left: first input image
  * @right: second input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Calculate dE CMC. The input images are transformed to CMC colour space and
  * the euclidean distance between corresponding pixels calculated.

@@ -152,7 +152,7 @@ vips_sRGB2scRGB_init(VipssRGB2scRGB *sRGB2scRGB)
  * vips_sRGB2scRGB: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert an sRGB image to scRGB.
  *

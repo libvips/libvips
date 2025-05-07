@@ -199,7 +199,7 @@ vips_foreign_load_raw_init(VipsForeignLoadRaw *raw)
  * @width: width of image in pixels
  * @height: height of image in pixels
  * @bands: number of image bands
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation mmaps the file, setting up @out so that access to that
  * image will read from the file.
@@ -212,7 +212,7 @@ vips_foreign_load_raw_init(VipsForeignLoadRaw *raw)
  * Use [method@Image.byteswap] to reverse the byte ordering if necessary.
  *
  * ::: tip "Optional arguments"
- *     * @offset: %guint64, offset in bytes from start of file
+ *     * @offset: `guint64`, offset in bytes from start of file
  *     * @format: [enum@BandFormat], set image format
  *     * @interpretation: [enum@Interpretation], set image interpretation
  *

@@ -523,7 +523,7 @@ vips_foreign_save_jpeg_mime_init(VipsForeignSaveJpegMime *mime)
  * vips_jpegsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image to a file as JPEG.
  *
@@ -601,15 +601,15 @@ vips_foreign_save_jpeg_mime_init(VipsForeignSaveJpegMime *mime)
  * are coded and attached.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @optimize_coding: %gboolean, compute optimal Huffman coding tables
- *     * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ *     * @Q: `gint`, quality factor
+ *     * @optimize_coding: `gboolean`, compute optimal Huffman coding tables
+ *     * @interlace: `gboolean`, write an interlaced (progressive) jpeg
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
- *     * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
- *     * @overshoot_deringing: %gboolean, overshoot samples with extreme values
- *     * @optimize_scans: %gboolean, split DCT coefficients into separate scans
- *     * @quant_table: %gint, quantization table index
- *     * @restart_interval: %gint, restart interval in mcu
+ *     * @trellis_quant: `gboolean`, apply trellis quantisation to each 8x8 block
+ *     * @overshoot_deringing: `gboolean`, overshoot samples with extreme values
+ *     * @optimize_scans: `gboolean`, split DCT coefficients into separate scans
+ *     * @quant_table: `gint`, quantization table index
+ *     * @restart_interval: `gint`, restart interval in mcu
  *
  * ::: seealso
  *     [method@Image.jpegsave_buffer], [method@Image.write_to_file].
@@ -633,20 +633,20 @@ vips_jpegsave(VipsImage *in, const char *filename, ...)
  * vips_jpegsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.jpegsave], but save to a target.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @optimize_coding: %gboolean, compute optimal Huffman coding tables
- *     * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ *     * @Q: `gint`, quality factor
+ *     * @optimize_coding: `gboolean`, compute optimal Huffman coding tables
+ *     * @interlace: `gboolean`, write an interlaced (progressive) jpeg
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
- *     * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
- *     * @overshoot_deringing: %gboolean, overshoot samples with extreme values
- *     * @optimize_scans: %gboolean, split DCT coefficients into separate scans
- *     * @quant_table: %gint, quantization table index
- *     * @restart_interval: %gint, restart interval in mcu
+ *     * @trellis_quant: `gboolean`, apply trellis quantisation to each 8x8 block
+ *     * @overshoot_deringing: `gboolean`, overshoot samples with extreme values
+ *     * @optimize_scans: `gboolean`, split DCT coefficients into separate scans
+ *     * @quant_table: `gint`, quantization table index
+ *     * @restart_interval: `gint`, restart interval in mcu
  *
  * ::: seealso
  *     [method@Image.jpegsave], [method@Image.write_to_target].
@@ -671,7 +671,7 @@ vips_jpegsave_target(VipsImage *in, VipsTarget *target, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.jpegsave], but save to a memory buffer.
  *
@@ -680,15 +680,15 @@ vips_jpegsave_target(VipsImage *in, VipsTarget *target, ...)
  * when you are done with it.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @optimize_coding: %gboolean, compute optimal Huffman coding tables
- *     * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ *     * @Q: `gint`, quality factor
+ *     * @optimize_coding: `gboolean`, compute optimal Huffman coding tables
+ *     * @interlace: `gboolean`, write an interlaced (progressive) jpeg
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
- *     * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
- *     * @overshoot_deringing: %gboolean, overshoot samples with extreme values
- *     * @optimize_scans: %gboolean, split DCT coefficients into separate scans
- *     * @quant_table: %gint, quantization table index
- *     * @restart_interval: %gint, restart interval in mcu
+ *     * @trellis_quant: `gboolean`, apply trellis quantisation to each 8x8 block
+ *     * @overshoot_deringing: `gboolean`, overshoot samples with extreme values
+ *     * @optimize_scans: `gboolean`, split DCT coefficients into separate scans
+ *     * @quant_table: `gint`, quantization table index
+ *     * @restart_interval: `gint`, restart interval in mcu
  *
  * ::: seealso
  *     [method@Image.jpegsave], [method@Image.write_to_file].
@@ -726,20 +726,20 @@ vips_jpegsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 /**
  * vips_jpegsave_mime: (method)
  * @in: image to save
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.jpegsave], but save as a mime jpeg on stdout.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @optimize_coding: %gboolean, compute optimal Huffman coding tables
- *     * @interlace: %gboolean, write an interlaced (progressive) jpeg
+ *     * @Q: `gint`, quality factor
+ *     * @optimize_coding: `gboolean`, compute optimal Huffman coding tables
+ *     * @interlace: `gboolean`, write an interlaced (progressive) jpeg
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
- *     * @trellis_quant: %gboolean, apply trellis quantisation to each 8x8 block
- *     * @overshoot_deringing: %gboolean, overshoot samples with extreme values
- *     * @optimize_scans: %gboolean, split DCT coefficients into separate scans
- *     * @quant_table: %gint, quantization table index
- *     * @restart_interval: %gint, restart interval in mcu
+ *     * @trellis_quant: `gboolean`, apply trellis quantisation to each 8x8 block
+ *     * @overshoot_deringing: `gboolean`, overshoot samples with extreme values
+ *     * @optimize_scans: `gboolean`, split DCT coefficients into separate scans
+ *     * @quant_table: `gint`, quantization table index
+ *     * @restart_interval: `gint`, restart interval in mcu
  *
  * ::: seealso
  *     [method@Image.jpegsave], [method@Image.write_to_file].

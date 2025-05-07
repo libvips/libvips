@@ -158,7 +158,7 @@ vips_foreign_save_fits_init(VipsForeignSaveFits *fits)
  * vips_fitssave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image to a file in FITS format.
  *

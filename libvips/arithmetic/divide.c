@@ -224,7 +224,7 @@ vips_divide_init(VipsDivide *divide)
  * @left: input image
  * @right: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation calculates @in1 / @in2 and writes the result to @out. If any
  * pixels in @in2 are zero, the corresponding pixel in @out is also zero.

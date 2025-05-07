@@ -445,7 +445,7 @@ vips_foreign_load_jpeg_buffer_init(VipsForeignLoadJpegBuffer *buffer)
  * vips_jpegload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images,
  * including CMYK and YCbCr.
@@ -457,11 +457,11 @@ vips_foreign_load_jpeg_buffer_init(VipsForeignLoadJpegBuffer *buffer)
  * Use @fail_on to set the type of error that will cause load to fail. By
  * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
- * Setting @autorotate to %TRUE will make the loader interpret the
+ * Setting @autorotate to `TRUE` will make the loader interpret the
  * orientation tag and automatically rotate the image appropriately during
  * load.
  *
- * If @autorotate is %FALSE, the metadata field [const@META_ORIENTATION] is set
+ * If @autorotate is `FALSE`, the metadata field [const@META_ORIENTATION] is set
  * to the value of the orientation tag. Applications may read and interpret
  * this field
  * as they wish later in processing. See [method@Image.autorot]. Save
@@ -499,9 +499,9 @@ vips_foreign_load_jpeg_buffer_init(VipsForeignLoadJpegBuffer *buffer)
  * "jpeg-thumbnail-data". See [method@Image.get_blob].
  *
  * ::: tip "Optional arguments"
- *     * @shrink: %gint, shrink by this much on load
+ *     * @shrink: `gint`, shrink by this much on load
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @autorotate: %gboolean, use exif Orientation tag to rotate the image
+ *     * @autorotate: `gboolean`, use exif Orientation tag to rotate the image
  *       during load
  *
  * ::: seealso
@@ -527,7 +527,7 @@ vips_jpegload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a JPEG-formatted memory block into a VIPS image. Exactly as
  * [ctor@Image.jpegload], but read from a memory buffer.
@@ -536,9 +536,9 @@ vips_jpegload(const char *filename, VipsImage **out, ...)
  * [signal@Object::postclose] signal on @out is a good place to free.
  *
  * ::: tip "Optional arguments"
- *     * @shrink: %gint, shrink by this much on load
+ *     * @shrink: `gint`, shrink by this much on load
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @autorotate: %gboolean, use exif Orientation tag to rotate the image
+ *     * @autorotate: `gboolean`, use exif Orientation tag to rotate the image
  *       during load
  *
  * ::: seealso
@@ -570,15 +570,15 @@ vips_jpegload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_jpegload_source:
  * @source: source to load
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a JPEG-formatted memory block into a VIPS image. Exactly as
  * [ctor@Image.jpegload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @shrink: %gint, shrink by this much on load
+ *     * @shrink: `gint`, shrink by this much on load
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @autorotate: %gboolean, use exif Orientation tag to rotate the image
+ *     * @autorotate: `gboolean`, use exif Orientation tag to rotate the image
  *       during load
  *
  * ::: seealso

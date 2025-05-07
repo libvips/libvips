@@ -63,7 +63,7 @@
  *
  * Does @r contain point (@x, @y)?
  *
- * Returns: %TRUE if @r contains (@x, @y).
+ * Returns: `TRUE` if @r contains (@x, @y).
  */
 gboolean
 vips_rect_includespoint(const VipsRect *r, int x, int y)
@@ -80,7 +80,7 @@ vips_rect_includespoint(const VipsRect *r, int x, int y)
  *
  * Is @r empty? ie. zero width or height.
  *
- * Returns: %TRUE if @r contains no pixels.
+ * Returns: `TRUE` if @r contains no pixels.
  */
 gboolean
 vips_rect_isempty(const VipsRect *r)
@@ -95,7 +95,7 @@ vips_rect_isempty(const VipsRect *r)
  *
  * Is @r2 a subset of @r1?
  *
- * Returns: %TRUE if @r2 is a subset of @r1.
+ * Returns: `TRUE` if @r2 is a subset of @r1.
  */
 gboolean
 vips_rect_includesrect(const VipsRect *r1, const VipsRect *r2)
@@ -113,7 +113,7 @@ vips_rect_includesrect(const VipsRect *r1, const VipsRect *r2)
  *
  * Is @r1 equal to @r2?
  *
- * Returns: %TRUE if @r1 is equal to @r2.
+ * Returns: `TRUE` if @r1 is equal to @r2.
  */
 gboolean
 vips_rect_equalsrect(const VipsRect *r1, const VipsRect *r2)
@@ -129,7 +129,7 @@ vips_rect_equalsrect(const VipsRect *r1, const VipsRect *r2)
  *
  * Do @r1 and @r2 have a non-empty intersection?
  *
- * Returns: %TRUE if @r2 and @r1 overlap.
+ * Returns: `TRUE` if @r2 and @r1 overlap.
  */
 gboolean
 vips_rect_overlapsrect(const VipsRect *r1, const VipsRect *r2)

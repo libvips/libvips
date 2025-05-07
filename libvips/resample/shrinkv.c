@@ -543,7 +543,7 @@ vips_shrinkv_init(VipsShrinkv *shrink)
  * @in: input image
  * @out: (out): output image
  * @vshrink: vertical shrink
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Shrink @in vertically by an integer factor.
  *
@@ -557,7 +557,7 @@ vips_shrinkv_init(VipsShrinkv *shrink)
  * be updated by the application.
  *
  * ::: tip "Optional arguments"
- *     * @ceil: %gboolean, round-up output dimensions
+ *     * @ceil: `gboolean`, round-up output dimensions
  *
  * ::: seealso
  *     [method@Image.shrinkh], [method@Image.shrink], [method@Image.resize],

@@ -582,11 +582,11 @@ vips_argument_table_destroy(VipsArgumentTable *table)
  * @a: client data
  * @b: client data
  *
- * Loop over the vips_arguments to an object. Stop when @fn returns non-%NULL
+ * Loop over the vips_arguments to an object. Stop when @fn returns non-`NULL`
  * and return that value.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_argument_map(VipsObject *object,
@@ -802,7 +802,7 @@ vips_object_get_argument(VipsObject *object, const char *name,
  *
  * Convenience: has an argument been assigned. Useful for bindings.
  *
- * Returns: %TRUE if the argument has been assigned.
+ * Returns: `TRUE` if the argument has been assigned.
  */
 gboolean
 vips_object_argument_isset(VipsObject *object, const char *name)
@@ -2379,7 +2379,7 @@ vips_object_new(GType type, VipsObjectSetArguments set, void *a, void *b)
 /**
  * vips_object_set_valist:
  * @object: object to set arguments on
- * @ap: %NULL-terminated list of argument/value pairs
+ * @ap: `NULL`-terminated list of argument/value pairs
  *
  * See [method@Object.set].
  *
@@ -2418,7 +2418,7 @@ vips_object_set_valist(VipsObject *object, va_list ap)
 /**
  * vips_object_set:
  * @object: object to set arguments on
- * @...: %NULL-terminated list of argument/value pairs
+ * @...: `NULL`-terminated list of argument/value pairs
  *
  * Set a list of vips object arguments. For example:
  *
@@ -2722,10 +2722,10 @@ vips_object_map_sub(VipsObject *key, VipsObject *value,
  * @b: client data
  *
  * Call a function for all alive objects.
- * Stop when @fn returns non-%NULL and return that value.
+ * Stop when @fn returns non-`NULL` and return that value.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_object_map(VipsSListMap2Fn fn, void *a, void *b)
@@ -2757,11 +2757,11 @@ vips_object_map(VipsSListMap2Fn fn, void *a, void *b)
  * @a: client data
  * @b: client data
  *
- * Map over a type's children. Stop when @fn returns non-%NULL
+ * Map over a type's children. Stop when @fn returns non-`NULL`
  * and return that value.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_type_map(GType base, VipsTypeMap2Fn fn, void *a, void *b)
@@ -2787,10 +2787,10 @@ vips_type_map(GType base, VipsTypeMap2Fn fn, void *a, void *b)
  * @a: client data
  *
  * Map over a type's children, direct and indirect. Stop when @fn returns
- * non-%NULL and return that value.
+ * non-`NULL` and return that value.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_type_map_all(GType base, VipsTypeMapFn fn, void *a)
@@ -2812,10 +2812,10 @@ vips_type_map_all(GType base, VipsTypeMapFn fn, void *a)
  *
  * Loop over all the subclasses of @type. Non-abstract classes only.
  * Stop when @fn returns
- * non-%NULL and return that value.
+ * non-`NULL` and return that value.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_class_map_all(GType type, VipsClassMapFn fn, void *a)

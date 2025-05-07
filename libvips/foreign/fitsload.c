@@ -353,7 +353,7 @@ vips_foreign_load_fits_source_init(VipsForeignLoadFitsSource *fits)
  * vips_fitsload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a FITS image file into a VIPS image.
  *
@@ -387,7 +387,7 @@ vips_fitsload(const char *filename, VipsImage **out, ...)
  * vips_fitsload_source:
  * @source: source to load from
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.fitsload], but read from a source.
  *

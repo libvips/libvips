@@ -100,7 +100,7 @@ vips_mask_ideal_init(VipsMaskIdeal *ideal)
  * @width: image size
  * @height: image size
  * @frequency_cutoff: threshold at which filter ends
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Make an ideal high- or low-pass filter, that is, one with a sharp cutoff
  * positioned at @frequency_cutoff, where @frequency_cutoff is in
@@ -126,10 +126,10 @@ vips_mask_ideal_init(VipsMaskIdeal *ideal)
  * float image. In this case, pixels are in the range [0 - 255].
  *
  * ::: tip "Optional arguments"
- *     * @nodc: %gboolean, don't set the DC pixel
- *     * @reject: %gboolean, invert the filter sense
- *     * @optical: %gboolean, coordinates in optical space
- *     * @uchar: %gboolean, output a uchar image
+ *     * @nodc: `gboolean`, don't set the DC pixel
+ *     * @reject: `gboolean`, invert the filter sense
+ *     * @optical: `gboolean`, coordinates in optical space
+ *     * @uchar: `gboolean`, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.mask_ideal], [ctor@Image.mask_ideal_ring],

@@ -519,6 +519,16 @@ s/%GValue/[struct@GObject.Value]/g
 s/%GObject/[class@GObject.Object]/g
 s/%GThread/[struct@GLib.Thread]/g
 s/%GType/[alias@GObject.Type]/g
+s/%NULL/`NULL`/g
+s/%TRUE/`TRUE`/g
+s/%FALSE/`FALSE`/g
+s/%gint64/`gint64`/g
+s/%guint64/`guint64`/g
+s/%gint/`gint`/g
+s/%gboolean/`gboolean`/g
+s/%gdouble/`gdouble`/g
+s/%gchararray/`gchararray`/g
+s/%gpointer/`gpointer`/g
 s/%GInputStream/[class@Gio.InputStream]/g
 s/%GInput/[class@Gio.Input]/g
 s/%GSList/[struct@GLib.SList]/g

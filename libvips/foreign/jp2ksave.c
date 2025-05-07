@@ -1441,7 +1441,7 @@ vips__foreign_save_jp2k_compress(VipsRegion *region,
  * vips_jp2ksave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image to a file in JPEG2000 format.
  *
@@ -1464,10 +1464,10 @@ vips__foreign_save_jp2k_compress(VipsRegion *region,
  * This operation always writes a pyramid.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @lossless: %gboolean, enables lossless compression
- *     * @tile_width: %gint, tile width
- *     * @tile_height: %gint, tile width
+ *     * @Q: `gint`, quality factor
+ *     * @lossless: `gboolean`, enables lossless compression
+ *     * @tile_width: `gint`, tile width
+ *     * @tile_height: `gint`, tile width
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
  *
  * ::: seealso
@@ -1493,15 +1493,15 @@ vips_jp2ksave(VipsImage *in, const char *filename, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.jp2ksave], but save to a target.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @lossless: %gboolean, enables lossless compression
- *     * @tile_width: %gint, tile width
- *     * @tile_height: %gint, tile width
+ *     * @Q: `gint`, quality factor
+ *     * @lossless: `gboolean`, enables lossless compression
+ *     * @tile_width: `gint`, tile width
+ *     * @tile_height: `gint`, tile width
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
  *
  * ::: seealso
@@ -1541,15 +1541,15 @@ vips_jp2ksave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * vips_jp2ksave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.jp2ksave], but save to a target.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @lossless: %gboolean, enables lossless compression
- *     * @tile_width: %gint, tile width
- *     * @tile_height: %gint, tile width
+ *     * @Q: `gint`, quality factor
+ *     * @lossless: `gboolean`, enables lossless compression
+ *     * @tile_width: `gint`, tile width
+ *     * @tile_height: `gint`, tile width
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
  *
  * ::: seealso

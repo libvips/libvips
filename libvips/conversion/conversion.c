@@ -55,7 +55,7 @@
  * @out: (out): output image
  * @n: number of input images
  * @mode: array of (@n - 1) [enum@BlendMode]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Composite an array of images together.
  *
@@ -93,7 +93,7 @@
  *
  * ::: tip "Optional arguments"
  *     * @compositing_space: [enum@Interpretation] to composite in
- *     * @premultiplied: %gboolean, images are already premultiplied
+ *     * @premultiplied: `gboolean`, images are already premultiplied
  *     * @x: [struct@ArrayInt], array of (@n - 1) x coordinates
  *     * @y: [struct@ArrayInt], array of (@n - 1) y coordinates
  *
@@ -109,15 +109,15 @@
  * @overlay: second input image
  * @out: (out): output image
  * @mode: composite with this blend mode
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Composite @overlay on top of @base with @mode. See [func@Image.composite].
  *
  * ::: tip "Optional arguments"
  *     * @compositing_space: [enum@Interpretation] to composite in
- *     * @premultiplied: %gboolean, images are already premultiplied
- *     * @x: %gint, position of overlay
- *     * @y: %gint, position of overlay
+ *     * @premultiplied: `gboolean`, images are already premultiplied
+ *     * @x: `gint`, position of overlay
+ *     * @y: `gint`, position of overlay
  *
  * Returns: 0 on success, -1 on error
  */

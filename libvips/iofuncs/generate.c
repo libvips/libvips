@@ -332,7 +332,7 @@ vips__demand_hint_array(VipsImage *image,
  * vips_image_pipeline_array:
  * @image: (out): output image
  * @hint: demand hint for @image
- * @in: (array zero-terminated=1): %NULL-terminated array of input images
+ * @in: (array zero-terminated=1): `NULL`-terminated array of input images
  *
  * Add an image to a pipeline. @image depends on all of the images in @in,
  * @image prefers to supply pixels according to @hint.
@@ -389,7 +389,7 @@ vips_image_pipeline_array(VipsImage *image,
  * vips_image_pipelinev:
  * @image: output image of pipeline
  * @hint: hint for this image
- * @...: %NULL-terminated list of input images
+ * @...: `NULL`-terminated list of input images
  *
  * Build an array and call [func@Image.pipeline_array].
  *
@@ -467,7 +467,7 @@ vips_stop_one(void *seq, void *a, void *b)
  * @b: user data
  *
  * Stop function for many images in. @a is a pointer to
- * a %NULL-terminated array of input images.
+ * a `NULL`-terminated array of input images.
  *
  * ::: seealso
  *     [method@Image.generate].
@@ -495,7 +495,7 @@ vips_stop_many(void *seq, void *a, void *b)
  * @b: user data
  *
  * Start function for many images in. @a is a pointer to
- * a %NULL-terminated array of input images.
+ * a `NULL`-terminated array of input images.
  *
  * ::: seealso
  *     [method@Image.generate], [func@allocate_input_array]
@@ -533,15 +533,15 @@ vips_start_many(VipsImage *out, void *a, void *b)
 /**
  * vips_allocate_input_array:
  * @out: free array when this image closes
- * @...: %NULL-terminated list of input images
+ * @...: `NULL`-terminated list of input images
  *
- * Convenience function --- make a %NULL-terminated array of input images.
+ * Convenience function --- make a `NULL`-terminated array of input images.
  * Use with [func@start_many].
  *
  * ::: seealso
  *     [method@Image.generate], [func@start_many].
  *
- * Returns: (transfer none) (nullable): %NULL-terminated array of images.
+ * Returns: (transfer none) (nullable): `NULL`-terminated array of images.
  *   Do not free the result.
  */
 VipsImage **
@@ -598,7 +598,7 @@ vips_allocate_input_array(VipsImage *out, ...)
  * @stop: set this to stop processing
  *
  * Fill @out->valid with pixels. @seq contains per-thread state, such as the
- * input regions. Set @stop to %TRUE to stop processing.
+ * input regions. Set @stop to `TRUE` to stop processing.
  *
  * ::: seealso
  *     [method@Image.generate], [func@stop_many].

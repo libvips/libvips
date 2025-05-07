@@ -123,7 +123,7 @@ vips_eye_init(VipsEye *eye)
  * @out: (out): output image
  * @width: image size
  * @height: image size
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Create a test pattern with increasing spatial frequency in X and
  * amplitude in Y.
@@ -134,8 +134,8 @@ vips_eye_init(VipsEye *eye)
  * Set @uchar to output a uchar image.
  *
  * ::: tip "Optional arguments"
- *     * @factor: %gdouble, maximum spatial frequency
- *     * @uchar: %gboolean, output a uchar image
+ *     * @factor: `gdouble`, maximum spatial frequency
+ *     * @uchar: `gboolean`, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.zone].

@@ -228,7 +228,7 @@ vips_switchv(VipsImage **tests, VipsImage **out, int n, va_list ap)
  * @tests: (array length=n): test these images
  * @out: (out): output index image
  * @n: number of input images
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * The @tests images are evaluated and at each point the index of the first
  * non-zero value is written to @out. If all @tests are false, the value

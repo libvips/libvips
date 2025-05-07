@@ -362,7 +362,7 @@ vips_copy_init(VipsCopy *copy)
  * vips_copy: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Copy an image, optionally modifying the header. VIPS copies images by
  * copying pointers, so this operation is instant, even for very large images.
@@ -373,16 +373,16 @@ vips_copy_init(VipsCopy *copy)
  * cannot change a 100 x 100 RGB image into a 300 x 100 mono image.
  *
  * ::: tip "Optional arguments"
- *     * @width: %gint, set image width
- *     * @height: %gint, set image height
- *     * @bands: %gint, set image bands
+ *     * @width: `gint`, set image width
+ *     * @height: `gint`, set image height
+ *     * @bands: `gint`, set image bands
  *     * @format: [enum@BandFormat], set image format
  *     * @coding: [enum@Coding], set image coding
  *     * @interpretation: [enum@Interpretation], set image interpretation
- *     * @xres: %gdouble, set image xres
- *     * @yres: %gdouble, set image yres
- *     * @xoffset: %gint, set image xoffset
- *     * @yoffset: %gint, set image yoffset
+ *     * @xres: `gdouble`, set image xres
+ *     * @yres: `gdouble`, set image yres
+ *     * @xoffset: `gint`, set image xoffset
+ *     * @yoffset: `gint`, set image yoffset
  *
  * ::: seealso
  *     [method@Image.byteswap], [method@Image.bandfold],
@@ -407,7 +407,7 @@ vips_copy(VipsImage *in, VipsImage **out, ...)
  * vips_copy_file: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * A simple convenience function to copy an image to a file, then copy
  * again to output. If the image is already a file, just copy straight

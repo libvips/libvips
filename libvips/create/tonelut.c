@@ -310,7 +310,7 @@ vips_tonelut_init(VipsTonelut *lut)
 /**
  * vips_tonelut:
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * [ctor@Image.tonelut] generates a tone curve for the adjustment of image
  * levels.
@@ -326,16 +326,16 @@ vips_tonelut_init(VipsTonelut *lut)
  * @out_max parameters.
  *
  * ::: tip "Optional arguments"
- *     * @in_max: %gint, input range
- *     * @out_max: %gint, output range
- *     * @Lb: %gdouble, black-point [0-100]
- *     * @Lw: %gdouble, white-point [0-100]
- *     * @Ps: %gdouble, shadow point (eg. 0.2)
- *     * @Pm: %gdouble, mid-tone point (eg. 0.5)
- *     * @Ph: %gdouble, highlight point (eg. 0.8)
- *     * @S: %gdouble, shadow adjustment (+/- 30)
- *     * @M: %gdouble, mid-tone adjustment (+/- 30)
- *     * @H: %gdouble, highlight adjustment (+/- 30)
+ *     * @in_max: `gint`, input range
+ *     * @out_max: `gint`, output range
+ *     * @Lb: `gdouble`, black-point [0-100]
+ *     * @Lw: `gdouble`, white-point [0-100]
+ *     * @Ps: `gdouble`, shadow point (eg. 0.2)
+ *     * @Pm: `gdouble`, mid-tone point (eg. 0.5)
+ *     * @Ph: `gdouble`, highlight point (eg. 0.8)
+ *     * @S: `gdouble`, shadow adjustment (+/- 30)
+ *     * @M: `gdouble`, mid-tone adjustment (+/- 30)
+ *     * @H: `gdouble`, highlight adjustment (+/- 30)
  *
  * Returns: 0 on success, -1 on error
  */

@@ -1023,10 +1023,10 @@ vips_source_descriptor_to_memory(VipsSource *source)
  * @source: source to operate on
  *
  * Some sources can be efficiently mapped into memory.
- * You can still use [method@Source.map] if this function returns %FALSE,
+ * You can still use [method@Source.map] if this function returns `FALSE`,
  * but it will be slow.
  *
- * Returns: %TRUE if the source can be efficiently mapped into memory.
+ * Returns: `TRUE` if the source can be efficiently mapped into memory.
  */
 gboolean
 vips_source_is_mappable(VipsSource *source)
@@ -1055,7 +1055,7 @@ vips_source_is_mappable(VipsSource *source)
  * Use this to add basic source support for older loaders which can only work
  * on files.
  *
- * Returns: %TRUE if the source is a simple file.
+ * Returns: `TRUE` if the source is a simple file.
  */
 gboolean
 vips_source_is_file(VipsSource *source)

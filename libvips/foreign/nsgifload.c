@@ -924,7 +924,7 @@ vips_foreign_load_nsgif_source_init(VipsForeignLoadNsgifSource *source)
  * vips_gifload:
  * @filename: file to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a GIF file into a libvips image.
  *
@@ -941,8 +941,8 @@ vips_foreign_load_nsgif_source_init(VipsForeignLoadNsgifSource *source)
  * otherwise.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, page (frame) to read
- *     * @n: %gint, load this many pages
+ *     * @page: `gint`, page (frame) to read
+ *     * @n: `gint`, load this many pages
  *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
  * ::: seealso
@@ -968,7 +968,7 @@ vips_gifload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.gifload], but read from a memory buffer.
  *
@@ -976,8 +976,8 @@ vips_gifload(const char *filename, VipsImage **out, ...)
  * [signal@Object::postclose] signal on @out is a good place to free.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, page (frame) to read
- *     * @n: %gint, load this many pages
+ *     * @page: `gint`, page (frame) to read
+ *     * @n: `gint`, load this many pages
  *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
  * ::: seealso
@@ -1009,13 +1009,13 @@ vips_gifload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_gifload_source:
  * @source: source to load
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.gifload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, page (frame) to read
- *     * @n: %gint, load this many pages
+ *     * @page: `gint`, page (frame) to read
+ *     * @n: `gint`, load this many pages
  *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
  * ::: seealso

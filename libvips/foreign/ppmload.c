@@ -905,7 +905,7 @@ vips_foreign_load_ppm_source_init(VipsForeignLoadPpmSource *source)
  * vips_ppmload:
  * @filename: file to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a PPM/PBM/PGM/PFM file into a VIPS image.
  *
@@ -935,7 +935,7 @@ vips_ppmload(const char *filename, VipsImage **out, ...)
  * vips_ppmload_source:
  * @source: source to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.ppmload], but read from a source.
  *

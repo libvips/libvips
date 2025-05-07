@@ -475,7 +475,7 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * vips_tiffload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a TIFF file into a VIPS image.
  *
@@ -491,11 +491,11 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * "toilet roll" image. The [const@META_PAGE_HEIGHT] metadata
  * tag gives the height in pixels of each page. Use -1 to load all pages.
  *
- * Setting @autorotate to %TRUE will make the loader interpret the
+ * Setting @autorotate to `TRUE` will make the loader interpret the
  * orientation tag and automatically rotate the image appropriately during
  * load.
  *
- * If @autorotate is %FALSE, the metadata field [const@META_ORIENTATION] is set
+ * If @autorotate is `FALSE`, the metadata field [const@META_ORIENTATION] is set
  * to the value of the orientation tag. Applications may read and interpret
  * this field
  * as they wish later in processing. See [method@Image.autorot]. Save
@@ -525,13 +525,13 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * attached as [const@META_PHOTOSHOP_NAME].
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, load this page
- *     * @n: %gint, load this many pages
- *     * @autorotate: %gboolean, use orientation tag to rotate the image
+ *     * @page: `gint`, load this page
+ *     * @n: `gint`, load this many pages
+ *     * @autorotate: `gboolean`, use orientation tag to rotate the image
  *       during load
- *     * @subifd: %gint, select this subifd index
+ *     * @subifd: `gint`, select this subifd index
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @unlimited: %gboolean, remove all denial of service limits
+ *     * @unlimited: `gboolean`, remove all denial of service limits
  *
  * ::: seealso
  *     [ctor@Image.new_from_file], [method@Image.autorot].
@@ -556,7 +556,7 @@ vips_tiffload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a TIFF-formatted memory block into a VIPS image. Exactly as
  * [ctor@Image.tiffload], but read from a memory source.
@@ -565,13 +565,13 @@ vips_tiffload(const char *filename, VipsImage **out, ...)
  * [signal@Object::postclose] signal on @out is a good place to free.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, load this page
- *     * @n: %gint, load this many pages
- *     * @autorotate: %gboolean, use orientation tag to rotate the image
+ *     * @page: `gint`, load this page
+ *     * @n: `gint`, load this many pages
+ *     * @autorotate: `gboolean`, use orientation tag to rotate the image
  *       during load
- *     * @subifd: %gint, select this subifd index
+ *     * @subifd: `gint`, select this subifd index
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @unlimited: %gboolean, remove all denial of service limits
+ *     * @unlimited: `gboolean`, remove all denial of service limits
  *
  * ::: seealso
  *     [ctor@Image.tiffload].
@@ -602,18 +602,18 @@ vips_tiffload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_tiffload_source:
  * @source: source to load
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.tiffload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, load this page
- *     * @n: %gint, load this many pages
- *     * @autorotate: %gboolean, use orientation tag to rotate the image
+ *     * @page: `gint`, load this page
+ *     * @n: `gint`, load this many pages
+ *     * @autorotate: `gboolean`, use orientation tag to rotate the image
  *       during load
- *     * @subifd: %gint, select this subifd index
+ *     * @subifd: `gint`, select this subifd index
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @unlimited: %gboolean, remove all denial of service limits
+ *     * @unlimited: `gboolean`, remove all denial of service limits
  *
  * ::: seealso
  *     [ctor@Image.tiffload].

@@ -634,7 +634,7 @@ vips_reduceh_init(VipsReduceh *reduceh)
  * @in: input image
  * @out: (out): output image
  * @hshrink: horizontal reduce
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Reduce @in horizontally by a float factor.
  *
@@ -654,7 +654,7 @@ vips_reduceh_init(VipsReduceh *reduceh)
  *
  * ::: tip "Optional arguments"
  *     * @kernel: [enum@Kernel], to use to interpolate (default: lanczos3)
- *     * @gap: %gboolean, reducing gap to use (default: 0.0)
+ *     * @gap: `gboolean`, reducing gap to use (default: 0.0)
  *
  * ::: seealso
  *     [method@Image.shrink], [method@Image.resize], [method@Image.affine].

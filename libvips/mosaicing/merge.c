@@ -179,7 +179,7 @@ vips_merge_init(VipsMerge *merge)
  * @direction: horizontal or vertical merge
  * @dx: displacement of ref from sec
  * @dy: displacement of ref from sec
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation joins two images left-right (with @ref on the left) or
  * up-down (with @ref above) with a smooth seam.
@@ -206,7 +206,7 @@ vips_merge_init(VipsMerge *merge)
  * This makes it possible to join non-rectangular images.
  *
  * ::: tip "Optional arguments"
- *     * @mblend: %gint, maximum blend size
+ *     * @mblend: `gint`, maximum blend size
  *
  * ::: seealso
  *     [method@Image.mosaic], [method@Image.insert].

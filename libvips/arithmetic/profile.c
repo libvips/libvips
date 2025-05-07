@@ -320,7 +320,7 @@ vips_profile_init(VipsProfile *profile)
  * @in: input image
  * @columns: (out): distances from top edge
  * @rows: (out): distances from left edge
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * [method@Image.profile] searches inward from the edge of @in and finds the
  * first non-zero pixel. Pixels in @columns have the distance from the top edge

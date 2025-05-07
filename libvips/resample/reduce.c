@@ -204,7 +204,7 @@ vips_reduce_init(VipsReduce *reduce)
  * @out: (out): output image
  * @hshrink: horizontal shrink
  * @vshrink: vertical shrink
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Reduce @in by a pair of factors with a pair of 1D kernels.
  *

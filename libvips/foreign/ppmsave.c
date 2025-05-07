@@ -791,7 +791,7 @@ vips_foreign_save_pnm_target_init(VipsForeignSavePfmTarget *target)
  * vips_ppmsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image to a file as PPM.
  *
@@ -803,7 +803,7 @@ vips_foreign_save_pnm_target_init(VipsForeignSavePfmTarget *target)
  * When writing float (PFM) images the scale factor is set from the
  * "pfm-scale" metadata.
  *
- * Set @ascii to %TRUE to write as human-readable ASCII. Normally data is
+ * Set @ascii to `TRUE` to write as human-readable ASCII. Normally data is
  * written in binary.
  *
  * Set @bitdepth to 1 to write a one-bit image.
@@ -812,8 +812,8 @@ vips_foreign_save_pnm_target_init(VipsForeignSavePfmTarget *target)
  *
  * ::: tip "Optional arguments"
  *     * @format: [enum@ForeignPpmFormat], format to save in
- *     * @ascii: %gboolean, save as ASCII rather than binary
- *     * @bitdepth: %gint, bitdepth to save at
+ *     * @ascii: `gboolean`, save as ASCII rather than binary
+ *     * @bitdepth: `gint`, bitdepth to save at
  *
  * ::: seealso
  *     [method@Image.write_to_file].
@@ -837,14 +837,14 @@ vips_ppmsave(VipsImage *in, const char *filename, ...)
  * vips_ppmsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.ppmsave], but save to a target.
  *
  * ::: tip "Optional arguments"
  *     * @format: [enum@ForeignPpmFormat], format to save in
- *     * @ascii: %gboolean, save as ASCII rather than binary
- *     * @bitdepth: %gint, bitdepth to save at
+ *     * @ascii: `gboolean`, save as ASCII rather than binary
+ *     * @bitdepth: `gint`, bitdepth to save at
  *
  * ::: seealso
  *     [method@Image.ppmsave].

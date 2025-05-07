@@ -377,7 +377,7 @@ vips_draw_maskv(VipsImage *image,
  * @mask: mask of 0/255 values showing where to plot
  * @x: draw mask here
  * @y: draw mask here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Draw @mask on the image. @mask is a monochrome 8-bit image with 0/255
  * for transparent or @ink coloured points. Intermediate values blend the ink
@@ -412,7 +412,7 @@ vips_draw_mask(VipsImage *image,
  * @mask: mask of 0/255 values showing where to plot
  * @x: draw mask here
  * @y: draw mask here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.draw_mask], but just takes a single double for @ink.
  *

@@ -496,7 +496,7 @@ vips_hist_find_indexed_init(VipsHistFindIndexed *indexed)
  * @in: input [class@Image]
  * @index: input index [class@Image]
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  *
  * Make a histogram of @in, but use image @index to pick the bins. In other

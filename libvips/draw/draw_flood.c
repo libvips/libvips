@@ -694,7 +694,7 @@ vips_draw_floodv(VipsImage *image,
  * @n: length of ink array
  * @x: centre of circle
  * @y: centre of circle
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Flood-fill @image with @ink, starting at position @x, @y.
  *
@@ -714,11 +714,11 @@ vips_draw_floodv(VipsImage *image,
  *
  * ::: tip "Optional arguments"
  *     * @test: [class@Image], test this image
- *     * @equal: %gboolean, fill while equal to edge
- *     * @left: %gint, output left edge of bounding box of modified area
- *     * @top: %gint, output top edge of bounding box of modified area
- *     * @width: %gint, output width of bounding box of modified area
- *     * @height: %gint, output height of bounding box of modified area
+ *     * @equal: `gboolean`, fill while equal to edge
+ *     * @left: `gint`, output left edge of bounding box of modified area
+ *     * @top: `gint`, output top edge of bounding box of modified area
+ *     * @width: `gint`, output width of bounding box of modified area
+ *     * @height: `gint`, output height of bounding box of modified area
  *
  * @ink is an array of double containing values to draw.
  *
@@ -747,17 +747,17 @@ vips_draw_flood(VipsImage *image,
  * @ink: value to draw
  * @x: centre of circle
  * @y: centre of circle
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.draw_flood], but just takes a single double for @ink.
  *
  * ::: tip "Optional arguments"
  *     * @test: [class@Image], test this image
- *     * @equal: %gboolean, fill while equal to edge
- *     * @left: %gint, output left edge of bounding box of modified area
- *     * @top: %gint, output top edge of bounding box of modified area
- *     * @width: %gint, output width of bounding box of modified area
- *     * @height: %gint, output height of bounding box of modified area
+ *     * @equal: `gboolean`, fill while equal to edge
+ *     * @left: `gint`, output left edge of bounding box of modified area
+ *     * @top: `gint`, output top edge of bounding box of modified area
+ *     * @width: `gint`, output width of bounding box of modified area
+ *     * @height: `gint`, output height of bounding box of modified area
  *
  * ::: seealso
  *     [method@Image.draw_flood].

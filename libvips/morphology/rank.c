@@ -603,7 +603,7 @@ vips_rank_init(VipsRank *rank)
  * @width: width of region
  * @height: height of region
  * @index: select pixel
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * [method@Image.rank] does rank filtering on an image. A window of size @width by
  * @height is passed over the image. At each position, the pixels inside the
@@ -646,7 +646,7 @@ vips_rank(VipsImage *in, VipsImage **out,
  * @in: input image
  * @out: (out): output image
  * @size: size of region
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * A convenience function equivalent to:
  *

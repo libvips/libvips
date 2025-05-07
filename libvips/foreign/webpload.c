@@ -439,7 +439,7 @@ vips_foreign_load_webp_buffer_init(VipsForeignLoadWebpBuffer *buffer)
  * vips_webpload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a WebP file into a VIPS image.
  *
@@ -457,9 +457,9 @@ vips_foreign_load_webp_buffer_init(VipsForeignLoadWebpBuffer *buffer)
  * The loader supports ICC, EXIF and XMP metadata.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, page (frame) to read
- *     * @n: %gint, load this many pages
- *     * @scale: %gdouble, scale by this much on load
+ *     * @page: `gint`, page (frame) to read
+ *     * @n: `gint`, load this many pages
+ *     * @scale: `gdouble`, scale by this much on load
  *
  * ::: seealso
  *     [ctor@Image.new_from_file].
@@ -484,7 +484,7 @@ vips_webpload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a WebP-formatted memory block into a VIPS image. Exactly as
  * [ctor@Image.webpload], but read from a memory buffer.
@@ -493,9 +493,9 @@ vips_webpload(const char *filename, VipsImage **out, ...)
  * [signal@Object::postclose] signal on @out is a good place to free.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, page (frame) to read
- *     * @n: %gint, load this many pages
- *     * @scale: %gdouble, scale by this much on load
+ *     * @page: `gint`, page (frame) to read
+ *     * @n: `gint`, load this many pages
+ *     * @scale: `gdouble`, scale by this much on load
  *
  * ::: seealso
  *     [ctor@Image.webpload]
@@ -526,14 +526,14 @@ vips_webpload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_webpload_source:
  * @source: source to load from
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.webpload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, page (frame) to read
- *     * @n: %gint, load this many pages
- *     * @scale: %gdouble, scale by this much on load
+ *     * @page: `gint`, page (frame) to read
+ *     * @n: `gint`, load this many pages
+ *     * @scale: `gdouble`, scale by this much on load
  *
  * ::: seealso
  *     [ctor@Image.webpload]

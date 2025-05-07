@@ -230,7 +230,7 @@ vips_bandjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
  * @in: (array length=n) (transfer none): array of input images
  * @out: (out): output image
  * @n: number of input images
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Join a set of images together, bandwise.
  *
@@ -269,7 +269,7 @@ vips_bandjoin(VipsImage **in, VipsImage **out, int n, ...)
  * @in1: first input image
  * @in2: second input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Join a pair of images together, bandwise. See [func@Image.bandjoin].
  *
@@ -474,7 +474,7 @@ vips_bandjoin_constv(VipsImage *in, VipsImage **out,
  * @out: (out): output image
  * @c: (array length=n): array of constants to append
  * @n: number of constants
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Append a set of constant bands to an image.
  *
@@ -501,7 +501,7 @@ vips_bandjoin_const(VipsImage *in, VipsImage **out, double *c, int n, ...)
  * @in: input image
  * @out: (out): output image
  * @c: constant to append
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Append a single constant band to an image.
  *

@@ -143,7 +143,7 @@ vips_freqmult_init(VipsFreqmult *freqmult)
  * @in: input image
  * @mask: mask image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Multiply @in by @mask in Fourier space.
  *

@@ -934,7 +934,7 @@ vips_convasep_init(VipsConvasep *convasep)
  * @in: input image
  * @out: (out): output image
  * @mask: convolve with this mask
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Approximate separable integer convolution. This is a low-level operation, see
  * [method@Image.convsep] for something more convenient.
@@ -955,7 +955,7 @@ vips_convasep_init(VipsConvasep *convasep)
  * always has the same [enum@BandFormat] as the input image.
  *
  * ::: tip "Optional arguments"
- *     * @layers: %gint, number of layers for approximation
+ *     * @layers: `gint`, number of layers for approximation
  *
  * ::: seealso
  *     [method@Image.convsep].

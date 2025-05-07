@@ -1131,7 +1131,7 @@ vips_foreign_save_cgif_buffer_init(VipsForeignSaveCgifBuffer *buffer)
  * vips_gifsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write to a file in GIF format.
  *
@@ -1164,16 +1164,16 @@ vips_foreign_save_cgif_buffer_init(VipsForeignSaveCgifBuffer *buffer)
  * kept in the output instead of combining them.
  *
  * ::: tip "Optional arguments"
- *     * @dither: %gdouble, quantisation dithering level
- *     * @effort: %gint, quantisation CPU effort
- *     * @bitdepth: %gint, number of bits per pixel
- *     * @interframe_maxerror: %gdouble, maximum inter-frame error for
+ *     * @dither: `gdouble`, quantisation dithering level
+ *     * @effort: `gint`, quantisation CPU effort
+ *     * @bitdepth: `gint`, number of bits per pixel
+ *     * @interframe_maxerror: `gdouble`, maximum inter-frame error for
  *       transparency
- *     * @reuse: %gboolean, reuse palette from input
- *     * @interlace: %gboolean, write an interlaced (progressive) GIF
- *     * @interpalette_maxerror: %gdouble, maximum inter-palette error for
- *       palette *       reusage
- *     * @keep_duplicate_frames: %boolean, keep duplicate frames in the output
+ *     * @reuse: `gboolean`, reuse palette from input
+ *     * @interlace: `gboolean`, write an interlaced (progressive) GIF
+ *     * @interpalette_maxerror: `gdouble`, maximum inter-palette error for
+ *       palette reusage
+ *     * @keep_duplicate_frames: `gboolean`, keep duplicate frames in the output
  *       instead of combining them
  *
  * ::: seealso
@@ -1199,7 +1199,7 @@ vips_gifsave(VipsImage *in, const char *filename, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.gifsave], but save to a memory buffer.
  *
@@ -1208,16 +1208,16 @@ vips_gifsave(VipsImage *in, const char *filename, ...)
  * are done with it.
  *
  * ::: tip "Optional arguments"
- *     * @dither: %gdouble, quantisation dithering level
- *     * @effort: %gint, quantisation CPU effort
- *     * @bitdepth: %gint, number of bits per pixel
- *     * @interframe_maxerror: %gdouble, maximum inter-frame error for
+ *     * @dither: `gdouble`, quantisation dithering level
+ *     * @effort: `gint`, quantisation CPU effort
+ *     * @bitdepth: `gint`, number of bits per pixel
+ *     * @interframe_maxerror: `gdouble`, maximum inter-frame error for
  *       transparency
- *     * @reuse: %gboolean, reuse palette from input
- *     * @interlace: %gboolean, write an interlaced (progressive) GIF
- *     * @interpalette_maxerror: %gdouble, maximum inter-palette error for
- *       palette *       reusage
- *     * @keep_duplicate_frames: %boolean, keep duplicate frames in the output
+ *     * @reuse: `gboolean`, reuse palette from input
+ *     * @interlace: `gboolean`, write an interlaced (progressive) GIF
+ *     * @interpalette_maxerror: `gdouble`, maximum inter-palette error for
+ *       palette reusage
+ *     * @keep_duplicate_frames: `gboolean`, keep duplicate frames in the output
  *       instead of combining them
  *
  * ::: seealso
@@ -1257,21 +1257,21 @@ vips_gifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * vips_gifsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.gifsave], but save to a target.
  *
  * ::: tip "Optional arguments"
- *     * @dither: %gdouble, quantisation dithering level
- *     * @effort: %gint, quantisation CPU effort
- *     * @bitdepth: %gint, number of bits per pixel
- *     * @interframe_maxerror: %gdouble, maximum inter-frame error for
+ *     * @dither: `gdouble`, quantisation dithering level
+ *     * @effort: `gint`, quantisation CPU effort
+ *     * @bitdepth: `gint`, number of bits per pixel
+ *     * @interframe_maxerror: `gdouble`, maximum inter-frame error for
  *       transparency
- *     * @reuse: %gboolean, reuse palette from input
- *     * @interlace: %gboolean, write an interlaced (progressive) GIF
- *     * @interpalette_maxerror: %gdouble, maximum inter-palette error for
- *       palette *       reusage
- *     * @keep_duplicate_frames: %boolean, keep duplicate frames in the output
+ *     * @reuse: `gboolean`, reuse palette from input
+ *     * @interlace: `gboolean`, write an interlaced (progressive) GIF
+ *     * @interpalette_maxerror: `gdouble`, maximum inter-palette error for
+ *       palette reusage
+ *     * @keep_duplicate_frames: `gboolean`, keep duplicate frames in the output
  *       instead of combining them
  *
  * ::: seealso

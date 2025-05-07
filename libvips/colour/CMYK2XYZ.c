@@ -206,7 +206,7 @@ vips_CMYK2XYZ_init(VipsCMYK2XYZ *CMYK2XYZ)
  * vips_CMYK2XYZ: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Turn CMYK to XYZ. If the image has an embedded ICC profile this will be
  * used for the conversion. If there is no embedded profile, a generic

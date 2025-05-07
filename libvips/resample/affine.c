@@ -725,7 +725,7 @@ vips_affine_init(VipsAffine *affine)
  * @b: transformation matrix coefficient
  * @c: transformation matrix coefficient
  * @d: transformation matrix coefficient
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operator performs an affine transform on an image using @interpolate.
  *
@@ -767,13 +767,13 @@ vips_affine_init(VipsAffine *affine)
  * ::: tip "Optional arguments"
  *     * @interpolate: [class@Interpolate], interpolate pixels with this
  *     * @oarea: [struct@ArrayInt], output rectangle
- *     * @idx: %gdouble, input horizontal offset
- *     * @idy: %gdouble, input vertical offset
- *     * @odx: %gdouble, output horizontal offset
- *     * @ody: %gdouble, output vertical offset
+ *     * @idx: `gdouble`, input horizontal offset
+ *     * @idy: `gdouble`, input vertical offset
+ *     * @odx: `gdouble`, output horizontal offset
+ *     * @ody: `gdouble`, output vertical offset
  *     * @extend: [enum@Extend], how to generate new pixels
  *     * @background: [struct@ArrayDouble] colour for new pixels
- *     * @premultiplied: %gboolean, images are already premultiplied
+ *     * @premultiplied: `gboolean`, images are already premultiplied
  *
  * ::: seealso
  *     [method@Image.shrink], [method@Image.resize], [class@Interpolate].

@@ -125,7 +125,7 @@ vips_mask_butterworth_init(VipsMaskButterworth *butterworth)
  * @order: filter order
  * @frequency_cutoff: frequency threshold
  * @amplitude_cutoff: amplitude threshold
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Make an butterworth high- or low-pass filter, that is, one with a variable,
  * smooth transition
@@ -137,10 +137,10 @@ vips_mask_butterworth_init(VipsMaskButterworth *butterworth)
  * Digital Image Processing, 1987.
  *
  * ::: tip "Optional arguments"
- *     * @nodc: %gboolean, don't set the DC pixel
- *     * @reject: %gboolean, invert the filter sense
- *     * @optical: %gboolean, coordinates in optical space
- *     * @uchar: %gboolean, output a uchar image
+ *     * @nodc: `gboolean`, don't set the DC pixel
+ *     * @reject: `gboolean`, invert the filter sense
+ *     * @optical: `gboolean`, coordinates in optical space
+ *     * @uchar: `gboolean`, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.mask_ideal].

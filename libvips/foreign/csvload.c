@@ -674,7 +674,7 @@ vips_foreign_load_csv_source_init(VipsForeignLoadCsvSource *source)
  * vips_csvload:
  * @filename: file to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Load a CSV (comma-separated values) file.
  *
@@ -704,10 +704,10 @@ vips_foreign_load_csv_source_init(VipsForeignLoadCsvSource *source)
  * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
  * ::: tip "Optional arguments"
- *     * @skip: %gint, skip this many lines at start of file
- *     * @lines: %gint, read this many lines from file
- *     * @whitespace: %gchararray, set of whitespace characters
- *     * @separator: %gchararray, set of separator characters
+ *     * @skip: `gint`, skip this many lines at start of file
+ *     * @lines: `gint`, read this many lines from file
+ *     * @whitespace: `gchararray`, set of whitespace characters
+ *     * @separator: `gchararray`, set of separator characters
  *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
  * ::: seealso
@@ -732,15 +732,15 @@ vips_csvload(const char *filename, VipsImage **out, ...)
  * vips_csvload_source:
  * @source: source to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.csvload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @skip: %gint, skip this many lines at start of file
- *     * @lines: %gint, read this many lines from file
- *     * @whitespace: %gchararray, set of whitespace characters
- *     * @separator: %gchararray, set of separator characters
+ *     * @skip: `gint`, skip this many lines at start of file
+ *     * @lines: `gint`, read this many lines from file
+ *     * @whitespace: `gchararray`, set of whitespace characters
+ *     * @separator: `gchararray`, set of separator characters
  *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
  * ::: seealso

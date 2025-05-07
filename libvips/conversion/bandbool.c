@@ -261,7 +261,7 @@ vips_bandboolv(VipsImage *in, VipsImage **out,
  * @in: left-hand input [class@Image]
  * @out: (out): output [class@Image]
  * @boolean: boolean operation to perform
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform various boolean operations across the bands of an image. For
  * example, a three-band uchar image operated on with
@@ -301,7 +301,7 @@ vips_bandbool(VipsImage *in, VipsImage **out,
  * vips_bandand: (method)
  * @in: left-hand input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationBoolean.AND] on an image. See
  * [method@Image.bandbool].
@@ -325,7 +325,7 @@ vips_bandand(VipsImage *in, VipsImage **out, ...)
  * vips_bandor: (method)
  * @in: left-hand input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationBoolean.OR] on an image. See
  * [method@Image.bandbool].
@@ -349,7 +349,7 @@ vips_bandor(VipsImage *in, VipsImage **out, ...)
  * vips_bandeor: (method)
  * @in: left-hand input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationBoolean.EOR] on an image. See
  * [method@Image.bandbool].

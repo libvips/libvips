@@ -220,21 +220,21 @@ vips_similarity_init(VipsSimilarity *similarity)
  * vips_similarity: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operator calls [method@Image.affine] for you, calculating the matrix
  * for the affine transform from @scale and @angle. Other parameters are
  * passed on to [method@Image.affine] unaltered.
  *
  * ::: tip "Optional arguments"
- *     * @scale: %gdouble, scale by this factor
- *     * @angle: %gdouble, rotate by this many degrees clockwise
+ *     * @scale: `gdouble`, scale by this factor
+ *     * @angle: `gdouble`, rotate by this many degrees clockwise
  *     * @interpolate: [class@Interpolate], interpolate pixels with this
  *     * @background: [struct@ArrayDouble] colour for new pixels
- *     * @idx: %gdouble, input horizontal offset
- *     * @idy: %gdouble, input vertical offset
- *     * @odx: %gdouble, output horizontal offset
- *     * @ody: %gdouble, output vertical offset
+ *     * @idx: `gdouble`, input horizontal offset
+ *     * @idy: `gdouble`, input vertical offset
+ *     * @odx: `gdouble`, output horizontal offset
+ *     * @ody: `gdouble`, output vertical offset
  *
  * ::: seealso
  *     [method@Image.affine], [class@Interpolate].
@@ -289,8 +289,8 @@ vips_rotate_init(VipsRotate *rotate)
  * vips_rotate: (method)
  * @in: input image
  * @out: (out): output image
- * @angle: %gdouble, rotate by this many degrees clockwise
- * @...: %NULL-terminated list of optional named arguments
+ * @angle: `gdouble`, rotate by this many degrees clockwise
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operator calls [method@Image.affine] for you, calculating the matrix
  * for the affine transform from @scale and @angle.
@@ -300,10 +300,10 @@ vips_rotate_init(VipsRotate *rotate)
  * ::: tip "Optional arguments"
  *     * @interpolate: [class@Interpolate], interpolate pixels with this
  *     * @background: [struct@ArrayDouble], colour for new pixels
- *     * @idx: %gdouble, input horizontal offset
- *     * @idy: %gdouble, input vertical offset
- *     * @odx: %gdouble, output horizontal offset
- *     * @ody: %gdouble, output vertical offset
+ *     * @idx: `gdouble`, input horizontal offset
+ *     * @idy: `gdouble`, input vertical offset
+ *     * @odx: `gdouble`, output horizontal offset
+ *     * @ody: `gdouble`, output vertical offset
  *
  * ::: seealso
  *     [method@Image.affine], [class@Interpolate].
