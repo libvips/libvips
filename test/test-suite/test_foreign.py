@@ -157,6 +157,10 @@ class TestForeign:
         self.save_load_buffer("jpegsave_buffer", "jpegload_buffer",
                               self.colour, 80)
 
+        for image in self.all:
+            target = pyvips.Target.new_to_memory()
+            image.jpegsave_target(target)
+
         # see if we have exif parsing: our test image has this field
         x = pyvips.Image.new_from_file(JPEG_FILE)
         if x.get_typeof("exif-ifd0-Orientation") != 0:
@@ -431,6 +435,10 @@ class TestForeign:
         self.save_load_file(".png", "[interlace]", self.colour)
         self.save_load_file(".png", "[interlace]", self.mono)
 
+        for image in self.all:
+            target = pyvips.Target.new_to_memory()
+            image.pngsave_target(target)
+
         def png_indexed_valid(im):
             a = im(10, 10)
             assert_almost_equal_objects(a, [148.0, 131.0, 109.0])
@@ -441,7 +449,8 @@ class TestForeign:
             assert im.get("palette") == 1
 
         self.file_loader("pngload", PNG_INDEXED_FILE, png_indexed_valid)
-        self.buffer_loader("pngload_buffer", PNG_INDEXED_FILE, png_indexed_valid)
+        self.buffer_loader("pngload_buffer",
+            PNG_INDEXED_FILE, png_indexed_valid)
 
         # size of a regular mono PNG
         len_mono = len(self.mono.write_to_buffer(".png"))
@@ -505,6 +514,10 @@ class TestForeign:
 
         self.file_loader("tiffload", TIF_FILE, tiff_valid)
         self.buffer_loader("tiffload_buffer", TIF_FILE, tiff_valid)
+
+        for image in self.all:
+            target = pyvips.Target.new_to_memory()
+            image.tiffsave_target(target)
 
         def tiff1_valid(im):
             a = im(127, 0)
@@ -1222,9 +1235,7 @@ class TestForeign:
     def test_matrix(self):
         self.save_load("%s.mat", self.mono)
 
-        # all image types should SAVEABLE_MONO
         for image in self.all:
-            print(f"image = {image}")
             target = pyvips.Target.new_to_memory()
             image.matrixsave_target(target)
 
