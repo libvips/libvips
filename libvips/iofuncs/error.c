@@ -299,7 +299,7 @@ vips_error_g(GError **error)
  * vips_g_error:
  * @error: glib error pointer
  *
- * This function adds the %GError to the vips error buffer and clears it. It's
+ * This function adds the [struct@GLib.Error] to the vips error buffer and clears it. It's
  * the opposite of [func@error_g].
  *
  * ::: seealso

@@ -518,7 +518,7 @@ vips_hist_find_indexed_init(VipsHistFindIndexed *indexed)
  * example.
  *
  * ::: tip "Optional arguments"
- *     * @combine: #VipsCombine, combine bins like this
+ *     * @combine: [enum@Combine], combine bins like this
  *
  * ::: seealso
  *     [method@Image.hist_find], [method@Image.labelregions].

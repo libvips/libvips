@@ -418,7 +418,7 @@ vips_foreign_load_png_buffer_init(VipsForeignLoadPngBuffer *buffer)
  * XMP metadata.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
- * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
+ * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
  * By default, the PNG loader limits the number of text and data chunks to
  * block some denial of service attacks. Set @unlimited to disable these
@@ -429,7 +429,7 @@ vips_foreign_load_png_buffer_init(VipsForeignLoadPngBuffer *buffer)
  *     * @unlimited: %gboolean, Remove all denial of service limits
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -1179,7 +1179,7 @@ vips_foreign_save_webp_mime_init(VipsForeignSaveWebpMime *mime)
  * default 75.
  *
  * Use @preset to hint the image type to the lossy compressor. The default is
- * #VIPS_FOREIGN_WEBP_PRESET_DEFAULT.
+ * [enum@Vips.ForeignWebpPreset.DEFAULT].
  *
  * Set @smart_subsample to enable high quality chroma subsampling.
  *

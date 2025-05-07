@@ -462,7 +462,7 @@ vips_foreign_load_webp_buffer_init(VipsForeignLoadWebpBuffer *buffer)
  *     * @scale: %gdouble, scale by this much on load
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

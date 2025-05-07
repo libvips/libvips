@@ -455,17 +455,17 @@ vips_foreign_load_jpeg_buffer_init(VipsForeignLoadJpegBuffer *buffer)
  * decompressing the whole image and then shrinking later.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
- * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
+ * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
  * Setting @autorotate to %TRUE will make the loader interpret the
  * orientation tag and automatically rotate the image appropriately during
  * load.
  *
- * If @autorotate is %FALSE, the metadata field #VIPS_META_ORIENTATION is set
+ * If @autorotate is %FALSE, the metadata field [const@META_ORIENTATION] is set
  * to the value of the orientation tag. Applications may read and interpret
  * this field
  * as they wish later in processing. See [method@Image.autorot]. Save
- * operations will use #VIPS_META_ORIENTATION, if present, to set the
+ * operations will use [const@META_ORIENTATION], if present, to set the
  * orientation of output images.
  *
  * Example:
@@ -479,14 +479,14 @@ vips_foreign_load_jpeg_buffer_init(VipsForeignLoadJpegBuffer *buffer)
  *
  * Any embedded ICC profiles are ignored: you always just get the RGB from
  * the file. Instead, the embedded profile will be attached to the image as
- * #VIPS_META_ICC_NAME. You need to use something like
+ * [const@META_ICC_NAME]. You need to use something like
  * [method@Image.icc_import] to get CIE values from the file.
  *
- * EXIF metadata is attached as #VIPS_META_EXIF_NAME, IPTC as
- * #VIPS_META_IPTC_NAME, and XMP as #VIPS_META_XMP_NAME.
+ * EXIF metadata is attached as [const@META_EXIF_NAME], IPTC as
+ * [const@META_IPTC_NAME], and XMP as [const@META_XMP_NAME].
  *
  * The int metadata item "jpeg-multiscan" is set to the result of
- * jpeg_has_multiple_scans(). Interlaced jpeg images need a large amount of
+ * `jpeg_has_multiple_scans()`. Interlaced jpeg images need a large amount of
  * memory to load, so this field gives callers a chance to handle these
  * images differently.
  *

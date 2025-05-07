@@ -357,17 +357,17 @@ static GQuark vips__foreign_load_operation = 0;
  *
  * Some hints about the image loader.
  *
- * #VIPS_FOREIGN_PARTIAL means that the image can be read directly from the
+ * [flags@Vips.ForeignFlags.PARTIAL] means that the image can be read directly from the
  * file without needing to be unpacked to a temporary image first.
  *
- * #VIPS_FOREIGN_SEQUENTIAL means that the loader supports lazy reading, but
+ * [flags@Vips.ForeignFlags.SEQUENTIAL] means that the loader supports lazy reading, but
  * only top-to-bottom (sequential) access. Formats like PNG can read sets of
  * scanlines, for example, but only in order.
  *
  * If neither PARTIAL or SEQUENTIAL is set, the loader only supports whole
  * image read. Setting both PARTIAL and SEQUENTIAL is an error.
  *
- * #VIPS_FOREIGN_BIGENDIAN means that image pixels are most-significant byte
+ * [flags@Vips.ForeignFlags.BIGENDIAN] means that image pixels are most-significant byte
  * first. Depending on the native byte order of the host machine, you may
  * need to swap bytes. See [method@Image.copy].
  */
@@ -598,7 +598,7 @@ vips_foreign_find_load_sub(VipsForeignLoadClass *load_class,
  * options on @filename are stripped and ignored.
  *
  * ::: seealso
- *     [func@Foreign.find_load_buffer], vips_image_new_from_file().
+ *     [func@Foreign.find_load_buffer], [ctor@Image.new_from_file].
  *
  * Returns: the name of an operation on success, %NULL on error
  */
@@ -2274,7 +2274,7 @@ vips_foreign_find_save_buffer(const char *name)
  *     * @unlimited: %gboolean, remove all denial of service limits
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2527,7 +2527,7 @@ vips_heifsave_target(VipsImage *in, VipsTarget *target, ...)
  * in future libvips versions.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2766,7 +2766,7 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  *     * @background: [struct@ArrayDouble], background colour
  *
  * ::: seealso
- *     vips_image_new_from_file(), [ctor@Image.magickload].
+ *     [ctor@Image.new_from_file], [ctor@Image.magickload].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2899,7 +2899,7 @@ vips_pdfload_source(VipsSource *source, VipsImage **out, ...)
  *     * @rgb: %gboolean, output RGB (not RGBA) pixels
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

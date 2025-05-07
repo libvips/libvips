@@ -619,7 +619,7 @@ vips_mapim_init(VipsMapim *mapim)
  * @interpolate defaults to bilinear.
  *
  * By default, new pixels are filled with @background. This defaults to
- * zero (black). You can set other extend types with @extend. #VIPS_EXTEND_COPY
+ * zero (black). You can set other extend types with @extend. [enum@Vips.Extend.COPY]
  * is better for image upsizing.
  *
  * Image are normally treated as unpremultiplied, so this operation can be used

@@ -488,18 +488,18 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  *
  * @n means load this many pages. By default a single page is read. All the
  * pages must have the same dimensions, and they are loaded as a tall, thin
- * "toilet roll" image. The #VIPS_META_PAGE_HEIGHT metadata
+ * "toilet roll" image. The [const@META_PAGE_HEIGHT] metadata
  * tag gives the height in pixels of each page. Use -1 to load all pages.
  *
  * Setting @autorotate to %TRUE will make the loader interpret the
  * orientation tag and automatically rotate the image appropriately during
  * load.
  *
- * If @autorotate is %FALSE, the metadata field #VIPS_META_ORIENTATION is set
+ * If @autorotate is %FALSE, the metadata field [const@META_ORIENTATION] is set
  * to the value of the orientation tag. Applications may read and interpret
  * this field
  * as they wish later in processing. See [method@Image.autorot]. Save
- * operations will use #VIPS_META_ORIENTATION, if present, to set the
+ * operations will use [const@META_ORIENTATION], if present, to set the
  * orientation of output images.
  *
  * If @autorotate is TRUE, the image will be rotated upright during load and
@@ -511,18 +511,18 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * bioformats-style image pyramids.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
- * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
+ * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
  * When using libtiff 4.7.0+, the TIFF loader will limit memory allocation
  * for tag processing to 20MB to prevent denial of service attacks.
  * Set @unlimited to remove this limit.
  *
  * Any ICC profile is read and attached to the VIPS image as
- * #VIPS_META_ICC_NAME. Any XMP metadata is read and attached to the image
- * as #VIPS_META_XMP_NAME. Any IPTC is attached as #VIPS_META_IPTC_NAME. The
+ * [const@META_ICC_NAME]. Any XMP metadata is read and attached to the image
+ * as [const@META_XMP_NAME]. Any IPTC is attached as [const@META_IPTC_NAME]. The
  * image description is
- * attached as #VIPS_META_IMAGEDESCRIPTION. Data in the photoshop tag is
- * attached as #VIPS_META_PHOTOSHOP_NAME.
+ * attached as [const@META_IMAGEDESCRIPTION]. Data in the photoshop tag is
+ * attached as [const@META_PHOTOSHOP_NAME].
  *
  * ::: tip "Optional arguments"
  *     * @page: %gint, load this page
@@ -534,7 +534,7 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  *     * @unlimited: %gboolean, remove all denial of service limits
  *
  * ::: seealso
- *     vips_image_new_from_file(), [method@Image.autorot].
+ *     [ctor@Image.new_from_file], [method@Image.autorot].
  *
  * Returns: 0 on success, -1 on error.
  */

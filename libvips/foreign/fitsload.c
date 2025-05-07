@@ -366,7 +366,7 @@ vips_foreign_load_fits_source_init(VipsForeignLoadFitsSource *fits)
  * FITS metadata is attached with the "fits-" prefix.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

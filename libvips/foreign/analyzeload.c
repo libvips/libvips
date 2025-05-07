@@ -167,7 +167,7 @@ vips_foreign_load_analyze_init(VipsForeignLoadAnalyze *analyze)
  * and attached.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

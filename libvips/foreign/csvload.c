@@ -701,7 +701,7 @@ vips_foreign_load_csv_source_init(VipsForeignLoadCsvSource *source)
  * Default ;,*tab*. Separators are never run together.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
- * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
+ * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
  * ::: tip "Optional arguments"
  *     * @skip: %gint, skip this many lines at start of file
@@ -711,7 +711,7 @@ vips_foreign_load_csv_source_init(VipsForeignLoadCsvSource *source)
  *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
  * ::: seealso
- *     vips_image_new_from_file(), [method@Image.bandfold].
+ *     [ctor@Image.new_from_file], [method@Image.bandfold].
  *
  * Returns: 0 on success, -1 on error.
  */

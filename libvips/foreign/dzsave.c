@@ -2732,7 +2732,7 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * In IIIF layout, you can set the base of the `id` property in `info.json`
  * with @id. The default is `https://example.com/iiif`.
  *
- * Use @layout #VIPS_FOREIGN_DZ_LAYOUT_IIIF3 for IIIF v3 layout.
+ * Use @layout [enum@Vips.ForeignDzLayout.IIIF3] for IIIF v3 layout.
  *
  * ::: tip "Optional arguments"
  *     * @basename: %gchararray, base part of name

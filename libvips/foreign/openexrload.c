@@ -176,7 +176,7 @@ vips_foreign_load_openexr_init(VipsForeignLoadOpenexr *openexr)
  * redone in C++.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

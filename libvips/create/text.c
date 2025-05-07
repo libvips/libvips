@@ -708,13 +708,13 @@ vips_text_init(VipsText *text)
  *     * @fontfile: %gchararray, load this font file
  *     * @width: %gint, image should be no wider than this many pixels
  *     * @height: %gint, image should be no higher than this many pixels
- *     * @align: #VipsAlign, set justification alignment
+ *     * @align: [enum@Align], set justification alignment
  *     * @justify: %gboolean, justify lines
  *     * @dpi: %gint, render at this resolution
  *     * @autofit_dpi: %gint, read out auto-fitted DPI
  *     * @rgba: %gboolean, enable RGBA output
  *     * @spacing: %gint, space lines by this in points
- *     * @wrap: #VipsTextWrap, wrap lines on characters or words
+ *     * @wrap: [enum@TextWrap], wrap lines on characters or words
  *
  * ::: seealso
  *     [func@Image.bandjoin], [func@Image.composite].

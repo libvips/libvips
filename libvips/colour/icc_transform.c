@@ -108,8 +108,8 @@
  * @VIPS_INTENT_ABSOLUTE: absolute colorimetric rendering intent
  * @VIPS_INTENT_AUTO: the rendering intent that the profile suggests
  *
- * The rendering intent. #VIPS_INTENT_ABSOLUTE is best for
- * scientific work, #VIPS_INTENT_RELATIVE is usually best for
+ * The rendering intent. [enum@Vips.Intent.ABSOLUTE] is best for
+ * scientific work, [enum@Vips.Intent.RELATIVE] is usually best for
  * accurate communication with other imaging libraries.
  */
 
@@ -1448,8 +1448,8 @@ vips_icc_is_compatible_profile(VipsImage *image,
  *
  * 1. If @embedded is set, libvips will try to use any profile in the input
  *    image metadata. You can test for the presence of an embedded profile
- *    with [method@Image.get_typeof] with #VIPS_META_ICC_NAME as an
- *    argument. This will return %GType 0 if there is no profile.
+ *    with [method@Image.get_typeof] with [const@META_ICC_NAME] as an
+ *    argument. This will return [alias@GObject.Type] 0 if there is no profile.
  *
  * 2. Otherwise, if @input_profile is set, libvips will try to load a
  *    profile from the named file. This can also be the name of one of the
@@ -1537,8 +1537,8 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  *
  * 1. If @embedded is set, libvips will try to use any profile in the input
  *    image metadata. You can test for the presence of an embedded profile
- *    with [method@Image.get_typeof] with #VIPS_META_ICC_NAME as an
- *    argument. This will return %GType 0 if there is no profile.
+ *    with [method@Image.get_typeof] with [const@META_ICC_NAME] as an
+ *    argument. This will return [alias@GObject.Type] 0 if there is no profile.
  *
  * 2. Otherwise, if @input_profile is set, libvips will try to load a
  *    profile from the named file. This can also be the name of one of the
@@ -1552,7 +1552,7 @@ vips_icc_export(VipsImage *in, VipsImage **out, ...)
  *
  * @depth defaults to 8, or 16 if @in is a 16-bit image.
  *
- * The output image has the output profile attached to the #VIPS_META_ICC_NAME
+ * The output image has the output profile attached to the [const@META_ICC_NAME]
  * field.
  *
  * Use [method@Image.icc_import] and [method@Image.icc_export] to do either

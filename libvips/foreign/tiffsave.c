@@ -607,9 +607,9 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  *
  * Write a VIPS image to a file as TIFF.
  *
- * If @in has the #VIPS_META_PAGE_HEIGHT metadata item, this is assumed to be a
+ * If @in has the [const@META_PAGE_HEIGHT] metadata item, this is assumed to be a
  * "toilet roll" image. It will be
- * written as series of pages, each #VIPS_META_PAGE_HEIGHT pixels high.
+ * written as series of pages, each [const@META_PAGE_HEIGHT] pixels high.
  *
  * Use @compression to set the tiff compression. Currently jpeg, packbits,
  * fax4, lzw, none, deflate, webp and zstd are supported. The default is no
@@ -628,7 +628,7 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * set WEBP lossless mode on. Use @Q to set the WEBP compression level.
  *
  * Use @predictor to set the predictor for lzw, deflate and zstd compression.
- * It defaults to #VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL, meaning horizontal
+ * It defaults to [enum@Vips.ForeignTiffPredictor.HORIZONTAL], meaning horizontal
  * differencing. Please refer to the libtiff
  * specifications for further discussion of various predictors.
  *
@@ -661,7 +661,7 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * Use @resunit to override the default resolution unit.
  * The default
  * resolution unit is taken from the header field
- * #VIPS_META_RESOLUTION_UNIT. If this field is not set, then
+ * [const@META_RESOLUTION_UNIT]. If this field is not set, then
  * VIPS defaults to cm.
  *
  * Use @xres and @yres to override the default horizontal and vertical
@@ -672,14 +672,14 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * format that allows more than 4GB in a file.
  *
  * Set @properties to write all vips metadata to the IMAGEDESCRIPTION tag as
- * xml. If @properties is not set, the value of #VIPS_META_IMAGEDESCRIPTION is
+ * xml. If @properties is not set, the value of [const@META_IMAGEDESCRIPTION] is
  * used instead.
  *
- * The value of #VIPS_META_XMP_NAME is written to
- * the XMP tag. #VIPS_META_ORIENTATION (if set) is used to set the value of
+ * The value of [const@META_XMP_NAME] is written to
+ * the XMP tag. [const@META_ORIENTATION] (if set) is used to set the value of
  * the orientation
- * tag. #VIPS_META_IPTC (if set) is used to set the value of the IPTC tag.
- * #VIPS_META_PHOTOSHOP_NAME (if set) is used to set the value of the PHOTOSHOP
+ * tag. [const@META_IPTC_NAME] (if set) is used to set the value of the IPTC tag.
+ * [const@META_PHOTOSHOP_NAME] (if set) is used to set the value of the PHOTOSHOP
  * tag.
  *
  * By default, pyramid layers are saved as consecutive pages.

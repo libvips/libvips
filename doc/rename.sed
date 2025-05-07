@@ -518,6 +518,7 @@ s/g_object_\([^(]*\)()/[method@GObject.Object.\1]/g
 s/%GValue/[struct@GObject.Value]/g
 s/%GObject/[class@GObject.Object]/g
 s/%GThread/[struct@GLib.Thread]/g
+s/%GType/[alias@GObject.Type]/g
 s/%GInputStream/[class@Gio.InputStream]/g
 s/%GInput/[class@Gio.Input]/g
 s/%GSList/[struct@GLib.SList]/g

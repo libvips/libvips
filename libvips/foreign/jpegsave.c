@@ -592,12 +592,12 @@ vips_foreign_save_jpeg_mime_init(VipsForeignSaveJpegMime *mime)
  * The image is automatically converted to RGB, Monochrome or CMYK before
  * saving.
  *
- * EXIF data is constructed from #VIPS_META_EXIF_NAME, then
+ * EXIF data is constructed from [const@META_EXIF_NAME], then
  * modified with any other related tags on the image before being written to
- * the file. #VIPS_META_RESOLUTION_UNIT is used to set the EXIF resolution
- * unit. #VIPS_META_ORIENTATION is used to set the EXIF orientation tag.
+ * the file. [const@META_RESOLUTION_UNIT] is used to set the EXIF resolution
+ * unit. [const@META_ORIENTATION] is used to set the EXIF orientation tag.
  *
- * IPTC as #VIPS_META_IPTC_NAME and XMP as #VIPS_META_XMP_NAME
+ * IPTC as [const@META_IPTC_NAME] and XMP as [const@META_XMP_NAME]
  * are coded and attached.
  *
  * ::: tip "Optional arguments"

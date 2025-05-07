@@ -1641,7 +1641,7 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
  * operation and can improve compatibility.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
- * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
+ * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
  * ::: tip "Optional arguments"
  *     * @page: %gint, load this page
@@ -1649,7 +1649,7 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
  *     * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

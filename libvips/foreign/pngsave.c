@@ -495,7 +495,7 @@ vips_foreign_save_png_buffer_init(VipsForeignSavePngBuffer *buffer)
  *     * @effort: %gint, quantisation CPU effort
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

@@ -1256,14 +1256,12 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * details on the cropping strategy.
  *
  * Normally the operation will upsize or downsize as required to fit the image
- * inside or outside the target size. If @size is set
- * to #VIPS_SIZE_UP, the operation will only upsize and will just
- * copy if asked to downsize.
- * If @size is set
- * to #VIPS_SIZE_DOWN, the operation will only downsize and will just
- * copy if asked to upsize.
- * If @size is #VIPS_SIZE_FORCE, the image aspect ratio will be broken and the
- * image will be forced to fit the target.
+ * inside or outside the target size. If @size is set to [enum@Vips.Size.UP],
+ * the operation will only upsize and will just copy if asked to downsize.
+ * If @size is set to [enum@Vips.Size.DOWN], the operation will only downsize
+ * and will just copy if asked to upsize.
+ * If @size is [enum@Vips.Size.FORCE], the image aspect ratio will be broken
+ * and the image will be forced to fit the target.
  *
  * Normally any orientation tags on the input image (such as EXIF tags) are
  * interpreted to rotate the image upright. If you set @no_rotate to %TRUE,
@@ -1281,10 +1279,10 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * input image is broken.
  *
  * Use @intent to set the rendering intent for any ICC transform. The default
- * is #VIPS_INTENT_RELATIVE.
+ * is [enum@Vips.Intent.RELATIVE].
  *
  * Use @fail_on to control the types of error that will cause loading to fail.
- * The default is #VIPS_FAIL_ON_NONE, ie. thumbnail is permissive.
+ * The default is [enum@Vips.FailOn.NONE], ie. thumbnail is permissive.
  *
  * ::: tip "Optional arguments"
  *     * @height: %gint, target height in pixels

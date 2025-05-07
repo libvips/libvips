@@ -2301,11 +2301,11 @@ vips_object_find_args(VipsObject *object,
 /**
  * vips_object_get_args: (skip)
  * @object: object whose args should be retrieved
- * @names: (transfer none) (array length=n_args) (allow-none): output array of %GParamSpec names
+ * @names: (transfer none) (array length=n_args) (allow-none): output array of [class@GObject.ParamSpec] names
  * @flags: (transfer none) (array length=n_args) (allow-none): output array of [flags@ArgumentFlags]
  * @n_args: (allow-none): length of output arrays
  *
- * Get all %GParamSpec names and [flags@ArgumentFlags] for an object.
+ * Get all [class@GObject.ParamSpec] names and [flags@ArgumentFlags] for an object.
  *
  * This is handy for language bindings. From C, it's usually more convenient to
  * use [func@Argument.map].
@@ -2954,8 +2954,8 @@ vips_class_build_hash_cb(void *dummy)
  * @basename: name of base class
  * @nickname: search for a class with this nickname
  *
- * Search below @basename, return the %GType of the class whose name or
- * @nickname matches, or 0 for not found.
+ * Search below @basename, return the [alias@GObject.Type] of the class
+ * whose name or @nickname matches, or 0 for not found.
  * If @basename is NULL, the whole of [class@Object] is searched.
  *
  * This function uses a cache, so it should be quick.
@@ -2963,7 +2963,7 @@ vips_class_build_hash_cb(void *dummy)
  * ::: seealso
  *     [func@class_find]
  *
- * Returns: the %GType of the class, or 0 if the class is not found.
+ * Returns: the [alias@GObject.Type] of the class, or 0 if the class is not found.
  */
 GType
 vips_type_find(const char *basename, const char *nickname)
@@ -3004,9 +3004,9 @@ vips_type_find(const char *basename, const char *nickname)
 
 /**
  * vips_nickname_find:
- * @type: #GType to search for
+ * @type: [alias@GObject.Type] to search for
  *
- * Return the VIPS nickname for a %GType. Handy for language bindings.
+ * Return the VIPS nickname for a [alias@GObject.Type]. Handy for language bindings.
  *
  * Returns: (transfer none): the class nickname.
  */

@@ -364,7 +364,7 @@ int im_rank_raw(IMAGE *in, IMAGE *out, int xsize, int ysize, int order);
  *
  * Set jpeg subsampling mode.
  *
- * DEPRECATED: use #VipsForeignSubsample
+ * DEPRECATED: use [enum@ForeignSubsample]
  */
 typedef enum {
 	VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO,

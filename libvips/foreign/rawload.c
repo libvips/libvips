@@ -217,7 +217,7 @@ vips_foreign_load_raw_init(VipsForeignLoadRaw *raw)
  *     * @interpretation: [enum@Interpretation], set image interpretation
  *
  * ::: seealso
- *     vips_image_new_from_file(), [method@Image.copy], [method@Image.byteswap].
+ *     [ctor@Image.new_from_file], [method@Image.copy], [method@Image.byteswap].
  *
  * Returns: 0 on success, -1 on error.
  */

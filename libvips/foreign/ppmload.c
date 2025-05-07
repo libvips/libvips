@@ -914,7 +914,7 @@ vips_foreign_load_ppm_source_init(VipsForeignLoadPpmSource *source)
  * with 0 and 255 for 0 and 1.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

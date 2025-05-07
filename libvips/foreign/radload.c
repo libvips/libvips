@@ -388,7 +388,7 @@ vips_foreign_load_rad_buffer_init(VipsForeignLoadRadBuffer *buffer)
  * Sections of this reader from Greg Ward and Radiance with kind permission.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

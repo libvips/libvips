@@ -54,14 +54,14 @@
  * @in: (array length=n) (transfer none): array of input images
  * @out: (out): output image
  * @n: number of input images
- * @mode: array of (@n - 1) #VipsBlendMode
+ * @mode: array of (@n - 1) [enum@BlendMode]
  * @...: %NULL-terminated list of optional named arguments
  *
  * Composite an array of images together.
  *
  * Images are placed in a stack, with @in[0] at the bottom and @in[@n - 1] at
  * the top. Pixels are blended together working from the bottom upwards, with
- * the blend mode at each step being set by the corresponding #VipsBlendMode
+ * the blend mode at each step being set by the corresponding [enum@BlendMode]
  * in @mode.
  *
  * Images are transformed to a compositing space before processing. This is
@@ -204,8 +204,8 @@
  * by [method@Image.smartcrop], for example, to decide what parts of the image to
  * keep.
  *
- * #VIPS_INTERESTING_NONE and #VIPS_INTERESTING_LOW mean the same -- the
- * crop is positioned at the top or left. #VIPS_INTERESTING_HIGH positions at
+ * [enum@Vips.Interesting.NONE] and [enum@Vips.Interesting.LOW] mean the same -- the
+ * crop is positioned at the top or left. [enum@Vips.Interesting.HIGH] positions at
  * the bottom or right.
  *
  * ::: seealso
@@ -260,19 +260,19 @@
  * When the edges of an image are extended, you can specify
  * how you want the extension done.
  *
- * #VIPS_EXTEND_BLACK --- new pixels are black, ie. all bits are zero.
+ * [enum@Vips.Extend.BLACK] --- new pixels are black, ie. all bits are zero.
  *
- * #VIPS_EXTEND_COPY --- each new pixel takes the value of the nearest edge
+ * [enum@Vips.Extend.COPY] --- each new pixel takes the value of the nearest edge
  * pixel
  *
- * #VIPS_EXTEND_REPEAT --- the image is tiled to fill the new area
+ * [enum@Vips.Extend.REPEAT] --- the image is tiled to fill the new area
  *
- * #VIPS_EXTEND_MIRROR --- the image is reflected and tiled to reduce hash
+ * [enum@Vips.Extend.MIRROR] --- the image is reflected and tiled to reduce hash
  * edges
  *
- * #VIPS_EXTEND_WHITE --- new pixels are white, ie. all bits are set
+ * [enum@Vips.Extend.WHITE] --- new pixels are white, ie. all bits are set
  *
- * #VIPS_EXTEND_BACKGROUND --- colour set from the @background property
+ * [enum@Vips.Extend.BACKGROUND] --- colour set from the @background property
  *
  * We have to specify the exact value of each enum member since we have to
  * keep these frozen for back compat with vips7.

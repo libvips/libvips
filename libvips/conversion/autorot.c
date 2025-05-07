@@ -238,7 +238,7 @@ vips_autorot_init(VipsAutorot *autorot)
  * @...: %NULL-terminated list of optional named arguments
  *
  * Look at the image metadata and rotate and flip the image to make it
- * upright. The #VIPS_META_ORIENTATION tag is removed from @out to prevent
+ * upright. The [const@META_ORIENTATION] tag is removed from @out to prevent
  * accidental double rotation.
  *
  * Read @angle to find the amount the image was rotated by. Read @flip to

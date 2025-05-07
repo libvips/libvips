@@ -340,8 +340,8 @@ vips__demand_hint_array(VipsImage *image,
  * Operations can set demand hints, that is, hints to the VIPS IO system about
  * the type of region geometry they work best with. For example,
  * operations which transform coordinates will usually work best with
- * %VIPS_DEMAND_STYLE_SMALLTILE, operations which work on local windows of
- * pixels will like %VIPS_DEMAND_STYLE_FATSTRIP.
+ * [enum@Vips.DemandStyle.SMALLTILE], operations which work on local windows of
+ * pixels will like [enum@Vips.DemandStyle.FATSTRIP].
  *
  * Header fields in @image are set from the fields in @in, with lower-numbered
  * images in @in taking priority.

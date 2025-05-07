@@ -69,7 +69,7 @@
  * @VIPS_KERNEL_MKS2013: Convolve with Magic Kernel Sharp 2013.
  * @VIPS_KERNEL_MKS2021: Convolve with Magic Kernel Sharp 2021.
  *
- * The resampling kernels vips supports. See vips_reduce(), for example.
+ * The resampling kernels vips supports. See [method@Image.reduce], for example.
  */
 
 

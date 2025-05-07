@@ -227,7 +227,7 @@ vips_compass_init(VipsCompass *compass)
  * ::: tip "Optional arguments"
  *     * @times: %gint, how many times to rotate and convolve
  *     * @angle: [enum@Angle45], rotate mask by this much between colvolutions
- *     * @combine: #VipsCombine, combine results like this
+ *     * @combine: [enum@Combine], combine results like this
  *     * @precision: [enum@Precision], precision for blur, default float
  *     * @layers: %gint, number of layers for approximation
  *     * @cluster: %gint, cluster lines closer than this distance
