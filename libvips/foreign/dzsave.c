@@ -2054,8 +2054,10 @@ vips_foreign_save_dz_build(VipsObject *object)
 		coding[VIPS_CODING_NONE] = TRUE;
 
 		if (vips__foreign_convert_saveable(save->ready, &z,
-			VIPS_SAVEABLE_RGB_CMYK, bandfmt_dzsave, coding,
-			save->background))
+			VIPS_FOREIGN_SAVEABLE_MONO |
+				VIPS_FOREIGN_SAVEABLE_RGB |
+				VIPS_FOREIGN_SAVEABLE_CMYK,
+			bandfmt_dzsave, coding, save->background))
 			return -1;
 
 		VIPS_UNREF(save->ready);
@@ -2321,7 +2323,7 @@ vips_foreign_save_dz_class_init(VipsForeignSaveDzClass *class)
 
 	foreign_class->suffs = dz_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_dz;
 	save_class->coding[VIPS_CODING_LABQ] = TRUE;
 

@@ -450,12 +450,6 @@ vips_image_guess_format(const VipsImage *image)
 	format = VIPS_FORMAT_UCHAR;
 
 	switch (image->Type) {
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_HISTOGRAM:
-	case VIPS_INTERPRETATION_MULTIBAND:
-		format = image->BandFmt;
-		break;
-
 	case VIPS_INTERPRETATION_FOURIER:
 		if (image->BandFmt == VIPS_FORMAT_DOUBLE ||
 			image->BandFmt == VIPS_FORMAT_DPCOMPLEX)
@@ -506,8 +500,12 @@ vips_image_guess_format(const VipsImage *image)
 			format = VIPS_FORMAT_FLOAT;
 		break;
 
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_HISTOGRAM:
+	case VIPS_INTERPRETATION_MULTIBAND:
 	default:
-		format = VIPS_FORMAT_NOTSET;
+		// for eg. INTERPRETATION_ERROR, stick with the format we have
+		format = image->BandFmt;
 		break;
 	}
 

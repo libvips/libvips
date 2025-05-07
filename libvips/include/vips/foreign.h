@@ -308,25 +308,25 @@ void vips_foreign_load_invalidate(VipsImage *image);
 		VIPS_TYPE_FOREIGN_SAVE, VipsForeignSaveClass))
 
 /**
- * VipsSaveable:
- * @VIPS_SAVEABLE_MONO: 1 band (eg. CSV)
- * @VIPS_SAVEABLE_RGB: 1 or 3 bands (eg. PPM)
- * @VIPS_SAVEABLE_RGBA: 1, 2, 3 or 4 bands (eg. PNG)
- * @VIPS_SAVEABLE_RGBA_ONLY: 3 or 4 bands (eg. WEBP)
- * @VIPS_SAVEABLE_RGB_CMYK: 1, 3 or 4 bands (eg. JPEG)
- * @VIPS_SAVEABLE_ANY: any number of bands (eg. TIFF)
+ * VipsForeignSaveable:
+ * @VIPS_FOREIGN_SAVEABLE_MONO: 1 band
+ * @VIPS_FOREIGN_SAVEABLE_RGB: 3 bands
+ * @VIPS_FOREIGN_SAVEABLE_CMYK: 4 bands
+ * @VIPS_FOREIGN_SAVEABLE_ALPHA: an extra band
+ * @VIPS_FOREIGN_SAVEABLE_ANY: saver supports everything (eg. TIFF)
+ *
+ * The set of image types supported by a saver.
  *
  * See also: #VipsForeignSave.
  */
-typedef enum {
-	VIPS_SAVEABLE_MONO,
-	VIPS_SAVEABLE_RGB,
-	VIPS_SAVEABLE_RGBA,
-	VIPS_SAVEABLE_RGBA_ONLY,
-	VIPS_SAVEABLE_RGB_CMYK,
-	VIPS_SAVEABLE_ANY,
-	VIPS_SAVEABLE_LAST
-} VipsSaveable;
+typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_SAVEABLE_MONO = 1,
+	VIPS_FOREIGN_SAVEABLE_RGB = 2,
+	VIPS_FOREIGN_SAVEABLE_CMYK = 4,
+	VIPS_FOREIGN_SAVEABLE_ALPHA = 8,
+	VIPS_FOREIGN_SAVEABLE_ANY = 16,
+	VIPS_FOREIGN_SAVEABLE_ALL = 31,
+} VipsForeignSaveable;
 
 /**
  * VipsForeignKeep:
@@ -401,11 +401,11 @@ typedef struct _VipsForeignSaveClass {
 
 	/* How this format treats bands.
 	 *
-	 * @saveable describes the bands that your saver can handle. For
+	 * @saveable describes the image types that your saver can handle. For
 	 * example, PPM images can have 1 or 3 bands (mono or RGB), so it
-	 * uses #VIPS_SAVEABLE_RGB.
+	 * uses VIPS_SAVEABLE_FLAGS_MONO | VIPS_SAVEABLE_FLAGS_RGB.
 	 */
-	VipsSaveable saveable;
+	VipsForeignSaveable saveable;
 
 	/* How this format treats band formats.
 	 *

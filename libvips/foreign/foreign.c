@@ -317,7 +317,7 @@
  *
  *     foreign_class->suffs = vips__foreign_csv_suffs;
  *
- *     save_class->saveable = VIPS_SAVEABLE_MONO;
+ *     save_class->saveable = VIPS_FOREIGN_SAVEABLE_MONO;
  *     // no need to define ->format_table, we don't want the input
  *     // cast for us
  *
@@ -782,11 +782,6 @@ vips_foreign_find_load_source(VipsSource *source)
 			"%s", _("source is not in a known format"));
 		return NULL;
 	}
-
-	/* All source loaders should be NOCACHE.
-	 */
-	g_assert(VIPS_OPERATION_CLASS(load_class)->flags &
-		VIPS_OPERATION_NOCACHE);
 
 	return G_OBJECT_CLASS_NAME(load_class);
 }
@@ -1350,8 +1345,12 @@ vips_foreign_save_summary_class(VipsObjectClass *object_class, VipsBuf *buf)
 	VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)
 		->summary_class(object_class, buf);
 
-	vips_buf_appendf(buf, ", %s",
-		vips_enum_nick(VIPS_TYPE_SAVEABLE, class->saveable));
+	GValue value = { 0 };
+	g_value_init(&value, VIPS_TYPE_FOREIGN_SAVEABLE);
+	g_value_set_flags(&value, class->saveable);
+	vips_buf_appends(buf, ", ");
+	vips_buf_appendgv(buf, &value);
+	g_value_unset(&value);
 }
 
 static VipsObject *
@@ -1374,13 +1373,163 @@ vips_foreign_save_new_from_string(const char *string)
 	return VIPS_OBJECT(save);
 }
 
-/* Convert an image for saving.
+/* Apply a set of saveable flags.
+ *
+ *	- if the saver supports mono and we have a mono-looking image, we are done
+ *	- if the saver supports CMYK and we have a CMYK-looking image, we are done
+ *	- if this is a CMYK-looking image, import to XYZ
+ *	- go to rgb
+ *	- if the saver supports rgb, we are done
+ *	- if the saver supports cmyk, go to cmyk
+ *	- if the saver supports mono, go to mono
+ */
+static int
+vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
+	VipsForeignSaveable saveable)
+{
+	// is this a 16-bit source image
+	gboolean sixteenbit = in->BandFmt == VIPS_FORMAT_USHORT;
+
+	VipsImage *out;
+	VipsInterpretation interpretation;
+
+	/* in holds a reference to the output of our chain as we build it.
+	 */
+	g_object_ref(in);
+
+	/* ANY? we are done.
+	 */
+	if (saveable & VIPS_FOREIGN_SAVEABLE_ANY) {
+		*ready = in;
+		return 0;
+	}
+
+	/* If this is an VIPS_CODING_LABQ, we can go straight to RGB.
+	 */
+	if (in->Coding == VIPS_CODING_LABQ) {
+		if (vips_LabQ2sRGB(in, &out, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+	}
+
+	/* If this is an VIPS_CODING_RAD, we unpack to float. This could be
+	 * scRGB or XYZ.
+	 */
+	if (in->Coding == VIPS_CODING_RAD) {
+		if (vips_rad2float(in, &out, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+	}
+
+	/* If this is a mono-ish looking image and our saver supports mono, we
+	 * are done. We are not too strict about what a mono image is! We need to
+	 * work for things like "extract_band 1" on an RGB Image.
+	 */
+	if ((saveable & VIPS_FOREIGN_SAVEABLE_MONO) &&
+		in->Bands < 3) {
+		*ready = in;
+		return 0;
+	}
+
+	/* CMYK image? Use the sanity-checked interpretation value.
+	 */
+	if (vips_image_guess_interpretation(in) == VIPS_INTERPRETATION_CMYK &&
+		in->Bands >= 4) {
+		/* If our saver supports CMYK we are done, otherwise import to XYZ.
+		 */
+		if (saveable & VIPS_FOREIGN_SAVEABLE_CMYK) {
+			*ready = in;
+			return 0;
+		}
+
+		if (vips_icc_import(in, &out,
+				"pcs", VIPS_PCS_XYZ,
+				"embedded", TRUE,
+				"input_profile", "cmyk",
+				NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+	}
+
+	/* If the saver supports RGB, go to RGB, or RGB16 if this is a ushort
+	 * source.
+	 */
+	if (saveable & VIPS_FOREIGN_SAVEABLE_RGB) {
+		interpretation = sixteenbit ?
+			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
+
+		if (vips_colourspace(in, &out, interpretation, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+
+		*ready = in;
+		return 0;
+	}
+
+	/* If the saver supports CMYK, go to RGB, or RGB16 if this is a ushort
+	 * source.
+	 */
+	if (saveable & VIPS_FOREIGN_SAVEABLE_CMYK) {
+		if (vips_icc_export(in, &out,
+			"output-profile", "cmyk",
+			"depth", sixteenbit ? 16 : 8,
+			NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+
+		*ready = in;
+		return 0;
+	}
+
+	/* If the saver supports mono, go to B_W, or GREY16 if this is a ushort
+	 * source.
+	 */
+	if (saveable & VIPS_FOREIGN_SAVEABLE_MONO) {
+		interpretation = sixteenbit ?
+			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
+
+		if (vips_colourspace(in, &out, interpretation, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+
+		*ready = in;
+		return 0;
+	}
+
+	vips_error("VipsForeignSave", _("saver does not support any output type"));
+	return -1;
+}
+
+/* Do all the colourspace conversions to get an image ready for saving. Don't
+ * finalize alpha or numeric format.
  */
 int
 vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
-	VipsSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
+	VipsForeignSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
 	VipsArrayDouble *background)
 {
+	VipsBandFormat original_format = in->BandFmt;
+
+	VipsImage *out;
+
 	/* in holds a reference to the output of our chain as we build it.
 	 */
 	g_object_ref(in);
@@ -1394,11 +1543,11 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		return 0;
 	}
 
-	/* For uncoded images, if this saver supports ANY bands and this
-	 * format we have nothing to do.
+	/* For uncoded images, if this saver supports ANY and this
+	 * format, we have nothing to do.
 	 */
 	if (in->Coding == VIPS_CODING_NONE &&
-		saveable == VIPS_SAVEABLE_ANY &&
+		(saveable & VIPS_FOREIGN_SAVEABLE_ANY) &&
 		format[in->BandFmt] == in->BandFmt) {
 		*ready = in;
 		return 0;
@@ -1408,316 +1557,127 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 * end.
 	 */
 
-	/* If this is an VIPS_CODING_LABQ, we can go straight to RGB.
+	/* Apply saveable conversions to get mono/rgb/cmyk.
 	 */
-	if (in->Coding == VIPS_CODING_LABQ) {
-		VipsImage *out;
-
-		if (vips_LabQ2sRGB(in, &out, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
+	if (vips_foreign_apply_saveable(in, &out, saveable)) {
 		g_object_unref(in);
-
-		in = out;
+		return -1;
 	}
+	g_object_unref(in);
+	in = out;
 
-	/* If this is an VIPS_CODING_RAD, we unpack to float. This could be
-	 * scRGB or XYZ.
+	/* Flatten alpha, if the saver does not support it.
 	 */
-	if (in->Coding == VIPS_CODING_RAD) {
-		VipsImage *out;
-
-		if (vips_rad2float(in, &out, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
-		g_object_unref(in);
-
-		in = out;
-	}
-
-	/* If the saver supports RAD, we need to go to scRGB or XYZ.
-	 */
-	if (coding[VIPS_CODING_RAD]) {
-		if (in->Type != VIPS_INTERPRETATION_scRGB &&
-			in->Type != VIPS_INTERPRETATION_XYZ) {
-			VipsImage *out;
-
-			if (vips_colourspace(in, &out, VIPS_INTERPRETATION_scRGB, NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-			g_object_unref(in);
-
-			in = out;
-		}
-	}
-
-	/* If this image is CMYK and the saver is RGB-only, use lcms to try to
-	 * import to XYZ.
-	 */
-	if (in->Type == VIPS_INTERPRETATION_CMYK &&
-		in->Bands >= 4 &&
-		(saveable == VIPS_SAVEABLE_RGB ||
-			saveable == VIPS_SAVEABLE_RGBA ||
-			saveable == VIPS_SAVEABLE_RGBA_ONLY)) {
-		VipsImage *out;
-
-		if (vips_icc_import(in, &out,
-				"pcs", VIPS_PCS_XYZ,
-				"embedded", TRUE,
-				"input_profile", "cmyk",
+	if (in->Coding == VIPS_CODING_NONE &&
+		vips_image_hasalpha(in) &&
+		!(saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)) {
+		if (vips_flatten(in, &out,
+				"background", background,
 				NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
 		g_object_unref(in);
-
 		in = out;
 	}
 
-	/* If this is something other than CMYK or RAD, and it's not already
-	 * an RGB image, eg. maybe a LAB image, we need to transform
-	 * to RGB.
-	 */
-	if (!coding[VIPS_CODING_RAD] &&
-		in->Bands >= 3 &&
-		in->Type != VIPS_INTERPRETATION_CMYK &&
-		in->Type != VIPS_INTERPRETATION_sRGB &&
-		in->Type != VIPS_INTERPRETATION_RGB16 &&
-		vips_colourspace_issupported(in) &&
-		(saveable == VIPS_SAVEABLE_RGB ||
-			saveable == VIPS_SAVEABLE_RGBA ||
-			saveable == VIPS_SAVEABLE_RGBA_ONLY ||
-			saveable == VIPS_SAVEABLE_RGB_CMYK)) {
-		VipsImage *out;
-		VipsInterpretation interpretation;
-
-		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
-		 * RGB down to 8 bits if the saver supports 16.
-		 */
-		if (vips_band_format_is8bit(format[in->BandFmt]))
-			interpretation = VIPS_INTERPRETATION_sRGB;
-		else
-			interpretation = VIPS_INTERPRETATION_RGB16;
-
-		if (vips_colourspace(in, &out, interpretation, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
-		g_object_unref(in);
-
-		in = out;
-	}
-
-	/* VIPS_SAVEABLE_RGBA_ONLY does not support mono types ... convert
-	 * to sRGB.
-	 */
-	if (!coding[VIPS_CODING_RAD] &&
-		in->Bands < 3 &&
-		saveable == VIPS_SAVEABLE_RGBA_ONLY) {
-		VipsImage *out;
-		VipsInterpretation interpretation;
-
-		/* Do we make RGB or RGB16? We don't want to squash a 16-bit
-		 * RGB down to 8 bits if the saver supports 16.
-		 */
-		if (vips_band_format_is8bit(format[in->BandFmt]))
-			interpretation = VIPS_INTERPRETATION_sRGB;
-		else
-			interpretation = VIPS_INTERPRETATION_RGB16;
-
-		if (vips_colourspace(in, &out, interpretation, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
-		g_object_unref(in);
-
-		in = out;
-	}
-
-	/* Get the bands right. We must do this after all colourspace
-	 * transforms, since they can change the number of bands.
+	/* There might be more than one alpha ... drop any remaining excess
+	 * bands.
 	 */
 	if (in->Coding == VIPS_CODING_NONE) {
-		/* Do we need to flatten out an alpha channel? There needs to
-		 * be an alpha there now, and this writer needs to not support
-		 * alpha.
-		 */
-		if ((in->Bands == 2 ||
-				(in->Bands == 4 &&
-					in->Type != VIPS_INTERPRETATION_CMYK)) &&
-			(saveable == VIPS_SAVEABLE_MONO ||
-				saveable == VIPS_SAVEABLE_RGB ||
-				saveable == VIPS_SAVEABLE_RGB_CMYK)) {
-			VipsImage *out;
+		int max_bands;
 
-			if (vips_flatten(in, &out,
-					"background", background,
-					NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-			g_object_unref(in);
+		// use a sanity-checked interpretation
+		max_bands = 0;
+		switch (vips_image_guess_interpretation(in)) {
+		case VIPS_INTERPRETATION_B_W:
+		case VIPS_INTERPRETATION_GREY16:
+			max_bands = 1;
+			break;
 
-			in = out;
+		case VIPS_INTERPRETATION_RGB:
+		case VIPS_INTERPRETATION_CMC:
+		case VIPS_INTERPRETATION_LCH:
+		case VIPS_INTERPRETATION_LABS:
+		case VIPS_INTERPRETATION_sRGB:
+		case VIPS_INTERPRETATION_YXY:
+		case VIPS_INTERPRETATION_XYZ:
+		case VIPS_INTERPRETATION_LAB:
+		case VIPS_INTERPRETATION_RGB16:
+		case VIPS_INTERPRETATION_scRGB:
+		case VIPS_INTERPRETATION_HSV:
+			max_bands = 3;
+			break;
+
+		case VIPS_INTERPRETATION_CMYK:
+			max_bands = 4;
+			break;
+
+		default:
 		}
 
-		/* Other alpha removal strategies ... just drop the extra
-		 * bands.
-		 */
+		if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
+			max_bands += 1;
 
-		else if (in->Bands > 3 &&
-			(saveable == VIPS_SAVEABLE_RGB ||
-				(saveable == VIPS_SAVEABLE_RGB_CMYK &&
-					in->Type != VIPS_INTERPRETATION_CMYK))) {
-			VipsImage *out;
+		if (saveable & VIPS_FOREIGN_SAVEABLE_ANY)
+			max_bands = in->Bands;
 
-			/* Don't let 4 bands though unless the image really is
-			 * a CMYK.
-			 *
-			 * Consider a RGBA png being saved as JPG. We can
-			 * write CMYK jpg, but we mustn't do that for RGBA
-			 * images.
-			 */
+		if (max_bands > 0 &&
+			in->Bands > max_bands) {
 			if (vips_extract_band(in, &out, 0,
-					"n", 3,
+					"n", max_bands,
 					NULL)) {
 				g_object_unref(in);
 				return -1;
 			}
 			g_object_unref(in);
-
-			in = out;
-		}
-		else if (in->Bands > 4 &&
-			((saveable == VIPS_SAVEABLE_RGB_CMYK &&
-				 in->Type == VIPS_INTERPRETATION_CMYK) ||
-				saveable == VIPS_SAVEABLE_RGBA ||
-				saveable == VIPS_SAVEABLE_RGBA_ONLY)) {
-			VipsImage *out;
-
-			if (vips_extract_band(in, &out, 0,
-					"n", 4,
-					NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-			g_object_unref(in);
-
-			in = out;
-		}
-		else if (in->Bands > 1 &&
-			saveable == VIPS_SAVEABLE_MONO) {
-			VipsImage *out;
-
-			if (vips_extract_band(in, &out, 0, NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-			g_object_unref(in);
-
-			in = out;
-		}
-
-		/* Else we have VIPS_SAVEABLE_ANY and we don't chop bands down.
-		 */
-	}
-
-	/* Handle the ushort interpretations.
-	 *
-	 * RGB16 and GREY16 use 0-65535 for black-white. If we have an image
-	 * tagged like this, and it has more than 8 bits (we leave crazy uchar
-	 * images tagged as RGB16 alone), we'll need to get it ready for the
-	 * saver.
-	 */
-	if ((in->Type == VIPS_INTERPRETATION_RGB16 ||
-			in->Type == VIPS_INTERPRETATION_GREY16) &&
-		!vips_band_format_is8bit(in->BandFmt)) {
-		/* If the saver supports ushort, cast to ushort. It may be
-		 * float at the moment, for example.
-		 *
-		 * If the saver does not support ushort, automatically shift
-		 * it down. This is the behaviour we want for saving an RGB16
-		 * image as JPG, for example.
-		 */
-		if (format[VIPS_FORMAT_USHORT] == VIPS_FORMAT_USHORT) {
-			VipsImage *out;
-
-			if (vips_cast(in, &out, VIPS_FORMAT_USHORT, NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-			g_object_unref(in);
-
-			in = out;
-		}
-		else {
-			VipsImage *out;
-
-			if (vips_rshift_const1(in, &out, 8, NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-			g_object_unref(in);
-
-			in = out;
-
-			/* That could have produced an int image ... make sure
-			 * we are now uchar.
-			 */
-			if (vips_cast(in, &out, VIPS_FORMAT_UCHAR, NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-			g_object_unref(in);
-
 			in = out;
 		}
 	}
 
-	/* Cast to the output format.
+	/* Convert to the format the saver likes, based on the original format.
 	 */
-	{
-		VipsImage *out;
-
-		if (vips_cast(in, &out, format[in->BandFmt], NULL)) {
+	if (in->Coding == VIPS_CODING_NONE &&
+		format) {
+		if (vips_cast(in, &out, format[original_format],
+			"shift", TRUE,
+			NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
 		g_object_unref(in);
-
 		in = out;
 	}
 
 	/* Does this class want a coded image? Search the coding table for the
 	 * first one.
 	 */
-	if (coding[VIPS_CODING_NONE]) {
-		/* Already NONE, nothing to do.
+	if (coding[in->Coding]) {
+		/* Already there, nothing to do.
 		 */
 	}
 	else if (coding[VIPS_CODING_LABQ]) {
-		VipsImage *out;
-
 		if (vips_Lab2LabQ(in, &out, NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
 		g_object_unref(in);
-
 		in = out;
 	}
 	else if (coding[VIPS_CODING_RAD]) {
-		VipsImage *out;
-
 		if (vips_float2rad(in, &out, NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
 		g_object_unref(in);
-
+		in = out;
+	}
+	else if (coding[VIPS_CODING_NONE]) {
+		if (vips_image_decode(in, &out)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
 		in = out;
 	}
 

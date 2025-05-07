@@ -26,6 +26,7 @@ master
 - rename `thumbnail`'s export/import profile options as input/output for
   consistency
 - restore vips_remosaic(), it was not being linked
+- deprecate VipsSaveable, add VipsForeignSaveable
 
 8.16.1
 

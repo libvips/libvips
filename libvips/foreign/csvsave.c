@@ -217,7 +217,7 @@ vips_foreign_save_csv_class_init(VipsForeignSaveCsvClass *class)
 
 	foreign_class->suffs = vips_foreign_save_csv_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_MONO;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_MONO;
 
 	VIPS_ARG_STRING(class, "separator", 13,
 		_("Separator"),

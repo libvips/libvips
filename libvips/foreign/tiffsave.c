@@ -163,7 +163,10 @@ vips_foreign_save_tiff_build(VipsObject *object)
 		/* See also vips_foreign_save_jpeg_class_init().
 		 */
 		if (vips__foreign_convert_saveable(ready, &x,
-				VIPS_SAVEABLE_RGB_CMYK, bandfmt_jpeg, class->coding,
+				VIPS_FOREIGN_SAVEABLE_MONO |
+					VIPS_FOREIGN_SAVEABLE_RGB |
+					VIPS_FOREIGN_SAVEABLE_CMYK,
+				bandfmt_jpeg, class->coding,
 				save->background)) {
 			VIPS_UNREF(ready);
 			return -1;
@@ -250,7 +253,7 @@ vips_foreign_save_tiff_class_init(VipsForeignSaveTiffClass *class)
 
 	foreign_class->suffs = vips__foreign_tiff_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->coding[VIPS_CODING_LABQ] = TRUE;
 
 	VIPS_ARG_ENUM(class, "compression", 6,

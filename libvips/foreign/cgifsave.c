@@ -885,7 +885,8 @@ vips_foreign_save_cgif_class_init(VipsForeignSaveCgifClass *class)
 
 	foreign_class->suffs = vips__save_cgif_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_RGBA_ONLY;
+	save_class->saveable =
+		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA;
 	save_class->format_table = bandfmt_gif;
 
 	VIPS_ARG_DOUBLE(class, "dither", 10,

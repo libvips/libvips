@@ -157,7 +157,10 @@ vips_foreign_save_jpeg_class_init(VipsForeignSaveJpegClass *class)
 
 	/* See also vips_foreign_save_tiff_build() when saving JPEG in TIFF.
 	 */
-	save_class->saveable = VIPS_SAVEABLE_RGB_CMYK;
+	save_class->saveable =
+		VIPS_FOREIGN_SAVEABLE_MONO |
+		VIPS_FOREIGN_SAVEABLE_RGB |
+		VIPS_FOREIGN_SAVEABLE_CMYK;
 	save_class->format_table = bandfmt_jpeg;
 
 	VIPS_ARG_INT(class, "Q", 10,

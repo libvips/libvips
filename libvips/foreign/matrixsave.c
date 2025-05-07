@@ -177,7 +177,7 @@ vips_foreign_save_matrix_class_init(VipsForeignSaveMatrixClass *class)
 
 	foreign_class->suffs = vips_foreign_save_matrix_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_MONO;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_MONO;
 	save_class->format_table = bandfmt_matrix;
 }
 

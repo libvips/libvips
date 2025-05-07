@@ -361,8 +361,7 @@ vips_buf_change(VipsBuf *buf, const char *old, const char *new)
 
 	/* Move tail of buffer to make right-size space for new.
 	 */
-	memmove(buf->base + i + nlen, buf->base + i + olen,
-		buf->i - i - olen);
+	memmove(buf->base + i + nlen, buf->base + i + olen, buf->i - i - olen);
 
 	/* Copy new in.
 	 */
@@ -541,8 +540,7 @@ vips_buf_appendgv(VipsBuf *buf, GValue *value)
 	} break;
 
 	case G_TYPE_INT:
-		result = vips_buf_appendf(buf,
-			"%d", g_value_get_int(value));
+		result = vips_buf_appendf(buf, "%d", g_value_get_int(value));
 		handled = TRUE;
 		break;
 
@@ -553,8 +551,7 @@ vips_buf_appendgv(VipsBuf *buf, GValue *value)
 		break;
 
 	case G_TYPE_DOUBLE:
-		result = vips_buf_appendf(buf,
-			"%g", g_value_get_double(value));
+		result = vips_buf_appendf(buf, "%g", g_value_get_double(value));
 		handled = TRUE;
 		break;
 
@@ -635,8 +632,7 @@ vips_buf_appendgv(VipsBuf *buf, GValue *value)
 
 			arr = vips_value_get_array_image(value, &n);
 			for (i = 0; i < n; i++) {
-				vips_object_summary(VIPS_OBJECT(arr[i]),
-					buf);
+				vips_object_summary(VIPS_OBJECT(arr[i]), buf);
 				result = vips_buf_appends(buf, " ");
 			}
 			handled = TRUE;

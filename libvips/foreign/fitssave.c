@@ -136,7 +136,7 @@ vips_foreign_save_fits_class_init(VipsForeignSaveFitsClass *class)
 
 	foreign_class->suffs = vips__fits_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_fits;
 
 	VIPS_ARG_STRING(class, "filename", 1,

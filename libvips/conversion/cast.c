@@ -488,8 +488,7 @@ vips_cast_build(VipsObject *object)
 	if (cast->shift &&
 		!vips_band_format_isint(in->BandFmt) &&
 		vips_band_format_isint(cast->format)) {
-		if (vips_cast(in, &t[1],
-				vips_image_guess_format(in), NULL))
+		if (vips_cast(in, &t[1], vips_image_guess_format(in), NULL))
 			return -1;
 		in = t[1];
 	}

@@ -475,7 +475,7 @@ vips_foreign_save_magick_class_init(VipsForeignSaveMagickClass *class)
 	foreign_class->priority = -100;
 	foreign_class->suffs = vips__save_magick_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_magick;
 
 	VIPS_ARG_STRING(class, "format", 2,

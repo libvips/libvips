@@ -143,7 +143,7 @@ vips_foreign_save_vips_class_init(VipsForeignSaveVipsClass *class)
 
 	foreign_class->suffs = vips__suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	for (i = 0; i < VIPS_CODING_LAST; i++)
 		save_class->coding[i] = TRUE;
 }

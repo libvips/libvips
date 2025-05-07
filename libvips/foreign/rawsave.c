@@ -138,7 +138,7 @@ vips_foreign_save_raw_class_init(VipsForeignSaveRawClass *class)
 	object_class->description = _("save image to raw");
 	object_class->build = vips_foreign_save_raw_build;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 }
 
 static void
