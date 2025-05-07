@@ -748,11 +748,9 @@ vips_foreign_save_jxl_sink_disc(VipsRegion *region, VipsRect *area, void *a)
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) a;
 	size_t sz = VIPS_IMAGE_SIZEOF_PEL(region->im) * area->width;
 
-	int i;
-
 	/* Write the new pixels into the frame.
 	 */
-	for (i = 0; i < area->height; i++) {
+	for (int i = 0; i < area->height; i++) {
 		memcpy(jxl->scanline_buffer + sz * jxl->scanline_y,
 			VIPS_REGION_ADDR(region, 0, area->top + i),
 			sz);
