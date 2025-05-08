@@ -1844,7 +1844,7 @@ vips_filename_get_options(const char *vips_filename)
  * @name: file to open
  * @...: `NULL`-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
+ * ::: tip "Optional arguments"
  *     * @access: hint [enum@Access] mode to loader
  *     * @memory: force load via memory
  *
