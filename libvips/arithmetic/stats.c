@@ -14,7 +14,7 @@
 31/8/93 JC
 	- forgot to init global max/min properly! sorry.
 21/6/95 JC
-	- still did not init max and min correctly --- now fixed for good
+	- still did not init max and min correctly -- now fixed for good
 
  * 13/1/05
  *	- use 64 bit arithmetic

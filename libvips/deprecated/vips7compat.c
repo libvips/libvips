@@ -765,7 +765,7 @@ im_wrapmany(IMAGE **in, IMAGE *out, im_wrapmany_fn fn, void *a, void *b)
 	bun->a = a;
 	bun->b = b;
 
-	/* Check descriptors --- make sure that our caller has done this
+	/* Check descriptors -- make sure that our caller has done this
 	 * correctly.
 	 */
 	for (i = 0; i < n; i++) {

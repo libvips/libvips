@@ -372,7 +372,7 @@ vips__read_header_bytes(VipsImage *im, unsigned char *from)
 	 * pixel interpretation, don't clip them.
 	 */
 
-	/* Coding values imply Bands and BandFmt settings --- make sure they
+	/* Coding values imply Bands and BandFmt settings -- make sure they
 	 * are sane.
 	 */
 	switch (im->Coding) {

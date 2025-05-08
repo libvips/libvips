@@ -1,4 +1,4 @@
-/* math2.c --- 2ary math funcs
+/* math2.c -- 2ary math funcs
  *
  * Copyright: 1990, N. Dessipris
  *

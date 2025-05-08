@@ -1,4 +1,4 @@
-/* rename.c --- wrappers for various renamed functions
+/* rename.c -- wrappers for various renamed functions
  *
  * 20/9/09
  */
@@ -467,7 +467,7 @@ vips_rawsave_fd(VipsImage *in, int fd, ...)
 	va_list ap;
 	int result;
 	VipsTarget *target;
-	
+
 	if (!(target = vips_target_new_to_descriptor(fd)))
 		return -1;
 

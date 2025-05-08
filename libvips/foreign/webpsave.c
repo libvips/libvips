@@ -312,7 +312,7 @@ vips_foreign_save_webp_get_delay(VipsForeignSaveWebp *webp, int page_number)
 	return delay <= 10 ? 100 : delay;
 }
 
-/* We have a complete frame --- write!
+/* We have a complete frame -- write!
  */
 static int
 vips_foreign_save_webp_write_frame(VipsForeignSaveWebp *webp)

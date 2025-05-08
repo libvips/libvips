@@ -1848,15 +1848,15 @@ vips_filename_get_options(const char *vips_filename)
  * @name: file to open
  * @...: `NULL`-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
+ * ::: tip "Optional arguments"
  *     * @access: hint [enum@Access] mode to loader
- *     * @memory: force load via memory
+ *     * @memory: `gboolean`, force load via memory
  *
  * [ctor@Image.new_from_file] opens @name for reading. It can load files
  * in many image formats, including VIPS, TIFF, PNG, JPEG, FITS, Matlab,
  * OpenEXR, CSV, WebP, Radiance, RAW, PPM and others.
  *
- * Load options may be appended to @filename as "[name=value,...]" or given as
+ * Load options may be appended to @filename as `[name=value,...]` or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  * Many loaders add extra options, see [ctor@Image.jpegload], for example.
@@ -1899,8 +1899,7 @@ vips_filename_get_options(const char *vips_filename)
  * Will open "fred.tif", reading page 12.
  *
  * ```c
- * VipsImage *image = vips_image_new_from_file("fred.jpg[shrink=2]",
- *     NULL);
+ * VipsImage *image = vips_image_new_from_file("fred.jpg[shrink=2]", NULL);
  * ```
  *
  * Will open `fred.jpg`, downsampling by a factor of two.
@@ -2065,7 +2064,7 @@ vips_image_new_from_memory(const void *data, size_t size,
 
 	if (size < VIPS_IMAGE_SIZEOF_IMAGE(image)) {
 		vips_error("VipsImage",
-			_("memory area too small --- "
+			_("memory area too small -- "
 			  "should be %" G_GINT64_FORMAT " bytes, you passed %zd"),
 			VIPS_IMAGE_SIZEOF_IMAGE(image), size);
 		VIPS_UNREF(image);
@@ -2139,7 +2138,7 @@ vips_image_new_from_memory_copy(const void *data, size_t size,
  * responsibility for the area of memory, it's up to you to make sure it's
  * freed when the image is closed. See for example [signal@Object::close].
  *
- * Load options may be given in @option_string as "[name=value,...]" or given as
+ * Load options may be given in @option_string as `[name=value,...]` or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  *
@@ -2189,7 +2188,7 @@ vips_image_new_from_buffer(const void *buf, size_t len,
  * Loads an image from the formatted source @input,
  * loader recommended by [func@Foreign.find_load_source].
  *
- * Load options may be given in @option_string as "[name=value,...]" or given as
+ * Load options may be given in @option_string as `[name=value,...]` or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the string.
  *
@@ -2370,7 +2369,7 @@ vips_image_new_matrix_from_array(int width, int height,
 
 	if (size != width * height) {
 		vips_error("VipsImage",
-			_("bad array length --- should be %d, you passed %d"),
+			_("bad array length -- should be %d, you passed %d"),
 			width * height, size);
 		return NULL;
 	}
@@ -2679,7 +2678,7 @@ vips_image_write(VipsImage *image, VipsImage *out)
  * Writes @in to @name using the saver recommended by
  * [func@Foreign.find_save].
  *
- * Save options may be appended to @filename as "[name=value,...]" or given as
+ * Save options may be appended to @filename as `[name=value,...]` or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  *
@@ -2743,7 +2742,7 @@ vips_image_write_to_file(VipsImage *image, const char *name, ...)
  *
  * Writes @in to a memory buffer in a format specified by @suffix.
  *
- * Save options may be appended to @suffix as "[name=value,...]" or given as
+ * Save options may be appended to @suffix as `[name=value,...]` or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  *
@@ -2833,7 +2832,7 @@ vips_image_write_to_buffer(VipsImage *in,
  *
  * Writes @in to @output in format @suffix.
  *
- * Save options may be appended to @suffix as "[name=value,...]" or given as
+ * Save options may be appended to @suffix as `[name=value,...]` or given as
  * a NULL-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  *
@@ -2894,9 +2893,9 @@ vips_image_write_to_memory(VipsImage *in, size_t *size_out)
 	size = VIPS_IMAGE_SIZEOF_IMAGE(in);
 	if (!(buf = g_try_malloc(size))) {
 		vips_error("vips_image_write_to_memory",
-			_("out of memory --- size == %dMB"),
+			_("out of memory -- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
-		g_warning(_("out of memory --- size == %dMB"),
+		g_warning(_("out of memory -- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
 		return NULL;
 	}

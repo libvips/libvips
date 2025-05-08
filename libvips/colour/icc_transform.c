@@ -907,8 +907,8 @@ decode_xyz(guint16 *fixed, float *xyz, int n)
 		Z *= SCALE;
 
 		/* Transform XYZ D50 to D65, chromatic adaption is done with the
-		 * Bradford transformation.
-		 * See: https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
+		 * Bradford transformation. See:
+		 * https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
 		 */
 		xyz[0] = 0.955513F * X +
 			-0.023073F * Y +
@@ -1070,8 +1070,8 @@ encode_xyz(float *in, float *out, int n)
 		float Z = in[2] / SCALE;
 
 		/* Transform XYZ D65 to D50, chromatic adaption is done with the
-		 * Bradford transformation.
-		 * See: https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
+		 * Bradford transformation. See:
+		 * https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
 		 */
 		out[0] = 1.047886F * X +
 			0.022919F * Y +

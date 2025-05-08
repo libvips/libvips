@@ -317,9 +317,9 @@ vips_tracked_malloc(size_t size)
 #endif /*DEBUG*/
 
 		vips_error("vips_tracked",
-			_("out of memory --- size == %dMB"),
+			_("out of memory -- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
-		g_warning(_("out of memory --- size == %dMB"),
+		g_warning(_("out of memory -- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
 
 		return NULL;
@@ -391,9 +391,9 @@ vips_tracked_aligned_alloc(size_t size, size_t align)
 #endif /*DEBUG*/
 
 		vips_error("vips_tracked",
-			_("out of memory --- size == %dMB"),
+			_("out of memory -- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
-		g_warning(_("out of memory --- size == %dMB"),
+		g_warning(_("out of memory -- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
 
 		return NULL;

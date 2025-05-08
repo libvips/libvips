@@ -52,7 +52,7 @@
 
 #if defined(HAVE_MAGICK6) || defined(HAVE_MAGICK7)
 
-/* Imagemagick has weak support for some formats --- for example, AVI is
+/* Imagemagick has weak support for some formats -- for example, AVI is
  * delegated to ffmpeg, and just getting the header can take many seconds and
  * many GB of memory.
  *

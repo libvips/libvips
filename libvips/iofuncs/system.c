@@ -325,7 +325,7 @@ vips_system_init(VipsSystem *system)
  * @cmd_format: command to run
  * @...: `NULL`-terminated list of optional named arguments
  *
- * ::: note "Optional arguments"
+ * ::: tip "Optional arguments"
  *     * @in: array of input images
  *     * @out: output image
  *     * @in_format: write input files like this

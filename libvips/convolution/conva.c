@@ -983,7 +983,7 @@ vips_conva_horizontal(VipsConva *conva, VipsImage *in, VipsImage **out)
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(conva);
 
-	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
+	/* Prepare output. Consider a 7x7 mask and a 7x7 image -- the output
 	 * would be 1x1.
 	 */
 	*out = vips_image_new();
@@ -1233,7 +1233,7 @@ vips_conva_vertical(VipsConva *conva, VipsImage *in, VipsImage **out)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(conva);
 	VipsConvolution *convolution = (VipsConvolution *) conva;
 
-	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
+	/* Prepare output. Consider a 7x7 mask and a 7x7 image -- the output
 	 * would be 1x1.
 	 */
 	*out = vips_image_new();

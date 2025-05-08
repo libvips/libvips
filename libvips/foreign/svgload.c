@@ -526,7 +526,7 @@ vips_foreign_load_svg_get_scaled_size(VipsForeignLoadSvg *svg,
 	if (vips_foreign_load_svg_get_natural_size(svg, &width, &height))
 		return -1;
 
-	/* We scale up with cairo --- scaling with rsvg_handle_set_dpi() will
+	/* We scale up with cairo -- scaling with rsvg_handle_set_dpi() will
 	 * fail for SVGs with absolute sizes.
 	 */
 	svg->cairo_scale = svg->scale * svg->dpi / 72.0;

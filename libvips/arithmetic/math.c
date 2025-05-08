@@ -1,4 +1,4 @@
-/* VipsMath --- call various -lm functions (trig, log etc.) on images
+/* VipsMath -- call various -lm functions (trig, log etc.) on images
  *
  * Copyright: 1990, N. Dessipris, based on im_powtra()
  * Author: Nicos Dessipris

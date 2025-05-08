@@ -1,4 +1,4 @@
-/* ifthenelse.c --- use a condition image to join two images together
+/* ifthenelse.c -- use a condition image to join two images together
  *
  * Modified:
  * 9/2/95 JC

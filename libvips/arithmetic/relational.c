@@ -1,4 +1,4 @@
-/* relational.c --- various relational operations
+/* relational.c -- various relational operations
  *
  * Modified:
  * 26/7/93 JC

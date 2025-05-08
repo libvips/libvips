@@ -153,9 +153,8 @@
  * The various Porter-Duff and PDF blend modes. See [func@Image.composite],
  * for example.
  *
- * The Cairo docs have a nice explanation of all the blend modes:
- *
- * https://www.cairographics.org/operators
+ * The Cairo docs have [a nice explanation of all the blend
+ * modes](https://www.cairographics.org/operators).
  *
  * The non-separable modes are not implemented.
  */
@@ -260,19 +259,19 @@
  * When the edges of an image are extended, you can specify
  * how you want the extension done.
  *
- * [enum@Vips.Extend.BLACK] --- new pixels are black, ie. all bits are zero.
+ * [enum@Vips.Extend.BLACK] -- new pixels are black, ie. all bits are zero.
  *
- * [enum@Vips.Extend.COPY] --- each new pixel takes the value of the nearest edge
+ * [enum@Vips.Extend.COPY] -- each new pixel takes the value of the nearest edge
  * pixel
  *
- * [enum@Vips.Extend.REPEAT] --- the image is tiled to fill the new area
+ * [enum@Vips.Extend.REPEAT] -- the image is tiled to fill the new area
  *
- * [enum@Vips.Extend.MIRROR] --- the image is reflected and tiled to reduce hash
+ * [enum@Vips.Extend.MIRROR] -- the image is reflected and tiled to reduce hash
  * edges
  *
- * [enum@Vips.Extend.WHITE] --- new pixels are white, ie. all bits are set
+ * [enum@Vips.Extend.WHITE] -- new pixels are white, ie. all bits are set
  *
- * [enum@Vips.Extend.BACKGROUND] --- colour set from the @background property
+ * [enum@Vips.Extend.BACKGROUND] -- colour set from the @background property
  *
  * We have to specify the exact value of each enum member since we have to
  * keep these frozen for back compat with vips7.

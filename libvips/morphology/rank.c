@@ -223,7 +223,7 @@ vips_rank_generate_uchar(VipsRegion *out_region,
 			}
 			q[b] = i;
 
-			/* Adapt histogram --- remove the pels from
+			/* Adapt histogram -- remove the pels from
 			 * the left hand column, add in pels for a
 			 * new right-hand column.
 			 */

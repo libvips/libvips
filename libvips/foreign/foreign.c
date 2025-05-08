@@ -2693,7 +2693,7 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  *
  * Render a PDF file into a VIPS image.
  *
- * The output image is always RGBA --- CMYK PDFs will be
+ * The output image is always RGBA -- CMYK PDFs will be
  * converted. If you need CMYK bitmaps, you should use [ctor@Image.magickload]
  * instead.
  *
@@ -2701,8 +2701,8 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  *
  * Use @n to select the number of pages to render. The default is 1. Pages are
  * rendered in a vertical column, with each individual page aligned to the
- * left. Set to -1 to mean "until the end of the document". Use [method@Image.grid]
- * to change page layout.
+ * left. Set to -1 to mean "until the end of the document". Use
+ * [method@Image.grid] to change page layout.
  *
  * Use @dpi to set the rendering resolution. The default is 72. Additionally,
  * you can scale by setting @scale. If you set both, they combine.

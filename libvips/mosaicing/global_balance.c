@@ -1761,7 +1761,7 @@ analyse_mosaic(SymbolTable *st, VipsImage *in)
 	return 0;
 }
 
-/* Scale im by fac --- if it's uchar/ushort, use a lut. If we can use a lut,
+/* Scale im by fac -- if it's uchar/ushort, use a lut. If we can use a lut,
  * transform in linear space. If we can't, don't bother for efficiency.
  */
 static VipsImage *
