@@ -268,14 +268,14 @@ vips_foreign_load_magick7_get_flags(VipsForeignLoad *load)
 }
 
 static void
-vips_foreign_load_magick7_dispose(GObject *gobject)
+vips_foreign_load_magick7_finalize(GObject *gobject)
 {
 	VipsForeignLoadMagick7 *magick7 = (VipsForeignLoadMagick7 *) gobject;
 
 	int i;
 
 #ifdef DEBUG
-	printf("vips_foreign_load_magick7_dispose: %p\n", gobject);
+	printf("vips_foreign_load_magick7_finalize: %p\n", gobject);
 #endif /*DEBUG*/
 
 	for (i = 0; i < magick7->n_frames; i++) {
@@ -288,7 +288,7 @@ vips_foreign_load_magick7_dispose(GObject *gobject)
 	VIPS_FREEF(magick_destroy_exception, magick7->exception);
 	g_mutex_clear(&magick7->lock);
 
-	G_OBJECT_CLASS(vips_foreign_load_magick7_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(vips_foreign_load_magick7_parent_class)->finalize(gobject);
 }
 
 static int
@@ -342,7 +342,7 @@ vips_foreign_load_magick7_class_init(VipsForeignLoadMagick7Class *class)
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
-	gobject_class->dispose = vips_foreign_load_magick7_dispose;
+	gobject_class->finalize = vips_foreign_load_magick7_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 

@@ -459,19 +459,27 @@ static VipsForeignSaveJxlMetadata libjxl_metadata[] = {
 };
 
 static void
+vips_foreign_save_jxl_finalize(GObject *gobject)
+{
+	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) gobject;
+
+	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
+	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
+
+	g_mutex_clear(&jxl->tile_lock);
+
+	VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
+
+	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->finalize(gobject);
+}
+
+static void
 vips_foreign_save_jxl_dispose(GObject *gobject)
 {
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) gobject;
 
 	VIPS_UNREF(jxl->target);
-
-	VIPS_FREEF(JxlThreadParallelRunnerDestroy, jxl->runner);
-	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
-
 	VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
-	g_mutex_clear(&jxl->tile_lock);
-
-	VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
 
 	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->dispose(gobject);
 }
@@ -1029,6 +1037,7 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
+	gobject_class->finalize = vips_foreign_save_jxl_finalize;
 	gobject_class->dispose = vips_foreign_save_jxl_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
