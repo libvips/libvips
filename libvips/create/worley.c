@@ -347,11 +347,8 @@ vips_worley_init(VipsWorley *worley)
  * @height: vertical size
  * @...: `NULL`-terminated list of optional named arguments
  *
- * Create a one-band float image of Worley noise.
- *
- * See:
- *
- * https://en.wikipedia.org/wiki/Worley_noise
+ * Create a one-band float image of [Worley
+ * noise](https://en.wikipedia.org/wiki/Worley_noise).
  *
  * Use @cell_size to set the size of the cells from which the image is
  * constructed. The default is 256 x 256.

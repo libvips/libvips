@@ -394,7 +394,8 @@ vips_col_scRGB2BW(int range, int *lut, float R, float G, float B,
 	int Yi;
 	float v;
 
-	/* CIE linear luminance function, see https://en.wikipedia.org/wiki/Grayscale#Colorimetric_(perceptual_luminance-preserving)_conversion_to_grayscale
+	/* CIE linear luminance function, see
+	 * https://en.wikipedia.org/wiki/Grayscale#Colorimetric_(perceptual_luminance-preserving)_conversion_to_grayscale
 	 */
 	Y = 0.2126F * R + 0.7152F * G + 0.0722F * B;
 

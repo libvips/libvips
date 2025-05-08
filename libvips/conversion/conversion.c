@@ -153,9 +153,8 @@
  * The various Porter-Duff and PDF blend modes. See [func@Image.composite],
  * for example.
  *
- * The Cairo docs have a nice explanation of all the blend modes:
- *
- * https://www.cairographics.org/operators
+ * The Cairo docs have [a nice explanation of all the blend
+ * modes](https://www.cairographics.org/operators).
  *
  * The non-separable modes are not implemented.
  */

@@ -341,11 +341,8 @@ vips_perlin_init(VipsPerlin *perlin)
  * @height: vertical size
  * @...: `NULL`-terminated list of optional named arguments
  *
- * Create a one-band float image of Perlin noise.
- *
- * See:
- *
- * https://en.wikipedia.org/wiki/Perlin_noise
+ * Create a one-band float image of [Perlin
+ * noise](https://en.wikipedia.org/wiki/Perlin_noise).
  *
  * Use @cell_size to set the size of the cells from which the image is
  * constructed. The default is 256 x 256.
