@@ -69,10 +69,6 @@
 
 #define OUTPUT_BUFFER_SIZE (4096)
 
-// max number of scanlines for a jxl tile (ysize arg to _data_at()) ... 2048
-// plus 8 lines of overlap top and bottom
-#define MAX_TILE_HEIGHT (2064)
-
 typedef struct _VipsForeignSaveJxl {
 	VipsForeignSave parent_object;
 
@@ -88,8 +84,6 @@ typedef struct _VipsForeignSaveJxl {
 	gboolean lossless;
 	int Q;
 
-	/* Set on API fail.
-	 */
 	gboolean error;
 
 	/* JXL multipage and animated images are the same, but multipage has
@@ -120,12 +114,6 @@ typedef struct _VipsForeignSaveJxl {
 	void *runner;
 	JxlEncoder *encoder;
 
-	/* Buffer scanlines to make a line of libjxl tiles.
-	 */
-	VipsPel *scanline_buffer;
-	size_t scanline_size;
-	int scanline_y;
-
 	/* Write buffer.
 	 */
 	uint8_t output_buffer[OUTPUT_BUFFER_SIZE];
@@ -143,8 +131,6 @@ typedef struct _VipsForeignSaveJxl {
 	/* Current page we are saving.
 	 */
 	VipsImage *page;
-	VipsImage *page_colour;
-	VipsImage *page_extras;
 
 	/* Track number of pixels saved here for eval reporting.
 	 */
@@ -180,7 +166,7 @@ vips_foreign_save_jxl_seek(void *opaque, uint64_t position)
 {
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) opaque;
 
-	if (vips_target_seek(jxl->target, position, SEEK_SET))
+	if (vips_target_seek(jxl->target, position, SEEK_SET) < 0)
 		jxl->error = TRUE;
 }
 
@@ -452,8 +438,6 @@ vips_foreign_save_jxl_finalize(GObject *gobject)
 	VIPS_FREEF(JxlEncoderDestroy, jxl->encoder);
 
 	g_mutex_clear(&jxl->tile_lock);
-
-	VIPS_FREEF(vips_tracked_free, jxl->scanline_buffer);
 
 	G_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->finalize(gobject);
 }
@@ -756,6 +740,9 @@ vips_foreign_save_jxl_save(VipsForeignSaveJxl *jxl, VipsImage *in)
 		}
 
 		VIPS_UNREF(page);
+
+		if (jxl->error)
+			return -1;
 	}
 
 	return 0;
@@ -881,17 +868,19 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	 */
 	vips_image_preeval(save->ready);
 
-	if (vips_foreign_save_jxl_save(jxl, in))
-		return -1;
+	int result = vips_foreign_save_jxl_save(jxl, in);
 
 	vips_image_posteval(save->ready);
 
 	vips_image_minimise_all(save->ready);
 
+	if (jxl->error)
+		return -1;
+
 	if (vips_target_end(jxl->target))
 		return -1;
 
-	return 0;
+	return result;
 }
 
 /* Save a bit of typing.
