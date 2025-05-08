@@ -5,14 +5,6 @@
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
 #include <vips/vips.h>
-
-/* Alias for backwards compatibility.
- */
-GType
-vips_saveable_get_type(void)
-{
-	return vips_foreign_saveable_get_type();
-}
 /*** END file-header ***/
 
 /*** BEGIN file-production ***/
@@ -46,3 +38,11 @@ GType
 }
 /*** END value-tail ***/
 
+/*** BEGIN file-tail ***/
+/* Deprecated enumerations */
+GType
+vips_saveable_get_type(void)
+{
+	return vips_foreign_saveable_get_type();
+}
+/*** END file-tail ***/
