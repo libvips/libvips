@@ -249,8 +249,8 @@ vips_target_custom_class_init(VipsTargetCustomClass *class)
 	/**
 	 * VipsTargetCustom::write:
 	 * @target_custom: the target being operated on
-	 * @data: %pointer, bytes to write
-	 * @length: %gint64, number of bytes
+	 * @data: `gpointer`, bytes to write
+	 * @length: `gint64`, number of bytes
 	 *
 	 * This signal is emitted to write bytes to the target.
 	 *
@@ -268,8 +268,8 @@ vips_target_custom_class_init(VipsTargetCustomClass *class)
 	/**
 	 * VipsTargetCustom::read:
 	 * @target_custom: the target being operated on
-	 * @buffer: %gpointer, buffer to fill
-	 * @size: %gint64, size of buffer
+	 * @buffer: `gpointer`, buffer to fill
+	 * @size: `gint64`, size of buffer
 	 *
 	 * This signal is emitted to read bytes from the target into @buffer.
 	 *
@@ -289,8 +289,8 @@ vips_target_custom_class_init(VipsTargetCustomClass *class)
 	/**
 	 * VipsTargetCustom::seek:
 	 * @target_custom: the target being operated on
-	 * @offset: %gint64, seek offset
-	 * @whence: %gint, seek origin
+	 * @offset: `gint64`, seek offset
+	 * @whence: `gint`, seek origin
 	 *
 	 * This signal is emitted to seek the target. The handler should
 	 * change the target position appropriately.

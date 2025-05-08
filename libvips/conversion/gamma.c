@@ -162,13 +162,13 @@ vips_gamma_init(VipsGamma *gamma)
  * vips_gamma: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Calculate @in ** (1 / @exponent), normalising to the maximum range of the
  * input type. For float types use 1.0 as the maximum.
  *
  * ::: tip "Optional arguments"
- *     * @exponent: %gdouble, gamma, default 1.0 / 2.4
+ *     * @exponent: `gdouble`, gamma, default 1.0 / 2.4
  *
  * ::: seealso
  *     [ctor@Image.identity], [method@Image.pow_const1], [method@Image.maplut]

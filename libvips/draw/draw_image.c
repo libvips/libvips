@@ -305,7 +305,7 @@ vips_draw_image_init(VipsDrawImage *draw_image)
  * @sub: image to paint
  * @x: draw @sub here
  * @y: draw @sub here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Draw @sub on top of @image at position @x, @y.
  *

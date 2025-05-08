@@ -246,7 +246,7 @@ vips_logmat_init(VipsLogmat *logmat)
  * @out: (out): output image
  * @sigma: standard deviation of mask
  * @min_ampl: minimum amplitude
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Create a circularly symmetric Laplacian of Gaussian mask of radius
  * @sigma.
@@ -283,7 +283,7 @@ vips_logmat_init(VipsLogmat *logmat)
  * "scale" is set to the sum of all the mask elements.
  *
  * ::: tip "Optional arguments"
- *     * @separable: %gboolean, generate a separable mask
+ *     * @separable: `gboolean`, generate a separable mask
  *     * @precision: [enum@Precision] for @out
  *
  * ::: seealso

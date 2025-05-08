@@ -228,7 +228,7 @@ vips_float2rad_init(VipsFloat2rad *float2rad)
  * vips_float2rad: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Convert a three-band float image to Radiance 32-bit packed format.
  *

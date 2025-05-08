@@ -568,7 +568,7 @@ vips_threadpool_new(VipsImage *im)
  * always single-threaded, so it can modify per-pool state (such as a
  * counter).
  *
- * It should set @stop to %TRUE to indicate that no work could be allocated
+ * It should set @stop to `TRUE` to indicate that no work could be allocated
  * because the job is done.
  *
  * ::: seealso
@@ -611,7 +611,7 @@ vips_threadpool_new(VipsImage *im)
  * @start: (scope async): allocate per-thread state
  * @allocate: (scope async): allocate a work unit
  * @work: (scope async): process a work unit
- * @progress: (scope async): give progress feedback about a work unit, or %NULL
+ * @progress: (scope async): give progress feedback about a work unit, or `NULL`
  * @a: client data
  *
  * This function runs a set of threads over an image. Each thread first calls
@@ -619,7 +619,7 @@ vips_threadpool_new(VipsImage *im)
  * @allocate to set up a new work unit (perhaps the next tile in an image, for
  * example), then @work to process that work unit. After each unit is
  * processed, @progress is called, so that the operation can give
- * progress feedback. @progress may be %NULL.
+ * progress feedback. @progress may be `NULL`.
  *
  * The object returned by @start must be an instance of a subclass of
  * [class@ThreadState]. Use this to communicate between @allocate and @work.

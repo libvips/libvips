@@ -209,7 +209,7 @@ vips_multiply_init(VipsMultiply *multiply)
  * @left: left-hand image
  * @right: right-hand image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation calculates @left * @right and writes the result to @out.
  *

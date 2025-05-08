@@ -290,7 +290,7 @@ vips_foreign_save_rad_buffer_init(VipsForeignSaveRadBuffer *buffer)
  * vips_radsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image in Radiance (HDR) format.
  *
@@ -319,7 +319,7 @@ vips_radsave(VipsImage *in, const char *filename, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.radsave], but save to a memory buffer.
  *
@@ -364,7 +364,7 @@ vips_radsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * vips_radsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.radsave], but save to a target.
  *

@@ -217,7 +217,7 @@ vips_XYZ2CMYK_init(VipsXYZ2CMYK *XYZ2CMYK)
  * vips_XYZ2CMYK: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Turn XYZ to CMYK.
  *

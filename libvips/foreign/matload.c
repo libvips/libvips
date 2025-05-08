@@ -153,7 +153,7 @@ vips_foreign_load_mat_init(VipsForeignLoadMat *mat)
  * vips_matload:
  * @filename: file to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a Matlab save file into a VIPS image.
  *
@@ -163,7 +163,7 @@ vips_foreign_load_mat_init(VipsForeignLoadMat *mat)
  * sparse matrices.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

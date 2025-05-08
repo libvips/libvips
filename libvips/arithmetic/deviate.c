@@ -250,7 +250,7 @@ vips_deviate_init(VipsDeviate *deviate)
  * vips_deviate: (method)
  * @in: input [class@Image]
  * @out: (out): output pixel standard deviation
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation finds the standard deviation of all pixels in @in. It
  * operates on all bands of the input image: use [method@Image.stats] if you need

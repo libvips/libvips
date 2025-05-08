@@ -357,17 +357,17 @@ static GQuark vips__foreign_load_operation = 0;
  *
  * Some hints about the image loader.
  *
- * #VIPS_FOREIGN_PARTIAL means that the image can be read directly from the
+ * [flags@Vips.ForeignFlags.PARTIAL] means that the image can be read directly from the
  * file without needing to be unpacked to a temporary image first.
  *
- * #VIPS_FOREIGN_SEQUENTIAL means that the loader supports lazy reading, but
+ * [flags@Vips.ForeignFlags.SEQUENTIAL] means that the loader supports lazy reading, but
  * only top-to-bottom (sequential) access. Formats like PNG can read sets of
  * scanlines, for example, but only in order.
  *
  * If neither PARTIAL or SEQUENTIAL is set, the loader only supports whole
  * image read. Setting both PARTIAL and SEQUENTIAL is an error.
  *
- * #VIPS_FOREIGN_BIGENDIAN means that image pixels are most-significant byte
+ * [flags@Vips.ForeignFlags.BIGENDIAN] means that image pixels are most-significant byte
  * first. Depending on the native byte order of the host machine, you may
  * need to swap bytes. See [method@Image.copy].
  */
@@ -464,9 +464,9 @@ file_compare(VipsForeignClass *a, VipsForeignClass *b, void *user_data)
  * Apply a function to every [class@Foreign]Class that VIPS knows about. Foreigns
  * are presented to the function in priority order.
  *
- * Like all VIPS map functions, if @fn returns %NULL, iteration continues. If
- * it returns non-%NULL, iteration terminates and that value is returned. The
- * map function returns %NULL if all calls return %NULL.
+ * Like all VIPS map functions, if @fn returns `NULL`, iteration continues. If
+ * it returns non-`NULL`, iteration terminates and that value is returned. The
+ * map function returns `NULL` if all calls return `NULL`.
  *
  * ::: seealso
  *     [func@slist_map2].
@@ -598,9 +598,9 @@ vips_foreign_find_load_sub(VipsForeignLoadClass *load_class,
  * options on @filename are stripped and ignored.
  *
  * ::: seealso
- *     [func@Foreign.find_load_buffer], vips_image_new_from_file().
+ *     [func@Foreign.find_load_buffer], [ctor@Image.new_from_file].
  *
- * Returns: the name of an operation on success, %NULL on error
+ * Returns: the name of an operation on success, `NULL` on error
  */
 const char *
 vips_foreign_find_load(const char *name)
@@ -704,7 +704,7 @@ vips_foreign_find_load_buffer_sub(VipsForeignLoadClass *load_class,
  * ::: seealso
  *     vips_image_new_from_buffer().
  *
- * Returns: (transfer none): the name of an operation on success, %NULL on
+ * Returns: (transfer none): the name of an operation on success, `NULL` on
  * error.
  */
 const char *
@@ -766,7 +766,7 @@ vips_foreign_find_load_source_sub(void *item, void *a, void *b)
  * ::: seealso
  *     vips_image_new_from_source().
  *
- * Returns: (transfer none): the name of an operation on success, %NULL on
+ * Returns: (transfer none): the name of an operation on success, `NULL` on
  * error.
  */
 const char *
@@ -791,10 +791,10 @@ vips_foreign_find_load_source(VipsSource *source)
  * @loader: name of loader to use for test
  * @filename: file to test
  *
- * Return %TRUE if @filename can be loaded by @loader. @loader is something
+ * Return `TRUE` if @filename can be loaded by @loader. @loader is something
  * like "tiffload" or "VipsForeignLoadTiff".
  *
- * Returns: %TRUE if @filename can be loaded by @loader.
+ * Returns: `TRUE` if @filename can be loaded by @loader.
  */
 gboolean
 vips_foreign_is_a(const char *loader, const char *filename)
@@ -818,10 +818,10 @@ vips_foreign_is_a(const char *loader, const char *filename)
  * @data: (array length=size) (element-type guint8): pointer to the buffer to test
  * @size: (type gsize): size of the buffer to test
  *
- * Return %TRUE if @data can be loaded by @loader. @loader is something
+ * Return `TRUE` if @data can be loaded by @loader. @loader is something
  * like "tiffload_buffer" or "VipsForeignLoadTiffBuffer".
  *
- * Returns: %TRUE if @data can be loaded by @loader.
+ * Returns: `TRUE` if @data can be loaded by @loader.
  */
 gboolean
 vips_foreign_is_a_buffer(const char *loader, const void *data, size_t size)
@@ -844,10 +844,10 @@ vips_foreign_is_a_buffer(const char *loader, const void *data, size_t size)
  * @loader: name of loader to use for test
  * @source: source to test
  *
- * Return %TRUE if @source can be loaded by @loader. @loader is something
+ * Return `TRUE` if @source can be loaded by @loader. @loader is something
  * like "tiffload_source" or "VipsForeignLoadTiffSource".
  *
- * Returns: %TRUE if @data can be loaded by @source.
+ * Returns: `TRUE` if @data can be loaded by @source.
  */
 gboolean
 vips_foreign_is_a_source(const char *loader, VipsSource *source)
@@ -1958,7 +1958,7 @@ vips_foreign_find_save_sub(VipsForeignSaveClass *save_class,
  * ::: seealso
  *     [func@Foreign.find_save_buffer], [method@Image.write_to_file].
  *
- * Returns: (nullable): the name of an operation on success, %NULL on error
+ * Returns: (nullable): the name of an operation on success, `NULL` on error
  */
 const char *
 vips_foreign_find_save(const char *name)
@@ -2019,7 +2019,7 @@ vips_foreign_get_suffixes_add_cb(VipsForeignSaveClass *save_class,
 /**
  * vips_foreign_get_suffixes:
  *
- * Get a %NULL-terminated array listing all the supported suffixes.
+ * Get a `NULL`-terminated array listing all the supported suffixes.
  *
  * This is not the same as all the supported file types, since libvips
  * detects image format for load by testing the first few bytes.
@@ -2029,7 +2029,7 @@ vips_foreign_get_suffixes_add_cb(VipsForeignSaveClass *save_class,
  * Free the return result with [func@GLib.strfreev].
  *
  * Returns: (transfer full) (array): all supported file extensions, as a
- * %NULL-terminated array.
+ * `NULL`-terminated array.
  */
 gchar **
 vips_foreign_get_suffixes(void)
@@ -2114,7 +2114,7 @@ vips_foreign_find_save_target_sub(VipsForeignSaveClass *save_class,
  * ::: seealso
  *     [method@Image.write_to_buffer].
  *
- * Returns: (nullable): the name of an operation on success, %NULL on error
+ * Returns: (nullable): the name of an operation on success, `NULL` on error
  */
 const char *
 vips_foreign_find_save_target(const char *name)
@@ -2173,7 +2173,7 @@ vips_foreign_find_save_buffer_sub(VipsForeignSaveClass *save_class,
  * ::: seealso
  *     [method@Image.write_to_buffer].
  *
- * Returns: (nullable): the name of an operation on success, %NULL on error
+ * Returns: (nullable): the name of an operation on success, `NULL` on error
  */
 const char *
 vips_foreign_find_save_buffer(const char *name)
@@ -2204,7 +2204,7 @@ vips_foreign_find_save_buffer(const char *name)
  * vips_heifload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a HEIF image file into a VIPS image.
  *
@@ -2218,23 +2218,23 @@ vips_foreign_find_save_buffer(const char *name)
  * HEIF images have a primary image. The metadata item `heif-primary` gives
  * the page number of the primary.
  *
- * If @thumbnail is %TRUE, then fetch a stored thumbnail rather than the
+ * If @thumbnail is `TRUE`, then fetch a stored thumbnail rather than the
  * image.
  *
  * By default, input image dimensions are limited to 16384x16384.
- * If @unlimited is %TRUE, this increases to the maximum of 65535x65535.
+ * If @unlimited is `TRUE`, this increases to the maximum of 65535x65535.
  *
  * The bitdepth of the heic image is recorded in the metadata item
  * `heif-bitdepth`.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, page (top-level image number) to read
- *     * @n: %gint, load this many pages
- *     * @thumbnail: %gboolean, fetch thumbnail instead of image
- *     * @unlimited: %gboolean, remove all denial of service limits
+ *     * @page: `gint`, page (top-level image number) to read
+ *     * @n: `gint`, load this many pages
+ *     * @thumbnail: `gboolean`, fetch thumbnail instead of image
+ *     * @unlimited: `gboolean`, remove all denial of service limits
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2256,7 +2256,7 @@ vips_heifload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a HEIF image file into a VIPS image.
  * Exactly as [ctor@Image.heifload], but read from a memory buffer.
@@ -2265,10 +2265,10 @@ vips_heifload(const char *filename, VipsImage **out, ...)
  * [signal@Object::postclose] signal on @out is a good place to free.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, page (top-level image number) to read
- *     * @n: %gint, load this many pages
- *     * @thumbnail: %gboolean, fetch thumbnail instead of image
- *     * @unlimited: %gboolean, remove all denial of service limits
+ *     * @page: `gint`, page (top-level image number) to read
+ *     * @n: `gint`, load this many pages
+ *     * @thumbnail: `gboolean`, fetch thumbnail instead of image
+ *     * @unlimited: `gboolean`, remove all denial of service limits
  *
  * ::: seealso
  *     [ctor@Image.heifload].
@@ -2299,15 +2299,15 @@ vips_heifload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_heifload_source:
  * @source: source to load from
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.heifload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, page (top-level image number) to read
- *     * @n: %gint, load this many pages
- *     * @thumbnail: %gboolean, fetch thumbnail instead of image
- *     * @unlimited: %gboolean, remove all denial of service limits
+ *     * @page: `gint`, page (top-level image number) to read
+ *     * @n: `gint`, load this many pages
+ *     * @thumbnail: `gboolean`, fetch thumbnail instead of image
+ *     * @unlimited: `gboolean`, remove all denial of service limits
  *
  * ::: seealso
  *     [ctor@Image.heifload].
@@ -2331,14 +2331,14 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  * vips_heifsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image to a file in HEIF format.
  *
  * Use @Q to set the compression factor. Default 50, which seems to be roughly
  * what the iphone uses. Q 30 gives about the same quality as JPEG Q 75.
  *
- * Set @lossless %TRUE to switch to lossless compression.
+ * Set @lossless `TRUE` to switch to lossless compression.
  *
  * Use @compression to set the compression format e.g. HEVC, AVC, AV1 to use. It defaults to AV1
  * if the target filename ends with ".avif", otherwise HEVC.
@@ -2356,12 +2356,12 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  * Use @encoder to set the encode library to use, e.g. aom, SVT-AV1, rav1e etc.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @bitdepth: %gint, set write bit depth to 8, 10, or 12 bits
- *     * @lossless: %gboolean, enable lossless encoding
+ *     * @Q: `gint`, quality factor
+ *     * @bitdepth: `gint`, set write bit depth to 8, 10, or 12 bits
+ *     * @lossless: `gboolean`, enable lossless encoding
  *     * @compression: [enum@ForeignHeifCompression], write with this
  *       compression
- *     * @effort: %gint, encoding effort
+ *     * @effort: `gint`, encoding effort
  *     * @subsample_mode: [class@Foreign]Subsample, chroma subsampling mode
  *     * @encoder: [class@Foreign]HeifEncoder, select encoder to use
  *
@@ -2388,7 +2388,7 @@ vips_heifsave(VipsImage *in, const char *filename, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.heifsave], but save to a memory buffer.
  *
@@ -2397,12 +2397,12 @@ vips_heifsave(VipsImage *in, const char *filename, ...)
  * when you are done with it.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @bitdepth: %gint, set write bit depth to 8, 10, or 12 bits
- *     * @lossless: %gboolean, enable lossless encoding
+ *     * @Q: `gint`, quality factor
+ *     * @bitdepth: `gint`, set write bit depth to 8, 10, or 12 bits
+ *     * @lossless: `gboolean`, enable lossless encoding
  *     * @compression: [enum@ForeignHeifCompression], write with this
  *       compression
- *     * @effort: %gint, encoding effort
+ *     * @effort: `gint`, encoding effort
  *     * @subsample_mode: [class@Foreign]Subsample, chroma subsampling mode
  *     * @encoder: [class@Foreign]HeifEncoder, select encoder to use
  *
@@ -2443,17 +2443,17 @@ vips_heifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * vips_heifsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.heifsave], but save to a target.
  *
  * ::: tip "Optional arguments"
- *     * @Q: %gint, quality factor
- *     * @bitdepth: %gint, set write bit depth to 8, 10, or 12 bits
- *     * @lossless: %gboolean, enable lossless encoding
+ *     * @Q: `gint`, quality factor
+ *     * @bitdepth: `gint`, set write bit depth to 8, 10, or 12 bits
+ *     * @lossless: `gboolean`, enable lossless encoding
  *     * @compression: [enum@ForeignHeifCompression], write with this
  *       compression
- *     * @effort: %gint, encoding effort
+ *     * @effort: `gint`, encoding effort
  *     * @subsample_mode: [class@Foreign]Subsample, chroma subsampling mode
  *     * @encoder: [class@Foreign]HeifEncoder, select encoder to use
  *
@@ -2479,7 +2479,7 @@ vips_heifsave_target(VipsImage *in, VipsTarget *target, ...)
  * vips_jxlload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a JPEG-XL image.
  *
@@ -2487,7 +2487,7 @@ vips_heifsave_target(VipsImage *in, VipsTarget *target, ...)
  * in future libvips versions.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2509,7 +2509,7 @@ vips_jxlload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.jxlload], but read from a buffer.
  *
@@ -2539,7 +2539,7 @@ vips_jxlload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_jxlload_source:
  * @source: source to load from
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.jxlload], but read from a source.
  *
@@ -2562,7 +2562,7 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  * vips_jxlsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image to a file in JPEG-XL format.
  *
@@ -2582,11 +2582,11 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  * Set @lossless to enable lossless compression.
  *
  * ::: tip "Optional arguments"
- *     * @tier: %gint, decode speed tier
- *     * @distance: %gdouble, maximum encoding error
- *     * @effort: %gint, encoding effort
- *     * @lossless: %gboolean, enables lossless compression
- *     * @Q: %gint, quality setting
+ *     * @tier: `gint`, decode speed tier
+ *     * @distance: `gdouble`, maximum encoding error
+ *     * @effort: `gint`, encoding effort
+ *     * @lossless: `gboolean`, enables lossless compression
+ *     * @Q: `gint`, quality setting
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2608,16 +2608,16 @@ vips_jxlsave(VipsImage *in, const char *filename, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.jxlsave], but save to a memory buffer.
  *
  * ::: tip "Optional arguments"
- *     * @tier: %gint, decode speed tier
- *     * @distance: %gdouble, maximum encoding error
- *     * @effort: %gint, encoding effort
- *     * @lossless: %gboolean, enables lossless compression
- *     * @Q: %gint, quality setting
+ *     * @tier: `gint`, decode speed tier
+ *     * @distance: `gdouble`, maximum encoding error
+ *     * @effort: `gint`, encoding effort
+ *     * @lossless: `gboolean`, enables lossless compression
+ *     * @Q: `gint`, quality setting
  *
  * ::: seealso
  *     [method@Image.jxlsave], [method@Image.write_to_target].
@@ -2656,16 +2656,16 @@ vips_jxlsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * vips_jxlsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.jxlsave], but save to a target.
  *
  * ::: tip "Optional arguments"
- *     * @tier: %gint, decode speed tier
- *     * @distance: %gdouble, maximum encoding error
- *     * @effort: %gint, encoding effort
- *     * @lossless: %gboolean, enables lossless compression
- *     * @Q: %gint, quality setting
+ *     * @tier: `gint`, decode speed tier
+ *     * @distance: `gdouble`, maximum encoding error
+ *     * @effort: `gint`, encoding effort
+ *     * @lossless: `gboolean`, enables lossless compression
+ *     * @Q: `gint`, quality setting
  *
  * ::: seealso
  *     [method@Image.jxlsave], [method@Image.write_to_target].
@@ -2689,7 +2689,7 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  * vips_pdfload:
  * @filename: file to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Render a PDF file into a VIPS image.
  *
@@ -2719,14 +2719,14 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  * data. Rendering occurs when pixels are accessed.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, load this page, numbered from zero
- *     * @n: %gint, load this many pages
- *     * @dpi: %gdouble, render at this DPI
- *     * @scale: %gdouble, scale render by this factor
+ *     * @page: `gint`, load this page, numbered from zero
+ *     * @n: `gint`, load this many pages
+ *     * @dpi: `gdouble`, render at this DPI
+ *     * @scale: `gdouble`, scale render by this factor
  *     * @background: [struct@ArrayDouble], background colour
  *
  * ::: seealso
- *     vips_image_new_from_file(), [ctor@Image.magickload].
+ *     [ctor@Image.new_from_file], [ctor@Image.magickload].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2748,7 +2748,7 @@ vips_pdfload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a PDF-formatted memory buffer into a VIPS image. Exactly as
  * [ctor@Image.pdfload], but read from memory.
@@ -2757,10 +2757,10 @@ vips_pdfload(const char *filename, VipsImage **out, ...)
  * [signal@Object::postclose] signal on @out is a good place to free.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, load this page, numbered from zero
- *     * @n: %gint, load this many pages
- *     * @dpi: %gdouble, render at this DPI
- *     * @scale: %gdouble, scale render by this factor
+ *     * @page: `gint`, load this page, numbered from zero
+ *     * @n: `gint`, load this many pages
+ *     * @dpi: `gdouble`, render at this DPI
+ *     * @scale: `gdouble`, scale render by this factor
  *     * @background: [struct@ArrayDouble], background colour
  *
  * ::: seealso
@@ -2792,15 +2792,15 @@ vips_pdfload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_pdfload_source:
  * @source: source to load from
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.pdfload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, load this page, numbered from zero
- *     * @n: %gint, load this many pages
- *     * @dpi: %gdouble, render at this DPI
- *     * @scale: %gdouble, scale render by this factor
+ *     * @page: `gint`, load this page, numbered from zero
+ *     * @n: `gint`, load this many pages
+ *     * @dpi: `gdouble`, render at this DPI
+ *     * @scale: `gdouble`, scale render by this factor
  *     * @background: [struct@ArrayDouble], background colour
  *
  * ::: seealso
@@ -2825,7 +2825,7 @@ vips_pdfload_source(VipsSource *source, VipsImage **out, ...)
  * vips_openslideload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a virtual slide supported by the OpenSlide library into a VIPS image.
  * OpenSlide supports images in Aperio, Hamamatsu, MIRAX, Sakura, Trestle,
@@ -2852,14 +2852,14 @@ vips_pdfload_source(VipsSource *source, VipsImage **out, ...)
  * output.
  *
  * ::: tip "Optional arguments"
- *     * @level: %gint, load this level
- *     * @associated: %gchararray, load this associated image
- *     * @attach_associated: %gboolean, attach all associated images as metadata
- *     * @autocrop: %gboolean, crop to image bounds
- *     * @rgb: %gboolean, output RGB (not RGBA) pixels
+ *     * @level: `gint`, load this level
+ *     * @associated: `gchararray`, load this associated image
+ *     * @attach_associated: `gboolean`, attach all associated images as metadata
+ *     * @autocrop: `gboolean`, crop to image bounds
+ *     * @rgb: `gboolean`, output RGB (not RGBA) pixels
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2880,16 +2880,16 @@ vips_openslideload(const char *filename, VipsImage **out, ...)
  * vips_openslideload_source:
  * @source: source to load from
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.openslideload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @level: %gint, load this level
- *     * @associated: %gchararray, load this associated image
- *     * @attach_associated: %gboolean, attach all associated images as metadata
- *     * @autocrop: %gboolean, crop to image bounds
- *     * @rgb: %gboolean, output RGB (not RGBA) pixels
+ *     * @level: `gint`, load this level
+ *     * @associated: `gchararray`, load this associated image
+ *     * @attach_associated: `gboolean`, attach all associated images as metadata
+ *     * @autocrop: `gboolean`, crop to image bounds
+ *     * @rgb: `gboolean`, output RGB (not RGBA) pixels
  *
  * Returns: 0 on success, -1 on error.
  */

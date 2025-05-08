@@ -115,17 +115,17 @@ vips_mask_ideal_ring_init(VipsMaskIdealRing *ideal_ring)
  * @height: image size
  * @frequency_cutoff: threshold at which filter ends
  * @ringwidth: ring width
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Make an ideal ring-pass or ring-reject filter, that is, one with a sharp
  * ring positioned at @frequency_cutoff of width @width, where
  * @frequency_cutoff and @width are expressed as the range 0 - 1.
  *
  * ::: tip "Optional arguments"
- *     * @nodc: %gboolean, don't set the DC pixel
- *     * @reject: %gboolean, invert the filter sense
- *     * @optical: %gboolean, coordinates in optical space
- *     * @uchar: %gboolean, output a uchar image
+ *     * @nodc: `gboolean`, don't set the DC pixel
+ *     * @reject: `gboolean`, invert the filter sense
+ *     * @optical: `gboolean`, coordinates in optical space
+ *     * @uchar: `gboolean`, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.mask_ideal].

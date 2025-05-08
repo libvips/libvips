@@ -351,7 +351,7 @@ vips_hist_plot_init(VipsHistPlot *hist_plot)
  * vips_hist_plot: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Plot a 1 by any or any by 1 image file as a max by any or
  * any by max image using these rules:

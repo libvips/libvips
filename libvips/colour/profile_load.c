@@ -171,13 +171,13 @@ vips_profile_load_init(VipsProfileLoad *load)
  * vips_profile_load:
  * @name: name of profile to load
  * @profile: (out): loaded profile
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Load a named profile.
  *
  * Profiles are loaded from four sources:
  *
- * - The special name `"none"` means no profile. @profile will be %NULL in this
+ * - The special name `"none"` means no profile. @profile will be `NULL` in this
  *   case.
  *
  * - @name can be the name of one of the ICC profiles embedded in libvips.

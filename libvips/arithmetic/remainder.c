@@ -208,7 +208,7 @@ vips_remainder_init(VipsRemainder *remainder)
  * @left: left-hand input [class@Image]
  * @right: right-hand input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation calculates @left % @right (remainder after integer division)
  * and writes the result to @out. The images may have any
@@ -391,7 +391,7 @@ vips_remainder_constv(VipsImage *in, VipsImage **out,
  * @out: (out): output image
  * @c: (array length=n): array of constants
  * @n: number of constants in @c
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation calculates @in % @c (remainder after division by an
  * array of constants)
@@ -431,7 +431,7 @@ vips_remainder_const(VipsImage *in, VipsImage **out,
  * @in: input image
  * @out: (out): output image
  * @c: constant
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation calculates @in % @c (remainder after division by a
  * constant)

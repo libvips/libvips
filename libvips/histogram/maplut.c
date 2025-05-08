@@ -777,7 +777,7 @@ vips_maplut_init(VipsMaplut *maplut)
  * @in: input image
  * @out: (out): output image
  * @lut: look-up table
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Map an image through another image acting as a LUT (Look Up Table).
  * The lut may have any type and the output image will be that type.
@@ -801,7 +801,7 @@ vips_maplut_init(VipsMaplut *maplut)
  * the output will have the same number of bands as @lut.
  *
  * ::: tip "Optional arguments"
- *     * @band: %gint, apply one-band @lut to this band of @in
+ *     * @band: `gint`, apply one-band @lut to this band of @in
  *
  * ::: seealso
  *     [method@Image.hist_find], [ctor@Image.identity].

@@ -402,7 +402,7 @@ vips_hist_local_init(VipsHistLocal *local)
  * @out: (out): output image
  * @width: width of region
  * @height: height of region
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Performs local histogram equalisation on @in using a
  * window of size @width by @height centered on the input pixel.
@@ -416,7 +416,7 @@ vips_hist_local_init(VipsHistLocal *local)
  * contrast limiting is usually called CLAHE.
  *
  * ::: tip "Optional arguments"
- *     * @max_slope: %gint, maximum brightening
+ *     * @max_slope: `gint`, maximum brightening
  *
  * ::: seealso
  *     [method@Image.hist_equal].

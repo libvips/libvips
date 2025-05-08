@@ -282,7 +282,7 @@ vips_invfft_init(VipsInvfft *invfft)
  * vips_invfft: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Transform an image from Fourier space to real space.
  *
@@ -293,7 +293,7 @@ vips_invfft_init(VipsInvfft *invfft)
  * available when VIPS was configured, these functions will fail.
  *
  * ::: tip "Optional arguments"
- *     * @real: %gboolean, only output the real part
+ *     * @real: `gboolean`, only output the real part
  *
  * ::: seealso
  *     [method@Image.fwfft].

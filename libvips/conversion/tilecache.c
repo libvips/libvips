@@ -820,7 +820,7 @@ vips_tile_cache_init(VipsTileCache *cache)
  * vips_tilecache: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  *
  * This operation behaves rather like [method@Image.copy] between images
@@ -841,19 +841,19 @@ vips_tile_cache_init(VipsTileCache *cache)
  * will cache up to 1,000 tiles. @access defaults to [enum@Vips.Access.RANDOM].
  *
  * Normally, only a single thread at once is allowed to calculate tiles. If
- * you set @threaded to %TRUE, [method@Image.tilecache] will allow many
+ * you set @threaded to `TRUE`, [method@Image.tilecache] will allow many
  * threads to calculate tiles at once, and share the cache between them.
  *
  * Normally the cache is dropped when computation finishes. Set @persistent to
- * %TRUE to keep the cache between computations.
+ * `TRUE` to keep the cache between computations.
  *
  * ::: tip "Optional arguments"
- *     * @tile_width: %gint, width of tiles in cache
- *     * @tile_height: %gint, height of tiles in cache
- *     * @max_tiles: %gint, maximum number of tiles to cache
+ *     * @tile_width: `gint`, width of tiles in cache
+ *     * @tile_height: `gint`, height of tiles in cache
+ *     * @max_tiles: `gint`, maximum number of tiles to cache
  *     * @access: [enum@Access], hint expected access pattern
- *     * @threaded: %gboolean, allow many threads
- *     * @persistent: %gboolean, don't drop cache at end of computation
+ *     * @threaded: `gboolean`, allow many threads
+ *     * @persistent: `gboolean`, don't drop cache at end of computation
  *
  * ::: seealso
  *     [method@Image.linecache].
@@ -994,7 +994,7 @@ vips_line_cache_init(VipsLineCache *cache)
  * vips_linecache: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation behaves rather like [method@Image.copy] between images
  * @in and @out, except that it keeps a cache of computed scanlines.
@@ -1013,13 +1013,13 @@ vips_line_cache_init(VipsLineCache *cache)
  * [method@Image.linecache] uses. The default is 1 (a single scanline).
  *
  * Normally, only a single thread at once is allowed to calculate tiles. If
- * you set @threaded to %TRUE, [method@Image.linecache] will allow many
+ * you set @threaded to `TRUE`, [method@Image.linecache] will allow many
  * threads to calculate tiles at once and share the cache between them.
  *
  * ::: tip "Optional arguments"
  *     * @access: [enum@Access], hint expected access pattern
- *     * @tile_height: %gint, height of tiles in cache
- *     * @threaded: %gboolean, allow many threads
+ *     * @tile_height: `gint`, height of tiles in cache
+ *     * @threaded: `gboolean`, allow many threads
  *
  * ::: seealso
  *     [method@Image.tilecache].

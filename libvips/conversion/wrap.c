@@ -145,7 +145,7 @@ vips_wrap_init(VipsWrap *wrap)
  * vips_wrap: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Slice an image up and move the segments about so that the pixel that was
  * at 0, 0 is now at @x, @y.

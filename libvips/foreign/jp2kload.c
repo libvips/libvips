@@ -1622,7 +1622,7 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
  * vips_jp2kload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a JPEG2000 image.
  *
@@ -1641,15 +1641,15 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
  * operation and can improve compatibility.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
- * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
+ * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, load this page
- *     * @oneshot: %gboolean, load pages in one-shot mode
+ *     * @page: `gint`, load this page
+ *     * @oneshot: `gboolean`, load pages in one-shot mode
  *     * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1671,7 +1671,7 @@ vips_jp2kload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.jp2kload], but read from a buffer.
  *
@@ -1679,8 +1679,8 @@ vips_jp2kload(const char *filename, VipsImage **out, ...)
  * [signal@Object::postclose] signal on @out is a good place to free.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, load this page
- *     * @oneshot: %gboolean, load pages in one-shot mode
+ *     * @page: `gint`, load this page
+ *     * @oneshot: `gboolean`, load pages in one-shot mode
  *     * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Returns: 0 on success, -1 on error.
@@ -1709,13 +1709,13 @@ vips_jp2kload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_jp2kload_source:
  * @source: source to load from
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.jp2kload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @page: %gint, load this page
- *     * @oneshot: %gboolean, load pages in one-shot mode
+ *     * @page: `gint`, load this page
+ *     * @oneshot: `gboolean`, load pages in one-shot mode
  *     * @fail_on: #VipsFailOn, types of read error to fail on
  *
  * Returns: 0 on success, -1 on error.

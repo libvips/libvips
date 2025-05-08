@@ -331,7 +331,7 @@ vips_spcor_init(VipsSpcor *spcor)
  * @in: input image
  * @ref: reference image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Calculate a correlation surface.
  *

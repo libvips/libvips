@@ -218,13 +218,14 @@ VipsArrayImage_unref(VipsArrayImage *array)
  * @data: (transfer full): data will be freed with this function
  *
  * A VipsArea wraps a chunk of memory. It adds reference counting and a free
- * function. It also keeps a count and a %GType, so the area can be an array.
+ * function. It also keeps a count and a [alias@GObject.Type], so the area can
+ * be an array.
  *
  * This type is used for things like passing an array of double or an array of
  * [class@Object] pointers to operations, and for reference-counted immutable
  * strings.
  *
- * Initial count == 1, so _unref() after attaching somewhere.
+ * Initial count == 1, so [method@Area.unref] after attaching somewhere.
  *
  * ::: seealso
  *     [method@Area.unref].
@@ -289,12 +290,12 @@ vips__type_leak(void)
 
 /**
  * vips_area_new_array:
- * @type: %GType of elements to store
- * @sizeof_type: sizeof() an element in the array
+ * @type: [alias@GObject.Type] of elements to store
+ * @sizeof_type: `sizeof()` an element in the array
  * @n: number of elements in the array
  *
- * An area which holds an array of elements of some %GType. To set values for
- * the elements, get the pointer and write.
+ * An area which holds an array of elements of some [alias@GObject.Type].
+ * To set values for the elements, get the pointer and write.
  *
  * ::: seealso
  *     [method@Area.unref].
@@ -369,11 +370,11 @@ vips_area_new_array_object(int n)
  * @length: (out) (optional): optionally return length in bytes here
  * @n: (out) (optional): optionally return number of elements here
  * @type: (out) (optional): optionally return element type here
- * @sizeof_type: (out) (optional): optionally return sizeof() element type here
+ * @sizeof_type: (out) (optional): optionally return `sizeof()` element type here
  *
  * Return the data pointer plus optionally the length in bytes of an area,
- * the number of elements, the %GType of each element and the sizeof() each
- * element.
+ * the number of elements, the [alias@GObject.Type] of each element and the
+ * `sizeof()` each element.
  *
  * Returns: (transfer none): The pointer held by @area.
  */
@@ -625,7 +626,7 @@ G_DEFINE_BOXED_TYPE_WITH_CODE(VipsRefString, vips_ref_string,
  * @length: number of bytes in @data
  *
  * Like [ctor@Area.new], but track a length as well. The returned [struct@Blob]
- * takes ownership of @data and will free it with @free_fn. Pass %NULL for
+ * takes ownership of @data and will free it with @free_fn. Pass `NULL` for
  * @free_fn to not transfer ownership.
  *
  * An area of mem with a free func and a length (some sort of binary object,
@@ -1577,8 +1578,8 @@ vips_value_set_save_string(GValue *value, const char *str)
 /**
  * vips_value_set_save_stringf:
  * @value: (out): GValue to set
- * @fmt: printf()-style format string
- * @...: arguments to printf()-formatted @fmt
+ * @fmt: `printf()`-style format string
+ * @...: arguments to `printf()`-formatted @fmt
  *
  * Generates a string and copies it into @value.
  */

@@ -183,7 +183,7 @@ vips_bandfold_init(VipsBandfold *bandfold)
  * vips_bandfold: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Fold up an image horizontally: width is collapsed into bands.
  * Use @factor to set how much to fold by: @factor 3, for example, will make
@@ -191,7 +191,7 @@ vips_bandfold_init(VipsBandfold *bandfold)
  * as many bands. By default the whole of the input width is folded up.
  *
  * ::: tip "Optional arguments"
- *     * @factor: %gint, fold by this factor
+ *     * @factor: `gint`, fold by this factor
  *
  * ::: seealso
  *     [ctor@Image.csvload], [method@Image.bandunfold].

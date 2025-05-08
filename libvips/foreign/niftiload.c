@@ -808,14 +808,14 @@ vips_foreign_load_nifti_source_init(
  * vips_niftiload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a NIFTI image file into a VIPS image.
  *
  * NIFTI metadata is attached with the "nifti-" prefix.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -836,7 +836,7 @@ vips_niftiload(const char *filename, VipsImage **out, ...)
  * vips_niftiload_source:
  * @source: source to load from
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.niftiload], but read from a source.
  *

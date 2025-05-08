@@ -1166,7 +1166,7 @@ vips_cache_set_max_files(int max_files)
 
 /**
  * vips_cache_set_dump:
- * @dump: if %TRUE, dump the operation cache on exit
+ * @dump: if `TRUE`, dump the operation cache on exit
  *
  * Handy for debugging. Print the operation cache to stdout just before exit.
  *
@@ -1181,7 +1181,7 @@ vips_cache_set_dump(gboolean dump)
 
 /**
  * vips_cache_set_trace:
- * @trace: if %TRUE, trace the operation cache
+ * @trace: if `TRUE`, trace the operation cache
  *
  * Handy for debugging. Print operation cache actions to stdout as we run.
  *

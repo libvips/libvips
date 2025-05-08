@@ -156,7 +156,7 @@ vips_foreign_load_analyze_init(VipsForeignLoadAnalyze *analyze)
  * vips_analyzeload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Load an Analyze 6.0 file. If @filename is "fred.img", this will look for
  * an image header called "fred.hdr" and pixel data in "fred.img". You can
@@ -167,7 +167,7 @@ vips_foreign_load_analyze_init(VipsForeignLoadAnalyze *analyze)
  * and attached.
  *
  * ::: seealso
- *     vips_image_new_from_file().
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */

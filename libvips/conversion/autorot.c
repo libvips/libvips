@@ -235,10 +235,10 @@ vips_autorot_init(VipsAutorot *autorot)
  * vips_autorot: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Look at the image metadata and rotate and flip the image to make it
- * upright. The #VIPS_META_ORIENTATION tag is removed from @out to prevent
+ * upright. The [const@META_ORIENTATION] tag is removed from @out to prevent
  * accidental double rotation.
  *
  * Read @angle to find the amount the image was rotated by. Read @flip to
@@ -246,7 +246,7 @@ vips_autorot_init(VipsAutorot *autorot)
  *
  * ::: tip "Optional arguments"
  *     * @angle: output [enum@Angle] the image was rotated by
- *     * @flip: output %gboolean whether the image was flipped
+ *     * @flip: output `gboolean` whether the image was flipped
  *
  * Returns: 0 on success, -1 on error
  */

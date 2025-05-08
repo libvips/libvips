@@ -401,7 +401,7 @@ vips_zoom_init(VipsZoom *zoom)
  * @out: (out): output image
  * @xfac: horizontal scale factor
  * @yfac: vertical scale factor
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Zoom an image by repeating pixels. This is fast nearest-neighbour
  * zoom.
