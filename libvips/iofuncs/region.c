@@ -896,7 +896,7 @@ vips_region_fill(VipsRegion *reg,
  * @reg->valid.
  *
  * For int images, @value is
- * passed to memset(), so it usually needs to be 0 or 255. For float images,
+ * passed to [`memset()`](man:memset(3)), so it usually needs to be 0 or 255. For float images,
  * value is cast to a float and copied in to each band element.
  *
  * @r is clipped against

@@ -1267,7 +1267,7 @@ vips_convi_init(VipsConvi *convi)
  * Integer convolution. This is a low-level operation, see [method@Image.conv] for
  * something more convenient.
  *
- * @mask is converted to an integer mask with rint() of each element, rint of
+ * @mask is converted to an integer mask with `rint()` of each element, rint of
  * scale and rint of offset. Each output pixel is then calculated as
  *
  * ```

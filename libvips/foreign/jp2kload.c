@@ -1646,7 +1646,7 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
  * ::: tip "Optional arguments"
  *     * @page: `gint`, load this page
  *     * @oneshot: `gboolean`, load pages in one-shot mode
- *     * @fail_on: #VipsFailOn, types of read error to fail on
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
  * ::: seealso
  *     [ctor@Image.new_from_file].
@@ -1681,7 +1681,7 @@ vips_jp2kload(const char *filename, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @page: `gint`, load this page
  *     * @oneshot: `gboolean`, load pages in one-shot mode
- *     * @fail_on: #VipsFailOn, types of read error to fail on
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -1716,7 +1716,7 @@ vips_jp2kload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @page: `gint`, load this page
  *     * @oneshot: `gboolean`, load pages in one-shot mode
- *     * @fail_on: #VipsFailOn, types of read error to fail on
+ *     * @fail_on: [enum@FailOn], types of read error to fail on
  *
  * Returns: 0 on success, -1 on error.
  */

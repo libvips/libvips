@@ -73,7 +73,7 @@ extern "C" {
  * The name we use to attach an ICC profile. The file read and write
  * operations for TIFF, JPEG, PNG and others use this item of metadata to
  * attach and save ICC profiles. The profile is updated by the
- * vips_icc_transform() operations.
+ * [method@Image.icc_transform] operations.
  */
 #define VIPS_META_ICC_NAME "icc-profile-data"
 
@@ -117,8 +117,8 @@ extern "C" {
 /**
  * VIPS_META_SEQUENTIAL:
  *
- * Images loaded via vips_sequential() have this int field defined. Some
- * operations (eg. vips_shrinkv()) add extra caches if they see it on their
+ * Images loaded via [method@Image.sequential] have this int field defined. Some
+ * operations (eg. [method@Image.shrinkv]) add extra caches if they see it on their
  * input.
  */
 #define VIPS_META_SEQUENTIAL "vips-sequential"

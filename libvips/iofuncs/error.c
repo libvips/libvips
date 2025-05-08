@@ -248,7 +248,7 @@ vips_verror_system(int err, const char *domain, const char *fmt, va_list ap)
  * @fmt: `printf()`-style format string for the error
  * @...: arguments to the format string
  *
- * Format the string in the style of printf() and append to the error buffer.
+ * Format the string in the style of [`printf()`](man:printf(3)) and append to the error buffer.
  * Then create and append a localised message based on the system error code,
  * usually the value of errno.
  *

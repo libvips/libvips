@@ -702,7 +702,7 @@ vips_foreign_find_load_buffer_sub(VipsForeignLoadClass *load_class,
  * 	vips -l | grep load_buffer
  *
  * ::: seealso
- *     vips_image_new_from_buffer().
+ *     [ctor@Image.new_from_buffer].
  *
  * Returns: (transfer none): the name of an operation on success, `NULL` on
  * error.
@@ -764,7 +764,7 @@ vips_foreign_find_load_source_sub(void *item, void *a, void *b)
  * 	vips -l | grep load_source
  *
  * ::: seealso
- *     vips_image_new_from_source().
+ *     [ctor@Image.new_from_source].
  *
  * Returns: (transfer none): the name of an operation on success, `NULL` on
  * error.

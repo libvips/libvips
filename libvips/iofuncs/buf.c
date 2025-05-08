@@ -494,10 +494,10 @@ vips_buf_appendd(VipsBuf *buf, int d)
 /**
  * vips_buf_appendgv:
  * @buf: the buffer
- * @value: #GValue to format and append
+ * @value: [struct@GObject.Value] to format and append
  *
- * Format and append a #GValue as a printable thing. We display text line "3144
- * bytes of binary data" for BLOBs like icc-profile-data.
+ * Format and append a [struct@GObject.Value] as a printable thing.
+ * We display text line "3144 bytes of binary data" for BLOBs like icc-profile-data.
  *
  * Use [method@Image.get_as_string] to make a text representation of a field.
  * That will base64-encode blobs, for example.

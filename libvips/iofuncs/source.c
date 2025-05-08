@@ -424,7 +424,7 @@ vips_source_init(VipsSource *source)
  * @descriptor: read from this file descriptor
  *
  * Create an source attached to a file descriptor. @descriptor is
- * closed with close() when source is finalized.
+ * closed with [`close()`](man:close(2)) when source is finalized.
  *
  * Returns: a new source.
  */
@@ -780,7 +780,7 @@ vips_source_print(VipsSource *source)
  * Return the number of bytes actually read. If all bytes have been read from
  * the file, return 0.
  *
- * Arguments exactly as read(2).
+ * Arguments exactly as [`read()`](man:read(2)).
  *
  * Returns: the number of bytes read, 0 on end of file, -1 on error.
  */
@@ -1170,7 +1170,7 @@ vips_source_map_blob(VipsSource *source)
  * @whence: seek relative to this point
  *
  * Move the file read position. You can't call this after pixel decode starts.
- * The arguments are exactly as lseek(2).
+ * The arguments are exactly as [`lseek()`](man:lseek(2)).
  *
  * Returns: the new file position, or -1 on error.
  */

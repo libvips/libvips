@@ -662,7 +662,7 @@ write_vips(VipsRegion *region, VipsRect *area, void *a)
  *
  * Generates an image. The action depends on the image type.
  *
- * For images created with [ctor@Image.new], vips_image_generate() just
+ * For images created with [ctor@Image.new], [method@Image.generate] just
  * attaches the start/generate/stop callbacks and returns.
  *
  * For images created with [ctor@Image.new_memory], memory is allocated for

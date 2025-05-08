@@ -153,9 +153,9 @@
  * The type of access an operation has to supply. See [method@Image.tilecache]
  * and [class@Foreign].
  *
- * @VIPS_ACCESS_RANDOM means requests can come in any order.
+ * [enum@Vips.Access.RANDOM] means requests can come in any order.
  *
- * @VIPS_ACCESS_SEQUENTIAL means requests will be top-to-bottom, but with some
+ * [enum@Vips.Access.SEQUENTIAL] means requests will be top-to-bottom, but with some
  * amount of buffering behind the read point for small non-local accesses.
  */
 
@@ -176,20 +176,20 @@
  * will use the most general style requested by the operations
  * in the pipeline.
  *
- * @VIPS_DEMAND_STYLE_SMALLTILE -- This is the most general demand format.
+ * [enum@Vips.DemandStyle.SMALLTILE] -- This is the most general demand format.
  * Output is demanded in small (around 100x100 pel) sections. This style works
  * reasonably efficiently, even for bizarre operations like 45 degree rotate.
  *
- * @VIPS_DEMAND_STYLE_FATSTRIP -- This operation would like to output strips
+ * [enum@Vips.DemandStyle.FATSTRIP] -- This operation would like to output strips
  * the width of the image and as high as possible. This option is suitable
  * for area operations which do not violently transform coordinates, such
  * as [method@Image.conv].
  *
- * @VIPS_DEMAND_STYLE_THINSTRIP -- This operation would like to output strips
+ * [enum@Vips.DemandStyle.THINSTRIP] -- This operation would like to output strips
  * the width of the image and a few pels high. This option is suitable for
  * point-to-point operations, such as those in the arithmetic package.
  *
- * @VIPS_DEMAND_STYLE_ANY -- This image is not being demand-read from a disc
+ * [enum@Vips.DemandStyle.ANY] -- This image is not being demand-read from a disc
  * file (even indirectly) so any demand style is OK. It's used for things like
  * [ctor@Image.black] where the pixels are calculated.
  *
@@ -206,7 +206,7 @@
  * @VIPS_INTERPRETATION_XYZ: the first three bands are CIE XYZ
  * @VIPS_INTERPRETATION_LAB: pixels are in CIE Lab space
  * @VIPS_INTERPRETATION_CMYK: the first four bands are in CMYK space
- * @VIPS_INTERPRETATION_LABQ: implies @VIPS_CODING_LABQ
+ * @VIPS_INTERPRETATION_LABQ: implies [enum@Vips.Coding.LABQ]
  * @VIPS_INTERPRETATION_RGB: generic RGB space
  * @VIPS_INTERPRETATION_CMC: a uniform colourspace based on CMC(1:1)
  * @VIPS_INTERPRETATION_LCH: pixels are in CIE LCh space
@@ -220,7 +220,7 @@
  * @VIPS_INTERPRETATION_MATRIX: a matrix
  *
  * How the values in an image should be interpreted. For example, a
- * three-band float image of type @VIPS_INTERPRETATION_LAB should have its
+ * three-band float image of type [enum@Vips.Interpretation.LAB] should have its
  * pixels interpreted as coordinates in CIE Lab space.
  *
  * RGB and sRGB are treated in the same way. Use the colourspace functions if
@@ -327,7 +327,7 @@
  * If VIPS_DEBUG is defined, you get a version that checks bounds for you.
  *
  * ::: seealso
- *     [method@Image.wio_input], [method@Image.inplace], VIPS_REGION_ADDR().
+ *     [method@Image.wio_input], [method@Image.inplace], [func@REGION_ADDR].
  *
  * Returns: The address of pixel (@X,@Y) in @I.
  */
@@ -1776,7 +1776,7 @@ vips_image_new_memory(void)
  * vips_image_memory: (constructor)
  *
  * A renamed [ctor@Image.new_memory] ... Some gobject binding systems do not
- * like more than one _new() method.
+ * like more than one `_new()` method.
  *
  * ::: seealso
  *     [ctor@Image.new_memory].
@@ -2558,7 +2558,7 @@ vips_get_disc_threshold(void)
  *
  * The file is created in the temporary directory. This is set with the
  * environment variable TMPDIR. If this is not set, then on Unix systems, vips
- * will default to /tmp. On Windows, vips uses GetTempPath() to find the
+ * will default to /tmp. On Windows, vips uses `GetTempPath()` to find the
  * temporary directory.
  *
  * ::: seealso
@@ -2873,7 +2873,7 @@ vips_image_write_to_target(VipsImage *in,
  *
  * Writes @in to memory as a simple, unformatted C-style array.
  *
- * The caller is responsible for freeing this memory with g_free().
+ * The caller is responsible for freeing this memory with [func@GLib.free].
  *
  * ::: seealso
  *     [method@Image.write_to_buffer].
@@ -3201,7 +3201,7 @@ vips_image_write_prepare(VipsImage *image)
  *
  * Write a line of pixels to an image. This function must be called repeatedly
  * with @ypos increasing from 0 to [property@Image:height].
- * @linebuffer must be VIPS_IMAGE_SIZEOF_LINE() bytes long.
+ * @linebuffer must be [func@IMAGE_SIZEOF_LINE] bytes long.
  *
  * ::: seealso
  *     [method@Image.generate].
@@ -3392,10 +3392,10 @@ vips_image_copy_memory(VipsImage *image)
  * vips_image_wio_input:
  * @image: image to transform
  *
- * Check that an image is readable via the VIPS_IMAGE_ADDR() macro, that is,
+ * Check that an image is readable via the [func@IMAGE_ADDR] macro, that is,
  * that the entire image is in memory and all pixels can be read with
- * VIPS_IMAGE_ADDR().  If it
- * isn't, try to transform it so that VIPS_IMAGE_ADDR() can work.
+ * [func@IMAGE_ADDR].  If it
+ * isn't, try to transform it so that [func@IMAGE_ADDR] can work.
  *
  * Since this function modifies @image, it is not thread-safe. Only call it on
  * images which you are sure have not been shared with another thread. If the
@@ -3404,7 +3404,7 @@ vips_image_copy_memory(VipsImage *image)
  *
  * ::: seealso
  *     [method@Image.copy_memory], [method@Image.pio_input],
- *     [method@Image.inplace], VIPS_IMAGE_ADDR().
+ *     [method@Image.inplace], [func@IMAGE_ADDR].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -3570,7 +3570,7 @@ vips__image_wio_output(VipsImage *image)
  *
  * Gets @image ready for an in-place operation, such as
  * [method@Image.draw_circle]. After calling this function you can both read
- * and write the image with VIPS_IMAGE_ADDR().
+ * and write the image with [func@IMAGE_ADDR].
  *
  * This method is called for you by the base class of the draw operations,
  * there's no need to call it yourself.

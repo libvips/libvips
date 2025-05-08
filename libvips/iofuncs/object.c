@@ -179,20 +179,20 @@
  * Input gobjects are automatically reffed, output gobjects automatically ref
  * us. We also automatically watch for "destroy" and unlink.
  *
- * @VIPS_ARGUMENT_SET_ALWAYS is handy for arguments which are set from C. For
+ * [flags@Vips.ArgumentFlags.SET_ALWAYS] is handy for arguments which are set from C. For
  * example, VipsImage::width is a property that gives access to the Xsize
  * member of struct _VipsImage. We default its 'assigned' to TRUE
  * since the field is always set directly by C.
  *
- * @VIPS_ARGUMENT_DEPRECATED arguments are not shown in help text, are not
+ * [flags@Vips.ArgumentFlags.DEPRECATED] arguments are not shown in help text, are not
  * looked for if required, are not checked for "have-been-set". You can
  * deprecate a required argument, but you must obviously add a new required
  * argument if you do.
  *
- * Input args with @VIPS_ARGUMENT_MODIFY will be modified by the operation.
+ * Input args with [flags@Vips.ArgumentFlags.MODIFY] will be modified by the operation.
  * This is used for things like the in-place drawing operations.
  *
- * @VIPS_ARGUMENT_NON_HASHABLE stops the argument being used in hash and
+ * [flags@Vips.ArgumentFlags.NON_HASHABLE] stops the argument being used in hash and
  * equality tests. It's useful for arguments like `revalidate` which
  * control the behaviour of the operator cache.
  */
@@ -3242,7 +3242,7 @@ vips_object_unref_outputs(VipsObject *object)
  *
  * Fetch the object description. Useful for language bindings.
  *
- * @object.description is only available after _build(), which can be too
+ * [property@VipsObject:description] is only available after `_build()`, which can be too
  * late. This function fetches from the instance, if possible, but falls back
  * to the class description if we are too early.
  *
