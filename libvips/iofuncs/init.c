@@ -644,7 +644,7 @@ vips_init(const char *argv0)
 
 	/* If VIPS_WARNING is defined, suppress all warning messages from vips.
 	 *
-	 * Libraries should not call [func@GLib.log_set_handler], it is
+	 * Libraries should not call g_log_set_handler(), it is
 	 * supposed to be for the application layer, but this can be awkward to
 	 * set up if you are using libvips from something like Ruby. Allow this
 	 * env var hack as a workaround.
@@ -675,7 +675,7 @@ void
 vips_check_init(void)
 {
 	/* Pass in a nonsense name for argv0 ... this init path is only here
-	 * for old programs which are missing an [func@init] call. We need
+	 * for old programs which are missing an vips_init() call. We need
 	 * i18n set up before we can translate.
 	 */
 	if (vips_init("vips"))

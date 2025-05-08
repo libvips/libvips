@@ -793,7 +793,7 @@ vips_cache_drop_all(void)
 			vips_cache_print_nolock();
 
 		/* We can't modify the hash in the callback from
-		 * [func@GLib.hash_table_foreach] and friends. Repeatedly drop the
+		 * g_hash_table_foreach() and friends. Repeatedly drop the
 		 * first item instead.
 		 */
 		while ((operation = vips_cache_get_first()))
@@ -975,7 +975,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 
 		VIPS_UNREF(operation_before);
 
-		/* Retrieve the flags again, as [func@Foreign.load_build] may
+		/* Retrieve the flags again, as vips_foreign_load_build() may
 		 * set load->nocache.
 		 */
 		flags = vips_operation_get_flags(*operation);

@@ -1897,7 +1897,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	 * was).
 	 *
 	 * We need this extra thing here because, unlike
-	 * [method@Region.prepare], we don't [method@Region.buffer] dest before
+	 * vips_region_prepare(), we don't vips_region_buffer() dest before
 	 * writing it.
 	 */
 	dest->invalid = FALSE;
@@ -1905,7 +1905,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	return 0;
 }
 
-/* Don't use this, use [func@reorder_prepare_many] instead.
+/* Don't use this, use vips_reorder_prepare_many() instead.
  */
 int
 vips_region_prepare_many(VipsRegion **reg, const VipsRect *r)

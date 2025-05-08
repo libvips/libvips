@@ -264,7 +264,7 @@ main(int argc, char **argv)
               NULL)))
         vips_error_exit(NULL);
 
-    context = VIPS_OBJECT([ctor@Image.new]);
+    context = VIPS_OBJECT(vips_image_new());
     if (crop_animation(context, image, &x, 10, 10, 500, 500)) {
         g_object_unref(image);
         g_object_unref(context);

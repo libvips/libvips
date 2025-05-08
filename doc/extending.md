@@ -149,7 +149,7 @@ negative_build(VipsObject *object)
         vips_check_format(class->nickname, negative->in, VIPS_FORMAT_UCHAR))
         return -1;
 
-    g_object_set(object, "out", [ctor@Image.new], NULL);
+    g_object_set(object, "out", vips_image_new(), NULL);
 
     if (vips_image_pipelinev(negative->out,
             VIPS_DEMAND_STYLE_THINSTRIP, negative->in, NULL))
@@ -206,7 +206,7 @@ negative_generate(VipsRegion *out_region,
      */
     VipsRect *r = &out_region->valid;
 
-    /* The sequence value ... the thing returned by [func@start_one].
+    /* The sequence value ... the thing returned by vips_start_one().
      */
     VipsRegion *ir = (VipsRegion *) vseq;
 

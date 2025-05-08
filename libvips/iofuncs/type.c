@@ -1478,7 +1478,7 @@ transform_g_string_array_image(const GValue *src_value, GValue *dest_value)
 	str = g_value_dup_string(src_value);
 
 	/* We can't get access here, just assume nothing. See the special case
-	 * in [method@Object.new_from_string] for how we usually get this right.
+	 * in vips_object_new_from_string() for how we usually get this right.
 	 */
 	if (!(array_image = vips_array_image_new_from_string(str, 0))) {
 		/* Set the dest to length zero to indicate error.
@@ -1765,7 +1765,7 @@ vips_value_get_array(const GValue *value,
 	VipsArea *area;
 
 	/* Can't check value type, because we may get called from
-	 * [func@*_get_type].
+	 * vips_*_get_type().
 	 */
 
 	if (!(area = g_value_get_boxed(value)))
@@ -1945,7 +1945,7 @@ vips_value_set_array_object(GValue *value, int n)
 	vips_area_unref(area);
 }
 
-/* Make the types we need for basic functioning. Called from [func@init].
+/* Make the types we need for basic functioning. Called from vips_init().
  */
 void
 vips__meta_init_types(void)
