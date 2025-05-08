@@ -397,7 +397,7 @@ vips_sharpen_init(VipsSharpen *sharpen)
  * vips_sharpen: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Selectively sharpen the L channel of a LAB image. The input image is
  * transformed to [enum@Vips.Interpretation.LABS].
@@ -450,12 +450,12 @@ vips_sharpen_init(VipsSharpen *sharpen)
  * resolution.
  *
  * ::: tip "Optional arguments"
- *     * @sigma: %gdouble, sigma of gaussian
- *     * @x1: %gdouble, flat/jaggy threshold
- *     * @y2: %gdouble, maximum amount of brightening
- *     * @y3: %gdouble, maximum amount of darkening
- *     * @m1: %gdouble, slope for flat areas
- *     * @m2: %gdouble, slope for jaggy areas
+ *     * @sigma: `gdouble`, sigma of gaussian
+ *     * @x1: `gdouble`, flat/jaggy threshold
+ *     * @y2: `gdouble`, maximum amount of brightening
+ *     * @y3: `gdouble`, maximum amount of darkening
+ *     * @m1: `gdouble`, slope for flat areas
+ *     * @m2: `gdouble`, slope for jaggy areas
  *
  * ::: seealso
  *     [method@Image.conv].

@@ -1262,7 +1262,7 @@ vips_convi_init(VipsConvi *convi)
  * @in: input image
  * @out: (out): output image
  * @mask: convolve with this mask
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Integer convolution. This is a low-level operation, see [method@Image.conv] for
  * something more convenient.

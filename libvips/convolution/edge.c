@@ -334,7 +334,7 @@ vips_prewitt_init(VipsPrewitt *prewitt)
  * vips_sobel: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Sobel edge detector.
  *
@@ -364,7 +364,7 @@ vips_sobel(VipsImage *in, VipsImage **out, ...)
  * vips_scharr: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Scharr edge detector.
  *
@@ -394,7 +394,7 @@ vips_scharr(VipsImage *in, VipsImage **out, ...)
  * vips_prewitt: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Prewitt edge detector.
  *

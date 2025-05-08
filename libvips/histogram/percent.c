@@ -136,7 +136,7 @@ vips_percent_init(VipsPercent *percent)
  * @in: input image
  * @percent: threshold percentage
  * @threshold: (out): output threshold value
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * [method@Image.percent] returns (through the @threshold parameter) the threshold
  * below which there are @percent values of @in. For example:

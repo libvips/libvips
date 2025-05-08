@@ -680,7 +680,7 @@ vips_embed_init(VipsEmbed *embed)
  * @y: place @in at this y position in @out
  * @width: @out should be this many pixels across
  * @height: @out should be this many pixels down
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * The opposite of [method@Image.extract_area]: embed @in within an image of
  * size @width by @height at position @x, @y.
@@ -688,7 +688,7 @@ vips_embed_init(VipsEmbed *embed)
  * @extend controls what appears in the new pels, see [enum@Extend].
  *
  * ::: tip "Optional arguments"
- *     * @extend: [enum@Extend] to generate the edge pixels (default: black)
+ *     * @extend: [enum@Extend] to generate the edge pixels (default: [enum@Vips.Extend.BLACK])
  *     * @background: [struct@ArrayDouble] colour for edge pixels
  *
  * ::: seealso
@@ -827,15 +827,15 @@ vips_gravity_init(VipsGravity *gravity)
  * @direction: place @in at this direction in @out
  * @width: @out should be this many pixels across
  * @height: @out should be this many pixels down
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * The opposite of [method@Image.extract_area]: place @in within an image of
  * size @width by @height at a certain gravity.
  *
- * @extend controls what appears in the new pels, see #VipsExtend.
+ * @extend controls what appears in the new pels, see [enum@Extend].
  *
  * ::: tip "Optional arguments"
- *     * @extend: #VipsExtend to generate the edge pixels (default: black)
+ *     * @extend: [enum@Extend] to generate the edge pixels (default: [enum@Vips.Extend.BLACK])
  *     * @background: [struct@ArrayDouble] colour for edge pixels
  *
  * ::: seealso

@@ -160,7 +160,7 @@ vips_error_buffer_copy(void)
 /**
  * vips_verror:
  * @domain: the source of the error
- * @fmt: printf()-style format string for the error
+ * @fmt: `printf()`-style format string for the error
  * @ap: arguments to the format string
  *
  * Append a message to the error buffer.
@@ -202,10 +202,10 @@ vips_verror(const char *domain, const char *fmt, va_list ap)
 /**
  * vips_error:
  * @domain: the source of the error
- * @fmt: printf()-style format string for the error
+ * @fmt: `printf()`-style format string for the error
  * @...: arguments to the format string
  *
- * Format the string in the style of printf() and append to the error buffer.
+ * Format the string in the style of [`printf()`](man:printf(3)) and append to the error buffer.
  *
  * ::: seealso
  *     [func@error_system], [func@verror].
@@ -224,10 +224,10 @@ vips_error(const char *domain, const char *fmt, ...)
  * vips_verror_system:
  * @err: the system error code
  * @domain: the source of the error
- * @fmt: printf()-style format string for the error
+ * @fmt: `printf()`-style format string for the error
  * @ap: arguments to the format string
  *
- * Format the string in the style of printf() and append to the error buffer.
+ * Format the string in the style of [`printf()`](man:printf(3)) and append to the error buffer.
  * Then create and append a localised message based on the system error code,
  * usually the value of errno.
  *
@@ -245,7 +245,7 @@ vips_verror_system(int err, const char *domain, const char *fmt, va_list ap)
  * vips_error_system:
  * @err: the system error code
  * @domain: the source of the error
- * @fmt: printf()-style format string for the error
+ * @fmt: `printf()`-style format string for the error
  * @...: arguments to the format string
  *
  * Format the string in the style of printf() and append to the error buffer.
@@ -299,7 +299,7 @@ vips_error_g(GError **error)
  * vips_g_error:
  * @error: glib error pointer
  *
- * This function adds the %GError to the vips error buffer and clears it. It's
+ * This function adds the [struct@GLib.Error] to the vips error buffer and clears it. It's
  * the opposite of [func@error_g].
  *
  * ::: seealso
@@ -335,14 +335,14 @@ vips_error_clear(void)
 
 /**
  * vips_error_exit:
- * @fmt: printf()-style format string for the message
+ * @fmt: `printf()`-style format string for the message
  * @...: arguments to the format string
  *
  * Sends a formatted error message to stderr, then sends the contents of the
  * error buffer, if any, then shuts down vips and terminates the program with
  * an error code.
  *
- * @fmt may be %NULL, in which case only the error buffer is printed before
+ * @fmt may be `NULL`, in which case only the error buffer is printed before
  * exiting.
  *
  * ::: seealso

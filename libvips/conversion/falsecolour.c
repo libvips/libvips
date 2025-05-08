@@ -392,7 +392,7 @@ vips_falsecolour_init(VipsFalsecolour *falsecolour)
  * vips_falsecolour: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Force @in to 1 band, 8-bit, then transform to
  * a 3-band 8-bit image with a false colour

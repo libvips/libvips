@@ -932,7 +932,7 @@ vips__xml_properties_meta(VipsImage *image,
 }
 
 /* Make the xml we write to vips-properties in dzsave, or to TIFF. A simple
- * dump of all vips metadata. Free with [func@GLib.free].
+ * dump of all vips metadata. Free with g_free().
  */
 char *
 vips__xml_properties(VipsImage *image)

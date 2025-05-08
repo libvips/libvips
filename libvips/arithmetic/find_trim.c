@@ -254,7 +254,7 @@ vips_find_trim_init(VipsFindTrim *find_trim)
  * @top: (out): output top edge
  * @width: (out): output width
  * @height: (out): output height
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Search @in for the bounding box of the non-background area.
  *
@@ -281,9 +281,9 @@ vips_find_trim_init(VipsFindTrim *find_trim)
  * The image needs to be at least 3x3 pixels in size.
  *
  * ::: tip "Optional arguments"
- *     * @threshold: %gdouble, background / object threshold
+ *     * @threshold: `gdouble`, background / object threshold
  *     * @background: [struct@ArrayDouble], background colour
- *     * @line_art: %gboolean, enable line art mode
+ *     * @line_art: `gboolean`, enable line art mode
  *
  * ::: seealso
  *     [method@Image.getpoint], [method@Image.extract_area], [method@Image.smartcrop].

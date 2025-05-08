@@ -308,7 +308,7 @@ vips_invertlut_init(VipsInvertlut *lut)
  * vips_invertlut: (method)
  * @in: input mask
  * @out: (out): output LUT
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Given a mask of target values and real values, generate a LUT which
  * will map reals to targets.
@@ -337,7 +337,7 @@ vips_invertlut_init(VipsInvertlut *lut)
  * do something better really.
  *
  * ::: tip "Optional arguments"
- *     * @size: %gint, generate this much
+ *     * @size: `gint`, generate this much
  *
  * ::: seealso
  *     [method@Image.buildlut].

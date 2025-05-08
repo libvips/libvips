@@ -462,7 +462,7 @@ vips_matrixinvert_init(VipsMatrixinvert *matrix)
  * vips_matrixinvert: (method)
  * @m: matrix to invert
  * @out: (out): output matrix
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation calculates the inverse of the matrix represented in @m.
  * The scale and offset members of the input matrix are ignored.

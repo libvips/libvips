@@ -793,7 +793,7 @@ vips_cache_drop_all(void)
 			vips_cache_print_nolock();
 
 		/* We can't modify the hash in the callback from
-		 * [func@GLib.hash_table_foreach] and friends. Repeatedly drop the
+		 * g_hash_table_foreach() and friends. Repeatedly drop the
 		 * first item instead.
 		 */
 		while ((operation = vips_cache_get_first()))
@@ -975,7 +975,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 
 		VIPS_UNREF(operation_before);
 
-		/* Retrieve the flags again, as [func@Foreign.load_build] may
+		/* Retrieve the flags again, as vips_foreign_load_build() may
 		 * set load->nocache.
 		 */
 		flags = vips_operation_get_flags(*operation);
@@ -1166,7 +1166,7 @@ vips_cache_set_max_files(int max_files)
 
 /**
  * vips_cache_set_dump:
- * @dump: if %TRUE, dump the operation cache on exit
+ * @dump: if `TRUE`, dump the operation cache on exit
  *
  * Handy for debugging. Print the operation cache to stdout just before exit.
  *
@@ -1181,7 +1181,7 @@ vips_cache_set_dump(gboolean dump)
 
 /**
  * vips_cache_set_trace:
- * @trace: if %TRUE, trace the operation cache
+ * @trace: if `TRUE`, trace the operation cache
  *
  * Handy for debugging. Print operation cache actions to stdout as we run.
  *

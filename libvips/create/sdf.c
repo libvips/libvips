@@ -363,7 +363,7 @@ vips_sdf_init(VipsSdf *sdf)
  * @width: horizontal size
  * @height: vertical size
  * @shape: SDF to create
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Create a signed distance field (SDF) image of the given @shape.
  *
@@ -385,7 +385,7 @@ vips_sdf_init(VipsSdf *sdf)
  * ::: tip "Optional arguments"
  *     * @a: [struct@ArrayDouble], first point
  *     * @b: [struct@ArrayDouble], second point
- *     * @r: %gfloat, radius
+ *     * @r: `gdouble`, radius
  *     * @corners: [struct@ArrayDouble], corner radii
  *
  * ::: seealso

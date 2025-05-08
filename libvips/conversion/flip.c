@@ -260,7 +260,7 @@ vips_flip_init(VipsFlip *flip)
  * @in: input image
  * @out: (out): output image
  * @direction: flip horizontally or vertically
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Flips an image left-right or up-down.
  *

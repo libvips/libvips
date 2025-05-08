@@ -214,7 +214,7 @@ vips_abs_init(VipsAbs *abs)
  * vips_abs: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation finds the absolute value of an image. It does a copy for
  * unsigned integer types, negate for negative values in

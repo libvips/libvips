@@ -466,7 +466,7 @@ vips_shrinkh_init(VipsShrinkh *shrink)
  * @in: input image
  * @out: (out): output image
  * @hshrink: horizontal shrink
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Shrink @in horizontally by an integer factor.
  * Each pixel in the output is
@@ -479,7 +479,7 @@ vips_shrinkh_init(VipsShrinkh *shrink)
  * be updated by the application.
  *
  * ::: tip "Optional arguments"
- *     * @ceil: %gboolean, round-up output dimensions
+ *     * @ceil: `gboolean`, round-up output dimensions
  *
  * ::: seealso
  *     [method@Image.shrinkv], [method@Image.shrink], [method@Image.resize],

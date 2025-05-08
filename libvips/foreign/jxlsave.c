@@ -922,7 +922,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		return -1;
 	in = t[0];
 
-	/* Mimics VIPS_SAVEABLE_RGBA.
+	/* Mimics VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA.
 	 * FIXME: add support encoding images with > 4 bands.
 	 */
 	if (in->Bands > 4) {
@@ -1044,7 +1044,7 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 
 	foreign_class->suffs = vips__jxl_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_jxl;
 
 	VIPS_ARG_INT(class, "tier", 10,

@@ -146,7 +146,7 @@ vips_Lab2LCh_init(VipsLab2LCh *Lab2LCh)
  * vips_Lab2LCh: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Turn Lab to LCh.
  *

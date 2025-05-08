@@ -43,24 +43,24 @@ extern "C" {
 
 /**
  * VipsOperationMath:
- * @VIPS_OPERATION_MATH_SIN: sin(), angles in degrees
- * @VIPS_OPERATION_MATH_COS: cos(), angles in degrees
- * @VIPS_OPERATION_MATH_TAN: tan(), angles in degrees
- * @VIPS_OPERATION_MATH_ASIN: asin(), angles in degrees
- * @VIPS_OPERATION_MATH_ACOS: acos(), angles in degrees
- * @VIPS_OPERATION_MATH_ATAN: atan(), angles in degrees
+ * @VIPS_OPERATION_MATH_SIN: `sin()`, angles in degrees
+ * @VIPS_OPERATION_MATH_COS: `cos()`, angles in degrees
+ * @VIPS_OPERATION_MATH_TAN: `tan()`, angles in degrees
+ * @VIPS_OPERATION_MATH_ASIN: `asin()`, angles in degrees
+ * @VIPS_OPERATION_MATH_ACOS: `acos()`, angles in degrees
+ * @VIPS_OPERATION_MATH_ATAN: `atan()`, angles in degrees
  * @VIPS_OPERATION_MATH_LOG: log base e
  * @VIPS_OPERATION_MATH_LOG10: log base 10
  * @VIPS_OPERATION_MATH_EXP: e to the something
  * @VIPS_OPERATION_MATH_EXP10: 10 to the something
- * @VIPS_OPERATION_MATH_SINH: sinh(), angles in radians
- * @VIPS_OPERATION_MATH_COSH: cosh(), angles in radians
- * @VIPS_OPERATION_MATH_TANH: tanh(), angles in radians
- * @VIPS_OPERATION_MATH_ASINH: asinh(), angles in radians
- * @VIPS_OPERATION_MATH_ACOSH: acosh(), angles in radians
- * @VIPS_OPERATION_MATH_ATANH: atanh(), angles in radians
+ * @VIPS_OPERATION_MATH_SINH: `sinh()`, angles in radians
+ * @VIPS_OPERATION_MATH_COSH: `cosh()`, angles in radians
+ * @VIPS_OPERATION_MATH_TANH: `tanh()`, angles in radians
+ * @VIPS_OPERATION_MATH_ASINH: `asinh()`, angles in radians
+ * @VIPS_OPERATION_MATH_ACOSH: `acosh()`, angles in radians
+ * @VIPS_OPERATION_MATH_ATANH: `atanh()`, angles in radians
  *
- * See also: vips_math().
+ * See also: [method@Image.math].
  */
 typedef enum {
 	VIPS_OPERATION_MATH_SIN,
@@ -84,11 +84,11 @@ typedef enum {
 
 /**
  * VipsOperationMath2:
- * @VIPS_OPERATION_MATH2_POW: pow(left, right)
- * @VIPS_OPERATION_MATH2_WOP: pow(right, left)
- * @VIPS_OPERATION_MATH2_ATAN2: atan2(left, right)
+ * @VIPS_OPERATION_MATH2_POW: `pow(left, right)`
+ * @VIPS_OPERATION_MATH2_WOP: `pow(right, left)`
+ * @VIPS_OPERATION_MATH2_ATAN2: `atan2(left, right)`
  *
- * See also: vips_math().
+ * See also: [method@Image.math].
  */
 typedef enum {
 	VIPS_OPERATION_MATH2_POW,
@@ -103,7 +103,7 @@ typedef enum {
  * @VIPS_OPERATION_ROUND_FLOOR: largest integral value not greater than
  * @VIPS_OPERATION_ROUND_CEIL: the smallest integral value not less than
  *
- * See also: vips_round().
+ * See also: [method@Image.round].
  */
 typedef enum {
 	VIPS_OPERATION_ROUND_RINT,
@@ -114,14 +114,14 @@ typedef enum {
 
 /**
  * VipsOperationRelational:
- * @VIPS_OPERATION_RELATIONAL_EQUAL: ==
- * @VIPS_OPERATION_RELATIONAL_NOTEQ: !=
- * @VIPS_OPERATION_RELATIONAL_LESS: <
- * @VIPS_OPERATION_RELATIONAL_LESSEQ: <=
- * @VIPS_OPERATION_RELATIONAL_MORE: >
- * @VIPS_OPERATION_RELATIONAL_MOREEQ: >=
+ * @VIPS_OPERATION_RELATIONAL_EQUAL: `==`
+ * @VIPS_OPERATION_RELATIONAL_NOTEQ: `!=`
+ * @VIPS_OPERATION_RELATIONAL_LESS: `<`
+ * @VIPS_OPERATION_RELATIONAL_LESSEQ: `<=`
+ * @VIPS_OPERATION_RELATIONAL_MORE: `>`
+ * @VIPS_OPERATION_RELATIONAL_MOREEQ: `>=`
  *
- * See also: vips_relational().
+ * See also: [method@Image.relational].
  */
 typedef enum {
 	VIPS_OPERATION_RELATIONAL_EQUAL,
@@ -135,13 +135,13 @@ typedef enum {
 
 /**
  * VipsOperationBoolean:
- * @VIPS_OPERATION_BOOLEAN_AND: &
- * @VIPS_OPERATION_BOOLEAN_OR: |
- * @VIPS_OPERATION_BOOLEAN_EOR: ^
- * @VIPS_OPERATION_BOOLEAN_LSHIFT: >>
- * @VIPS_OPERATION_BOOLEAN_RSHIFT: <<
+ * @VIPS_OPERATION_BOOLEAN_AND: `&`
+ * @VIPS_OPERATION_BOOLEAN_OR: `|`
+ * @VIPS_OPERATION_BOOLEAN_EOR: `^`
+ * @VIPS_OPERATION_BOOLEAN_LSHIFT: `>>`
+ * @VIPS_OPERATION_BOOLEAN_RSHIFT: `<<`
  *
- * See also: vips_boolean().
+ * See also: [method@Image.boolean].
  */
 typedef enum {
 	VIPS_OPERATION_BOOLEAN_AND,
@@ -158,7 +158,7 @@ typedef enum {
  * @VIPS_OPERATION_COMPLEX_RECT: convert to rectangular coordinates
  * @VIPS_OPERATION_COMPLEX_CONJ: complex conjugate
  *
- * See also: vips_complex().
+ * See also: [method@Image.complex].
  */
 typedef enum {
 	VIPS_OPERATION_COMPLEX_POLAR,
@@ -171,7 +171,7 @@ typedef enum {
  * VipsOperationComplex2:
  * @VIPS_OPERATION_COMPLEX2_CROSS_PHASE: convert to polar coordinates
  *
- * See also: vips_complex2().
+ * See also: [method@Image.complex2].
  */
 typedef enum {
 	VIPS_OPERATION_COMPLEX2_CROSS_PHASE,
@@ -183,7 +183,7 @@ typedef enum {
  * @VIPS_OPERATION_COMPLEXGET_REAL: get real component
  * @VIPS_OPERATION_COMPLEXGET_IMAG: get imaginary component
  *
- * See also: vips_complexget().
+ * See also: [method@Image.complexget].
  */
 typedef enum {
 	VIPS_OPERATION_COMPLEXGET_REAL,

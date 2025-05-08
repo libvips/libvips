@@ -235,14 +235,14 @@ vips_draw_rectv(VipsImage *image,
  * @top: area to paint
  * @width: area to paint
  * @height: area to paint
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Paint pixels within @left, @top, @width, @height in @image with @ink.
  *
  * If @fill is zero, just paint a 1-pixel-wide outline.
  *
  * ::: tip "Optional arguments"
- *     * @fill: %gboolean, fill the rect
+ *     * @fill: `gboolean`, fill the rect
  *
  * ::: seealso
  *     [method@Image.draw_circle].
@@ -272,12 +272,12 @@ vips_draw_rect(VipsImage *image,
  * @top: area to paint
  * @width: area to paint
  * @height: area to paint
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.draw_rect], but just take a single double for @ink.
  *
  * ::: tip "Optional arguments"
- *     * @fill: %gboolean, fill the rect
+ *     * @fill: `gboolean`, fill the rect
  *
  * ::: seealso
  *     [method@Image.draw_rect].
@@ -309,7 +309,7 @@ vips_draw_rect1(VipsImage *image,
  * @n: length of ink array
  * @x: point to paint
  * @y: point to paint
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.draw_rect], but draw a single pixel at @x, @y.
  *
@@ -337,7 +337,7 @@ vips_draw_point(VipsImage *image, double *ink, int n, int x, int y, ...)
  * @ink: value to draw
  * @x: point to draw
  * @y: point to draw
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.draw_point], but just take a single double for @ink.
  *

@@ -103,8 +103,8 @@ vips_slist_equal(GSList *l1, GSList *l2)
  *
  * Map over a slist. _copy() the list in case the callback changes it.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_slist_map2(GSList *list, VipsSListMap2Fn fn, void *a, void *b)
@@ -131,8 +131,8 @@ vips_slist_map2(GSList *list, VipsSListMap2Fn fn, void *a, void *b)
  *
  * Map backwards. We _reverse() rather than recurse and unwind to save stack.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_slist_map2_rev(GSList *list, VipsSListMap2Fn fn, void *a, void *b)
@@ -162,8 +162,8 @@ vips_slist_map2_rev(GSList *list, VipsSListMap2Fn fn, void *a, void *b)
  *
  * Map over a slist. _copy() the list in case the callback changes it.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_slist_map4(GSList *list,
@@ -193,8 +193,8 @@ vips_slist_map4(GSList *list,
  *
  * Fold over a slist, applying @fn to each element.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_slist_fold2(GSList *list, void *start,
@@ -306,8 +306,8 @@ vips_hash_table_predicate(const char *key, void *value, Pair *pair)
  *
  * Like slist map, but for a hash table.
  *
- * Returns: %NULL if @fn returns %NULL for all arguments, otherwise the first
- * non-%NULL value from @fn.
+ * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
+ * non-`NULL` value from @fn.
  */
 void *
 vips_hash_table_map(GHashTable *hash, VipsSListMap2Fn fn, void *a, void *b)
@@ -339,7 +339,7 @@ vips_iscasepostfix(const char *a, const char *b)
 }
 
 /* Test for string a starts string b. a is a known-good string, b may be
- * random data. Use [func@GLib.str_has_prefix] when both strings are non-NULL and
+ * random data. Use g_str_has_prefix() when both strings are non-NULL and
  * NULL-terminated.
  */
 gboolean

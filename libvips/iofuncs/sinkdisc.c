@@ -474,9 +474,9 @@ write_free(Write *write)
  * @a: client data
  *
  * The function should write the pixels in @area from @region. @a is the
- * value passed into vips_sink_disc().
+ * value passed into [method@Image.sink_disc].
  *
- * See also: vips_sink_disc().
+ * See also: [method@Image.sink_disc].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -487,7 +487,7 @@ write_free(Write *write)
  * @write_fn: (scope call) (closure a): called for every batch of pixels
  * @a: client data
  *
- * vips_sink_disc() loops over @im, top-to-bottom, generating it in sections.
+ * [method@Image.sink_disc] loops over @im, top-to-bottom, generating it in sections.
  * As each section is produced, @write_fn is called.
  *
  * @write_fn is always called single-threaded (though not always from the same
@@ -495,10 +495,10 @@ write_free(Write *write)
  * sections in top-to-bottom order, and there are never any gaps.
  *
  * This operation is handy for making image sinks which output to things like
- * disc files. Things like vips_jpegsave(), for example, use this to write
+ * disc files. Things like [method@Image.jpegsave], for example, use this to write
  * images to files in JPEG format.
  *
- * See also: vips_concurrency_set().
+ * See also: [func@concurrency_set].
  *
  * Returns: 0 on success, -1 on error.
  */

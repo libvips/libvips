@@ -230,7 +230,7 @@ vips_gaussmat_init(VipsGaussmat *gaussmat)
  * @out: (out): output image
  * @sigma: standard deviation of mask
  * @min_ampl: minimum amplitude
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Creates a circularly symmetric Gaussian image of radius
  * @sigma.
@@ -257,7 +257,7 @@ vips_gaussmat_init(VipsGaussmat *gaussmat)
  * "scale" is set to the sum of all the mask elements.
  *
  * ::: tip "Optional arguments"
- *     * @separable: %gboolean, generate a separable gaussian
+ *     * @separable: `gboolean`, generate a separable gaussian
  *     * @precision: [enum@Precision] for @out
  *
  * ::: seealso

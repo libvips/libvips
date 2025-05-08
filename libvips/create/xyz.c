@@ -239,7 +239,7 @@ vips_xyz_init(VipsXyz *xyz)
  * @out: (out): output image
  * @width: horizontal size
  * @height: vertical size
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Create a two-band uint32 image where the elements in the first band have the
  * value of their x coordinate and elements in the second band have their y
@@ -253,9 +253,9 @@ vips_xyz_init(VipsXyz *xyz)
  * [method@Image.grid] to change the layout.
  *
  * ::: tip "Optional arguments"
- *     * @csize: %gint, size for third dimension
- *     * @dsize: %gint, size for fourth dimension
- *     * @esize: %gint, size for fifth dimension
+ *     * @csize: `gint`, size for third dimension
+ *     * @dsize: `gint`, size for fourth dimension
+ *     * @esize: `gint`, size for fifth dimension
  *
  * ::: seealso
  *     [ctor@Image.grey], [method@Image.grid], [ctor@Image.identity].

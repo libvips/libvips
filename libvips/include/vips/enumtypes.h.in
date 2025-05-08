@@ -17,6 +17,12 @@ GType @enum_name@_get_type(void) G_GNUC_CONST;
 /*** END value-header ***/
 
 /*** BEGIN file-tail ***/
+/* Deprecated enumerations */
+#ifndef __GI_SCANNER__
+VIPS_API
+GType vips_saveable_get_type(void) G_GNUC_CONST;
+#define VIPS_TYPE_SAVEABLE (vips_saveable_get_type())
+#endif /*__GI_SCANNER__*/
 G_END_DECLS
 
 #endif /*VIPS_ENUM_TYPES_H*/

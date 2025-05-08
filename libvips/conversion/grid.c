@@ -238,7 +238,7 @@ vips_grid_init(VipsGrid *grid)
  * @tile_height: chop into tiles this high
  * @across: tiles across
  * @down: tiles down
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Chop a tall thin image up into a set of tiles, lay the tiles out in a grid.
  *

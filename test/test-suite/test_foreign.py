@@ -27,6 +27,14 @@ class TestForeign:
         im = pyvips.Image.new_from_file(GIF_FILE)
         cls.onebit = im[1] > 128
 
+        all = [cls.mono, cls.colour, cls.cmyk]
+        # and alpha variants of all of them
+        alpha = [x.bandjoin(255) for x in all]
+        # and with a second alpha
+        alpha2 = [x.bandjoin(255) for x in alpha]
+
+        cls.all = all + alpha + alpha2
+
     @classmethod
     def teardown_class(cls):
         shutil.rmtree(cls.tempdir, ignore_errors=True)
@@ -35,6 +43,7 @@ class TestForeign:
         cls.mono = None
         cls.cmyk = None
         cls.onebit = None
+        cls.all = None
 
     # we have test files for formats which have a clear standard
     def file_loader(self, loader, test_file, validate):
@@ -147,6 +156,10 @@ class TestForeign:
         self.buffer_loader("jpegload_buffer", JPEG_FILE, jpeg_valid)
         self.save_load_buffer("jpegsave_buffer", "jpegload_buffer",
                               self.colour, 80)
+
+        for image in self.all:
+            target = pyvips.Target.new_to_memory()
+            image.jpegsave_target(target)
 
         # see if we have exif parsing: our test image has this field
         x = pyvips.Image.new_from_file(JPEG_FILE)
@@ -422,6 +435,10 @@ class TestForeign:
         self.save_load_file(".png", "[interlace]", self.colour)
         self.save_load_file(".png", "[interlace]", self.mono)
 
+        for image in self.all:
+            target = pyvips.Target.new_to_memory()
+            image.pngsave_target(target)
+
         def png_indexed_valid(im):
             a = im(10, 10)
             assert_almost_equal_objects(a, [148.0, 131.0, 109.0])
@@ -432,7 +449,8 @@ class TestForeign:
             assert im.get("palette") == 1
 
         self.file_loader("pngload", PNG_INDEXED_FILE, png_indexed_valid)
-        self.buffer_loader("pngload_buffer", PNG_INDEXED_FILE, png_indexed_valid)
+        self.buffer_loader("pngload_buffer",
+            PNG_INDEXED_FILE, png_indexed_valid)
 
         # size of a regular mono PNG
         len_mono = len(self.mono.write_to_buffer(".png"))
@@ -482,7 +500,8 @@ class TestForeign:
             "exif-ifd0-ImageDescription", "test description")
         im2 = pyvips.Image.new_from_buffer(
             im1.write_to_buffer(".png"), "")
-        assert im2.get("exif-ifd0-ImageDescription").startswith("test description")
+        assert im2.get("exif-ifd0-ImageDescription") \
+            .startswith("test description")
 
     @skip_if_no("tiffload")
     def test_tiff(self):
@@ -496,6 +515,10 @@ class TestForeign:
 
         self.file_loader("tiffload", TIF_FILE, tiff_valid)
         self.buffer_loader("tiffload_buffer", TIF_FILE, tiff_valid)
+
+        for image in self.all:
+            target = pyvips.Target.new_to_memory()
+            image.tiffsave_target(target)
 
         def tiff1_valid(im):
             a = im(127, 0)
@@ -1012,6 +1035,7 @@ class TestForeign:
 
     @skip_if_no("openslideload")
     def test_openslideload(self):
+
         def openslide_valid(im):
             a = im(10, 10)
             assert_almost_equal_objects(a, [244, 250, 243, 255])
@@ -1211,6 +1235,10 @@ class TestForeign:
 
     def test_matrix(self):
         self.save_load("%s.mat", self.mono)
+
+        for image in self.all:
+            target = pyvips.Target.new_to_memory()
+            image.matrixsave_target(target)
 
     @skip_if_no("ppmload")
     def test_ppm(self):

@@ -474,7 +474,7 @@ vips_foreign_load_matrix_source_init(VipsForeignLoadMatrixSource *source)
  * vips_matrixload:
  * @filename: file to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Reads a matrix from a file.
  *
@@ -520,7 +520,7 @@ vips_matrixload(const char *filename, VipsImage **out, ...)
  * vips_matrixload_source:
  * @source: source to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.matrixload], but read from a source.
  *

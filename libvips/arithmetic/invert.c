@@ -191,7 +191,7 @@ vips_invert_init(VipsInvert *invert)
  * vips_invert: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * For unsigned formats, this operation calculates (max - @in), eg. (255 -
  * @in) for uchar. For signed and float formats, this operation calculates (-1

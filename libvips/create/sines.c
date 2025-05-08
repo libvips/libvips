@@ -151,7 +151,7 @@ vips_sines_init(VipsSines *sines)
  * @out: (out): output image
  * @width: image size
  * @height: image size
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Creates a float one band image of the a sine waveform in two
  * dimensions.
@@ -167,9 +167,9 @@ vips_sines_init(VipsSines *sines)
  * Pixels are normally in [-1, +1], set @uchar to output [0, 255].
  *
  * ::: tip "Optional arguments"
- *     * @hfreq: %gdouble, horizontal frequency
- *	   * @vreq: %gdouble, vertical frequency
- *     * @uchar: %gboolean, output a uchar image
+ *     * @hfreq: `gdouble`, horizontal frequency
+ *     * @vreq: `gdouble`, vertical frequency
+ *     * @uchar: `gboolean`, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.grey], [ctor@Image.xyz].

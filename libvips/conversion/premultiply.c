@@ -281,7 +281,7 @@ vips_premultiply_init(VipsPremultiply *premultiply)
  * vips_premultiply: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Premultiplies any alpha channel.
  *
@@ -309,7 +309,7 @@ vips_premultiply_init(VipsPremultiply *premultiply)
  * Non-complex images only.
  *
  * ::: tip "Optional arguments"
- *     * @max_alpha: %gdouble, maximum value for alpha
+ *     * @max_alpha: `gdouble`, maximum value for alpha
  *
  * ::: seealso
  *     [method@Image.unpremultiply], [method@Image.flatten].

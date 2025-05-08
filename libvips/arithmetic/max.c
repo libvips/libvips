@@ -508,7 +508,7 @@ vips_max_init(VipsMax *max)
  * vips_max: (method)
  * @in: input [class@Image]
  * @out: (out): output pixel maximum
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation finds the maximum value in an image.
  *

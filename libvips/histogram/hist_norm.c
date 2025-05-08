@@ -159,7 +159,7 @@ vips_hist_norm_init(VipsHistNorm *hist_norm)
  * vips_hist_norm: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Normalise histogram. The maximum of each band becomes equal to the maximum
  * index, so for example the max for a uchar image becomes 255.

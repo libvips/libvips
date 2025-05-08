@@ -213,7 +213,7 @@ vips_gaussnoise_init(VipsGaussnoise *gaussnoise)
  * @out: (out): output image
  * @width: output width
  * @height: output height
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Make a one band float image of gaussian noise with the specified
  * distribution.
@@ -222,8 +222,8 @@ vips_gaussnoise_init(VipsGaussnoise *gaussnoise)
  * linear generator, then weighting appropriately with @mean and @sigma.
  *
  * ::: tip "Optional arguments"
- *     * @mean: %gdouble, mean of generated pixels
- *     * @sigma: %gdouble, standard deviation of generated pixels
+ *     * @mean: `gdouble`, mean of generated pixels
+ *     * @sigma: `gdouble`, standard deviation of generated pixels
  *
  * ::: seealso
  *     [ctor@Image.black], [ctor@Image.xyz], [ctor@Image.text].

@@ -165,7 +165,7 @@ vips_conv_init(VipsConv *conv)
  * @in: input image
  * @out: (out): output image
  * @mask: convolve with this mask
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform a convolution of @in with @mask.
  *
@@ -210,8 +210,8 @@ vips_conv_init(VipsConv *conv)
  *
  * ::: tip "Optional arguments"
  *     * @precision: [enum@Precision], calculation accuracy
- *     * @layers: %gint, number of layers for approximation
- *     * @cluster: %gint, cluster lines closer than this distance
+ *     * @layers: `gint`, number of layers for approximation
+ *     * @cluster: `gint`, cluster lines closer than this distance
  *
  * ::: seealso
  *     [method@Image.convsep].

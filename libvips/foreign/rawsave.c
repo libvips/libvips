@@ -138,7 +138,7 @@ vips_foreign_save_raw_class_init(VipsForeignSaveRawClass *class)
 	object_class->description = _("save image to raw");
 	object_class->build = vips_foreign_save_raw_build;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 }
 
 static void
@@ -327,7 +327,7 @@ vips_foreign_save_raw_buffer_init(VipsForeignSaveRawBuffer *buffer)
  * vips_rawsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Writes the pixels in @in to the file @filename with no header or other
  * metadata.
@@ -355,7 +355,7 @@ vips_rawsave(VipsImage *in, const char *filename, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.rawsave], but save to a memory buffer.
  *
@@ -400,7 +400,7 @@ vips_rawsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * vips_rawsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.rawsave], but save to a target.
  *

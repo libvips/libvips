@@ -1346,7 +1346,7 @@ vips_conva_init(VipsConva *conva)
  * @in: input image
  * @out: (out): output image
  * @mask: convolution mask
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform an approximate integer convolution of @in with @mask.
  * This is a low-level operation, see [method@Image.conv] for something more
@@ -1367,8 +1367,8 @@ vips_conva_init(VipsConva *conva)
  * and use more memory. 10% of the mask radius is a good rule of thumb.
  *
  * ::: tip "Optional arguments"
- *     * @layers: %gint, number of layers for approximation
- *     * @cluster: %gint, cluster lines closer than this distance
+ *     * @layers: `gint`, number of layers for approximation
+ *     * @cluster: `gint`, cluster lines closer than this distance
  *
  * ::: seealso
  *     [method@Image.conv].

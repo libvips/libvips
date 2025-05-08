@@ -203,7 +203,7 @@ vips_Lab2XYZ_init(VipsLab2XYZ *Lab2XYZ)
  * vips_Lab2XYZ: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Turn Lab to XYZ. The colour temperature defaults to D65, but can be
  * specified with @temp.

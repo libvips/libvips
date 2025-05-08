@@ -350,7 +350,7 @@ vips_unpremultiply_init(VipsUnpremultiply *unpremultiply)
  * vips_unpremultiply: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Unpremultiplies any alpha channel.
  *
@@ -380,8 +380,8 @@ vips_unpremultiply_init(VipsUnpremultiply *unpremultiply)
  * Non-complex images only.
  *
  * ::: tip "Optional arguments"
- *     * @max_alpha: %gdouble, maximum value for alpha
- *     * @alpha_band: %gint, band containing alpha data
+ *     * @max_alpha: `gdouble`, maximum value for alpha
+ *     * @alpha_band: `gint`, band containing alpha data
  *
  * ::: seealso
  *     [method@Image.premultiply], [method@Image.flatten].

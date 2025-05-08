@@ -172,7 +172,7 @@ vips_matrixmultiply_init(VipsMatrixmultiply *matrix)
  * @left: input matrix
  * @right: input matrix
  * @out: (out): output matrix
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Multiplies two matrix images.
  *

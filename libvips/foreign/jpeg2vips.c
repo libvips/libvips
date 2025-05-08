@@ -474,8 +474,8 @@ readjpeg_new(VipsSource *source, VipsImage *out,
 	jpeg->unlimited = unlimited;
 	jpeg->cinfo.client_data = jpeg;
 
-	/* jpe[func@GLib.create_decompress] can fail on some sanity checks. Don't
-	 * readjpe[func@GLib.free] since we don't want to jpe[func@GLib.destroy_decompress].
+	/* jpeg_create_decompress() can fail on some sanity checks. Don't
+	 * readjpeg_free() since we don't want to jpeg_destroy_decompress().
 	 */
 	if (setjmp(jpeg->eman.jmp))
 		return NULL;
@@ -879,7 +879,7 @@ read_jpeg_generate(VipsRegion *out_region,
 	g_assert(r->height == VIPS_MIN(8, out_region->im->Ysize - r->top));
 
 	/* And check that the y position is correct. It should be, since we are
-	 * inside a [method@Image.sequential].
+	 * inside a vips_sequential().
 	 */
 	if (r->top != cinfo->output_scanline) {
 		VIPS_GATE_STOP("read_jpeg_generate: work");
@@ -889,14 +889,14 @@ read_jpeg_generate(VipsRegion *out_region,
 		return -1;
 	}
 
-	/* Here for longjmp() from [func@_new_error_exit] during
-	 * jpe[func@GLib.read_scanlines].
+	/* Here for longjmp() from vips__new_error_exit() during
+	 * jpeg_read_scanlines().
 	 */
 	if (setjmp(jpeg->eman.jmp)) {
 		VIPS_GATE_STOP("read_jpeg_generate: work");
 
 #ifdef DEBUG
-		printf("read_jpe[func@GLib.generate: longjmp] exit\n");
+		printf("read_jpeg_generate() exit\n");
 #endif /*DEBUG*/
 
 		return -1;
@@ -945,8 +945,8 @@ read_jpeg_image(ReadJpeg *jpeg, VipsImage *out)
 
 	VipsImage *im;
 
-	/* Here for longjmp() from [func@_new_error_exit] during
-	 * jpe[func@GLib.read_header] or jpe[func@GLib.start_decompress].
+	/* Here for longjmp() from vips__new_error_exit() during
+	 * jpeg_read_header() or jpeg_start_decompress().
 	 */
 	if (setjmp(jpeg->eman.jmp))
 		return -1;
@@ -1058,8 +1058,8 @@ vips__jpeg_read_source(VipsSource *source, VipsImage *out,
 			  autorotate, unlimited)))
 		return -1;
 
-	/* Here for longjmp() from [func@_new_error_exit] during
-	 * cinfo->mem->alloc_small() or jpe[func@GLib.read_header].
+	/* Here for longjmp() from vips__new_error_exit() during
+	 * cinfo->mem->alloc_small() or jpeg_read_header().
 	 */
 	if (setjmp(jpeg->eman.jmp))
 		return -1;

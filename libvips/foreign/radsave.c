@@ -93,7 +93,8 @@ vips_foreign_save_rad_class_init(VipsForeignSaveRadClass *class)
 
 	foreign_class->suffs = vips__rad_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_RGB;
+	save_class->saveable =
+		VIPS_FOREIGN_SAVEABLE_MONO | VIPS_FOREIGN_SAVEABLE_RGB;
 	save_class->format_table = vips_foreign_save_rad_format_table;
 	save_class->coding[VIPS_CODING_NONE] = FALSE;
 	save_class->coding[VIPS_CODING_RAD] = TRUE;
@@ -123,7 +124,8 @@ vips_foreign_save_rad_file_build(VipsObject *object)
 
 	VipsTarget *target;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_file_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_rad_file_parent_class)->
+		build(object))
 		return -1;
 
 	if (!(target = vips_target_new_to_file(file->filename)))
@@ -288,7 +290,7 @@ vips_foreign_save_rad_buffer_init(VipsForeignSaveRadBuffer *buffer)
  * vips_radsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image in Radiance (HDR) format.
  *
@@ -317,7 +319,7 @@ vips_radsave(VipsImage *in, const char *filename, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.radsave], but save to a memory buffer.
  *
@@ -362,7 +364,7 @@ vips_radsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * vips_radsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.radsave], but save to a target.
  *

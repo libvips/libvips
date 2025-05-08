@@ -280,7 +280,7 @@ vips_casev(VipsImage *index, VipsImage **cases, VipsImage **out, int n,
  * @cases: (array length=n): array of case images
  * @out: (out): output image
  * @n: number of case images
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Use values in @index to select pixels from @cases.
  *

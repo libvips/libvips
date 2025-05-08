@@ -341,7 +341,7 @@ vips_quadratic_init(VipsQuadratic *quadratic)
  * @in: input image
  * @out: (out): output image
  * @coeff: horizontal quadratic
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Transform an image with a 0, 1, 2, or 3rd order polynomial.
  *

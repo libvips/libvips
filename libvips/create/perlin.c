@@ -339,7 +339,7 @@ vips_perlin_init(VipsPerlin *perlin)
  * @out: (out): output image
  * @width: horizontal size
  * @height: vertical size
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Create a one-band float image of Perlin noise.
  *
@@ -356,8 +356,8 @@ vips_perlin_init(VipsPerlin *perlin)
  * [-1, +1]. Set @uchar to output a uchar image with pixels in [0, 255].
  *
  * ::: tip "Optional arguments"
- *     * @cell_size: %gint, size of Perlin cells
- *     * @uchar: %gboolean, output a uchar image
+ *     * @cell_size: `gint`, size of Perlin cells
+ *     * @uchar: `gboolean`, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.worley], [ctor@Image.fractsurf], [ctor@Image.gaussnoise].

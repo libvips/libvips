@@ -115,8 +115,8 @@ typedef enum /*< flags >*/ {
  * How sensitive loaders are to errors, from never stop (very insensitive), to
  * stop on the smallest warning (very sensitive).
  *
- * Each one implies the ones before it, so #VIPS_FAIL_ON_ERROR implies
- * #VIPS_FAIL_ON_TRUNCATED.
+ * Each one implies the ones before it, so [enum@Vips.FailOn.ERROR] implies
+ * [enum@Vips.FailOn.TRUNCATED].
  */
 typedef enum {
 	VIPS_FAIL_ON_NONE,
@@ -205,7 +205,7 @@ typedef struct _VipsForeignLoadClass {
 
 	/* Is a file in this format.
 	 *
-	 * This function should return %TRUE if the file contains an image of
+	 * This function should return `TRUE` if the file contains an image of
 	 * this type. If you don't define this function, #VipsForeignLoad
 	 * will use @suffs instead.
 	 */
@@ -213,14 +213,14 @@ typedef struct _VipsForeignLoadClass {
 
 	/* Is a buffer in this format.
 	 *
-	 * This function should return %TRUE if the buffer contains an image of
+	 * This function should return `TRUE` if the buffer contains an image of
 	 * this type.
 	 */
 	gboolean (*is_a_buffer)(const void *data, size_t size);
 
 	/* Is a stream in this format.
 	 *
-	 * This function should return %TRUE if the stream contains an image of
+	 * This function should return `TRUE` if the stream contains an image of
 	 * this type.
 	 */
 	gboolean (*is_a_source)(VipsSource *source);
@@ -308,25 +308,25 @@ void vips_foreign_load_invalidate(VipsImage *image);
 		VIPS_TYPE_FOREIGN_SAVE, VipsForeignSaveClass))
 
 /**
- * VipsSaveable:
- * @VIPS_SAVEABLE_MONO: 1 band (eg. CSV)
- * @VIPS_SAVEABLE_RGB: 1 or 3 bands (eg. PPM)
- * @VIPS_SAVEABLE_RGBA: 1, 2, 3 or 4 bands (eg. PNG)
- * @VIPS_SAVEABLE_RGBA_ONLY: 3 or 4 bands (eg. WEBP)
- * @VIPS_SAVEABLE_RGB_CMYK: 1, 3 or 4 bands (eg. JPEG)
- * @VIPS_SAVEABLE_ANY: any number of bands (eg. TIFF)
+ * VipsForeignSaveable:
+ * @VIPS_FOREIGN_SAVEABLE_MONO: 1 band
+ * @VIPS_FOREIGN_SAVEABLE_RGB: 3 bands
+ * @VIPS_FOREIGN_SAVEABLE_CMYK: 4 bands
+ * @VIPS_FOREIGN_SAVEABLE_ALPHA: an extra band
+ * @VIPS_FOREIGN_SAVEABLE_ANY: saver supports everything (eg. TIFF)
  *
- * See also: #VipsForeignSave.
+ * The set of image types supported by a saver.
+ *
+ * See also: [class@ForeignSave].
  */
-typedef enum {
-	VIPS_SAVEABLE_MONO,
-	VIPS_SAVEABLE_RGB,
-	VIPS_SAVEABLE_RGBA,
-	VIPS_SAVEABLE_RGBA_ONLY,
-	VIPS_SAVEABLE_RGB_CMYK,
-	VIPS_SAVEABLE_ANY,
-	VIPS_SAVEABLE_LAST
-} VipsSaveable;
+typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_SAVEABLE_MONO = 1,
+	VIPS_FOREIGN_SAVEABLE_RGB = 2,
+	VIPS_FOREIGN_SAVEABLE_CMYK = 4,
+	VIPS_FOREIGN_SAVEABLE_ALPHA = 8,
+	VIPS_FOREIGN_SAVEABLE_ANY = 16,
+	VIPS_FOREIGN_SAVEABLE_ALL = 31,
+} VipsForeignSaveable;
 
 /**
  * VipsForeignKeep:
@@ -401,11 +401,11 @@ typedef struct _VipsForeignSaveClass {
 
 	/* How this format treats bands.
 	 *
-	 * @saveable describes the bands that your saver can handle. For
+	 * @saveable describes the image types that your saver can handle. For
 	 * example, PPM images can have 1 or 3 bands (mono or RGB), so it
-	 * uses #VIPS_SAVEABLE_RGB.
+	 * uses VIPS_SAVEABLE_FLAGS_MONO | VIPS_SAVEABLE_FLAGS_RGB.
 	 */
-	VipsSaveable saveable;
+	VipsForeignSaveable saveable;
 
 	/* How this format treats band formats.
 	 *
@@ -744,15 +744,15 @@ int vips_pngsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  *
  * The netpbm file format to save as.
  *
- * #VIPS_FOREIGN_PPM_FORMAT_PBM images are single bit.
+ * [enum@Vips.ForeignPpmFormat.PBM] images are single bit.
  *
- * #VIPS_FOREIGN_PPM_FORMAT_PGM images are 8, 16, or 32-bits, one band.
+ * [enum@Vips.ForeignPpmFormat.PGM] images are 8, 16, or 32-bits, one band.
  *
- * #VIPS_FOREIGN_PPM_FORMAT_PPM images are 8, 16, or 32-bits, three bands.
+ * [enum@Vips.ForeignPpmFormat.PPM] images are 8, 16, or 32-bits, three bands.
  *
- * #VIPS_FOREIGN_PPM_FORMAT_PFM images are 32-bit float pixels.
+ * [enum@Vips.ForeignPpmFormat.PFM] images are 32-bit float pixels.
  *
- * #VIPS_FOREIGN_PPM_FORMAT_PNM images are anymap images -- the image format
+ * [enum@Vips.ForeignPpmFormat.PNM] images are anymap images -- the image format
  * is used to pick the saver.
  *
  */
@@ -979,7 +979,7 @@ int vips_dzsave_target(VipsImage *in, VipsTarget *target, ...)
  *
  * The compression format to use inside a HEIF container.
  *
- * This is assumed to use the same numbering as %heif_compression_format.
+ * This is assumed to use the same numbering as `heif_compression_format`.
  */
 typedef enum {
 	VIPS_FOREIGN_HEIF_COMPRESSION_HEVC = 1,

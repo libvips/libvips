@@ -49,7 +49,7 @@ typedef struct _VipsThing {
 /**
  * VIPS_TYPE_THING:
  *
- * The #GType for a #VipsThing.
+ * The [alias@GObject.Type] for a #VipsThing.
  */
 #define VIPS_TYPE_THING (vips_thing_get_type())
 VIPS_API
@@ -135,7 +135,7 @@ void *vips_area_get_data(VipsArea *area,
 /**
  * VIPS_TYPE_AREA:
  *
- * The #GType for a #VipsArea.
+ * The [alias@GObject.Type] for a [struct@Area].
  */
 #define VIPS_TYPE_AREA (vips_area_get_type())
 #define VIPS_AREA(X) ((VipsArea *) (X))
@@ -145,7 +145,7 @@ GType vips_area_get_type(void);
 /**
  * VIPS_TYPE_SAVE_STRING:
  *
- * The #GType for a #VipsSaveString.
+ * The [alias@GObject.Type] for a [struct@SaveString].
  */
 #define VIPS_TYPE_SAVE_STRING (vips_save_string_get_type())
 VIPS_API
@@ -158,7 +158,7 @@ typedef struct _VipsSaveString {
 /**
  * VIPS_TYPE_REF_STRING:
  *
- * The #GType for a #VipsRefString.
+ * The [alias@GObject.Type] for a [struct@RefString].
  */
 #define VIPS_TYPE_REF_STRING (vips_ref_string_get_type())
 
@@ -176,7 +176,7 @@ GType vips_ref_string_get_type(void);
 /**
  * VIPS_TYPE_BLOB:
  *
- * The %GType for a #VipsBlob.
+ * The [alias@GObject.Type] for a [struct@Blob].
  */
 #define VIPS_TYPE_BLOB (vips_blob_get_type())
 
@@ -200,7 +200,7 @@ GType vips_blob_get_type(void);
 /**
  * VIPS_TYPE_ARRAY_DOUBLE:
  *
- * The #GType for a #VipsArrayDouble.
+ * The [alias@GObject.Type] for a [struct@ArrayDouble].
  */
 #define VIPS_TYPE_ARRAY_DOUBLE (vips_array_double_get_type())
 
@@ -220,7 +220,7 @@ GType vips_array_double_get_type(void);
 /**
  * VIPS_TYPE_ARRAY_INT:
  *
- * The #GType for a #VipsArrayInt.
+ * The [alias@GObject.Type] for a [struct@ArrayInt].
  */
 #define VIPS_TYPE_ARRAY_INT (vips_array_int_get_type())
 
@@ -240,7 +240,7 @@ GType vips_array_int_get_type(void);
 /**
  * VIPS_TYPE_ARRAY_IMAGE:
  *
- * The #GType for a #VipsArrayImage.
+ * The [alias@GObject.Type] for a [struct@ArrayImage].
  */
 #define VIPS_TYPE_ARRAY_IMAGE (vips_array_image_get_type())
 

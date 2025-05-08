@@ -444,7 +444,7 @@ vips_flatten_init(VipsFlatten *flatten)
  * vips_flatten: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Take the last band of @in as an alpha and use it to blend the
  * remaining channels with @background.
@@ -461,7 +461,7 @@ vips_flatten_init(VipsFlatten *flatten)
  *
  * ::: tip "Optional arguments"
  *     * @background: [struct@ArrayDouble] colour for new pixels
- *     * @max_alpha: %gdouble, maximum value for alpha
+ *     * @max_alpha: `gdouble`, maximum value for alpha
  *
  * ::: seealso
  *     [method@Image.premultiply], [ctor@Image.pngload].

@@ -136,7 +136,7 @@ vips_foreign_save_fits_class_init(VipsForeignSaveFitsClass *class)
 
 	foreign_class->suffs = vips__fits_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_fits;
 
 	VIPS_ARG_STRING(class, "filename", 1,
@@ -158,7 +158,7 @@ vips_foreign_save_fits_init(VipsForeignSaveFits *fits)
  * vips_fitssave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image to a file in FITS format.
  *

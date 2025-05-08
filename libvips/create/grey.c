@@ -103,7 +103,7 @@ vips_grey_init(VipsGrey *grey)
  * @out: (out): output image
  * @width: image size
  * @height: image size
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Create a one-band float image with the left-most column zero and the
  * right-most 1.
@@ -114,7 +114,7 @@ vips_grey_init(VipsGrey *grey)
  * rightmost 255.
  *
  * ::: tip "Optional arguments"
- *     * @uchar: %gboolean, output a uchar image
+ *     * @uchar: `gboolean`, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.xyz], [ctor@Image.identity].

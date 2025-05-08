@@ -400,7 +400,7 @@ vips_resize_init(VipsResize *resize)
  * @in: input image
  * @out: (out): output image
  * @scale: scale factor
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Resize an image.
  *
@@ -435,9 +435,9 @@ vips_resize_init(VipsResize *resize)
  * channel, you should use [method@Image.premultiply] on it first.
  *
  * ::: tip "optional arguments"
- *     * @vscale: %gdouble, vertical scale factor
+ *     * @vscale: `gdouble`, vertical scale factor
  *     * @kernel: [enum@Kernel], to reduce with
- *     * @gap: %gdouble, reducing gap to use (default: 2.0)
+ *     * @gap: `gdouble`, reducing gap to use (default: 2.0)
  *
  * ::: seealso
  *     [method@Image.premultiply], [method@Image.shrink], [method@Image.reduce].

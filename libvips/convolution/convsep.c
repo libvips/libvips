@@ -161,7 +161,7 @@ vips_convsep_init(VipsConvsep *convsep)
  * @in: input image
  * @out: (out): output image
  * @mask: convolution mask
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform a separable convolution of @in with @mask.
  * See [method@Image.conv] for a detailed description.
@@ -174,8 +174,8 @@ vips_convsep_init(VipsConvsep *convsep)
  *
  * ::: tip "Optional arguments"
  *     * @precision: [enum@Precision], calculation accuracy
- *     * @layers: %gint, number of layers for approximation
- *     * @cluster: %gint, cluster lines closer than this distance
+ *     * @layers: `gint`, number of layers for approximation
+ *     * @cluster: `gint`, cluster lines closer than this distance
  *
  * ::: seealso
  *     [method@Image.conv], [ctor@Image.gaussmat].

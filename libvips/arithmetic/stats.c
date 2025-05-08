@@ -454,7 +454,7 @@ vips_stats_init(VipsStats *stats)
  * vips_stats: (method)
  * @in: image to scan
  * @out: (out): image of statistics
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Find many image statistics in a single pass through the data. @out is a
  * one-band [enum@Vips.BandFormat.DOUBLE] image of at least 10 columns by n + 1
