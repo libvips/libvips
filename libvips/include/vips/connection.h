@@ -185,14 +185,14 @@ typedef struct _VipsSourceClass {
 	 */
 
 	/* Read from the source into the supplied buffer, args exactly as
-	 * read(2). Set errno on error.
+	 * [`read()`](man:read(2)). Set errno on error.
 	 *
 	 * We must return gint64, since ssize_t is often defined as unsigned
 	 * on Windows.
 	 */
 	gint64 (*read)(VipsSource *source, void *buffer, size_t length);
 
-	/* Seek to a certain position, args exactly as lseek(2). Set errno on
+	/* Seek to a certain position, args exactly as [`lseek()`](man:lseek(2)). Set errno on
 	 * error.
 	 *
 	 * Unseekable sources should always return -1. VipsSource will then
@@ -451,14 +451,14 @@ typedef struct _VipsTargetClass {
 	 */
 
 	/* Read from the target into the supplied buffer, args exactly as
-	 * read(2). Set errno on error.
+	 * [`read()`](man:read(2)). Set errno on error.
 	 *
 	 * We must return gint64, since ssize_t is often defined as unsigned
 	 * on Windows.
 	 */
 	gint64 (*read)(VipsTarget *target, void *buffer, size_t length);
 
-	/* Seek output. Args exactly as lseek(2).
+	/* Seek output. Args exactly as [`lseek()`](man:lseek(2)).
 	 *
 	 * We have to use int64 rather than off_t, since we must work on
 	 * Windows, where off_t can be 32-bits.

@@ -5,7 +5,7 @@ Title: Operator index > By section > Histogram
 Histograms and look-up tables are 1xn or nx1 images, where n is less than
 256 or less than 65536, corresponding to 8- and 16-bit unsigned int images.
 They are tagged with a [enum@Interpretation] of
-[enum@Vips.Interpretation.histogram] and usually displayed by user-interfaces
+[enum@Vips.Interpretation.HISTOGRAM] and usually displayed by user-interfaces
 such as nip2 as plots rather than images.
 
 These functions can be broadly grouped as things to find or build

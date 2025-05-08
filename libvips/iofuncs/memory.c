@@ -424,10 +424,10 @@ vips_tracked_aligned_alloc(size_t size, size_t align)
 /**
  * vips_tracked_open:
  * @pathname: name of file to open
- * @flags: flags for open()
+ * @flags: flags for `open()`
  * @mode: open mode
  *
- * Exactly as open(2), but the number of files currently open via
+ * Exactly as [`open()`](man:open(2)), but the number of files currently open via
  * [func@tracked_open] is available via [func@tracked_get_files]. This is used
  * by the vips operation cache to drop cache when the number of files
  * available is low.
@@ -464,9 +464,9 @@ vips_tracked_open(const char *pathname, int flags, int mode)
 
 /**
  * vips_tracked_close:
- * @fd: file to close()
+ * @fd: file to `close()`
  *
- * Exactly as close(2), but update the number of files currently open via
+ * Exactly as [`close()`](man:close(2)), but update the number of files currently open via
  * [func@tracked_get_files]. This is used
  * by the vips operation cache to drop cache when the number of files
  * available is low.

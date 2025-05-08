@@ -184,7 +184,7 @@ vips_conv_init(VipsConv *conv)
  * [enum@Vips.BandFormat.DOUBLE].
  *
  * If @precision is [enum@Vips.Precision.INTEGER], then elements of @mask
- * are converted to integers before convolution, using rint(),
+ * are converted to integers before convolution, using `rint()`,
  * and the output image always has the same [enum@BandFormat] as the input
  * image.
  *

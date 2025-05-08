@@ -58,7 +58,7 @@ swapping automatically.
 
 ## The image data
 
-If `coding` is set to [enum@Vips.Coding.none], pixels are stored in native C
+If `coding` is set to [enum@Vips.Coding.NONE], pixels are stored in native C
 format, that is, the native format of the machine that wrote the data. If you
 open a big-endian image on a little-endian machine, libvips will automatically
 byte-swap for you.  libvips has 10 band formats, see [enum@BandFormat].
@@ -66,12 +66,12 @@ Image data is stored as a simple list of scanlines, from the top of the
 image to the bottom. Pixels are band-interleaved, so RGBRGBRGBRGB, for
 example. There is no padding at the end of scanlines.
 
-If `coding` is set to [enum@Vips.Coding.labq], each pixel is four bytes, with
+If `coding` is set to [enum@Vips.Coding.LABQ], each pixel is four bytes, with
 10 bits for L\* and 11 bits for each of a\* and b\*. These 32 bits are packed
 into 4 bytes, with the most significant 8 bits of each value in the first
 3 bytes, and the left-over bits packed into the final byte as 2:3:3.
 
-If `coding` is set to [enum@Vips.Coding.rad], each pixel is RGB or XYZ float,
+If `coding` is set to [enum@Vips.Coding.RAD], each pixel is RGB or XYZ float,
 with 8 bits of mantissa and then 8 bits of exponent, shared between the
 three channels. This coding style is used by the Radiance family of programs
 (and the HDR format) commonly used for HDR imaging.
