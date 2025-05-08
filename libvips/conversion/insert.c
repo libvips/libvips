@@ -139,7 +139,7 @@ vips__insert_just_one(VipsRegion *out_region, VipsRegion *ir, int x, int y)
 	return 0;
 }
 
-/* Paste in parts of ir that fall within out_region --- ir is an input REGION
+/* Paste in parts of ir that fall within out_region -- ir is an input REGION
  * for an image positioned at pos within out_region.
  *
  * Also used by vips_arrayjoin.

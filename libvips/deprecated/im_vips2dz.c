@@ -63,7 +63,7 @@ im_vips2dz(IMAGE *in, const char *filename)
 	gboolean centre = FALSE;
 	VipsAngle angle = VIPS_ANGLE_D0;
 
-	/* We can't use im_filename_split() --- it assumes that we have a
+	/* We can't use im_filename_split() -- it assumes that we have a
 	 * filename with an extension before the ':', and filename here is
 	 * actually a dirname.
 	 *

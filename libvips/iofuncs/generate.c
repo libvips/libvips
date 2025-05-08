@@ -535,7 +535,7 @@ vips_start_many(VipsImage *out, void *a, void *b)
  * @out: free array when this image closes
  * @...: `NULL`-terminated list of input images
  *
- * Convenience function --- make a `NULL`-terminated array of input images.
+ * Convenience function -- make a `NULL`-terminated array of input images.
  * Use with [func@start_many].
  *
  * ::: seealso

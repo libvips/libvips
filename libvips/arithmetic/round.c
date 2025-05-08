@@ -1,4 +1,4 @@
-/* round.c --- various rounding operations
+/* round.c -- various rounding operations
  *
  * 20/6/02 JC
  *	- adapted from im_abs()

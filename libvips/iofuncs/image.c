@@ -2061,7 +2061,7 @@ vips_image_new_from_memory(const void *data, size_t size,
 
 	if (size < VIPS_IMAGE_SIZEOF_IMAGE(image)) {
 		vips_error("VipsImage",
-			_("memory area too small --- "
+			_("memory area too small -- "
 			  "should be %" G_GINT64_FORMAT " bytes, you passed %zd"),
 			VIPS_IMAGE_SIZEOF_IMAGE(image), size);
 		VIPS_UNREF(image);
@@ -2366,7 +2366,7 @@ vips_image_new_matrix_from_array(int width, int height,
 
 	if (size != width * height) {
 		vips_error("VipsImage",
-			_("bad array length --- should be %d, you passed %d"),
+			_("bad array length -- should be %d, you passed %d"),
 			width * height, size);
 		return NULL;
 	}
@@ -2890,9 +2890,9 @@ vips_image_write_to_memory(VipsImage *in, size_t *size_out)
 	size = VIPS_IMAGE_SIZEOF_IMAGE(in);
 	if (!(buf = g_try_malloc(size))) {
 		vips_error("vips_image_write_to_memory",
-			_("out of memory --- size == %dMB"),
+			_("out of memory -- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
-		g_warning(_("out of memory --- size == %dMB"),
+		g_warning(_("out of memory -- size == %dMB"),
 			(int) (size / (1024.0 * 1024.0)));
 		return NULL;
 	}

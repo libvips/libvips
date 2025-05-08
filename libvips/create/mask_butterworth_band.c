@@ -175,7 +175,7 @@ vips_mask_butterworth_band_init(
  * @frequency_cutoff_y, of radius @radius.
  *
  * The shape of the curve is controlled by
- * @order --- higher values give a sharper transition. See Gonzalez and Wintz,
+ * @order -- higher values give a sharper transition. See Gonzalez and Wintz,
  * Digital Image Processing, 1987.
  *
  * ::: tip "Optional arguments"

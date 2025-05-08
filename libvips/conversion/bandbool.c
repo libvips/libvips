@@ -1,4 +1,4 @@
-/* bandbool.c --- bool op across image bands
+/* bandbool.c -- bool op across image bands
  *
  * 7/12/12
  * 	- from boolean.c

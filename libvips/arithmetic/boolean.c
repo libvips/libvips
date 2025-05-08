@@ -1,4 +1,4 @@
-/* boolean.c --- various bit operations
+/* boolean.c -- various bit operations
  *
  * Modified:
  * 15/12/94 JC

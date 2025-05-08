@@ -499,7 +499,7 @@ vips_foreign_save_cgif_pick_quantiser(VipsForeignSaveCgif *cgif,
 	return 0;
 }
 
-/* We have a complete frame --- write!
+/* We have a complete frame -- write!
  */
 static int
 vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)

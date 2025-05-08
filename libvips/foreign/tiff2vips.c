@@ -2000,7 +2000,7 @@ rtiff_decompress_jpeg_fill_input_buffer(j_decompress_ptr cinfo)
 	return TRUE;
 }
 
-/* Skip data --- used to skip over a potentially large amount of
+/* Skip data -- used to skip over a potentially large amount of
  * uninteresting data (such as an APPn marker).
  *
  * Writers of suspendable-input applications must note that skip_input_data
@@ -2018,7 +2018,7 @@ rtiff_decompress_jpeg_skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 
 	/* Just a dumb implementation for now.  Could use fseek() except
 	 * it doesn't work on pipes.  Not clear that being smart is worth
-	 * any trouble anyway --- large skips are infrequent.
+	 * any trouble anyway -- large skips are infrequent.
 	 */
 	if (num_bytes > 0) {
 		while (num_bytes > (long) src->bytes_in_buffer) {

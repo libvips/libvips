@@ -1,4 +1,4 @@
-/* error.c --- error message handling
+/* error.c -- error message handling
  *
  * Copyright: N. Dessipris
  * Written on: 18/03/1991

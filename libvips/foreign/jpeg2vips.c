@@ -230,7 +230,7 @@ source_init_source(j_decompress_ptr cinfo)
 	 */
 }
 
-/* Fill the input buffer --- called whenever buffer is emptied.
+/* Fill the input buffer -- called whenever buffer is emptied.
  */
 static boolean
 source_fill_input_buffer(j_decompress_ptr cinfo)

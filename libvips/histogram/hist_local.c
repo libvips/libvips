@@ -257,7 +257,7 @@ vips_hist_local_generate(VipsRegion *out_region,
 				q[b] = 255 * sum /
 					(local->width * local->height);
 
-				/* Adapt histogram --- remove the pels from
+				/* Adapt histogram -- remove the pels from
 				 * the left hand column, add in pels for a
 				 * new right-hand column.
 				 */

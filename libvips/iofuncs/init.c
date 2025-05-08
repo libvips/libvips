@@ -243,7 +243,7 @@ vips_get_prgname(void)
  *   and the threading system, if necessary
  *
  * + guesses where the VIPS data files are and sets up
- *   internationalisation --- see [func@guess_prefix]
+ *   internationalisation -- see [func@guess_prefix]
  *
  * + creates the main vips types, including [class@Image] and friends
  *

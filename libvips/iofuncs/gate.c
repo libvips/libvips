@@ -1,4 +1,4 @@
-/* gate.c --- thread profiling
+/* gate.c -- thread profiling
  *
  * Written on: 18 nov 13
  */
@@ -205,7 +205,7 @@ thread_profile_destroy_notify(gpointer data)
 	 * been called.
 	 */
 	if (vips__thread_profile)
-		g_warning("discarding unsaved state for thread %p --- "
+		g_warning("discarding unsaved state for thread %p -- "
 				  "call vips_thread_shutdown() for this thread",
 			profile->thread);
 

@@ -1213,7 +1213,7 @@ vips_convi_build(VipsObject *object)
 	convolution->out->Xoffset = 0;
 	convolution->out->Yoffset = 0;
 
-	/* Prepare output. Consider a 7x7 mask and a 7x7 image --- the output
+	/* Prepare output. Consider a 7x7 mask and a 7x7 image -- the output
 	 * would be 1x1.
 	 */
 	convolution->out->Xsize -= M->Xsize - 1;
