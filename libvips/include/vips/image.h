@@ -443,6 +443,13 @@ VIPS_API
 gboolean vips_image_is_sequential(VipsImage *image);
 
 VIPS_API
+void vips_image_preeval(VipsImage *image);
+VIPS_API
+void vips_image_eval(VipsImage *image, guint64 processed);
+VIPS_API
+void vips_image_posteval(VipsImage *image);
+
+VIPS_API
 void vips_image_set_progress(VipsImage *image, gboolean progress);
 VIPS_API
 gboolean vips_image_iskilled(VipsImage *image);

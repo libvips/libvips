@@ -153,13 +153,22 @@ vips_block_cache_drop_all(VipsBlockCache *cache)
 }
 
 static void
+vips_block_cache_finalize(GObject *gobject)
+{
+	VipsBlockCache *cache = (VipsBlockCache *) gobject;
+
+	g_mutex_clear(&cache->lock);
+	g_cond_clear(&cache->new_tile);
+
+	G_OBJECT_CLASS(vips_block_cache_parent_class)->finalize(gobject);
+}
+
+static void
 vips_block_cache_dispose(GObject *gobject)
 {
 	VipsBlockCache *cache = (VipsBlockCache *) gobject;
 
 	vips_block_cache_drop_all(cache);
-	g_mutex_clear(&cache->lock);
-	g_cond_clear(&cache->new_tile);
 
 	if (cache->tiles)
 		g_assert(g_hash_table_size(cache->tiles) == 0);
@@ -384,6 +393,7 @@ vips_block_cache_class_init(VipsBlockCacheClass *class)
 
 	VIPS_DEBUG_MSG("vips_block_cache_class_init\n");
 
+	gobject_class->finalize = vips_block_cache_finalize;
 	gobject_class->dispose = vips_block_cache_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;

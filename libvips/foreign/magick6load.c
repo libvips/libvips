@@ -193,12 +193,12 @@ vips_foreign_load_magick_get_flags(VipsForeignLoad *load)
 }
 
 static void
-vips_foreign_load_magick_dispose(GObject *gobject)
+vips_foreign_load_magick_finalize(GObject *gobject)
 {
 	VipsForeignLoadMagick *magick = (VipsForeignLoadMagick *) gobject;
 
 #ifdef DEBUG
-	printf("vips_foreign_load_magick_dispose: %p\n", gobject);
+	printf("vips_foreign_load_magick_finalize: %p\n", gobject);
 #endif /*DEBUG*/
 
 	VIPS_FREEF(DestroyImageList, magick->image);
@@ -207,7 +207,7 @@ vips_foreign_load_magick_dispose(GObject *gobject)
 	VIPS_FREEF(magick_destroy_exception, magick->exception);
 	g_mutex_clear(&magick->lock);
 
-	G_OBJECT_CLASS(vips_foreign_load_magick_parent_class)->dispose(gobject);
+	G_OBJECT_CLASS(vips_foreign_load_magick_parent_class)->finalize(gobject);
 }
 
 static int
@@ -223,7 +223,6 @@ vips_foreign_load_magick_build(VipsObject *object)
 
 	magick->image_info = CloneImageInfo(NULL);
 	magick->exception = magick_acquire_exception();
-	g_mutex_init(&magick->lock);
 
 	if (!magick->image_info)
 		return -1;
@@ -248,12 +247,10 @@ vips_foreign_load_magick_build(VipsObject *object)
 	 * These window settings are attached as vips metadata, so our caller
 	 * can interpret them if it wants.
 	 */
-	magick_set_image_option(magick->image_info,
-		"dcm:display-range", "reset");
+	magick_set_image_option(magick->image_info, "dcm:display-range", "reset");
 
 	if (magick->page > 0)
-		magick_set_number_scenes(magick->image_info,
-			magick->page, magick->n);
+		magick_set_number_scenes(magick->image_info, magick->page, magick->n);
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_magick_parent_class)->build(object))
 		return -1;
@@ -270,7 +267,7 @@ vips_foreign_load_magick_class_init(VipsForeignLoadMagickClass *class)
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
-	gobject_class->dispose = vips_foreign_load_magick_dispose;
+	gobject_class->finalize = vips_foreign_load_magick_finalize;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
@@ -329,6 +326,7 @@ static void
 vips_foreign_load_magick_init(VipsForeignLoadMagick *magick)
 {
 	magick->n = 1;
+	g_mutex_init(&magick->lock);
 }
 
 static int
@@ -847,15 +845,13 @@ vips_foreign_load_magick_fill_region(VipsRegion *out_region,
 
 		vips__worker_lock(&magick->lock);
 
-		pixels = get_pixels(magick->frames[frame],
-			r->left, line, r->width, 1);
+		pixels = get_pixels(magick->frames[frame], r->left, line, r->width, 1);
 
 		g_mutex_unlock(&magick->lock);
 
 		if (!pixels) {
 			vips_foreign_load_invalidate(im);
-			vips_error(class->nickname,
-				"%s", _("unable to read pixels"));
+			vips_error(class->nickname, "%s", _("unable to read pixels"));
 			return -1;
 		}
 
@@ -872,24 +868,21 @@ vips_foreign_load_magick_load(VipsForeignLoadMagick *magick)
 	VipsForeignLoad *load = (VipsForeignLoad *) magick;
 
 	Image *p;
-	int i;
 
 #ifdef DEBUG
 	printf("vips_foreign_load_magick_load: %p\n", magick);
 #endif /*DEBUG*/
 
-	if (vips_foreign_load_magick_parse(magick,
-			magick->image, load->out))
+	if (vips_foreign_load_magick_parse(magick, magick->image, load->out))
 		return -1;
 
 	/* Record frame pointers.
 	 */
 	g_assert(!magick->frames);
-	if (!(magick->frames =
-				VIPS_ARRAY(NULL, magick->n_frames, Image *)))
+	if (!(magick->frames = VIPS_ARRAY(NULL, magick->n_frames, Image *)))
 		return -1;
 	p = magick->image;
-	for (i = 0; i < magick->n_frames; i++) {
+	for (int i = 0; i < magick->n_frames; i++) {
 		magick->frames[i] = p;
 		p = GetNextImageInList(p);
 	}

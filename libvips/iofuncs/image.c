@@ -1427,6 +1427,11 @@ vips_image_minimise_all_cb(VipsImage *image, void *a, void *b)
 void
 vips_image_minimise_all(VipsImage *image)
 {
+	/* Just like the eval callbacks, don't minimise for sub-evaluations.
+	 */
+	if (vips_image_get_typeof(image, "hide-progress"))
+		return;
+
 	/* Minimisation will modify things like sources, so we can't run it
 	 * from many threads.
 	 */
@@ -1548,8 +1553,7 @@ vips_image_eval(VipsImage *image, guint64 processed)
 		 * the image we are actually generating.
 		 */
 		if (image->progress_signal->time != image->time)
-			vips_progress_update(image->progress_signal->time,
-				processed);
+			vips_progress_update(image->progress_signal->time, processed);
 
 		if (!vips_image_get_typeof(image, "hide-progress"))
 			g_signal_emit(image->progress_signal,

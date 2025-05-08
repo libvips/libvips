@@ -158,6 +158,7 @@ vips_openslideconnection_new(const char *filename)
 
 	connection = g_new0(VipsOpenslideConnection, 1);
 	connection->filename = g_strdup(filename);
+	g_mutex_init(&connection->osr_lock);
 
 	g_assert(!g_hash_table_lookup(vips_openslideconnection_cache, filename));
 

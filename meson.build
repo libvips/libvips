@@ -514,8 +514,9 @@ if libheif_dep.found()
     cfg_var.set('HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS', cpp.has_function('heif_get_disabled_security_limits', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
 endif
 
-libjxl_dep = dependency('libjxl', version: '>=0.6', required: get_option('jpeg-xl'))
-libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.6', required: get_option('jpeg-xl'))
+# need v0.11+ for chunked write
+libjxl_dep = dependency('libjxl', version: '>=0.11', required: get_option('jpeg-xl'))
+libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.11', required: get_option('jpeg-xl'))
 libjxl_found = libjxl_dep.found() and libjxl_threads_dep.found()
 libjxl_module = false
 if libjxl_found
@@ -529,8 +530,6 @@ if libjxl_found
         external_deps += libjxl_threads_dep
     endif
     cfg_var.set('HAVE_LIBJXL', true)
-    cfg_var.set('HAVE_LIBJXL_0_7', libjxl_dep.version().version_compare('>=0.7'))
-    cfg_var.set('HAVE_LIBJXL_0_9', libjxl_dep.version().version_compare('>=0.9'))
 endif
 
 # only if pdfium not found

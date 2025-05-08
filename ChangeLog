@@ -27,6 +27,10 @@ master
   consistency
 - restore vips_remosaic(), it was not being linked
 - deprecate VipsSaveable, add VipsForeignSaveable
+- move vips_image_preeval(), vips_image_eval(), vips_image_posteval() into the
+  public API
+- jxlsave writes in chunks, for lower memory use on large images (but we now
+  need libjxl 0.11 at minimum)
 
 8.16.1
 
