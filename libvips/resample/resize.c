@@ -370,7 +370,7 @@ vips_resize_class_init(VipsResizeClass *class)
 		G_STRUCT_OFFSET(VipsResize, idy),
 		-10000000.0, 10000000.0, 0.0);
 
-	/* It's a kernel now we use vips_reduce() not [method@Image.affine].
+	/* It's a kernel now we use vips_reduce() not vips_affine().
 	 */
 	VIPS_ARG_INTERPOLATE(class, "interpolate", 2,
 		_("Interpolate"),
@@ -400,7 +400,7 @@ vips_resize_init(VipsResize *resize)
  * @in: input image
  * @out: (out): output image
  * @scale: scale factor
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Resize an image.
  *
@@ -435,9 +435,9 @@ vips_resize_init(VipsResize *resize)
  * channel, you should use [method@Image.premultiply] on it first.
  *
  * ::: tip "optional arguments"
- *     * @vscale: %gdouble, vertical scale factor
+ *     * @vscale: `gdouble`, vertical scale factor
  *     * @kernel: [enum@Kernel], to reduce with
- *     * @gap: %gdouble, reducing gap to use (default: 2.0)
+ *     * @gap: `gdouble`, reducing gap to use (default: 2.0)
  *
  * ::: seealso
  *     [method@Image.premultiply], [method@Image.shrink], [method@Image.reduce].

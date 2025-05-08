@@ -434,7 +434,7 @@ vips_foreign_save_nifti_class_init(VipsForeignSaveNiftiClass *class)
 
 	foreign_class->suffs = vips_foreign_nifti_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->format_table = vips_nifti_bandfmt;
 
 	VIPS_ARG_STRING(class, "filename", 1,
@@ -456,7 +456,7 @@ vips_foreign_save_nifti_init(VipsForeignSaveNifti *nifti)
  * vips_niftisave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write a VIPS image to a file in NIFTI format.
  *

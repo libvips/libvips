@@ -130,13 +130,13 @@ vips_hist_entropy_init(VipsHistEntropy *entropy)
  * vips_hist_entropy: (method)
  * @in: input histogram
  * @out: (out): image entropy
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Estimate image entropy from a histogram. Entropy is calculated as:
  *
- * |[
+ * ```
  * -sum(p * log2(p))
- * ]|
+ * ```
  *
  * where p is histogram-value / sum-of-histogram-values.
  *

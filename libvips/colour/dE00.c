@@ -251,7 +251,7 @@ vips_dE00_init(VipsdE00 *dE00)
  * @left: first input image
  * @right: second input image
  * @out: output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Calculate dE 00.
  *

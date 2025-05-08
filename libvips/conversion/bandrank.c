@@ -291,7 +291,7 @@ vips_bandrankv(VipsImage **in, VipsImage **out, int n, va_list ap)
  * @in: (array length=n): array of input images
  * @out: (out): output image
  * @n: number of input images
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Sorts the images @in band-element-wise, then outputs an
  * image in which each band element is selected from the sorted list by the
@@ -311,7 +311,7 @@ vips_bandrankv(VipsImage **in, VipsImage **out, int n, va_list ap)
  * Smaller input images are expanded by adding black pixels.
  *
  * ::: tip "Optional arguments"
- *     * @index: %gint, pick this index from list of sorted values
+ *     * @index: `gint`, pick this index from list of sorted values
  *
  * ::: seealso
  *     [method@Image.rank].

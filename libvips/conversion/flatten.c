@@ -6,7 +6,7 @@
  * 4/1/14
  * 	- better rounding
  * 9/5/15
- * 	- add max_alpha to match [method@Image.premultiply] etc.
+ * 	- add max_alpha to match vips_premultiply() etc.
  * 25/5/16
  * 	- max_alpha defaults to 65535 for RGB16/GREY16
  * 12/9/21
@@ -444,7 +444,7 @@ vips_flatten_init(VipsFlatten *flatten)
  * vips_flatten: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Take the last band of @in as an alpha and use it to blend the
  * remaining channels with @background.
@@ -461,7 +461,7 @@ vips_flatten_init(VipsFlatten *flatten)
  *
  * ::: tip "Optional arguments"
  *     * @background: [struct@ArrayDouble] colour for new pixels
- *     * @max_alpha: %gdouble, maximum value for alpha
+ *     * @max_alpha: `gdouble`, maximum value for alpha
  *
  * ::: seealso
  *     [method@Image.premultiply], [ctor@Image.pngload].

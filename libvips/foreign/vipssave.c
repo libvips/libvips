@@ -143,7 +143,7 @@ vips_foreign_save_vips_class_init(VipsForeignSaveVipsClass *class)
 
 	foreign_class->suffs = vips__suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	for (i = 0; i < VIPS_CODING_LAST; i++)
 		save_class->coding[i] = TRUE;
 }
@@ -266,7 +266,7 @@ vips_foreign_save_vips_target_init(VipsForeignSaveVipsTarget *target)
  * vips_vipssave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write @in to @filename in VIPS format.
  *
@@ -292,7 +292,7 @@ vips_vipssave(VipsImage *in, const char *filename, ...)
  * vips_vipssave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.vipssave], but save to a target.
  *

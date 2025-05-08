@@ -283,21 +283,21 @@
  * VIPS_IMAGE_SIZEOF_ELEMENT:
  * @I: a [class@Image]
  *
- * Returns: sizeof() a band element.
+ * Returns: `sizeof()` a band element.
  */
 
 /**
  * VIPS_IMAGE_SIZEOF_PEL:
  * @I: a [class@Image]
  *
- * Returns: sizeof() a pixel.
+ * Returns: `sizeof()` a pixel.
  */
 
 /**
  * VIPS_IMAGE_SIZEOF_LINE:
  * @I: a [class@Image]
  *
- * Returns: sizeof() a scanline of pixels.
+ * Returns: `sizeof()` a scanline of pixels.
  */
 
 /**
@@ -383,7 +383,7 @@ G_DEFINE_TYPE(VipsImage, vips_image, VIPS_TYPE_OBJECT);
 
 /**
  * vips_progress_set:
- * @progress: %TRUE to enable progress messages
+ * @progress: `TRUE` to enable progress messages
  *
  * If set, vips will print messages about the progress of computation to
  * stdout. This can also be enabled with the --vips-progress option, or by
@@ -833,7 +833,7 @@ vips_image_build(VipsObject *object)
 	switch (mode[0]) {
 	case 'v':
 		/* Used by 'r' for native open of vips, see below. Also by
-		 * [method@Image.rewind_output].
+		 * vips_image_rewind_output().
 		 */
 		if (vips_image_open_input(image))
 			return -1;
@@ -1446,7 +1446,7 @@ vips_image_minimise_all(VipsImage *image)
  * mode. Some operations change behaviour slightly in sequential mode to
  * optimize memory behaviour.
  *
- * Returns: %TRUE if @image is in sequential mode.
+ * Returns: `TRUE` if @image is in sequential mode.
  */
 gboolean
 vips_image_is_sequential(VipsImage *image)
@@ -1618,14 +1618,14 @@ vips_image_set_progress(VipsImage *image, gboolean progress)
  * @image: image to test
  *
  * If @image has been killed (see [method@Image.set_kill]), set an error message,
- * clear the [class@Image].kill flag and return %TRUE. Otherwise return %FALSE.
+ * clear the [class@Image].kill flag and return `TRUE`. Otherwise return `FALSE`.
  *
  * Handy for loops which need to run sets of threads which can fail.
  *
  * ::: seealso
  *     [method@Image.set_kill].
  *
- * Returns: %TRUE if @image has been killed.
+ * Returns: `TRUE` if @image has been killed.
  */
 gboolean
 vips_image_iskilled(VipsImage *image)
@@ -1704,7 +1704,7 @@ vips_image_temp_name(char *name, int size)
  * [method@Image.write_line]. Write a whole image to another image with
  * [method@Image.write].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new(void)
@@ -1761,7 +1761,7 @@ vips_image_new_mode(const char *filename, const char *mode)
  * ::: seealso
  *     [ctor@Image.new].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_memory(void)
@@ -1781,7 +1781,7 @@ vips_image_new_memory(void)
  * ::: seealso
  *     [ctor@Image.new_memory].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_memory(void)
@@ -1842,7 +1842,7 @@ vips_filename_get_options(const char *vips_filename)
 /**
  * vips_image_new_from_file: (constructor)
  * @name: file to open
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * ::: note "Optional arguments"
  *     * @access: hint [enum@Access] mode to loader
@@ -1873,7 +1873,7 @@ vips_filename_get_options(const char *vips_filename)
  * and then processed from there. Large images are decompressed to temporary
  * random-access files on disc and then processed from there.
  *
- * Set @memory to %TRUE to force loading via memory. The default is to load
+ * Set @memory to `TRUE` to force loading via memory. The default is to load
  * large random access images via temporary disc files. See
  * [ctor@Image.new_temp_file] for an
  * explanation of how VIPS selects a location for the temporary file.
@@ -1910,7 +1910,7 @@ vips_filename_get_options(const char *vips_filename)
  *     [func@Foreign.find_load], [func@Foreign.is_a],
  *     [method@Image.write_to_file].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_from_file(const char *name, ...)
@@ -1951,7 +1951,7 @@ vips_image_new_from_file(const char *name, ...)
  * ::: seealso
  *     [method@Image.draw_circle].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_from_file_RW(const char *filename)
@@ -1976,7 +1976,7 @@ vips_image_new_from_file_RW(const char *filename)
  * ::: seealso
  *     [method@Image.copy], [ctor@Image.rawload], [ctor@Image.new_from_file].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_from_file_raw(const char *filename,
@@ -2032,7 +2032,7 @@ vips_image_new_from_file_raw(const char *filename,
  *     [ctor@Image.new], [method@Image.write_to_memory],
  *     [ctor@Image.new_from_memory_copy].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_from_memory(const void *data, size_t size,
@@ -2093,7 +2093,7 @@ vips_image_new_from_memory_copy_cb(VipsImage *image, void *data_copy)
  * ::: seealso
  *     [ctor@Image.new_from_memory].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_from_memory_copy(const void *data, size_t size,
@@ -2124,7 +2124,7 @@ vips_image_new_from_memory_copy(const void *data, size_t size,
  * @buf: (array length=len) (element-type guint8) (transfer none): image data
  * @len: (type gsize): length of memory buffer
  * @option_string: set of extra options as a string
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Loads an image from the formatted area of memory @buf, @len using the
  * loader recommended by [func@Foreign.find_load_buffer].
@@ -2142,7 +2142,7 @@ vips_image_new_from_memory_copy(const void *data, size_t size,
  * ::: seealso
  *     [method@Image.write_to_buffer].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_from_buffer(const void *buf, size_t len,
@@ -2180,7 +2180,7 @@ vips_image_new_from_buffer(const void *buf, size_t len,
  * vips_image_new_from_source: (constructor)
  * @source: (transfer none): source to fetch image from
  * @option_string: set of extra options as a string
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Loads an image from the formatted source @input,
  * loader recommended by [func@Foreign.find_load_source].
@@ -2192,7 +2192,7 @@ vips_image_new_from_buffer(const void *buf, size_t len,
  * ::: seealso
  *     [method@Image.write_to_target].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_from_source(VipsSource *source,
@@ -2278,7 +2278,7 @@ vips_image_new_from_source(VipsSource *source,
  * ::: seealso
  *     [ctor@Image.new_matrixv]
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_matrix(int width, int height)
@@ -2323,7 +2323,7 @@ vips_image_new_matrix(int width, int height)
  * ::: seealso
  *     [ctor@Image.new_matrix]
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_matrixv(int width, int height, ...)
@@ -2354,7 +2354,7 @@ vips_image_new_matrixv(int width, int height, ...)
  *
  * A binding-friendly version of [ctor@Image.new_matrixv].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_matrix_from_array(int width, int height,
@@ -2393,7 +2393,7 @@ vips_image_new_matrix_from_array(int width, int height,
  * A renamed [ctor@Image.new_matrix_from_array]. Some gobject bindings do not
  * like more than one _new method.
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_matrix_from_array(int width, int height,
@@ -2416,7 +2416,7 @@ vips_image_matrix_from_array(int width, int height,
  * ::: seealso
  *     [ctor@Image.new_from_image1]
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_from_image(VipsImage *image, const double *c, int n)
@@ -2471,7 +2471,7 @@ vips_image_new_from_image(VipsImage *image, const double *c, int n)
  * ::: seealso
  *     [ctor@Image.new_from_image]
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_from_image1(VipsImage *image, double c)
@@ -2564,7 +2564,7 @@ vips_get_disc_threshold(void)
  * ::: seealso
  *     [ctor@Image.new].
  *
- * Returns: the new [class@Image], or %NULL on error.
+ * Returns: the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_new_temp_file(const char *format)
@@ -2670,7 +2670,7 @@ vips_image_write(VipsImage *image, VipsImage *out)
  * vips_image_write_to_file:
  * @image: image to write
  * @name: write to this file
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Writes @in to @name using the saver recommended by
  * [func@Foreign.find_save].
@@ -2735,7 +2735,7 @@ vips_image_write_to_file(VipsImage *image, const char *name, ...)
  * @suffix: format to write
  * @buf: (array length=size) (element-type guint8) (transfer full): return buffer start here
  * @size: (type gsize): return buffer length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Writes @in to a memory buffer in a format specified by @suffix.
  *
@@ -2825,7 +2825,7 @@ vips_image_write_to_buffer(VipsImage *in,
  * @in: image to write
  * @suffix: format to write
  * @target: target to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Writes @in to @output in format @suffix.
  *
@@ -2931,7 +2931,7 @@ vips_image_write_to_memory(VipsImage *in, size_t *size_out)
 int
 vips_image_decode(VipsImage *in, VipsImage **out)
 {
-	/* Keep in sync with [func@_vector_to_ink].
+	/* Keep in sync with vips__vector_to_ink().
 	 */
 	if (in->Coding == VIPS_CODING_LABQ) {
 		if (vips_LabQ2Lab(in, out, NULL))
@@ -3026,7 +3026,7 @@ vips_image_encode(VipsImage *in, VipsImage **out, VipsCoding coding)
  * vips_image_isMSBfirst:
  * @image: image to test
  *
- * Return %TRUE if @image is in most-significant-
+ * Return `TRUE` if @image is in most-significant-
  * byte first form. This is the byte order used on the SPARC
  * architecture and others.
  */
@@ -3043,7 +3043,7 @@ vips_image_isMSBfirst(VipsImage *image)
  * vips_image_isfile:
  * @image: image to test
  *
- * Return %TRUE if @image represents a file on disc in some way.
+ * Return `TRUE` if @image represents a file on disc in some way.
  */
 gboolean
 vips_image_isfile(VipsImage *image)
@@ -3071,7 +3071,7 @@ vips_image_isfile(VipsImage *image)
  * vips_image_ispartial:
  * @image: image to test
  *
- * Return %TRUE if @im represents a partial image (a delayed calculation).
+ * Return `TRUE` if @im represents a partial image (a delayed calculation).
  */
 gboolean
 vips_image_ispartial(VipsImage *image)
@@ -3090,7 +3090,7 @@ vips_image_ispartial(VipsImage *image)
  * example, a 4-band [enum@Vips.Interpretation.sRGB] would, but a six-band
  * [enum@Vips.Interpretation.MULTIBAND] would not.
  *
- * Return %TRUE if @image has an alpha channel.
+ * Return `TRUE` if @image has an alpha channel.
  */
 gboolean
 vips_image_hasalpha(VipsImage *image)
@@ -3351,7 +3351,7 @@ vips_image_rewind_output(VipsImage *image)
  * ::: seealso
  *     [method@Image.wio_input].
  *
- * Returns: (transfer full): the new [class@Image], or %NULL on error.
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
 VipsImage *
 vips_image_copy_memory(VipsImage *image)
@@ -3588,7 +3588,7 @@ vips__image_wio_output(VipsImage *image)
 int
 vips_image_inplace(VipsImage *image)
 {
-	/* Do an [method@Image.wio_input]. This will rewind, generate, etc.
+	/* Do an vips_image_wio_input(). This will rewind, generate, etc.
 	 */
 	if (vips_image_wio_input(image))
 		return -1;
@@ -3754,7 +3754,7 @@ vips_image_pio_output(VipsImage *image)
  * vips_band_format_isint:
  * @format: format to test
  *
- * Return %TRUE if @format is one of the integer types.
+ * Return `TRUE` if @format is one of the integer types.
  */
 gboolean
 vips_band_format_isint(VipsBandFormat format)
@@ -3784,7 +3784,7 @@ vips_band_format_isint(VipsBandFormat format)
  * vips_band_format_isuint:
  * @format: format to test
  *
- * Return %TRUE if @format is one of the unsigned integer types.
+ * Return `TRUE` if @format is one of the unsigned integer types.
  */
 gboolean
 vips_band_format_isuint(VipsBandFormat format)
@@ -3814,7 +3814,7 @@ vips_band_format_isuint(VipsBandFormat format)
  * vips_band_format_is8bit:
  * @format: format to test
  *
- * Return %TRUE if @format is uchar or schar.
+ * Return `TRUE` if @format is uchar or schar.
  */
 gboolean
 vips_band_format_is8bit(VipsBandFormat format)
@@ -3844,7 +3844,7 @@ vips_band_format_is8bit(VipsBandFormat format)
  * vips_band_format_isfloat:
  * @format: format to test
  *
- * Return %TRUE if @format is one of the float types.
+ * Return `TRUE` if @format is one of the float types.
  */
 gboolean
 vips_band_format_isfloat(VipsBandFormat format)
@@ -3874,7 +3874,7 @@ vips_band_format_isfloat(VipsBandFormat format)
  * vips_band_format_iscomplex:
  * @format: format to test
  *
- * Return %TRUE if @fmt is one of the complex types.
+ * Return `TRUE` if @fmt is one of the complex types.
  */
 gboolean
 vips_band_format_iscomplex(VipsBandFormat format)

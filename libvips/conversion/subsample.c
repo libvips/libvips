@@ -14,7 +14,7 @@
  * 2/11/13
  * 	- add @point to force point sample mode
  * 22/1/16
- * 	- remove SEQUENTIAL hint, it confuses [method@Image.sequential]
+ * 	- remove SEQUENTIAL hint, it confuses vips_sequential()
  */
 
 /*
@@ -260,7 +260,7 @@ vips_subsample_class_init(VipsSubsampleClass *class)
 	vobject_class->build = vips_subsample_build;
 
 	/* We don't work well as sequential: we can easily skip the first few
-	 * scanlines, and that confuses [method@Image.sequential].
+	 * scanlines, and that confuses vips_sequential().
 	 */
 
 	VIPS_ARG_IMAGE(class, "input", 1,
@@ -302,7 +302,7 @@ vips_subsample_init(VipsSubsample *subsample)
  * @out: (out): output image
  * @xfac: horizontal shrink factor
  * @yfac: vertical shrink factor
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Subsample an image by an integer fraction. This is fast, nearest-neighbour
  * shrink.
@@ -315,7 +315,7 @@ vips_subsample_init(VipsSubsample *subsample)
  * if the previous operations in the pipeline are very slow.
  *
  * ::: tip "Optional arguments"
- *     * @point: %gboolean, turn on point sample mode
+ *     * @point: `gboolean`, turn on point sample mode
  *
  * ::: seealso
  *     [method@Image.affine], [method@Image.shrink], [method@Image.zoom].

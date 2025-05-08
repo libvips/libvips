@@ -140,7 +140,7 @@ vips_hist_equal_init(VipsHistEqual *equal)
  * vips_hist_equal: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Histogram-equalise @in.
  *
@@ -149,7 +149,7 @@ vips_hist_equal_init(VipsHistEqual *equal)
  * input format.
  *
  * ::: tip "Optional arguments"
- *     * @band: %gint, band to equalise
+ *     * @band: `gint`, band to equalise
  *
  * Returns: 0 on success, -1 on error
  */

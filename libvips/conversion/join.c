@@ -293,13 +293,13 @@ vips_join_init(VipsJoin *join)
  * @in2: second input image
  * @out: (out): output image
  * @direction: join horizontally or vertically
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Join @in1 and @in2 together, left-right or up-down depending on the value
  * of @direction.
  *
  * If one is taller or wider than the
- * other, @out will be has high as the smaller. If @expand is %TRUE, then
+ * other, @out will be has high as the smaller. If @expand is `TRUE`, then
  * the output will be expanded to contain all of the input pixels.
  *
  * Use @align to set the edge that the images align on. By default, they align
@@ -323,9 +323,9 @@ vips_join_init(VipsJoin *join)
  * grid, [func@Image.arrayjoin] is a better choice.
  *
  * ::: tip "Optional arguments"
- *     * @expand: %gboolean, %TRUE to expand the output image to hold all of
+ *     * @expand: `gboolean`, `TRUE` to expand the output image to hold all of
  *       the input pixels
- *     * @shim: %gint, space between images, in pixels
+ *     * @shim: `gint`, space between images, in pixels
  *     * @background: [struct@ArrayDouble], background ink colour
  *     * @align: [enumAlign], low, centre or high alignment
  *

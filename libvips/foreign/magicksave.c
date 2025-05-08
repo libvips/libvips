@@ -5,7 +5,7 @@
  * 	- fix GraphicsMagick support
  * 17/2/19
  * 	- support ICC, XMP, EXIF, IPTC metadata
- * 	- write with a single call to [method@Image.sink_disc]
+ * 	- write with a single call to vips_sink_disc()
  * 29/6/19
  * 	- support "strip" option
  * 6/7/19 [deftomat]
@@ -58,7 +58,7 @@
  * vips_magicksave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write an image using libMagick.
  *
@@ -80,12 +80,12 @@
  * and dithered if the value is within the valid range (1 to 8).
  *
  * ::: tip "Optional arguments"
- *     * @quality: %gint, quality factor
- *     * @format: %gchararray, format to save as
- *     * @optimize_gif_frames: %gboolean, apply GIF frames optimization
- *     * @optimize_gif_transparency: %gboolean, apply GIF transparency
+ *     * @quality: `gint`, quality factor
+ *     * @format: `gchararray`, format to save as
+ *     * @optimize_gif_frames: `gboolean`, apply GIF frames optimization
+ *     * @optimize_gif_transparency: `gboolean`, apply GIF transparency
  *       optimization
- *     * @bitdepth: %gint, number of bits per pixel
+ *     * @bitdepth: `gint`, number of bits per pixel
  *
  * ::: seealso
  *     [method@Image.magicksave_buffer], [ctor@Image.magickload].
@@ -110,7 +110,7 @@ vips_magicksave(VipsImage *in, const char *filename, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.magicksave], but save to a memory buffer.
  *
@@ -119,12 +119,12 @@ vips_magicksave(VipsImage *in, const char *filename, ...)
  * when you are done with it.
  *
  * ::: tip "Optional arguments"
- *     * @quality: %gint, quality factor
- *     * @format: %gchararray, format to save as
- *     * @optimize_gif_frames: %gboolean, apply GIF frames optimization
- *     * @optimize_gif_transparency: %gboolean, apply GIF transparency
+ *     * @quality: `gint`, quality factor
+ *     * @format: `gchararray`, format to save as
+ *     * @optimize_gif_frames: `gboolean`, apply GIF frames optimization
+ *     * @optimize_gif_transparency: `gboolean`, apply GIF transparency
  *       optimization
- *     * @bitdepth: %gint, number of bits per pixel
+ *     * @bitdepth: `gint`, number of bits per pixel
  *
  * ::: seealso
  *     [method@Image.magicksave], [method@Image.write_to_file].

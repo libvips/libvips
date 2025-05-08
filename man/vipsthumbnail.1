@@ -5,7 +5,7 @@ vipsthumbnail \- make thumbnails of image files
 .B vipsthumbnail [flags] imagefile1 imagefile2 ...
 .SH DESCRIPTION
 .B vipsthumbnail(1)
-processes each 
+processes each
 .B imagefile
 in turn, shrinking each image to fit within a 128 by 128 pixel square.
 The shrunk image is written to a new file named
@@ -17,9 +17,9 @@ For example:
 
  $ vipsthumbnail fred.png jim.tif
 
-will read image files 
+will read image files
 .B fred.png
-and 
+and
 .B jim.tif
 and write thumbnails to the files
 .B tn_fred.jpg
@@ -30,36 +30,36 @@ and
 
 will read image file
 .B fred.jpg
-and write a 64 x 64 pixel thumbnail to the file 
+and write a 64 x 64 pixel thumbnail to the file
 .B thumbnails/fred.png.
 
 .SH OPTIONS
 .TP
 .B -s N, --size=N
-Set the output thumbnail size to 
-.B N 
-x 
-.B N 
-pixels. 
+Set the output thumbnail size to
+.B N
+x
+.B N
+pixels.
 
 You can use "MxN" to specify a rectangular bounding box.
 The image is shrunk so that it just fits within this area, images
-which are smaller than this are expanded. 
+which are smaller than this are expanded.
 
 Use "xN" or "Mx" to just resize on
-one axis. 
+one axis.
 
 Append "<" to only resize if the input image is smaller than the
 target, append ">" to only resize if the input image is larger than the target.
 
 .TP
-.B -o FORMAT, --output=FORMAT     
+.B -o FORMAT, --output=FORMAT
 Set the output format string. The input filename has any file type suffix
-removed, then that value is substituted into 
+removed, then that value is substituted into
 .B FORMAT
 replacing
-.B %s. 
-If 
+.B %s.
+If
 .B FORMAT
 is a relative path, the name of the input directory is prepended. In other
 words, any path in
@@ -75,7 +75,7 @@ prepended. You can add format options too, for example
 will write JPEG images with Q set to 20.
 
 .TP
-.B -e PROFILE, --eprofile=PROFILE        
+.B -e PROFILE, --eprofile=PROFILE
 Export thumbnails with this ICC profile. Images are only colour-transformed if
 there is both an output and an input profile available. The input profile can
 either be embedded in the input image or supplied with the
@@ -83,8 +83,8 @@ either be embedded in the input image or supplied with the
 option.
 
 .TP
-.B -i PROFILE, --iprofile=PROFILE        
-Import images with this ICC profile, if no profile is embedded in the image. 
+.B -i PROFILE, --iprofile=PROFILE
+Import images with this ICC profile, if no profile is embedded in the image.
 Images are only colour-transformed if
 there is both an output and an input profile available. The output profile
 should be supplied with the
@@ -94,20 +94,20 @@ option.
 .TP
 .B -c, --crop
 Crop the output image down. The image is shrunk so as to completely fill the
-bounding box in both axes, then any excess is cropped off. 
+bounding box in both axes, then any excess is cropped off.
 
 .TP
 .B -d, --delete
 Delete the output profile from the image. This can save a small amount of
-space. 
+space.
 
 .TP
 .B -t, --rotate
-Auto-rotate images using EXIF orientation tags. 
+Auto-rotate images using EXIF orientation tags.
 
 .TP
 .B -a, --linear
-Shrink images in linear light colour space. This can be much slower. 
+Shrink images in linear light colour space. This can be much slower.
 
 .SH RETURN VALUE
 returns 0 on success and non-zero on error. Error can mean one or more

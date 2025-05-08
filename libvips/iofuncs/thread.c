@@ -122,7 +122,7 @@ vips_thread_run(gpointer data)
  *
  * Wrapper for [ctor@GLib.Thread.try_new].
  *
- * Returns: (transfer full): the new [struct@GLib.Thread], or %NULL if an
+ * Returns: (transfer full): the new [struct@GLib.Thread], or `NULL` if an
  * error occurred
  */
 GThread *

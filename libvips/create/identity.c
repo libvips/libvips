@@ -172,7 +172,7 @@ vips_identity_init(VipsIdentity *identity)
 /**
  * vips_identity:
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Creates an identity lookup table, ie. one which will leave an image
  * unchanged when applied with [method@Image.maplut]. Each entry in the table
@@ -187,9 +187,9 @@ vips_identity_init(VipsIdentity *identity)
  * @size.
  *
  * ::: tip "Optional arguments"
- *     * @bands: %gint, number of bands to create
- *     * @ushort: %gboolean, %TRUE for an unsigned short identity
- *     * @size: %gint, number of LUT elements for a ushort image
+ *     * @bands: `gint`, number of bands to create
+ *     * @ushort: `gboolean`, `TRUE` for an unsigned short identity
+ *     * @size: `gint`, number of LUT elements for a ushort image
  *
  * ::: seealso
  *     [ctor@Image.xyz], [method@Image.maplut].

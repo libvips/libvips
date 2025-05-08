@@ -96,7 +96,7 @@ static GMutex vips_tracked_mutex;
 
 /**
  * VIPS_NEW:
- * @OBJ: allocate memory local to @OBJ, or %NULL for no auto-free
+ * @OBJ: allocate memory local to @OBJ, or `NULL` for no auto-free
  * @T: type of thing to allocate
  *
  * Allocate memory for a thing of type @T. The memory is not
@@ -113,7 +113,7 @@ static GMutex vips_tracked_mutex;
 
 /**
  * VIPS_ARRAY:
- * @OBJ: allocate memory local to @OBJ, or %NULL for no auto-free
+ * @OBJ: allocate memory local to @OBJ, or `NULL` for no auto-free
  * @N: number of @T 's to allocate
  * @T: type of thing to allocate
  *
@@ -137,11 +137,11 @@ vips_malloc_cb(VipsObject *object, char *buf)
 
 /**
  * vips_malloc:
- * @object: (nullable): allocate memory local to this [class@Object], or %NULL
+ * @object: (nullable): allocate memory local to this [class@Object], or `NULL`
  * @size: number of bytes to allocate
  *
  * [func@GLib.malloc] local to @object, that is, the memory will be automatically
- * freed for you when the object is closed. If @object is %NULL, you need to
+ * freed for you when the object is closed. If @object is `NULL`, you need to
  * free the memory explicitly with [func@GLib.free].
  *
  * This function cannot fail. See [func@tracked_malloc] if you are
@@ -170,11 +170,11 @@ vips_malloc(VipsObject *object, size_t size)
 
 /**
  * vips_strdup:
- * @object: (nullable): allocate memory local to this [class@Object], or %NULL
+ * @object: (nullable): allocate memory local to this [class@Object], or `NULL`
  * @str: string to copy
  *
  * [func@GLib.strdup] a string. When @object is freed, the string will be freed for
- * you.  If @object is %NULL, you need to
+ * you.  If @object is `NULL`, you need to
  * free the memory yourself with [func@GLib.free].
  *
  * This function cannot fail.
@@ -206,7 +206,7 @@ vips_strdup(VipsObject *object, const char *str)
  *
  * Only use it to free memory that was
  * previously allocated with [func@tracked_malloc]
- * with a %NULL first argument.
+ * with a `NULL` first argument.
  *
  * ::: seealso
  *     [func@tracked_malloc].
@@ -247,7 +247,7 @@ vips_tracked_free(void *s)
  *
  * Only use it to free memory that was
  * previously allocated with [func@tracked_aligned_alloc]
- * with a %NULL first argument.
+ * with a `NULL` first argument.
  *
  * ::: seealso
  *     [func@tracked_aligned_alloc].
@@ -290,7 +290,7 @@ vips_tracked_aligned_free(void *s)
  * Allocate an area of memory that will be tracked by [func@tracked_get_mem]
  * and friends.
  *
- * If allocation fails, [func@tracked_malloc] returns %NULL and
+ * If allocation fails, [func@tracked_malloc] returns `NULL` and
  * sets an error message.
  *
  * You must only free the memory returned with [func@tracked_free].
@@ -298,7 +298,7 @@ vips_tracked_aligned_free(void *s)
  * ::: seealso
  *     [func@tracked_free], [func@malloc].
  *
- * Returns: (transfer full): a pointer to the allocated memory, or %NULL on error.
+ * Returns: (transfer full): a pointer to the allocated memory, or `NULL` on error.
  */
 void *
 vips_tracked_malloc(size_t size)
@@ -355,7 +355,7 @@ vips_tracked_malloc(size_t size)
  * by @align that will be tracked by [func@tracked_get_mem]
  * and friends.
  *
- * If allocation fails, [func@tracked_aligned_alloc] returns %NULL
+ * If allocation fails, [func@tracked_aligned_alloc] returns `NULL`
  * and sets an error message.
  *
  * You must only free the memory returned with [func@tracked_aligned_free].
@@ -363,7 +363,7 @@ vips_tracked_malloc(size_t size)
  * ::: seealso
  *     [func@tracked_malloc], [func@tracked_aligned_free], [func@malloc].
  *
- * Returns: (transfer full): a pointer to the allocated memory, or %NULL on error.
+ * Returns: (transfer full): a pointer to the allocated memory, or `NULL` on error.
  */
 void *
 vips_tracked_aligned_alloc(size_t size, size_t align)

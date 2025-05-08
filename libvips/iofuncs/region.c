@@ -356,14 +356,14 @@ vips_region_summary(VipsObject *object, VipsBuf *buf)
 
 /* If a region is being created in one thread (eg. the main thread) and then
  * used in another (eg. a worker thread), the new thread needs to tell VIPS
- * to stop sanity [func@GLib.assert] fails. The previous owner needs to
- * [func@_region_no_ownership] before we can call this.
+ * to stop sanity g_assert() fails. The previous owner needs to
+ * vips__region_no_ownership() before we can call this.
  */
 void
 vips__region_take_ownership(VipsRegion *region)
 {
 	/* Lock so that there's a memory barrier with the thread doing the
-	 * [func@_region_no_ownership] before us.
+	 * vips__region_no_ownership() before us.
 	 */
 	VIPS_GATE_START("vips__region_take_ownership: wait");
 
@@ -1897,7 +1897,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	 * was).
 	 *
 	 * We need this extra thing here because, unlike
-	 * [method@Region.prepare], we don't [method@Region.buffer] dest before
+	 * vips_region_prepare(), we don't vips_region_buffer() dest before
 	 * writing it.
 	 */
 	dest->invalid = FALSE;
@@ -1905,7 +1905,7 @@ vips_region_prepare_to(VipsRegion *reg,
 	return 0;
 }
 
-/* Don't use this, use [func@reorder_prepare_many] instead.
+/* Don't use this, use vips_reorder_prepare_many() instead.
  */
 int
 vips_region_prepare_many(VipsRegion **reg, const VipsRect *r)

@@ -175,7 +175,7 @@ vips_sbuf_refill(VipsSbuf *sbuf)
  *
  * Fetch the next character from the source.
  *
- * If you can, use the macro VIPS_SBUF_GETC() instead for speed.
+ * If you can, use the macro [func@SBUF_GETC] instead for speed.
  *
  * Returns: the next char from @sbuf, -1 on read error or EOF.
  */
@@ -209,7 +209,7 @@ vips_sbuf_getc(VipsSbuf *sbuf)
  * unget more than one character is undefined. Unget at the start of the file
  * does nothing.
  *
- * If you can, use the macro VIPS_SBUF_UNGETC() instead for speed.
+ * If you can, use the macro [func@SBUF_UNGETC] instead for speed.
  */
 void
 vips_sbuf_ungetc(VipsSbuf *sbuf)
@@ -290,7 +290,7 @@ vips_sbuf_require(VipsSbuf *sbuf, int require)
  * @require: need this many characters
  *
  * Make sure at least @require characters are available for
- * VIPS_SBUF_PEEK() and VIPS_SBUF_FETCH().
+ * [func@SBUF_PEEK] and [func@SBUF_FETCH].
  *
  * Returns: 0 on success, -1 on read error or EOF.
  */
@@ -299,7 +299,7 @@ vips_sbuf_require(VipsSbuf *sbuf, int require)
  * VIPS_SBUF_PEEK:
  * @sbuf: source to operate on
  *
- * After a successful VIPS_SBUF_REQUIRE(), you can index this to get
+ * After a successful [func@SBUF_REQUIRE], you can index this to get
  * require characters of input.
  *
  * Returns: a pointer to the next require characters of input.
@@ -309,7 +309,7 @@ vips_sbuf_require(VipsSbuf *sbuf, int require)
  * VIPS_SBUF_FETCH:
  * @sbuf: source to operate on
  *
- * After a successful VIPS_SBUF_REQUIRE(), you can use this require times
+ * After a successful [func@SBUF_REQUIRE], you can use this require times
  * to fetch characters of input.
  *
  * Returns: the next input character.

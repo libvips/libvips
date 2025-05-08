@@ -150,17 +150,17 @@ vips_mask_gaussian_band_init(VipsMaskGaussianBand *gaussian_band)
  * @frequency_cutoff_y: band position
  * @radius: band radius
  * @amplitude_cutoff: amplitude threshold
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Make a gaussian band-pass or band-reject filter, that is, one with a
  * variable, smooth transition positioned at @frequency_cutoff_x,
  * @frequency_cutoff_y, of radius @radius.
  *
  * ::: tip "Optional arguments"
- *     * @nodc: %gboolean, don't set the DC pixel
- *     * @reject: %gboolean, invert the filter sense
- *     * @optical: %gboolean, coordinates in optical space
- *     * @uchar: %gboolean, output a uchar image
+ *     * @nodc: `gboolean`, don't set the DC pixel
+ *     * @reject: `gboolean`, invert the filter sense
+ *     * @optical: `gboolean`, coordinates in optical space
+ *     * @uchar: `gboolean`, output a uchar image
  *
  * ::: seealso
  *     [ctor@Image.mask_ideal].

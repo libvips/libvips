@@ -165,7 +165,7 @@ vips_minpair_init(VipsMinpair *minpair)
  * @left: input image
  * @right: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * For each pixel, pick the minimum of a pair of images.
  *

@@ -38,3 +38,11 @@ GType
 }
 /*** END value-tail ***/
 
+/*** BEGIN file-tail ***/
+/* Deprecated enumerations */
+GType
+vips_saveable_get_type(void)
+{
+	return vips_foreign_saveable_get_type();
+}
+/*** END file-tail ***/

@@ -1951,7 +1951,7 @@ vips_globalbalance_init(VipsGlobalbalance *globalbalance)
  * vips_globalbalance: (method)
  * @in: mosaic to rebuild
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * [method@Image.globalbalance] can be used to remove contrast differences in
  * an assembled mosaic.
@@ -1978,8 +1978,8 @@ vips_globalbalance_init(VipsGlobalbalance *globalbalance)
  * this package.
  *
  * ::: tip "Optional arguments"
- *     * @gamma: %gdouble, gamma of source images
- *     * @int_output: %gboolean, %TRUE for integer image output
+ *     * @gamma: `gdouble`, gamma of source images
+ *     * @int_output: `gboolean`, `TRUE` for integer image output
  *
  * ::: seealso
  *     [method@Image.mosaic].

@@ -143,7 +143,7 @@ vips_labelregions_init(VipsLabelregions *labelregions)
  * vips_labelregions: (method)
  * @in: image to test
  * @mask: write labelled regions here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Label regions of equal pixels in an image.
  *
@@ -163,7 +163,7 @@ vips_labelregions_init(VipsLabelregions *labelregions)
  * Use [method@Image.hist_find_indexed] to (for example) find blob coordinates.
  *
  * ::: tip "Optional arguments"
- *     * @segments: %gint, return number of regions found here
+ *     * @segments: `gint`, return number of regions found here
  *
  * ::: seealso
  *     [method@Image.hist_find_indexed].

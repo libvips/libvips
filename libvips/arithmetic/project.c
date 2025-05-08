@@ -6,7 +6,7 @@
  * 	- gtkdoc
  * 	- small celanups
  * 11/9/13
- * 	- redo as a class, from [method@Image.hist_find]
+ * 	- redo as a class, from vips_hist_find()
  */
 
 /*
@@ -351,7 +351,7 @@ vips_project_init(VipsProject *project)
  * @in: input image
  * @columns: (out): sums of columns
  * @rows: (out): sums of rows
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Find the horizontal and vertical projections of an image, ie. the sum
  * of every row of pixels, and the sum of every column of pixels. The output

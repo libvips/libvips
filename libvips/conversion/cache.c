@@ -1,4 +1,4 @@
-/* [method@Image.sink_screen] as an operation.
+/* vips_sink_screen() as an operation.
  *
  * 13/1/12
  * 	- from tilecache.c
@@ -146,7 +146,7 @@ vips_cache_init(VipsCache *cache)
  * vips_cache:
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation behaves rather like [method@Image.copy] between images
  * @in and @out, except that it keeps a cache of computed pixels.

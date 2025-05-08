@@ -13,7 +13,7 @@ jobs:
         id: linter
         with:
           style: file
-          version: 18 # Ubuntu 24.04 provides clang-format-18
+          version: 19 # Ubuntu 24.04 provides clang-format-19
           tidy-checks: '-*' # disable clang-tidy
           lines-changed-only: true
           # ignore bundled files

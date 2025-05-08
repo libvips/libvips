@@ -263,7 +263,7 @@ vips_hough_circle_init(VipsHoughCircle *hough_circle)
  * vips_hough_circle: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Find the circular Hough transform of an image. @in must be one band, with
  * non-zero pixels for image edges. @out is three-band, with the third channel

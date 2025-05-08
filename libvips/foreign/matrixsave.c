@@ -177,7 +177,7 @@ vips_foreign_save_matrix_class_init(VipsForeignSaveMatrixClass *class)
 
 	foreign_class->suffs = vips_foreign_save_matrix_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_MONO;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_MONO;
 	save_class->format_table = bandfmt_matrix;
 }
 
@@ -333,7 +333,7 @@ vips_foreign_print_matrix_init(VipsForeignPrintMatrix *matrix)
  * vips_matrixsave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write @in to @filename in matrix format. See [ctor@Image.matrixload] for a
  * description of the format.
@@ -360,7 +360,7 @@ vips_matrixsave(VipsImage *in, const char *filename, ...)
  * vips_matrixsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.matrixsave], but save to a target.
  *
@@ -385,7 +385,7 @@ vips_matrixsave_target(VipsImage *in, VipsTarget *target, ...)
 /**
  * vips_matrixprint: (method)
  * @in: image to print
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Print @in to %stdout in matrix format. See [ctor@Image.matrixload] for a
  * description of the format.

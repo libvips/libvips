@@ -42,7 +42,7 @@
 	what about delayed writes ... do we ever write in close? we shouldn't,
 	should do in evalend or written or somesuch
 
-	use [func@GLib.param_values_cmp] instead of value_equal()?
+	use g_param_values_cmp() instead of value_equal()?
 
  */
 
@@ -930,7 +930,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 
 		VIPS_UNREF(operation_before);
 
-		/* Retrieve the flags again, as [func@Foreign.load_build] may
+		/* Retrieve the flags again, as vips_foreign_load_build() may
 		 * set load->nocache.
 		 */
 		flags = vips_operation_get_flags(*operation);
@@ -1121,7 +1121,7 @@ vips_cache_set_max_files(int max_files)
 
 /**
  * vips_cache_set_dump:
- * @dump: if %TRUE, dump the operation cache on exit
+ * @dump: if `TRUE`, dump the operation cache on exit
  *
  * Handy for debugging. Print the operation cache to stdout just before exit.
  *
@@ -1136,7 +1136,7 @@ vips_cache_set_dump(gboolean dump)
 
 /**
  * vips_cache_set_trace:
- * @trace: if %TRUE, trace the operation cache
+ * @trace: if `TRUE`, trace the operation cache
  *
  * Handy for debugging. Print operation cache actions to stdout as we run.
  *

@@ -445,7 +445,7 @@ vips_foreign_load_jpeg_buffer_init(VipsForeignLoadJpegBuffer *buffer)
  * vips_jpegload:
  * @filename: file to load
  * @out: (out): decompressed image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a JPEG file into a VIPS image. It can read most 8-bit JPEG images,
  * including CMYK and YCbCr.
@@ -455,38 +455,38 @@ vips_foreign_load_jpeg_buffer_init(VipsForeignLoadJpegBuffer *buffer)
  * decompressing the whole image and then shrinking later.
  *
  * Use @fail_on to set the type of error that will cause load to fail. By
- * default, loaders are permissive, that is, #VIPS_FAIL_ON_NONE.
+ * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
- * Setting @autorotate to %TRUE will make the loader interpret the
+ * Setting @autorotate to `TRUE` will make the loader interpret the
  * orientation tag and automatically rotate the image appropriately during
  * load.
  *
- * If @autorotate is %FALSE, the metadata field #VIPS_META_ORIENTATION is set
+ * If @autorotate is `FALSE`, the metadata field [const@META_ORIENTATION] is set
  * to the value of the orientation tag. Applications may read and interpret
  * this field
  * as they wish later in processing. See [method@Image.autorot]. Save
- * operations will use #VIPS_META_ORIENTATION, if present, to set the
+ * operations will use [const@META_ORIENTATION], if present, to set the
  * orientation of output images.
  *
  * Example:
  *
- * ```C
- * vips_jpegload("fred.jpg", &amp;out,
+ * ```c
+ * vips_jpegload("fred.jpg", &out,
  *     "shrink", 8,
  *     "fail_on", VIPS_FAIL_ON_TRUNCATED,
  *     NULL);
- * ```C
+ * ```
  *
  * Any embedded ICC profiles are ignored: you always just get the RGB from
  * the file. Instead, the embedded profile will be attached to the image as
- * #VIPS_META_ICC_NAME. You need to use something like
+ * [const@META_ICC_NAME]. You need to use something like
  * [method@Image.icc_import] to get CIE values from the file.
  *
- * EXIF metadata is attached as #VIPS_META_EXIF_NAME, IPTC as
- * #VIPS_META_IPTC_NAME, and XMP as #VIPS_META_XMP_NAME.
+ * EXIF metadata is attached as [const@META_EXIF_NAME], IPTC as
+ * [const@META_IPTC_NAME], and XMP as [const@META_XMP_NAME].
  *
  * The int metadata item "jpeg-multiscan" is set to the result of
- * jpeg_has_multiple_scans(). Interlaced jpeg images need a large amount of
+ * `jpeg_has_multiple_scans()`. Interlaced jpeg images need a large amount of
  * memory to load, so this field gives callers a chance to handle these
  * images differently.
  *
@@ -499,9 +499,9 @@ vips_foreign_load_jpeg_buffer_init(VipsForeignLoadJpegBuffer *buffer)
  * "jpeg-thumbnail-data". See [method@Image.get_blob].
  *
  * ::: tip "Optional arguments"
- *     * @shrink: %gint, shrink by this much on load
+ *     * @shrink: `gint`, shrink by this much on load
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @autorotate: %gboolean, use exif Orientation tag to rotate the image
+ *     * @autorotate: `gboolean`, use exif Orientation tag to rotate the image
  *       during load
  *
  * ::: seealso
@@ -527,7 +527,7 @@ vips_jpegload(const char *filename, VipsImage **out, ...)
  * @buf: (array length=len) (element-type guint8): memory area to load
  * @len: (type gsize): size of memory area
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a JPEG-formatted memory block into a VIPS image. Exactly as
  * [ctor@Image.jpegload], but read from a memory buffer.
@@ -536,9 +536,9 @@ vips_jpegload(const char *filename, VipsImage **out, ...)
  * [signal@Object::postclose] signal on @out is a good place to free.
  *
  * ::: tip "Optional arguments"
- *     * @shrink: %gint, shrink by this much on load
+ *     * @shrink: `gint`, shrink by this much on load
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @autorotate: %gboolean, use exif Orientation tag to rotate the image
+ *     * @autorotate: `gboolean`, use exif Orientation tag to rotate the image
  *       during load
  *
  * ::: seealso
@@ -570,15 +570,15 @@ vips_jpegload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * vips_jpegload_source:
  * @source: source to load
  * @out: (out): image to write
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a JPEG-formatted memory block into a VIPS image. Exactly as
  * [ctor@Image.jpegload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @shrink: %gint, shrink by this much on load
+ *     * @shrink: `gint`, shrink by this much on load
  *     * @fail_on: [enum@FailOn], types of read error to fail on
- *     * @autorotate: %gboolean, use exif Orientation tag to rotate the image
+ *     * @autorotate: `gboolean`, use exif Orientation tag to rotate the image
  *       during load
  *
  * ::: seealso

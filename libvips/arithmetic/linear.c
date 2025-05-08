@@ -503,7 +503,7 @@ vips_linearv(VipsImage *in, VipsImage **out,
  * @a: (array length=n): array of constants for multiplication
  * @b: (array length=n): array of constants for addition
  * @n: length of constant arrays
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Pass an image through a linear transform, ie. (@out = @in * @a + @b). Output
  * is float for integer input, double for double input, complex for
@@ -545,7 +545,7 @@ vips_linear(VipsImage *in, VipsImage **out,
  * @out: (out): output image
  * @a: constant for multiplication
  * @b: constant for addition
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Run [method@Image.linear] with a single constant.
  *

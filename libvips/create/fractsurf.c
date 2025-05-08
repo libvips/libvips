@@ -136,7 +136,7 @@ vips_fractsurf_init(VipsFractsurf *fractsurf)
  * @width: output width
  * @height: output height
  * @fractal_dimension: fractal dimension
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Generate an image of size @width by @height and fractal dimension
  * @fractal_dimension. The dimension should be between 2 and 3.

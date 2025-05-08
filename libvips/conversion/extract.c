@@ -246,7 +246,7 @@ vips_extract_area_init(VipsExtractArea *extract)
  * @top: top edge of area to extract
  * @width: width of area to extract
  * @height: height of area to extract
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Extract an area from an image. The area must fit within @in.
  *
@@ -305,7 +305,7 @@ vips_crop_get_type(void)
  * @top: top edge of area to extract
  * @width: width of area to extract
  * @height: height of area to extract
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * A synonym for [method@Image.extract_area].
  *
@@ -462,14 +462,14 @@ vips_extract_band_init(VipsExtractBand *extract)
  * @in: input image
  * @out: (out): output image
  * @band: index of first band to extract
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Extract a band or bands from an image. Extracting out of range is an error.
  *
  * @n defaults to 1.
  *
  * ::: tip "Optional arguments"
- *     * @n: %gint, number of bands to extract
+ *     * @n: `gint`, number of bands to extract
  *
  * ::: seealso
  *     [method@Image.extract_area].

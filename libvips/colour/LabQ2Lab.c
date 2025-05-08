@@ -145,9 +145,9 @@ vips_LabQ2Lab_init(VipsLabQ2Lab *LabQ2Lab)
  * vips_LabQ2Lab: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
- * Unpack a LabQ ([enum@Vips.Coding.LABQ)] image to a three-band float image.
+ * Unpack a LabQ ([enum@Vips.Coding.LABQ]) image to a three-band float image.
  *
  * ::: seealso
  *     [method@Image.LabQ2Lab], [method@Image.LabQ2LabS], [method@Image.rad2float].

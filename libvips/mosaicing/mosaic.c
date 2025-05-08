@@ -318,7 +318,7 @@ vips_mosaic_init(VipsMosaic *mosaic)
  * @yref: position in reference image
  * @xsec: position in secondary image
  * @ysec: position in secondary image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation joins two images left-right (with @ref on the left) or
  * top-bottom (with @ref above) given an approximate overlap.
@@ -340,16 +340,16 @@ vips_mosaic_init(VipsMosaic *mosaic)
  * @dx1, @dy1.
  *
  * ::: tip "Optional arguments"
- *     * @bandno: %gint, band to search for features
- *     * @hwindow: %gint, half window size
- *     * @harea: %gint, half search size
- *     * @mblend: %gint, maximum blend size
- *     * @dx0: %gint, output, detected displacement
- *     * @dy0: %gint, output, detected displacement
- *     * @scale1: %gdouble, output, detected first order scale
- *     * @angle1: %gdouble, output, detected first order rotation
- *     * @dx1: %gdouble, output, detected first order displacement
- *     * @dy1: %gdouble, output, detected first order displacement
+ *     * @bandno: `gint`, band to search for features
+ *     * @hwindow: `gint`, half window size
+ *     * @harea: `gint`, half search size
+ *     * @mblend: `gint`, maximum blend size
+ *     * @dx0: `gint`, output, detected displacement
+ *     * @dy0: `gint`, output, detected displacement
+ *     * @scale1: `gdouble`, output, detected first order scale
+ *     * @angle1: `gdouble`, output, detected first order rotation
+ *     * @dx1: `gdouble`, output, detected first order displacement
+ *     * @dy1: `gdouble`, output, detected first order displacement
  *
  * ::: seealso
  *     [method@Image.merge], [method@Image.insert].

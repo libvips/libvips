@@ -473,7 +473,7 @@ vips_arrayjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
  * @in: (array length=n) (transfer none): array of input images
  * @out: (out): output image
  * @n: number of input images
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Lay out the images in @in in a grid. The grid is @across images across and
  * however high is necessary to use up all of @in. Images are set down
@@ -505,13 +505,13 @@ vips_arrayjoinv(VipsImage **in, VipsImage **out, int n, va_list ap)
  * colourspace for compositing.
  *
  * ::: tip "Optional arguments"
- *     * @across: %gint, number of images per row
- *     * @shim: %gint, space between images, in pixels
+ *     * @across: `gint`, number of images per row
+ *     * @shim: `gint`, space between images, in pixels
  *     * @background: [struct@ArrayDouble], background ink colour
  *     * @halign: [enum@Align], low, centre or high alignment
  *     * @valign: [enum@Align], low, centre or high alignment
- *     * @hspacing: %gint, horizontal distance between images
- *     * @vspacing: %gint, vertical distance between images
+ *     * @hspacing: `gint`, horizontal distance between images
+ *     * @vspacing: `gint`, vertical distance between images
  *
  * ::: seealso
  *     [method@Image.join], [method@Image.insert], [method@Image.colourspace].

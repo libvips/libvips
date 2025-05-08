@@ -935,8 +935,8 @@ vips_operation_get_valist_optional(VipsOperation *operation, va_list ap)
 /**
  * vips_call_required_optional:
  * @operation: the operation to execute
- * @required: %va_list of required arguments
- * @optional: NULL-terminated %va_list of name / value pairs
+ * @required: `va_list` of required arguments
+ * @optional: `NULL`-terminated `va_list` of name / value pairs
  *
  * This is the main entry point for the C and C++ varargs APIs. @operation
  * is executed, supplying @required and @optional arguments.
@@ -1031,7 +1031,7 @@ vips_call_by_name(const char *operation_name,
 /**
  * vips_call:
  * @operation_name: name of operation to call
- * @...: required args, then a %NULL-terminated list of argument/value pairs
+ * @...: required args, then a `NULL`-terminated list of argument/value pairs
  *
  * [func@call] calls the named operation, passing in required arguments and
  * then setting any optional ones from the remainder of the arguments as a set

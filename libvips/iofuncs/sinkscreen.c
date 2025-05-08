@@ -1163,7 +1163,7 @@ vips__sink_screen_once(void *data)
  * pixels are ready. In a glib-based application, this is easily done with
  * [func@GLib.idle_add].
  *
- * If @notify_fn is %NULL then [method@Image.sink_screen] runs synchronously.
+ * If @notify_fn is `NULL` then [method@Image.sink_screen] runs synchronously.
  * [method@Region.prepare] on @out will always block until the pixels have been
  * calculated.
  *

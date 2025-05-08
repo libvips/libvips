@@ -364,7 +364,7 @@ vips_stdif_init(VipsStdif *stdif)
  * @out: (out): output image
  * @width: width of region
  * @height: height of region
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * [method@Image.stdif] performs statistical differencing according to the
  * formula given in page 45 of the book "An Introduction to Digital Image
@@ -397,10 +397,10 @@ vips_stdif_init(VipsStdif *stdif)
  * input.
  *
  * ::: tip "Optional arguments"
- *     * @a: %gdouble, weight of new mean
- *     * @m0: %gdouble, target mean
- *     * @b: %gdouble, weight of new deviation
- *     * @s0: %gdouble, target deviation
+ *     * @a: `gdouble`, weight of new mean
+ *     * @m0: `gdouble`, target mean
+ *     * @b: `gdouble`, weight of new deviation
+ *     * @s0: `gdouble`, target deviation
  *
  * ::: seealso
  *     [method@Image.hist_local].

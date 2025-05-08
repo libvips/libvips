@@ -2054,8 +2054,10 @@ vips_foreign_save_dz_build(VipsObject *object)
 		coding[VIPS_CODING_NONE] = TRUE;
 
 		if (vips__foreign_convert_saveable(save->ready, &z,
-			VIPS_SAVEABLE_RGB_CMYK, bandfmt_dzsave, coding,
-			save->background))
+			VIPS_FOREIGN_SAVEABLE_MONO |
+				VIPS_FOREIGN_SAVEABLE_RGB |
+				VIPS_FOREIGN_SAVEABLE_CMYK,
+			bandfmt_dzsave, coding, save->background))
 			return -1;
 
 		VIPS_UNREF(save->ready);
@@ -2321,7 +2323,7 @@ vips_foreign_save_dz_class_init(VipsForeignSaveDzClass *class)
 
 	foreign_class->suffs = dz_suffs;
 
-	save_class->saveable = VIPS_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_dz;
 	save_class->coding[VIPS_CODING_LABQ] = TRUE;
 
@@ -2676,7 +2678,7 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * vips_dzsave: (method)
  * @in: image to save
  * @name: name to save to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Save an image as a set of tiles at various resolutions. By default dzsave
  * uses DeepZoom layout -- use @layout to pick other conventions.
@@ -2732,25 +2734,25 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * In IIIF layout, you can set the base of the `id` property in `info.json`
  * with @id. The default is `https://example.com/iiif`.
  *
- * Use @layout #VIPS_FOREIGN_DZ_LAYOUT_IIIF3 for IIIF v3 layout.
+ * Use @layout [enum@Vips.ForeignDzLayout.IIIF3] for IIIF v3 layout.
  *
  * ::: tip "Optional arguments"
- *     * @basename: %gchararray, base part of name
+ *     * @basename: `gchararray`, base part of name
  *     * @layout: [enum@ForeignDzLayout], directory layout convention
- *     * @suffix: %gchararray, suffix for tiles
- *     * @overlap: %gint, set tile overlap
- *     * @tile_size: %gint, set tile size
+ *     * @suffix: `gchararray`, suffix for tiles
+ *     * @overlap: `gint`, set tile overlap
+ *     * @tile_size: `gint`, set tile size
  *     * @background: [struct@ArrayDouble], background colour
  *     * @depth: [enum@ForeignDzDepth], how deep to make the pyramid
- *     * @centre: %gboolean, centre the tiles
+ *     * @centre: `gboolean`, centre the tiles
  *     * @angle: [enum@Angle], rotate the image by this much
  *     * @container: [enum@ForeignDzContainer], set container type
- *     * @compression: %gint, zip deflate compression level
+ *     * @compression: `gint`, zip deflate compression level
  *     * @region_shrink: [enum@RegionShrink], how to shrink each 2x2 region
- *     * @skip_blanks: %gint, skip tiles which are nearly equal to the
+ *     * @skip_blanks: `gint`, skip tiles which are nearly equal to the
  *       background
- *     * @id: %gchararray, id for IIIF properties
- *     * @Q: %gint, quality factor
+ *     * @id: `gchararray`, id for IIIF properties
+ *     * @Q: `gint`, quality factor
  *
  * ::: seealso
  *     [method@Image.tiffsave].
@@ -2775,7 +2777,7 @@ vips_dzsave(VipsImage *in, const char *name, ...)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.dzsave], but save to a memory buffer.
  *
@@ -2787,22 +2789,22 @@ vips_dzsave(VipsImage *in, const char *name, ...)
  * are done with it.
  *
  * ::: tip "Optional arguments"
- *     * @basename: %gchararray, base part of name
+ *     * @basename: `gchararray`, base part of name
  *     * @layout: [enum@ForeignDzLayout], directory layout convention
- *     * @suffix: %gchararray, suffix for tiles
- *     * @overlap: %gint, set tile overlap
- *     * @tile_size: %gint, set tile size
+ *     * @suffix: `gchararray`, suffix for tiles
+ *     * @overlap: `gint`, set tile overlap
+ *     * @tile_size: `gint`, set tile size
  *     * @background: [struct@ArrayDouble], background colour
  *     * @depth: [enum@ForeignDzDepth], how deep to make the pyramid
- *     * @centre: %gboolean, centre the tiles
+ *     * @centre: `gboolean`, centre the tiles
  *     * @angle: [enum@Angle], rotate the image by this much
  *     * @container: [enum@ForeignDzContainer], set container type
- *     * @compression: %gint, zip deflate compression level
+ *     * @compression: `gint`, zip deflate compression level
  *     * @region_shrink: [enum@RegionShrink], how to shrink each 2x2 region
- *     * @skip_blanks: %gint, skip tiles which are nearly equal to the
+ *     * @skip_blanks: `gint`, skip tiles which are nearly equal to the
  *       background
- *     * @id: %gchararray, id for IIIF properties
- *     * @Q: %gint, quality factor
+ *     * @id: `gchararray`, id for IIIF properties
+ *     * @Q: `gint`, quality factor
  *
  * ::: seealso
  *     [method@Image.dzsave], [method@Image.write_to_file].
@@ -2841,27 +2843,27 @@ vips_dzsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * vips_dzsave_target: (method)
  * @in: image to save
  * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.dzsave], but save to a target.
  *
  * ::: tip "Optional arguments"
- *     * @basename: %gchararray, base part of name
+ *     * @basename: `gchararray`, base part of name
  *     * @layout: [enum@ForeignDzLayout], directory layout convention
- *     * @suffix: %gchararray, suffix for tiles
- *     * @overlap: %gint, set tile overlap
- *     * @tile_size: %gint, set tile size
+ *     * @suffix: `gchararray`, suffix for tiles
+ *     * @overlap: `gint`, set tile overlap
+ *     * @tile_size: `gint`, set tile size
  *     * @background: [struct@ArrayDouble], background colour
  *     * @depth: [enum@ForeignDzDepth], how deep to make the pyramid
- *     * @centre: %gboolean, centre the tiles
+ *     * @centre: `gboolean`, centre the tiles
  *     * @angle: [enum@Angle], rotate the image by this much
  *     * @container: [enum@ForeignDzContainer], set container type
- *     * @compression: %gint, zip deflate compression level
+ *     * @compression: `gint`, zip deflate compression level
  *     * @region_shrink: [enum@RegionShrink], how to shrink each 2x2 region
- *     * @skip_blanks: %gint, skip tiles which are nearly equal to the
+ *     * @skip_blanks: `gint`, skip tiles which are nearly equal to the
  *       background
- *     * @id: %gchararray, id for IIIF properties
- *     * @Q: %gint, quality factor
+ *     * @id: `gchararray`, id for IIIF properties
+ *     * @Q: `gint`, quality factor
  *
  * ::: seealso
  *     [method@Image.dzsave], [method@Image.write_to_target].

@@ -990,7 +990,7 @@ vips_morph_init(VipsMorph *morph)
  * @out: (out): output image
  * @mask: morphology with this mask
  * @morph: operation to perform
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Performs a morphological operation on @in using @mask as a
  * structuring element.

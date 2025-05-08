@@ -281,7 +281,7 @@ vips_mathv(VipsImage *in, VipsImage **out, VipsOperationMath math, va_list ap)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
  * @math: math operation to perform
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform various functions in -lm, the maths library, on images.
  *
@@ -312,7 +312,7 @@ vips_math(VipsImage *in, VipsImage **out, VipsOperationMath math, ...)
  * vips_sin: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.SIN] on an image. See [method@Image.math].
  *
@@ -335,7 +335,7 @@ vips_sin(VipsImage *in, VipsImage **out, ...)
  * vips_cos: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.COS] on an image. See [method@Image.math].
  *
@@ -358,7 +358,7 @@ vips_cos(VipsImage *in, VipsImage **out, ...)
  * vips_tan: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.TAN] on an image. See [method@Image.math].
  *
@@ -381,7 +381,7 @@ vips_tan(VipsImage *in, VipsImage **out, ...)
  * vips_asin: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.ASIN] on an image. See [method@Image.math].
  *
@@ -404,7 +404,7 @@ vips_asin(VipsImage *in, VipsImage **out, ...)
  * vips_acos: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.ACOS] on an image. See [method@Image.math].
  *
@@ -427,7 +427,7 @@ vips_acos(VipsImage *in, VipsImage **out, ...)
  * vips_atan: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.ATAN] on an image. See [method@Image.math].
  *
@@ -450,7 +450,7 @@ vips_atan(VipsImage *in, VipsImage **out, ...)
  * vips_sinh: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.SINH] on an image. See [method@Image.math].
  *
@@ -473,7 +473,7 @@ vips_sinh(VipsImage *in, VipsImage **out, ...)
  * vips_cosh: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.COSH] on an image. See [method@Image.math].
  *
@@ -496,7 +496,7 @@ vips_cosh(VipsImage *in, VipsImage **out, ...)
  * vips_tanh: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.TANH] on an image. See [method@Image.math].
  *
@@ -519,7 +519,7 @@ vips_tanh(VipsImage *in, VipsImage **out, ...)
  * vips_asinh: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.ASINH] on an image. See [method@Image.math].
  *
@@ -542,7 +542,7 @@ vips_asinh(VipsImage *in, VipsImage **out, ...)
  * vips_acosh: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.ACOSH] on an image. See [method@Image.math].
  *
@@ -565,7 +565,7 @@ vips_acosh(VipsImage *in, VipsImage **out, ...)
  * vips_atanh: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.ATANH] on an image. See [method@Image.math].
  *
@@ -588,7 +588,7 @@ vips_atanh(VipsImage *in, VipsImage **out, ...)
  * vips_log: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.LOG] on an image. See [method@Image.math].
  *
@@ -611,7 +611,7 @@ vips_log(VipsImage *in, VipsImage **out, ...)
  * vips_log10: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.LOG10] on an image. See [method@Image.math].
  *
@@ -634,7 +634,7 @@ vips_log10(VipsImage *in, VipsImage **out, ...)
  * vips_exp: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.EXP] on an image. See [method@Image.math].
  *
@@ -657,7 +657,7 @@ vips_exp(VipsImage *in, VipsImage **out, ...)
  * vips_exp10: (method)
  * @in: input [class@Image]
  * @out: (out): output [class@Image]
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Perform [enum@Vips.OperationMath.EXP10] on an image. See [method@Image.math].
  *

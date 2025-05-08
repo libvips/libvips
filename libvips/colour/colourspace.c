@@ -426,7 +426,7 @@ static VipsColourRoute vips_colour_routes[] = {
  *
  * Test if @image is in a colourspace that [method@Image.colourspace] can process.
  *
- * Returns: %TRUE if @image is in a supported colourspace.
+ * Returns: `TRUE` if @image is in a supported colourspace.
  */
 gboolean
 vips_colourspace_issupported(const VipsImage *image)
@@ -591,7 +591,7 @@ vips_colourspace_init(VipsColourspace *colourspace)
  * @in: input image
  * @out: (out): output image
  * @space: convert to this colour space
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation looks at the interpretation field of @in (or uses
  * @source_space, if set) and runs

@@ -180,7 +180,7 @@ vips_hist_match_init(VipsHistMatch *match)
  * @in: input histogram
  * @ref: reference histogram
  * @out: (out): output histogram
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Adjust @in to match @ref. If @in and @ref are normalised
  * cumulative histograms, @out will be a LUT that adjusts the PDF of the image
@@ -188,7 +188,7 @@ vips_hist_match_init(VipsHistMatch *match)
  *
  * ::: seealso
  *     [method@Image.maplut], [method@Image.hist_find], [method@Image.hist_norm],
- * [method@Image.hist_cum].
+ *     [method@Image.hist_cum].
  *
  * Returns: 0 on success, -1 on error
  */

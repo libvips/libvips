@@ -280,7 +280,7 @@ vips_sequential_init(VipsSequential *sequential)
  * vips_sequential: (method)
  * @in: input image
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * This operation behaves rather like [method@Image.copy] between images
  * @in and @out, except that it checks that pixels on @in are only requested
@@ -291,7 +291,7 @@ vips_sequential_init(VipsSequential *sequential)
  * [method@Image.sequential] uses. The default value is 1.
  *
  * ::: tip "Optional arguments"
- *     * @tile_height: %gint, height of cache strips
+ *     * @tile_height: `gint`, height of cache strips
  *
  * ::: seealso
  *     [method@Image.linecache], [method@Image.tilecache].
