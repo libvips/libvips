@@ -32,7 +32,7 @@ VipsImage *mask = vips_image_new_matrixv(3, 3,
 ```
 
 applied to an image with [method@Image.morph]
-[enum@Vips.OperationMorphology.dilate] will do a 4-connected dilation.
+[enum@Vips.OperationMorphology.DILATE] will do a 4-connected dilation.
 
 Dilate sets pixels in the output if any part of the mask matches, whereas
 erode sets pixels only if all the mask matches.

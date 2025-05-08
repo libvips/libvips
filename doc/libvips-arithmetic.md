@@ -20,9 +20,9 @@ single-band images freely.
 Arithmetic operations try to preserve precision by increasing the number of
 bits in the output image when necessary. Generally, this follows the ANSI C
 conventions for type promotion, so multiplying two
-[enum@Vips.BandFormat.uchar] images together, for example, produces a
-[enum@Vips.BandFormat.ushort] image, and taking the [method@Image.cos] of a
-[enum@Vips.BandFormat.ushort] image produces [enum@Vips.BandFormat.float]
+[enum@Vips.BandFormat.UCHAR] images together, for example, produces a
+[enum@Vips.BandFormat.USHORT] image, and taking the [method@Image.cos] of a
+[enum@Vips.BandFormat.USHORT] image produces [enum@Vips.BandFormat.FLOAT]
 image.
 
 After processing, use [method@Image.cast] and friends to take then format
@@ -30,7 +30,7 @@ back down again.[method@Image.cast_uchar], for example, will cast any image
 down to 8-bit unsigned.
 
 Images have an interpretation: a meaning for the pixel values. With
-[enum@Vips.Interpretation.srgb], for example, the first three bands will be
+[enum@Vips.Interpretation.SRGB], for example, the first three bands will be
 interpreted (for example, by a saver like [method@Image.jpegsave]) as R, G
 and B, with values in 0 - 255, and any fourth band will be interpreted as an
 alpha channel.
