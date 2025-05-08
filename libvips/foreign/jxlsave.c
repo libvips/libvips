@@ -60,9 +60,6 @@
 
 /* TODO:
  *
- * - need to emit the various progress signals etc. for a sink, eg. preeval
- *   eval, etc.
- *
  * - libjxl is currently missing error messages (I think)
  *
  * - add support encoding images with > 4 bands.
