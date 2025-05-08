@@ -27,6 +27,8 @@ master
   consistency
 - restore vips_remosaic(), it was not being linked
 - deprecate VipsSaveable, add VipsForeignSaveable
+- move vips_image_preeval(), vips_image_eval(), vips_image_posteval() into the
+  public API
 - jxlsave writes in chunks, for lower memory use on large images (but we now
   need libjxl 0.11 at minimum)
 
@@ -85,12 +87,8 @@ master
 - deprecate "cache" (use tilecache instead)
 - add tests for tokenisation
 - add "unpack_complex" option to vips_getpoint()
-- add zip level compression setting to vipsave [ruven]
 - add deflate compression level setting to tiffsave [ruven]
 - add "smart_deblock" to webpsave [goodusername123]
-- move vips_image_preeval(), vips_image_eval(), vips_image_posteval() into the
-  public API
-- jxlsave uses the new chunked API for low memory use for large images
 
 4/10/24 8.15.5
 
