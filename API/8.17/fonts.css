@@ -1,0 +1,150 @@
+/*
+ * SPDX-FileCopyrightText: 2021 GNOME Foundation
+ *
+ * SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+ */
+
+/**
+ * RedHat Fonts taken from https://github.com/RedHatOfficial/RedHatFont
+ * License: SIL Open Font License 1.1 http://scripts.sil.org/OFL
+ *
+ * SourceCodePro Fonts
+ * License: SIL Open Font License 1.1 https://scripts.sil.org/OFL
+ */
+
+@font-face {
+  font-family: "Red Hat Display";
+  src: local('RedHatDisplay-Regular');
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Display";
+  src: local('RedHatDisplay-RegularItalic');
+  font-style: italic;
+  font-weight: 400;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Display";
+  src: local('RedHatDisplay-Medium');
+  font-style: normal;
+  font-weight: 500;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Display";
+  src: local('RedHatDisplay-MediumItalic');
+  font-style: italic;
+  font-weight: 500;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Display";
+  src: local('RedHatDisplay-Bold');
+  font-style: normal;
+  font-weight: 700;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Display";
+  src: local('RedHatDisplay-BoldItalic');
+  font-style: italic;
+  font-weight: 700;
+  font-display: fallback;
+}
+
+
+@font-face {
+  font-family: "Red Hat Display";
+  src: local('RedHatDisplay-Black');
+  font-style: normal;
+  font-weight: 900;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Display";
+  src: local('RedHatDisplay-BlackItalic');
+  font-style: italic;
+  font-weight: 900;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Text";
+  src: local('RedHatText-Regular');
+  font-style: normal;
+  font-weight: 400;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Text";
+  src: local('RedHatText-Italic');
+  font-style: italic;
+  font-weight: 400;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Text";
+  src: local('RedHatText-Medium');
+  font-style: normal;
+  font-weight: 700;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Text";
+  src: local('RedHatText-MediumItalic');
+  font-style: italic;
+  font-weight: 700;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Text";
+  src: local('RedHatText-Bold');
+  font-style: normal;
+  font-weight: 900;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: "Red Hat Text";
+  src: local('RedHatText-BoldItalic');
+  font-style: italic;
+  font-weight: 900;
+  font-display: fallback;
+}
+
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: normal;
+  font-weight: 400;
+  src: local('SourceCodePro-Regular'), local('monospace');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: italic;
+  font-weight: 400;
+  src: local('SourceCodePro-It'), local('monospace');
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: normal;
+  font-weight: 600;
+  src: local('SourceCodePro-Semibold'), local('monospace');
+  font-display: swap;
+}

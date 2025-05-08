@@ -1,0 +1,1471 @@
+<!--
+SPDX-FileCopyrightText: libvips team and contributors
+
+SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Vips.Object</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+
+  
+  <meta property="og:title" content="Vips.Object"/>
+  <meta property="og:description" content="Reference for Vips.Object"/>
+  <meta name="twitter:title" content="Vips.Object"/>
+  <meta name="twitter:description" content="Reference for Vips.Object"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+  
+  
+  <link rel="search" type="application/opensearchdescription+xml" title="Vips" href="opensearch.xml">
+  
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+
+  
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Vips</a></h3>
+        <p>API Version: 8.0</p>
+        
+        <p>Library Version: 8.17</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Object.html#description">Object</a>
+  </div>
+</div>
+
+
+  
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.Object.new.html">new</a>
+  
+    <a class="ctor" href="ctor.Object.new_from_string.html">new_from_string</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Functions</h5>
+  <div class="links">
+  
+    <a class="func" href="type_func.Object.get_property.html">get_property</a>
+  
+    <a class="func" href="type_func.Object.map.html">map</a>
+  
+    <a class="func" href="type_func.Object.print_all.html">print_all</a>
+  
+    <a class="func" href="type_func.Object.print_summary_class.html">print_summary_class</a>
+  
+    <a class="func" href="type_func.Object.sanity_all.html">sanity_all</a>
+  
+    <a class="func" href="type_func.Object.set_property.html">set_property</a>
+  
+    <a class="func" href="type_func.Object.summary_class.html">summary_class</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Object.argument_isset.html">argument_isset</a>
+  
+    <a class="method" href="method.Object.argument_needsstring.html">argument_needsstring</a>
+  
+    <a class="method" href="method.Object.build.html">build</a>
+  
+    <a class="method" href="method.Object.dump.html">dump</a>
+  
+    <a class="method" href="method.Object.get_args.html">get_args</a>
+  
+    <a class="method" href="method.Object.get_argument.html">get_argument</a>
+  
+    <a class="method" href="method.Object.get_argument_flags.html">get_argument_flags</a>
+  
+    <a class="method" href="method.Object.get_argument_priority.html">get_argument_priority</a>
+  
+    <a class="method" href="method.Object.get_argument_to_string.html">get_argument_to_string</a>
+  
+    <a class="method" href="method.Object.get_description.html">get_description</a>
+  
+    <a class="method" href="method.Object.local_array.html">local_array</a>
+  
+    <a class="method" href="method.Object.local_cb.html">local_cb</a>
+  
+    <a class="method" href="method.Object.preclose.html">preclose</a>
+  
+    <a class="method" href="method.Object.print_dump.html">print_dump</a>
+  
+    <a class="method" href="method.Object.print_name.html">print_name</a>
+  
+    <a class="method" href="method.Object.print_summary.html">print_summary</a>
+  
+    <a class="method" href="method.Object.rewind.html">rewind</a>
+  
+    <a class="method" href="method.Object.sanity.html">sanity</a>
+  
+    <a class="method" href="method.Object.set.html">set</a>
+  
+    <a class="method" href="method.Object.set_argument_from_string.html">set_argument_from_string</a>
+  
+    <a class="method" href="method.Object.set_from_string.html">set_from_string</a>
+  
+    <a class="method" href="method.Object.set_required.html">set_required</a>
+  
+    <a class="method" href="method.Object.set_static.html">set_static</a>
+  
+    <a class="method" href="method.Object.set_valist.html">set_valist</a>
+  
+    <a class="method" href="method.Object.summary.html">summary</a>
+  
+    <a class="method" href="method.Object.to_string.html">to_string</a>
+  
+    <a class="method" href="method.Object.unref_outputs.html">unref_outputs</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Object.description.html">description</a>
+  
+    <a class="property" href="property.Object.nickname.html">nickname</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.Object.close.html">close</a>
+  
+    <a class="signal" href="signal.Object.postbuild.html">postbuild</a>
+  
+    <a class="signal" href="signal.Object.postclose.html">postclose</a>
+  
+    <a class="signal" href="signal.Object.preclose.html">preclose</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Class methods</h5>
+  <div class="links">
+  
+    <a class="method" href="class_method.Object.install_argument.html">install_argument</a>
+  
+  </div>
+</div>
+
+
+
+  
+<div class="section">
+  <h5>Virtual methods</h5>
+  <div class="links">
+  
+    <a class="method" href="vfunc.Object.build.html">build</a>
+  
+    <a class="method" href="vfunc.Object.close.html">close</a>
+  
+    <a class="method" href="vfunc.Object.dump.html">dump</a>
+  
+    <a class="method" href="vfunc.Object.output_to_arg.html">output_to_arg</a>
+  
+    <a class="method" href="vfunc.Object.postbuild.html">postbuild</a>
+  
+    <a class="method" href="vfunc.Object.postclose.html">postclose</a>
+  
+    <a class="method" href="vfunc.Object.preclose.html">preclose</a>
+  
+    <a class="method" href="vfunc.Object.rewind.html">rewind</a>
+  
+    <a class="method" href="vfunc.Object.sanity.html">sanity</a>
+  
+    <a class="method" href="vfunc.Object.summary.html">summary</a>
+  
+    <a class="method" href="vfunc.Object.to_string.html">to_string</a>
+  
+  </div>
+</div>
+
+
+
+
+      <div class="section generator">
+        <p>Generated by <a href="https://gitlab.gnome.org/GNOME/gi-docgen">gi-docgen</a> 2025.3</p>
+      </div>
+    </nav>
+
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Vips</a><span class="sep" role="presentation"></span>Object</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="docblock">
+        <p></p>
+      </div>
+
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/object.c#L60">[src]</a>
+          
+        </h4>
+
+        <pre><code>abstract class Vips.Object : GObject.Object
+{
+  gboolean constructed,
+  gboolean static_object,
+  VipsArgumentTable* argument_table,
+  char* nickname,
+  char* description,
+  gboolean preclose,
+  gboolean close,
+  gboolean postclose,
+  size_t local_memory
+}</pre></code>
+
+        <div class="docblock">
+          <p>An abstract base class for all objects in&nbsp;libvips.</p>
+<p>It has the following major&nbsp;features:</p>
+<ul>
+<li>
+<p><strong>Functional class creation</strong>: libvips objects have a very regular
+  lifecycle: initialise, build, use, destroy. They behave rather like
+  function calls and are free of&nbsp;side-effects.</p>
+</li>
+<li>
+<p><strong>Run-time introspection</strong>: libvips objects can be fully introspected
+  at run-time. There is no need for separate source-code&nbsp;analysis.</p>
+</li>
+<li>
+<p><strong>Command-line interface</strong>: Any vips object can be run from the
+  command-line with the <code>vips</code> driver&nbsp;program.</p>
+</li>
+</ul>
+<h2 id="the-vipsobject-lifecycle">The <a href="class.Object.html"><code>VipsObject</code></a> lifecycle<a class="md-anchor" href="#the-vipsobject-lifecycle" title="Permanent link"></a></h2>
+<p><a href="class.Object.html"><code>VipsObject</code></a>&#8216;s have a strictly defined lifecycle, split broadly as
+construct and then use. In detail, the stages&nbsp;are:</p>
+<ol>
+<li>
+<p><a href="javascript:void(0)" data-namespace="GObject" data-link="ctor.Object.new.html" class="external"><code>g_object_new()</code></a>. The <a href="class.Object.html"><code>VipsObject</code></a> is created with
+  <a href="javascript:void(0)" data-namespace="GObject" data-link="ctor.Object.new.html" class="external"><code>g_object_new()</code></a>. Objects in this state are blank slates and
+  need to have their various parameters&nbsp;set.</p>
+</li>
+<li>
+<p><a href="javascript:void(0)" data-namespace="GObject" data-link="method.Object.set.html" class="external"><code>g_object_set()</code></a>. You loop over the <a href="struct.Argument.html"><code>VipsArgument</code></a> that
+  the object has defined with <a href="type_func.Argument.map.html"><code>vips_argument_map()</code></a>. Arguments have a set of
+  flags attached to them for required, optional, input, output, type, and
+  so on. You must set all required&nbsp;arguments.</p>
+</li>
+<li>
+<p><a href="method.Object.build.html"><code>vips_object_build()</code></a>. Call this to construct the object and get it
+  ready for use. Building an object happens in four stages, see&nbsp;below.</p>
+</li>
+<li>
+<p><a href="javascript:void(0)" data-namespace="GObject" data-link="method.Object.get.html" class="external"><code>g_object_get()</code></a>. The object has now been built. You can
+  read out any computed&nbsp;values.</p>
+</li>
+<li>
+<p><a href="javascript:void(0)" data-namespace="GObject" data-link="method.Object.unref.html" class="external"><code>g_object_unref()</code></a>. When you are done with an object, you
+  can unref it. See the section on reference counting for an explanation
+  of the convention that <a href="class.Object.html"><code>VipsObject</code></a> uses. When the last ref to an
+  object is released, the object is closed. Objects close in three stages,
+  see&nbsp;below.</p>
+</li>
+</ol>
+<p>The stages inside <a href="method.Object.build.html"><code>vips_object_build()</code></a>&nbsp;are:</p>
+<ol>
+<li>
+<p>Chain up through the object&#8217;s <code>build</code> class methods. At each stage,
+  each class does any initial setup and checking, then chains up to its&nbsp;superclass.</p>
+</li>
+<li>
+<p>The innermost <code>build</code> method inside <a href="class.Object.html"><code>VipsObject</code></a> itself checks that
+  all input arguments have been set and then&nbsp;returns.</p>
+</li>
+<li>
+<p>All object <code>build</code> methods now finish executing, from innermost to
+  outermost. They know all input arguments have been checked and supplied,
+  so now they set all output&nbsp;arguments.</p>
+</li>
+<li>
+<p><a href="method.Object.build.html"><code>vips_object_build()</code></a> finishes the process by checking that all output
+  objects have been set, and then triggering the <a href="signal.Object.postbuild.html"><code>VipsObject::postbuild</code></a>
+  signal. <a href="signal.Object.postbuild.html"><code>VipsObject::postbuild</code></a> only runs if the object has constructed&nbsp;successfully.</p>
+</li>
+</ol>
+<p><a href="class.Operation.html"><code>VipsOperation</code></a> has a cache of recent operation objects, see that class for
+an explanation of <a href="func.cache_operation_build.html"><code>vips_cache_operation_build()</code></a>.</p>
+<p>Finally, the stages inside close&nbsp;are:</p>
+<ol>
+<li>
+<p><a href="signal.Object.preclose.html"><code>VipsObject::preclose</code></a>. This is emitted at the start of the
+  <a href="class.Object.html"><code>VipsObject</code></a> dispose. The object is still&nbsp;functioning.</p>
+</li>
+<li>
+<p><a href="signal.Object.close.html"><code>VipsObject::close</code></a>. This runs just after all <a href="struct.Argument.html"><code>VipsArgument</code></a> held
+  by the object have been&nbsp;released.</p>
+</li>
+<li>
+<p><a href="signal.Object.postclose.html"><code>VipsObject::postclose</code></a>. This runs right at the end. The object
+  pointer is still valid, but nothing else&nbsp;is.</p>
+</li>
+</ol>
+<h2 id="the-vipsobject-reference-counting-convention">The <a href="class.Object.html"><code>VipsObject</code></a> reference counting convention<a class="md-anchor" href="#the-vipsobject-reference-counting-convention" title="Permanent link"></a></h2>
+<p><a href="class.Object.html"><code>VipsObject</code></a> has a set of conventions to simplify reference&nbsp;counting.</p>
+<ol>
+<li>
+<p>All input <a href="javascript:void(0)" data-namespace="GObject" data-link="class.Object.html" class="external"><code>GObject</code></a> have a ref added to them, owned by the
+  object. When a <a href="class.Object.html"><code>VipsObject</code></a> is unreffed, all of these refs to input
+  objects are automatically&nbsp;dropped.</p>
+</li>
+<li>
+<p>All output <a href="javascript:void(0)" data-namespace="GObject" data-link="class.Object.html" class="external"><code>GObject</code></a> hold a ref to the object. When a
+  <a href="javascript:void(0)" data-namespace="GObject" data-link="class.Object.html" class="external"><code>GObject</code></a> which is an output of a <a href="class.Object.html"><code>VipsObject</code></a> is
+  disposed, it must drop this reference. <a href="class.Object.html"><code>VipsObject</code></a> which are outputs
+  of other <a href="class.Object.html"><code>VipsObject</code></a>&#8216;s will do this&nbsp;automatically.</p>
+</li>
+</ol>
+<p>See <a href="class.Operation.html"><code>VipsOperation</code></a> for an example of <a href="class.Object.html"><code>VipsObject</code></a> reference&nbsp;counting.</p>
+        </div>
+
+        <div class="docblock">
+          
+          
+          
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Vips.Object">
+        <!-- Generated by graphviz version 12.2.1 (20241206.2353)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="101pt" height="116pt"
+ viewBox="0.00 0.00 101.25 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="VipsObject">
+<path fill="none" stroke="black" d="M81.25,-36C81.25,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 81.25,0 81.25,0 87.25,0 93.25,-6 93.25,-12 93.25,-12 93.25,-24 93.25,-24 93.25,-30 87.25,-36 81.25,-36"/>
+<text text-anchor="middle" x="46.62" y="-13.32" font-family="Times,serif" font-size="14.00">VipsObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M71.5,-108C71.5,-108 21.75,-108 21.75,-108 15.75,-108 9.75,-102 9.75,-96 9.75,-96 9.75,-84 9.75,-84 9.75,-78 15.75,-72 21.75,-72 21.75,-72 71.5,-72 71.5,-72 77.5,-72 83.5,-78 83.5,-84 83.5,-84 83.5,-96 83.5,-96 83.5,-102 77.5,-108 71.5,-108"/>
+<text text-anchor="middle" x="46.62" y="-85.33" font-family="Times,serif" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M46.62,-71.7C46.62,-60.85 46.62,-46.92 46.62,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="descendants toggle-wrapper default-hide">
+      <h4 id="descendants">Descendants <a href="#descendants" class="anchor"></a></h4>
+      <div class="docblock">
+        <ul>
+          <li class="class"><a href="class.Connection.html" title="Connection">VipsConnection</a></li>
+        
+          <li class="class"><a href="class.Image.html" title="Image">VipsImage</a></li>
+        
+          <li class="class"><a href="class.Interpolate.html" title="Interpolate">VipsInterpolate</a></li>
+        
+          <li class="class"><a href="class.Operation.html" title="Operation">VipsOperation</a></li>
+        
+          <li class="class"><a href="class.Region.html" title="Region">VipsRegion</a></li>
+        
+          <li class="class"><a href="class.Sbuf.html" title="Sbuf">VipsSbuf</a></li>
+        
+          <li class="class"><a href="class.ThreadState.html" title="ThreadState">VipsThreadState</a></li>
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.Object.new.html">vips_object_new</a></h6>
+          <div class="docblock">
+            <p><code>g_object_new()</code> the object, set any arguments with <code>set</code>, call
+<code>vips_object_build()</code> and return the complete&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.Object.new_from_string.html">vips_object_new_from_string</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6><a href="type_func.Object.get_property.html">vips_object_get_property</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Object.map.html">vips_object_map</a></h6>
+        <div class="docblock">
+          <p>Call a function for all alive objects.
+Stop when <code>fn</code> returns non-<code>NULL</code> and return that&nbsp;value.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Object.print_all.html">vips_object_print_all</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Object.print_summary_class.html">vips_object_print_summary_class</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Object.sanity_all.html">vips_object_sanity_all</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Object.set_property.html">vips_object_set_property</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Object.summary_class.html">vips_object_summary_class</a></h6>
+        <div class="docblock">
+          <p>Generate a human-readable summary for a&nbsp;class.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Object.argument_isset.html">vips_object_argument_isset</a></h6>
+          <div class="docblock">
+            
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.argument_needsstring.html">vips_object_argument_needsstring</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.build.html">vips_object_build</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.dump.html">vips_object_dump</a></h6>
+          <div class="docblock">
+            <p>Dump everything that vips knows about an object to a&nbsp;string.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.get_args.html">vips_object_get_args</a></h6>
+          <div class="docblock">
+            <p>Get all <code>GParamSpec</code> names and <code>VipsArgumentFlags</code> for an&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.get_argument.html">vips_object_get_argument</a></h6>
+          <div class="docblock">
+            <p>Look up the three things you need to work with a vips&nbsp;argument.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.get_argument_flags.html">vips_object_get_argument_flags</a></h6>
+          <div class="docblock">
+            
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.get_argument_priority.html">vips_object_get_argument_priority</a></h6>
+          <div class="docblock">
+            
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.get_argument_to_string.html">vips_object_get_argument_to_string</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.get_description.html">vips_object_get_description</a></h6>
+          <div class="docblock">
+            <p>Fetch the object description. Useful for language&nbsp;bindings.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.local_array.html">vips_object_local_array</a></h6>
+          <div class="docblock">
+            <p>Make an array of <span class="caps">NULL</span> VipsObject pointers. When <code>parent</code> closes, every
+non-<span class="caps">NULL</span> pointer in the array will be unreffed and the array will be
+freed. Handy for creating a set of temporary images for a&nbsp;function.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.local_cb.html">vips_object_local_cb</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.preclose.html">vips_object_preclose</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.print_dump.html">vips_object_print_dump</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.print_name.html">vips_object_print_name</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.print_summary.html">vips_object_print_summary</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.rewind.html">vips_object_rewind</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.sanity.html">vips_object_sanity</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.set.html">vips_object_set</a></h6>
+          <div class="docblock">
+            <p>Set a list of vips object arguments. For&nbsp;example:.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.set_argument_from_string.html">vips_object_set_argument_from_string</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.set_from_string.html">vips_object_set_from_string</a></h6>
+          <div class="docblock">
+            <p>Set object arguments from a string. The string can be something like
+&#8220;a=12&#8221;, or &#8220;a = 12, b = 13&#8221;, or &#8220;fred&#8221;. The string can optionally be
+enclosed in&nbsp;brackets.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.set_required.html">vips_object_set_required</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.set_static.html">vips_object_set_static</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.set_valist.html">vips_object_set_valist</a></h6>
+          <div class="docblock">
+            <p>See <code>vips_object_set()</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.summary.html">vips_object_summary</a></h6>
+          <div class="docblock">
+            <p>Generate a human-readable summary for an&nbsp;object.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.to_string.html">vips_object_to_string</a></h6>
+          <div class="docblock">
+            <p>The inverse of <code>vips_object_new_from_string()</code>: turn <code>object</code> into eg.
+<code>"VipsInterpolateSnohalo1(blur=.333333)"</code>.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Object.unref_outputs.html">vips_object_unref_outputs</a></h6>
+          <div class="docblock">
+            <p>Unref all assigned output objects. Useful for language&nbsp;bindings.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods"><h5 style="display:block;">Methods inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (43)</h5>
+          <div class="docblock">
+          
+            <div class="docblock">
+              <p>Please see&nbsp;<a class="external" href="javascript:void(0)" data-link="class.Object.html#methods" data-namespace="GObject">GObject</a>&nbsp;for a full list of methods.</em></p>
+            </div>
+          
+          </div>
+        </div>
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Object.description.html">Vips.Object:description</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Object.nickname.html">Vips.Object:nickname</a></h6>
+          <div class="docblock">
+            No description available.
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.Object.close.html">Vips.Object::close</a></h6>
+          <div class="docblock">
+            <p>The ::close signal is emitted once during object close. The object
+is dying and may not&nbsp;work.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Object.postbuild.html">Vips.Object::postbuild</a></h6>
+          <div class="docblock">
+            <p>The ::postbuild signal is emitted once just after successful object
+construction. Return non-zero to cause object construction to&nbsp;fail.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Object.postclose.html">Vips.Object::postclose</a></h6>
+          <div class="docblock">
+            <p>The ::postclose signal is emitted once after object close. The
+object pointer is still valid, but nothing&nbsp;else.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Object.preclose.html">Vips.Object::preclose</a></h6>
+          <div class="docblock">
+            <p>The ::preclose signal is emitted once just before object close
+starts. The object is still&nbsp;alive.</p>
+          </div>
+          <div class="docblock">
+            <p></p>
+          </div>
+        </div>
+      
+      </div>
+      
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-signals"><h5 style="display:block;">Signals inherited from <a class="external" href="javascript:void(0)" data-link="class.Object.html" data-namespace="GObject">GObject</a> (1)</h5>
+          <div class="docblock">
+          <h6><a class="external" href="javascript:void(0)" data-namespace="GObject" data-link="signal.Object.notify.html">GObject::notify</a></h6>
+            <div class="docblock">
+              <p>The notify signal is emitted on an object when one of its properties has
+its value set through g_object_set_property(), g_object_set(), et&nbsp;al.</p>
+            </div>
+          </div>
+        </div>
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct VipsObjectClass {
+  GObjectClass parent_class;
+  int (* build) (
+    VipsObject* object
+  );
+  int (* postbuild) (
+    VipsObject* object,
+    void* data
+  );
+  void (* summary_class) (
+    _VipsObjectClass* cls,
+    VipsBuf* buf
+  );
+  void (* summary) (
+    VipsObject* object,
+    VipsBuf* buf
+  );
+  void (* dump) (
+    VipsObject* object,
+    VipsBuf* buf
+  );
+  void (* sanity) (
+    VipsObject* object,
+    VipsBuf* buf
+  );
+  void (* rewind) (
+    VipsObject* object
+  );
+  void (* preclose) (
+    VipsObject* object
+  );
+  void (* close) (
+    VipsObject* object
+  );
+  void (* postclose) (
+    VipsObject* object
+  );
+  VipsObject* (* new_from_string) (
+    const char* string
+  );
+  void (* to_string) (
+    VipsObject* object,
+    VipsBuf* buf
+  );
+  gboolean output_needs_arg;
+  int (* output_to_arg) (
+    VipsObject* object,
+    const char* string
+  );
+  const char* nickname;
+  const char* description;
+  VipsArgumentTable* argument_table;
+  GSList* argument_table_traverse;
+  GType argument_table_traverse_gtype;
+  gboolean deprecated;
+  void (* _vips_reserved1) (
+void
+  );
+  void (* _vips_reserved2) (
+void
+  );
+  void (* _vips_reserved3) (
+void
+  );
+  void (* _vips_reserved4) (
+void
+  );
+  
+}</code></pre>
+      </div>
+
+      <div class="docblock">
+        <p>No description available.</p>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <dl class="members">
+        
+          <dt><code>parent_class: GObjectClass</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>build: int (* build) (
+    VipsObject* object
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>postbuild: int (* postbuild) (
+    VipsObject* object,
+    void* data
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>summary_class: void (* summary_class) (
+    _VipsObjectClass* cls,
+    VipsBuf* buf
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>summary: void (* summary) (
+    VipsObject* object,
+    VipsBuf* buf
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>dump: void (* dump) (
+    VipsObject* object,
+    VipsBuf* buf
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>sanity: void (* sanity) (
+    VipsObject* object,
+    VipsBuf* buf
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>rewind: void (* rewind) (
+    VipsObject* object
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>preclose: void (* preclose) (
+    VipsObject* object
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>close: void (* close) (
+    VipsObject* object
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>postclose: void (* postclose) (
+    VipsObject* object
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>new_from_string: VipsObject* (* new_from_string) (
+    const char* string
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>to_string: void (* to_string) (
+    VipsObject* object,
+    VipsBuf* buf
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>output_needs_arg: gboolean</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>output_to_arg: int (* output_to_arg) (
+    VipsObject* object,
+    const char* string
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>nickname: const char*</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>description: const char*</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>argument_table: VipsArgumentTable*</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>argument_table_traverse: GSList*</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>argument_table_traverse_gtype: GType</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>deprecated: gboolean</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_vips_reserved1: void (* _vips_reserved1) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_vips_reserved2: void (* _vips_reserved2) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_vips_reserved3: void (* _vips_reserved3) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+          <dt><code>_vips_reserved4: void (* _vips_reserved4) (
+void
+  )</code></dt>
+          <dd><p>No description available.</p></dd>
+        
+        </dd>
+      </div>
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6 id="vfunc-build"><a href="vfunc.Object.build.html">Vips.ObjectClass.build</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-close"><a href="vfunc.Object.close.html">Vips.ObjectClass.close</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-dump"><a href="vfunc.Object.dump.html">Vips.ObjectClass.dump</a></h6>
+        <div class="docblock">
+          <p>Dump everything that vips knows about an object to a&nbsp;string.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-output_to_arg"><a href="vfunc.Object.output_to_arg.html">Vips.ObjectClass.output_to_arg</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-postbuild"><a href="vfunc.Object.postbuild.html">Vips.ObjectClass.postbuild</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-postclose"><a href="vfunc.Object.postclose.html">Vips.ObjectClass.postclose</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-preclose"><a href="vfunc.Object.preclose.html">Vips.ObjectClass.preclose</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-rewind"><a href="vfunc.Object.rewind.html">Vips.ObjectClass.rewind</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-sanity"><a href="vfunc.Object.sanity.html">Vips.ObjectClass.sanity</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-summary"><a href="vfunc.Object.summary.html">Vips.ObjectClass.summary</a></h6>
+        <div class="docblock">
+          <p>Generate a human-readable summary for an&nbsp;object.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      <div class="">
+        <h6 id="vfunc-to_string"><a href="vfunc.Object.to_string.html">Vips.ObjectClass.to_string</a></h6>
+        <div class="docblock">
+          <p>The inverse of <code>vips_object_new_from_string()</code>: turn <code>object</code> into eg.
+<code>"VipsInterpolateSnohalo1(blur=.333333)"</code>.</p>
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="class-methods">
+        Class methods
+        <a href="#class-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6><a href="class_method.Object.install_argument.html">vips_object_class_install_argument</a></h6>
+        <div class="docblock">
+          No description available.
+        </div>
+        <div class="docblock">
+          <p></p>
+        </div>
+      </div>
+      
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    
+<div id="toc" class="toc">
+  <nav aria-labelledby="toc-title">
+    <p id="toc-title">Content</p>
+    <ul class="toc-list">
+      <li class="toc-list-item"><a href="#description"><span class="link-text">Description</span></a></li>
+      
+      <ul class="toc-list">
+      
+      
+        <li class="toc-list-item"><a href="#the-vipsobject-lifecycle"><span class="link-text">The VipsObject lifecycle</span></a></li>
+      
+        <li class="toc-list-item"><a href="#the-vipsobject-reference-counting-convention"><span class="link-text">The VipsObject reference counting convention</span></a></li>
+      
+      
+      </ul>
+      
+      
+      <li class="toc-list-item"><a href="#hierarchy"><span class="link-text">Hierarchy</span></a></li>
+      
+      
+      <li class="toc-list-item"><a href="#ancestors"><span class="link-text">Ancestors</span></a></li>
+      
+      
+      
+<li class="toc-list-item"><a href="#constructors"><span class="link-text">Constructors</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#type-functions"><span class="link-text">Functions</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#methods"><span class="link-text">Methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#properties"><span class="link-text">Properties</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#signals"><span class="link-text">Signals</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#class-methods"><span class="link-text">Class methods</span></a></li>
+
+
+      
+<li class="toc-list-item"><a href="#virtual-methods"><span class="link-text">Virtual methods</span></a></li>
+
+
+    </ul>
+  </nav>
+</div>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>
