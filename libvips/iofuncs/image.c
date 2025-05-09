@@ -1523,7 +1523,7 @@ vips_image_preeval(VipsImage *image)
 
 		/* For vips7 compat, we also have to make sure ->time on the
 		 * image that was originally marked with
-		 * [method@Image.set_progress] is valid.
+		 * vips_image_set_progress() is valid.
 		 */
 		(void) vips_progress_add(image->progress_signal);
 
@@ -2655,7 +2655,7 @@ vips_image_write(VipsImage *image, VipsImage *out)
 	 *
 	 * If it's not partial, perhaps a file we write to or a memory image,
 	 * we need to break any links between @image and @out created by
-	 * [method@Image.pipelinev].
+	 * vips_image_pipelinev().
 	 */
 	if (vips_image_ispartial(out)) {
 		vips_object_local(out, image);
@@ -3223,7 +3223,7 @@ vips_image_write_line(VipsImage *image, int ypos, VipsPel *linebuffer)
 			return -1;
 
 		/* Always clear kill before we start looping. See the
-		 * call to [method@Image.iskilled] below.
+		 * call to vips_image_iskilled() below.
 		 */
 		vips_image_set_kill(image, FALSE);
 		vips_image_write_prepare(image);
@@ -3469,7 +3469,7 @@ vips_image_wio_input(VipsImage *image)
 		g_object_unref(t1);
 
 		/* We need to zap any start/gen/stop callbacks. If we don't,
-		 * calling [method@Region.prepare_to] later to read from this
+		 * calling vips_region_prepare_to() later to read from this
 		 * image will fail, since it will think it needs to create the
 		 * image, not read from it.
 		 */
@@ -3553,7 +3553,7 @@ vips__image_wio_output(VipsImage *image)
 		 *
 		 * We used to check that ->data was null and warn about
 		 * writing twice, but we no longer insist that this is called
-		 * before [method@Image.write_prepare], so we can't do that any
+		 * before vips_image_write_prepare(), so we can't do that any
 		 * more.
 		 */
 		break;
