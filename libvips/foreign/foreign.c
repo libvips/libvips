@@ -1588,7 +1588,6 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		int max_bands;
 
 		// use a sanity-checked interpretation
-		max_bands = 0;
 		switch (vips_image_guess_interpretation(in)) {
 		case VIPS_INTERPRETATION_B_W:
 		case VIPS_INTERPRETATION_GREY16:
@@ -1614,6 +1613,8 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			break;
 
 		default:
+			max_bands = 0;
+			break;
 		}
 
 		if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
