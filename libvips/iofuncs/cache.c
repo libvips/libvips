@@ -775,7 +775,7 @@ vips_cache_get_first(void)
  * vips_cache_drop_all:
  *
  * Drop the whole operation cache, handy for leak tracking. Also called
- * automatically on [func@shutdown].
+ * automatically on vips_shutdown().
  */
 void
 vips_cache_drop_all(void)
