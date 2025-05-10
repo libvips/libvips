@@ -1,3 +1,6 @@
+// bodies for vips operations
+// this file is generated automatically, do not edit!
+// clang-format off
 
 VImage
 VImage::CMC2LCh(VOption *options) const

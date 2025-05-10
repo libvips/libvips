@@ -289,6 +289,7 @@ API docs each function links to for more details.
 | `relational_const` | Relational operations against a constant | [method@Image.relational_const], [method@Image.equal_const], [method@Image.notequal_const], [method@Image.less_const], [method@Image.lesseq_const], [method@Image.more_const], [method@Image.moreeq_const], [method@Image.relational_const1], [method@Image.equal_const1], [method@Image.notequal_const1], [method@Image.less_const1], [method@Image.lesseq_const1], [method@Image.more_const1], [method@Image.moreeq_const1] |
 | `remainder` | Remainder after integer division of two images | [method@Image.remainder] |
 | `remainder_const` | Remainder after integer division of an image and a constant | [method@Image.remainder_const], [method@Image.remainder_const1] |
+| `remosaic` | Rebuild an mosaiced image | [method@Image.remosaic] |
 | `replicate` | Replicate an image | [method@Image.replicate] |
 | `resize` | Resize an image | [method@Image.resize] |
 | `rot` | Rotate an image | [method@Image.rot] |
@@ -299,7 +300,7 @@ API docs each function links to for more details.
 | `sRGB2scRGB` | Convert an srgb image to scrgb | [method@Image.sRGB2scRGB] |
 | `scRGB2BW` | Convert scrgb to bw | [method@Image.scRGB2BW] |
 | `scRGB2XYZ` | Transform scrgb to xyz | [method@Image.scRGB2XYZ] |
-| `scRGB2sRGB` | Convert an scrgb image to srgb | [method@Image.scRGB2sRGB] |
+| `scRGB2sRGB` | Convert scrgb to srgb | [method@Image.scRGB2sRGB] |
 | `scale` | Scale an image to uchar | [method@Image.scale] |
 | `scharr` | Scharr edge detector | [method@Image.scharr] |
 | `sdf` | Create an sdf image | [ctor@Image.sdf] |

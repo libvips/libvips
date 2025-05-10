@@ -4,10 +4,9 @@
 # operators.
 
 # this needs pyvips
-#
 #   pip install --user pyvips
 
-# Rebuild with:
+# rebuild with:
 #   meson compile -Cbuild vips-operators-header
 #   meson compile -Cbuild vips-operators-source
 
@@ -262,8 +261,14 @@ def generate_operators(declarations_only=False):
     all_nicknames = list(set(all_nicknames) - set(hidden_savers))
     all_nicknames.sort()
 
+    indent = '\t' if declarations_only else ''
+
+    print(f'''{indent}// {'headers' if declarations_only else 'bodies'} for vips operations
+{indent}// this file is generated automatically, do not edit!
+{indent}// clang-format off''')
+
     for nickname in all_nicknames:
-        print(generate_operation(nickname, declarations_only, '\t' if declarations_only else ''))
+        print(generate_operation(nickname, declarations_only, indent))
 
 
 parser = argparse.ArgumentParser(description='C++ binding generator')
