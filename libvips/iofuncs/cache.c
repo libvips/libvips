@@ -738,7 +738,7 @@ vips_cache_insert(VipsOperation *operation)
  * vips_cache_drop_all:
  *
  * Drop the whole operation cache, handy for leak tracking. Also called
- * automatically on vips_shutdown().
+ * automatically on [func@shutdown].
  */
 void
 vips_cache_drop_all(void)
