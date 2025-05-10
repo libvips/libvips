@@ -1425,7 +1425,7 @@ vips_call_argv_output(VipsObject *object,
  * the GOption parser already, see above.
  *
  * We don't create the operation, so we must not unref it. The caller must
- * unref on error too. The caller must also call [method@Object.unref_outputs] on
+ * unref on error too. The caller must also call vips_object_unref_outputs() on
  * all code paths.
  */
 int

@@ -1799,7 +1799,7 @@ vips_region_prepare_to(VipsRegion *reg,
 
 	/* clip r first against the size of reg->im, then again against the
 	 * memory we have available to write to on dest. Just like
-	 * [method@Region.region]
+	 * vips_region_region()
 	 */
 	image.top = 0;
 	image.left = 0;
