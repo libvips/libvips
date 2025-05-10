@@ -4,16 +4,13 @@
 # for docs
 
 # this needs pyvips
-#
 #   pip install --user pyvips
 
-# sample output:
+# rebuild with:
+#   ./gen-function-list.py > function-list.md
 
-# <row>
-#   <entry>gamma</entry>
-#   <entry>Gamma an image</entry>
-#   <entry>vips_gamma()</entry>
-# </row>
+# sample output:
+# | `gamma` | Gamma an image | [method@Image.gamma] |
 
 from pyvips import Introspect, Operation, Error, \
     ffi, type_map, type_from_name, nickname_find
@@ -25,10 +22,25 @@ _OPERATION_DEPRECATED = 8
 def gen_function(operation_name, overloads):
     intro = Introspect.get(operation_name)
 
-    c_operations = 'vips_{}()'.format(operation_name)
+    # Keep-in-sync with fixup-gir-for-doc.py
+    image_funcs = [
+        'arrayjoin',
+        'bandjoin',
+        'bandrank',
+        'composite',
+        'sum',
+        'switch',
+    ]
+
+    if operation_name in image_funcs:
+        c_operations = f'[func@Image.{operation_name}]'
+    else:
+        operation_type = 'ctor' if intro.member_x is None else 'method'
+        operation_class = 'Blob' if operation_name == 'profile_load' else 'Image'
+        c_operations = f'[{operation_type}@{operation_class}.{operation_name}]'
 
     if overloads:
-        c_operations += ', ' + (', '.join('vips_{}()'.format(n) for n in overloads))
+        c_operations += ', ' + (', '.join(f'[method@Image.{n}]' for n in overloads))
 
     result = f"| `{operation_name}` | {intro.description.capitalize()} | {c_operations} |"
 
@@ -111,9 +123,7 @@ def gen_function_list():
 
 
 if __name__ == '__main__':
-    print("""Title: All libvips functions and operators
-
-# Introduction
+    print("""Title: Operator index / Alphabetical
 
 libvips has a set of operators, each of which computes some useful image
 processing operation. Each operator is implemented as a [class@GObject.Object]

@@ -61,6 +61,7 @@ def fixup_gir_for_doc(args):
 
     # Functions that take multiple images as input argument ... make them
     # part of the Image class.
+    # Keep-in-sync with gen-function-list.py
     image_funcs = [
         'arrayjoin',
         'bandjoin',

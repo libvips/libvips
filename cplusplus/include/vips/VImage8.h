@@ -2082,6 +2082,7 @@ public:
 
 	// headers for vips operations
 	// this file is generated automatically, do not edit!
+	// clang-format off
 
 	/**
 	 * Transform lch to cmc.
@@ -5879,8 +5880,8 @@ public:
 	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
 	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
 	 *   - **linear** -- Reduce in linear light, bool.
-	 *   - **import_profile** -- Fallback import profile, const char *.
-	 *   - **export_profile** -- Fallback export profile, const char *.
+	 *   - **input_profile** -- Fallback input profile, const char *.
+	 *   - **output_profile** -- Fallback output profile, const char *.
 	 *   - **intent** -- Rendering intent, VipsIntent.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
 	 *
@@ -5901,8 +5902,8 @@ public:
 	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
 	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
 	 *   - **linear** -- Reduce in linear light, bool.
-	 *   - **import_profile** -- Fallback import profile, const char *.
-	 *   - **export_profile** -- Fallback export profile, const char *.
+	 *   - **input_profile** -- Fallback input profile, const char *.
+	 *   - **output_profile** -- Fallback output profile, const char *.
 	 *   - **intent** -- Rendering intent, VipsIntent.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
 	 *
@@ -5922,8 +5923,8 @@ public:
 	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
 	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
 	 *   - **linear** -- Reduce in linear light, bool.
-	 *   - **import_profile** -- Fallback import profile, const char *.
-	 *   - **export_profile** -- Fallback export profile, const char *.
+	 *   - **input_profile** -- Fallback input profile, const char *.
+	 *   - **output_profile** -- Fallback output profile, const char *.
 	 *   - **intent** -- Rendering intent, VipsIntent.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
 	 *
@@ -5943,8 +5944,8 @@ public:
 	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
 	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
 	 *   - **linear** -- Reduce in linear light, bool.
-	 *   - **import_profile** -- Fallback import profile, const char *.
-	 *   - **export_profile** -- Fallback export profile, const char *.
+	 *   - **input_profile** -- Fallback input profile, const char *.
+	 *   - **output_profile** -- Fallback output profile, const char *.
 	 *   - **intent** -- Rendering intent, VipsIntent.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
 	 *
