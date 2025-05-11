@@ -503,6 +503,11 @@ class TestForeign:
         assert im2.get("exif-ifd0-ImageDescription") \
             .startswith("test description")
 
+        # https://github.com/libvips/libvips/issues/4509
+        data = self.rgba.cast("double").write_to_buffer(".png")
+        after = pyvips.Image.new_from_buffer(data, "")
+        assert (self.rgba - after).abs().max() == 0
+
     @skip_if_no("tiffload")
     def test_tiff(self):
         def tiff_valid(im):
