@@ -436,7 +436,8 @@ vips_resize_init(VipsResize *resize)
  *
  * ::: tip "optional arguments"
  *     * @vscale: `gdouble`, vertical scale factor
- *     * @kernel: [enum@Kernel], to reduce with
+ *     * @kernel: [enum@Kernel], kernel to reduce with
+ *       (default: [enum@Vips.Kernel.LANCZOS3])
  *     * @gap: `gdouble`, reducing gap to use (default: 2.0)
  *
  * ::: seealso

@@ -533,12 +533,12 @@ vips_min_init(VipsMin *min)
  * selection of the minima in the image.
  *
  * ::: tip "Optional arguments"
- *     * @x: horizontal position of minimum
- *     * @y: vertical position of minimum
- *     * @size: number of minima to find
- *     * @out_array: return array of minimum values
- *     * @x_array: corresponding horizontal positions
- *     * @y_array: corresponding vertical positions
+ *     * @x: `gint`, output, horizontal position of minimum
+ *     * @y: `gint`, output, vertical position of minimum
+ *     * @size: `gint`, number of minima to find
+ *     * @out_array: [struct@ArrayDouble], output, array of minimum values
+ *     * @x_array: [struct@ArrayInt], output, corresponding horizontal positions
+ *     * @y_array: [struct@ArrayInt], output, corresponding vertical positions
  *
  * ::: seealso
  *     [method@Image.min], [method@Image.stats].

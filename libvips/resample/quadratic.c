@@ -384,7 +384,7 @@ vips_quadratic_init(VipsQuadratic *quadratic)
  * The matrix height may be 1, 3, 4, 6
  *
  * ::: tip "Optional arguments"
- *     * @interpolate: use this interpolator (default bilinear)
+ *     * @interpolate: [class@Interpolate], use this interpolator (default bilinear)
  *
  * ::: seealso
  *     [method@Image.affine].

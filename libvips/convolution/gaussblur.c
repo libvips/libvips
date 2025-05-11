@@ -185,7 +185,7 @@ vips_gaussblur_init(VipsGaussblur *gaussblur)
  *
  * ::: tip "Optional arguments"
  *     * @precision: [enum@Precision], precision for blur, default int
- *     * @min_ampl: minimum amplitude, default 0.2
+ *     * @min_ampl: `gdouble`, minimum amplitude, default 0.2
  *
  * ::: seealso
  *     [ctor@Image.gaussmat], [method@Image.convsep].

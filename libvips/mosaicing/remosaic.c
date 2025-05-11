@@ -204,8 +204,8 @@ vips_remosaic_init(VipsRemosaic *remosaic)
  * takes apart the mosaiced image @in and rebuilds it, substituting images.
  *
  * Unlike [method@Image.globalbalance], images are substituted based on their
- * filenames.  The  rightmost  occurrence  of the string @old_str is swapped
- * for @new_str, that file is opened, and that image substituted  for
+ * filenames. The rightmost occurrence of the string @old_str is swapped
+ * for @new_str, that file is opened, and that image substituted for
  * the old image.
  *
  * It's convenient for multispectral images. You can mosaic one band, then

@@ -518,7 +518,7 @@ vips_linearv(VipsImage *in, VipsImage **out,
  * image where each band corresponds to one array element.
  *
  * ::: tip "Optional arguments"
- *     * @uchar: output uchar pixels
+ *     * @uchar: `gboolean`, output uchar pixels
  *
  * ::: seealso
  *     [method@Image.linear1], [method@Image.add].
@@ -550,7 +550,7 @@ vips_linear(VipsImage *in, VipsImage **out,
  * Run [method@Image.linear] with a single constant.
  *
  * ::: tip "Optional arguments"
- *     * @uchar: output uchar pixels
+ *     * @uchar: `gboolean`, output uchar pixels
  *
  * ::: seealso
  *     [method@Image.linear].

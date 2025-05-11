@@ -653,7 +653,8 @@ vips_reduceh_init(VipsReduceh *reduceh)
  * be updated by the application.
  *
  * ::: tip "Optional arguments"
- *     * @kernel: [enum@Kernel], to use to interpolate (default: lanczos3)
+ *     * @kernel: [enum@Kernel], kernel to interpolate with
+ *       (default: [enum@Vips.Kernel.LANCZOS3])
  *     * @gap: `gboolean`, reducing gap to use (default: 0.0)
  *
  * ::: seealso

@@ -754,10 +754,10 @@ vips_draw_flood(VipsImage *image,
  * ::: tip "Optional arguments"
  *     * @test: [class@Image], test this image
  *     * @equal: `gboolean`, fill while equal to edge
- *     * @left: `gint`, output left edge of bounding box of modified area
- *     * @top: `gint`, output top edge of bounding box of modified area
- *     * @width: `gint`, output width of bounding box of modified area
- *     * @height: `gint`, output height of bounding box of modified area
+ *     * @left: `gint`, output, left edge of bounding box of modified area
+ *     * @top: `gint`, output, top edge of bounding box of modified area
+ *     * @width: `gint`, output, width of bounding box of modified area
+ *     * @height: `gint`, output, height of bounding box of modified area
  *
  * ::: seealso
  *     [method@Image.draw_flood].

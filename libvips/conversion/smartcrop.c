@@ -505,10 +505,10 @@ vips_smartcrop_init(VipsSmartcrop *smartcrop)
  *     * @interesting: [enum@Interesting] to use to find interesting areas
  *       (default: [enum@Vips.Interesting.ATTENTION])
  *     * @premultiplied: `gboolean`, input image already has premultiplied alpha
- *     * @attention_x: `gint`, horizontal position of attention centre when
- *       using attention based cropping (output)
- *     * @attention_y: `gint`, vertical position of attention centre when
- *       using attention based cropping (output)
+ *     * @attention_x: `gint`, output, horizontal position of attention centre when
+ *       using attention based cropping
+ *     * @attention_y: `gint`, output, vertical position of attention centre when
+ *       using attention based cropping
  *
  * ::: seealso
  *     [method@Image.extract_area].

@@ -1848,10 +1848,6 @@ vips_filename_get_options(const char *vips_filename)
  * @name: file to open
  * @...: `NULL`-terminated list of optional named arguments
  *
- * ::: tip "Optional arguments"
- *     * @access: hint [enum@Access] mode to loader
- *     * @memory: `gboolean`, force load via memory
- *
  * [ctor@Image.new_from_file] opens @name for reading. It can load files
  * in many image formats, including VIPS, TIFF, PNG, JPEG, FITS, Matlab,
  * OpenEXR, CSV, WebP, Radiance, RAW, PPM and others.
@@ -1908,6 +1904,10 @@ vips_filename_get_options(const char *vips_filename)
  * file is in and therefore what options are available. If you need more
  * control over the loading process, you can call loaders directly, see
  * [ctor@Image.jpegload], for example.
+ *
+ * ::: tip "Optional arguments"
+ *     * @access: [enum@Access], hint expected access pattern
+ *     * @memory: `gboolean`, force load via memory
  *
  * ::: seealso
  *     [func@Foreign.find_load], [func@Foreign.is_a],

@@ -270,10 +270,10 @@ vips_measure_init(VipsMeasure *measure)
  * position of the chart.
  *
  * ::: tip "Optional arguments"
- *     * @left: area of image containing chart
- *     * @top: area of image containing chart
- *     * @width: area of image containing chart
- *     * @height: area of image containing chart
+ *     * @left: `gint`, area of image containing chart
+ *     * @top: `gint`, area of image containing chart
+ *     * @width: `gint`, area of image containing chart
+ *     * @height: `gint`, area of image containing chart
  *
  * ::: seealso
  *     [method@Image.avg], [method@Image.deviate].

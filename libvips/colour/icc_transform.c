@@ -1500,7 +1500,7 @@ vips_icc_import(VipsImage *in, VipsImage **out, ...)
  * enabled.
  *
  * ::: tip "Optional arguments"
- *     * @pcs: [enum@PCS],  use XYZ or LAB PCS
+ *     * @pcs: [enum@PCS], use XYZ or LAB PCS
  *     * @intent: [enum@Intent], transform with this intent
  *     * @black_point_compensation: `gboolean`, enable black point compensation
  *     * @output_profile: `gchararray`, get the output profile from here

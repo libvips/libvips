@@ -245,8 +245,8 @@ vips_autorot_init(VipsAutorot *autorot)
  * see if the image was also flipped.
  *
  * ::: tip "Optional arguments"
- *     * @angle: output [enum@Angle] the image was rotated by
- *     * @flip: output `gboolean` whether the image was flipped
+ *     * @angle: [enum@Angle], output, the image was rotated by
+ *     * @flip: `gboolean`, output, whether the image was flipped
  *
  * Returns: 0 on success, -1 on error
  */

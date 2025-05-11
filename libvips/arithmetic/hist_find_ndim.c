@@ -344,7 +344,7 @@ vips_hist_find_ndim_init(VipsHistFindNDim *ndim)
  * image types are cast to ushort.
  *
  * ::: tip "Optional arguments"
- *     * @bins: number of bins to make on each axis
+ *     * @bins: `gint`, number of bins to make on each axis
  *
  * ::: seealso
  *     [method@Image.hist_find], [method@Image.hist_find_indexed].

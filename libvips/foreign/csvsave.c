@@ -351,7 +351,7 @@ vips_foreign_save_csv_target_init(VipsForeignSaveCsvTarget *target)
  * The default is "\\t" (tab).
  *
  * ::: tip "Optional arguments"
- *     * @separator: separator string
+ *     * @separator: `gchararray`, separator string
  *
  * ::: seealso
  *     [method@Image.write_to_file].
@@ -380,7 +380,7 @@ vips_csvsave(VipsImage *in, const char *filename, ...)
  * As [method@Image.csvsave], but save to a target.
  *
  * ::: tip "Optional arguments"
- *     * @separator: separator string
+ *     * @separator: `gchararray`, separator string
  *
  * ::: seealso
  *     [method@Image.csvsave].

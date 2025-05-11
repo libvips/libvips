@@ -650,12 +650,12 @@ vips_mosaic1_init(VipsMosaic1 *mosaic1)
  * are improved by searching an area of @sec of size @harea for a
  * object of size @hwindow in @ref.
  *
- * @mblend limits  the  maximum size of the
- * blend area.  A value of "-1" means "unlimited". The two images are blended
+ * @mblend limits the maximum size of the
+ * blend area. A value of "-1" means "unlimited". The two images are blended
  * with a raised cosine.
  *
  * Pixels with all bands equal to zero are "transparent", that
- * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * is, zero pixels in the overlap area do not contribute to the merge.
  * This makes it possible to join non-rectangular images.
  *
  * If the number of bands differs, one of the images
