@@ -340,7 +340,7 @@ vips_fill_nearest_init(VipsFillNearest *nearest)
  * format as @in.
  *
  * ::: tip "Optional arguments"
- *     * @distance: [class@Image], output image of distance to nearest
+ *     * @distance: [class@Image], output, image of distance to nearest
  *       non-zero pixel
  *
  * ::: seealso

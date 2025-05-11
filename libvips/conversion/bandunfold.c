@@ -194,7 +194,7 @@ vips_bandunfold_init(VipsBandunfold *bandunfold)
  * as many bands. By default, all bands are unfolded.
  *
  * ::: tip "Optional arguments"
- *     * @factor: unfold by this factor
+ *     * @factor: `gint`, unfold by this factor
  *
  * ::: seealso
  *     [ctor@Image.csvload], [method@Image.bandfold].

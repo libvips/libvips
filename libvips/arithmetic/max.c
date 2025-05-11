@@ -532,12 +532,12 @@ vips_max_init(VipsMax *max)
  * selection of the maxima in the image.
  *
  * ::: tip "Optional arguments"
- *     * @x: horizontal position of maximum
- *     * @y: vertical position of maximum
- *     * @size: number of maxima to find
- *     * @out_array: return array of maximum values
- *     * @x_array: corresponding horizontal positions
- *     * @y_array: corresponding vertical positions
+ *     * @x: `gint`, output, horizontal position of maximum
+ *     * @y: `gint`, output, vertical position of maximum
+ *     * @size: `gint`, number of maxima to find
+ *     * @out_array: [struct@ArrayDouble], output, array of maximum values
+ *     * @x_array: [struct@ArrayInt], output, corresponding horizontal positions
+ *     * @y_array: [struct@ArrayInt]. output, corresponding vertical positions
  *
  * ::: seealso
  *     [method@Image.min], [method@Image.stats].

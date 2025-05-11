@@ -180,8 +180,8 @@ vips_hough_line_init(VipsHoughLine *hough_line)
  * that is, how accurate the line determination should be.
  *
  * ::: tip "Optional arguments"
- *     * @width: horizontal size of parameter space
- *     * @height: vertical size of parameter space
+ *     * @width: `gint`, horizontal size of parameter space
+ *     * @height: `gint`, vertical size of parameter space
  *
  * ::: seealso
  *     [method@Image.hough_circle].

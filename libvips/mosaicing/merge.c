@@ -197,12 +197,12 @@ vips_merge_init(VipsMerge *merge)
  * the vector to get from the origin of @sec to the origin of @ref, in other
  * words, @dx will generally be a negative number.
  *
- * @mblend limits  the  maximum width of the
- * blend area.  A value of "-1" means "unlimited". The two images are blended
+ * @mblend limits the maximum width of the
+ * blend area. A value of "-1" means "unlimited". The two images are blended
  * with a raised cosine.
  *
  * Pixels with all bands equal to zero are "transparent", that
- * is, zero pixels in the overlap area do not  contribute  to  the  merge.
+ * is, zero pixels in the overlap area do not contribute to the merge.
  * This makes it possible to join non-rectangular images.
  *
  * ::: tip "Optional arguments"

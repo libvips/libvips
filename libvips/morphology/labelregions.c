@@ -163,7 +163,7 @@ vips_labelregions_init(VipsLabelregions *labelregions)
  * Use [method@Image.hist_find_indexed] to (for example) find blob coordinates.
  *
  * ::: tip "Optional arguments"
- *     * @segments: `gint`, return number of regions found here
+ *     * @segments: `gint`, output, number of regions found
  *
  * ::: seealso
  *     [method@Image.hist_find_indexed].

@@ -153,8 +153,8 @@ vips_wrap_init(VipsWrap *wrap)
  * If @x and @y are not set, they default to the centre of the image.
  *
  * ::: tip "Optional arguments"
- *     * @x: horizontal displacement
- *     * @y: vertical displacement
+ *     * @x: `gint`, horizontal displacement
+ *     * @y: `gint`, vertical displacement
  *
  * ::: seealso
  *     [method@Image.embed], [method@Image.replicate].

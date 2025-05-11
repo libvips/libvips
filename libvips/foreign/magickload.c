@@ -92,7 +92,7 @@
  * ::: tip "Optional arguments"
  *     * @page: `gint`, load from this page
  *     * @n: `gint`, load this many pages
- *     * @density: string, canvas resolution for rendering vector formats
+ *     * @density: `gchararray`, canvas resolution for rendering vector formats
  *       like SVG
  *
  * ::: seealso
@@ -129,7 +129,7 @@ vips_magickload(const char *filename, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @page: `gint`, load from this page
  *     * @n: `gint`, load this many pages
- *     * @density: string, canvas resolution for rendering vector formats
+ *     * @density: `gchararray`, canvas resolution for rendering vector formats
  *       like SVG
  *
  * ::: seealso

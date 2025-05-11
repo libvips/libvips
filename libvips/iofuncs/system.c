@@ -325,13 +325,6 @@ vips_system_init(VipsSystem *system)
  * @cmd_format: command to run
  * @...: `NULL`-terminated list of optional named arguments
  *
- * ::: tip "Optional arguments"
- *     * @in: array of input images
- *     * @out: output image
- *     * @in_format: write input files like this
- *     * @out_format: write output filename like this
- *     * @log: stdout of command is returned here
- *
  * [ctor@Image.system] runs a command, optionally passing a set of images in and
  * optionally getting an image back. The command's stdout is returned in @log.
  *
@@ -376,6 +369,13 @@ vips_system_init(VipsSystem *system)
  *         NULL))
  *     error ...
  * ```
+ *
+ * ::: tip "Optional arguments"
+ *     * @in: [struct@ArrayImage], array of input images
+ *     * @out: [class@Image], output, image
+ *     * @in_format: `gchararray`, write input files like this
+ *     * @out_format: `gchararray`, write output filename like this
+ *     * @log: `gchararray`, output, stdout of command is returned here
  *
  * Returns: 0 on success, -1 on failure.
  */

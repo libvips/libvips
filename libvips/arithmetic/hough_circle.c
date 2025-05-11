@@ -282,9 +282,9 @@ vips_hough_circle_init(VipsHoughCircle *hough_circle)
  * int @out) by a factor of three as well.
  *
  * ::: tip "Optional arguments"
- *     * @scale: scale down dimensions by this much
- *     * @min_radius: smallest radius to search for
- *     * @max_radius: largest radius to search for
+ *     * @scale: `gint`, scale down dimensions by this much
+ *     * @min_radius: `gint`, smallest radius to search for
+ *     * @max_radius: `gint`, largest radius to search for
  *
  * ::: seealso
  *     [method@Image.hough_line].

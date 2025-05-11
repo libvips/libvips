@@ -603,7 +603,7 @@ vips_colourspace_init(VipsColourspace *colourspace)
  * and [method@Image.XYZ2Lab].
  *
  * ::: tip "Optional arguments"
- *     * @source_space: input colour space
+ *     * @source_space: [enum@Interpretation], input colour space
  *
  * ::: seealso
  *     [method@Image.colourspace_issupported],

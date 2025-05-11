@@ -688,7 +688,8 @@ vips_embed_init(VipsEmbed *embed)
  * @extend controls what appears in the new pels, see [enum@Extend].
  *
  * ::: tip "Optional arguments"
- *     * @extend: [enum@Extend] to generate the edge pixels (default: [enum@Vips.Extend.BLACK])
+ *     * @extend: [enum@Extend] to generate the edge pixels
+ *       (default: [enum@Vips.Extend.BLACK])
  *     * @background: [struct@ArrayDouble] colour for edge pixels
  *
  * ::: seealso
@@ -835,7 +836,8 @@ vips_gravity_init(VipsGravity *gravity)
  * @extend controls what appears in the new pels, see [enum@Extend].
  *
  * ::: tip "Optional arguments"
- *     * @extend: [enum@Extend] to generate the edge pixels (default: [enum@Vips.Extend.BLACK])
+ *     * @extend: [enum@Extend] to generate the edge pixels
+ *       (default: [enum@Vips.Extend.BLACK])
  *     * @background: [struct@ArrayDouble] colour for edge pixels
  *
  * ::: seealso

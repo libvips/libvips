@@ -461,7 +461,7 @@ vips_hist_find_init(VipsHistFind *hist_find)
  * image types are cast to ushort.
  *
  * ::: tip "Optional arguments"
- *     * @band: band to equalise
+ *     * @band: `gint`, band to equalise
  *
  * ::: seealso
  *     [method@Image.hist_find_ndim], [method@Image.hist_find_indexed].

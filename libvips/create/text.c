@@ -711,7 +711,7 @@ vips_text_init(VipsText *text)
  *     * @align: [enum@Align], set justification alignment
  *     * @justify: `gboolean`, justify lines
  *     * @dpi: `gint`, render at this resolution
- *     * @autofit_dpi: `gint`, read out auto-fitted DPI
+ *     * @autofit_dpi: `gint`, output, auto-fitted DPI
  *     * @rgba: `gboolean`, enable RGBA output
  *     * @spacing: `gint`, space lines by this in points
  *     * @wrap: [enum@TextWrap], wrap lines on characters or words
