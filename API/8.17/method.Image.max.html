@@ -330,6 +330,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.equal_const1.html">equal_const1</a>
   
+    <a class="method" href="method.Image.eval.html">eval</a>
+  
     <a class="method" href="method.Image.exp.html">exp</a>
   
     <a class="method" href="method.Image.exp10.html">exp10</a>
@@ -684,6 +686,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.polar.html">polar</a>
   
+    <a class="method" href="method.Image.posteval.html">posteval</a>
+  
     <a class="method" href="method.Image.pow.html">pow</a>
   
     <a class="method" href="method.Image.pow_const.html">pow_const</a>
@@ -693,6 +697,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.ppmsave.html">ppmsave</a>
   
     <a class="method" href="method.Image.ppmsave_target.html">ppmsave_target</a>
+  
+    <a class="method" href="method.Image.preeval.html">preeval</a>
   
     <a class="method" href="method.Image.premultiply.html">premultiply</a>
   
@@ -989,12 +995,12 @@ selection of the maxima in the&nbsp;image.</p>
 <div class="admonition tip">
 <p class="admonition-title">Optional&nbsp;arguments</p>
 <ul>
-<li><code>x</code>: horizontal position of&nbsp;maximum</li>
-<li><code>y</code>: vertical position of&nbsp;maximum</li>
-<li><code>size</code>: number of maxima to&nbsp;find</li>
-<li><code>out_array</code>: return array of maximum&nbsp;values</li>
-<li><code>x_array</code>: corresponding horizontal&nbsp;positions</li>
-<li><code>y_array</code>: corresponding vertical&nbsp;positions</li>
+<li><code>x</code>: <code>gint</code>, output, horizontal position of&nbsp;maximum</li>
+<li><code>y</code>: <code>gint</code>, output, vertical position of&nbsp;maximum</li>
+<li><code>size</code>: <code>gint</code>, number of maxima to&nbsp;find</li>
+<li><code>out_array</code>: <a href="struct.ArrayDouble.html"><code>VipsArrayDouble</code></a>, output, array of maximum&nbsp;values</li>
+<li><code>x_array</code>: <a href="struct.ArrayInt.html"><code>VipsArrayInt</code></a>, output, corresponding horizontal&nbsp;positions</li>
+<li><code>y_array</code>: <a href="struct.ArrayInt.html"><code>VipsArrayInt</code></a>. output, corresponding vertical&nbsp;positions</li>
 </ul>
 </div>
 <div class="admonition seealso">

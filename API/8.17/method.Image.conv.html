@@ -330,6 +330,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.equal_const1.html">equal_const1</a>
   
+    <a class="method" href="method.Image.eval.html">eval</a>
+  
     <a class="method" href="method.Image.exp.html">exp</a>
   
     <a class="method" href="method.Image.exp10.html">exp10</a>
@@ -684,6 +686,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.polar.html">polar</a>
   
+    <a class="method" href="method.Image.posteval.html">posteval</a>
+  
     <a class="method" href="method.Image.pow.html">pow</a>
   
     <a class="method" href="method.Image.pow_const.html">pow_const</a>
@@ -693,6 +697,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.ppmsave.html">ppmsave</a>
   
     <a class="method" href="method.Image.ppmsave_target.html">ppmsave_target</a>
+  
+    <a class="method" href="method.Image.preeval.html">preeval</a>
   
     <a class="method" href="method.Image.premultiply.html">premultiply</a>
   
@@ -984,7 +990,7 @@ is always <a href="enum.BandFormat.html#float"><code>VIPS_FORMAT_FLOAT</code></a
 <a href="enum.BandFormat.html#double"><code>VIPS_FORMAT_DOUBLE</code></a>, in which case <code>out</code> is also
 <a href="enum.BandFormat.html#double"><code>VIPS_FORMAT_DOUBLE</code></a>.</p>
 <p>If <code>precision</code> is <a href="enum.Precision.html#integer"><code>VIPS_PRECISION_INTEGER</code></a>, then elements of <code>mask</code>
-are converted to integers before convolution, using rint(),
+are converted to integers before convolution, using <code>rint()</code>,
 and the output image always has the same <a href="enum.BandFormat.html"><code>VipsBandFormat</code></a> as the input&nbsp;image.</p>
 <p>For <a href="enum.BandFormat.html#uchar"><code>VIPS_FORMAT_UCHAR</code></a> images and <a href="enum.Precision.html#integer"><code>VIPS_PRECISION_INTEGER</code></a>
 <code>precision</code>, <a href="method.Image.conv.html"><code>vips_conv()</code></a> uses a fast vector path based on

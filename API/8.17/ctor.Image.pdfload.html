@@ -327,19 +327,19 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/foreign.c#L2688">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/foreign.c#L2689">[src]</a>
         
       </h4>
 
       <div class="docblock">
         <p>Render a <span class="caps">PDF</span> file into a <span class="caps">VIPS</span>&nbsp;image.</p>
-<p>The output image is always <span class="caps">RGBA</span> &#8212;- <span class="caps">CMYK</span> PDFs will be
+<p>The output image is always <span class="caps">RGBA</span> &#8212; <span class="caps">CMYK</span> PDFs will be
 converted. If you need <span class="caps">CMYK</span> bitmaps, you should use <a href="ctor.Image.magickload.html"><code>vips_magickload()</code></a>&nbsp;instead.</p>
 <p>Use <code>page</code> to select a page to render, numbering from&nbsp;zero.</p>
 <p>Use <code>n</code> to select the number of pages to render. The default is 1. Pages are
 rendered in a vertical column, with each individual page aligned to the
-left. Set to -1 to mean &#8220;until the end of the document&#8221;. Use <a href="method.Image.grid.html"><code>vips_grid()</code></a>
-to change page&nbsp;layout.</p>
+left. Set to -1 to mean &#8220;until the end of the document&#8221;. Use
+<a href="method.Image.grid.html"><code>vips_grid()</code></a> to change page&nbsp;layout.</p>
 <p>Use <code>dpi</code> to set the rendering resolution. The default is 72. Additionally,
 you can scale by setting <code>scale</code>. If you set both, they&nbsp;combine.</p>
 <p>Use <code>background</code> to set the background <span class="caps">RGBA</span> colour. The default is 255

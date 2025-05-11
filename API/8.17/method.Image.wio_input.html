@@ -330,6 +330,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.equal_const1.html">equal_const1</a>
   
+    <a class="method" href="method.Image.eval.html">eval</a>
+  
     <a class="method" href="method.Image.exp.html">exp</a>
   
     <a class="method" href="method.Image.exp10.html">exp10</a>
@@ -684,6 +686,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.polar.html">polar</a>
   
+    <a class="method" href="method.Image.posteval.html">posteval</a>
+  
     <a class="method" href="method.Image.pow.html">pow</a>
   
     <a class="method" href="method.Image.pow_const.html">pow_const</a>
@@ -693,6 +697,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.ppmsave.html">ppmsave</a>
   
     <a class="method" href="method.Image.ppmsave_target.html">ppmsave_target</a>
+  
+    <a class="method" href="method.Image.preeval.html">preeval</a>
   
     <a class="method" href="method.Image.premultiply.html">premultiply</a>
   
@@ -945,7 +951,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a class="anchor" href="#declaration"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L544">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L551">[src]</a>
         
       </h4>
 
@@ -964,15 +970,15 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L3391">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L3394">[src]</a>
         
       </h4>
 
       <div class="docblock">
-        <p>Check that an image is readable via the VIPS_IMAGE_ADDR() macro, that is,
+        <p>Check that an image is readable via the <a href="func.IMAGE_ADDR.html"><code>VIPS_IMAGE_ADDR()</code></a> macro, that is,
 that the entire image is in memory and all pixels can be read with
-VIPS_IMAGE_ADDR().  If it
-isn&#8217;t, try to transform it so that VIPS_IMAGE_ADDR() can&nbsp;work.</p>
+<a href="func.IMAGE_ADDR.html"><code>VIPS_IMAGE_ADDR()</code></a>.  If it
+isn&#8217;t, try to transform it so that <a href="func.IMAGE_ADDR.html"><code>VIPS_IMAGE_ADDR()</code></a> can&nbsp;work.</p>
 <p>Since this function modifies <code>image</code>, it is not thread-safe. Only call it on
 images which you are sure have not been shared with another thread. If the
 image might have been shared, use the less efficient
@@ -980,7 +986,7 @@ image might have been shared, use the less efficient
 <div class="admonition seealso">
 <p class="admonition-title">See&nbsp;also</p>
 <p><a href="method.Image.copy_memory.html"><code>vips_image_copy_memory()</code></a>, <a href="method.Image.pio_input.html"><code>vips_image_pio_input()</code></a>,
-<a href="method.Image.inplace.html"><code>vips_image_inplace()</code></a>,&nbsp;VIPS_IMAGE_ADDR().</p>
+<a href="method.Image.inplace.html"><code>vips_image_inplace()</code></a>, <a href="func.IMAGE_ADDR.html"><code>VIPS_IMAGE_ADDR()</code></a>.</p>
 </div>
       </div>
 

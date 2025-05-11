@@ -306,7 +306,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a href="#declaration" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L569">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L576">[src]</a>
         
       </h4>
 
@@ -331,17 +331,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
       </h4>
 
       <div class="docblock">
-        <div class="admonition note">
-<p class="admonition-title">Optional&nbsp;arguments</p>
-<ul>
-<li><code>in</code>: array of input&nbsp;images</li>
-<li><code>out</code>: output&nbsp;image</li>
-<li><code>in_format</code>: write input files like&nbsp;this</li>
-<li><code>out_format</code>: write output filename like&nbsp;this</li>
-<li><code>log</code>: stdout of command is returned&nbsp;here</li>
-</ul>
-</div>
-<p><a href="ctor.Image.system.html"><code>vips_system()</code></a> runs a command, optionally passing a set of images in and
+        <p><a href="ctor.Image.system.html"><code>vips_system()</code></a> runs a command, optionally passing a set of images in and
 optionally getting an image back. The command&#8217;s stdout is returned in <code>log</code>.</p>
 <p>First, if <code>in</code> is set, the array of images are written to files. See
 <a href="ctor.Image.new_temp_file.html"><code>vips_image_new_temp_file()</code></a> to see how temporary files are created.
@@ -375,6 +365,17 @@ image, using <span class="caps">JPEG</span> files to pass images into and out of
 <span class="w">        </span><span class="nb">NULL</span><span class="p">))</span>
 <span class="w">    </span><span class="n">error</span><span class="w"> </span><span class="p">...</span>
 </code></pre></div>
+
+<div class="admonition tip">
+<p class="admonition-title">Optional&nbsp;arguments</p>
+<ul>
+<li><code>in</code>: <a href="struct.ArrayImage.html"><code>VipsArrayImage</code></a>, array of input&nbsp;images</li>
+<li><code>out</code>: <a href="class.Image.html"><code>VipsImage</code></a>, output,&nbsp;image</li>
+<li><code>in_format</code>: <code>gchararray</code>, write input files like&nbsp;this</li>
+<li><code>out_format</code>: <code>gchararray</code>, write output filename like&nbsp;this</li>
+<li><code>log</code>: <code>gchararray</code>, output, stdout of command is returned&nbsp;here.</li>
+</ul>
+</div>
       </div>
 
       <div class="docblock">

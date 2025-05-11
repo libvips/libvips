@@ -1591,7 +1591,7 @@ per-thread&nbsp;state.</p>
             <td><a title="allocate_input_array" class="symbol" href="func.allocate_input_array.html">allocate_input_array</a></td>
             
             <td class="docblock-summary">
-            <p>Convenience function &#8212;- make a <code>NULL</code>-terminated array of input images.
+            <p>Convenience function &#8212; make a <code>NULL</code>-terminated array of input images.
 Use with <code>vips_start_many()</code>.</p>
             <p></p>
             </td>
@@ -2599,7 +2599,7 @@ clears it. It&#8217;s handy for returning errors to glib functions from&nbsp;vip
             <td><a title="error_system" class="symbol" href="func.error_system.html">error_system</a></td>
             
             <td class="docblock-summary">
-            <p>Format the string in the style of <code>printf()</code> and append to the error buffer.
+            <p>Format the string in the style of <a href="man:printf(3)"><code>printf()</code></a> and append to the error buffer.
 Then create and append a localised message based on the system error code,
 usually the value of&nbsp;errno.</p>
             <p></p>
@@ -3260,7 +3260,7 @@ with a <code>NULL</code> first&nbsp;argument.</p>
             <td><a title="tracked_close" class="symbol" href="func.tracked_close.html">tracked_close</a></td>
             
             <td class="docblock-summary">
-            <p>Exactly as close(2), but update the number of files currently open via
+            <p>Exactly as <a href="man:close(2)"><code>close()</code></a>, but update the number of files currently open via
 <code>vips_tracked_get_files()</code>. This is used
 by the vips operation cache to drop cache when the number of files
 available is&nbsp;low.</p>
@@ -3339,7 +3339,7 @@ and&nbsp;friends.</p>
             <td><a title="tracked_open" class="symbol" href="func.tracked_open.html">tracked_open</a></td>
             
             <td class="docblock-summary">
-            <p>Exactly as open(2), but the number of files currently open via
+            <p>Exactly as <a href="man:open(2)"><code>open()</code></a>, but the number of files currently open via
 <code>vips_tracked_open()</code> is available via <code>vips_tracked_get_files()</code>. This is used
 by the vips operation cache to drop cache when the number of files
 available is&nbsp;low.</p>
@@ -5252,7 +5252,7 @@ file&#8217;s preferred unit for&nbsp;resolution.</p>
             
             <td class="docblock-summary">
             <p>Images loaded via <code>vips_sequential()</code> have this int field defined. Some
-operations (eg. vips_shrinkv()) add extra caches if they see it on their&nbsp;input.</p>
+operations (eg. <code>vips_shrinkv()</code>) add extra caches if they see it on their&nbsp;input.</p>
             <p></p>
             </td>
             

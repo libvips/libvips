@@ -125,17 +125,17 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 <p>Have separate input <span class="amp">&amp;</span> output flags. Both set is an error; neither set is <span class="caps">OK</span>.</p>
 <p>Input gobjects are automatically reffed, output gobjects automatically ref
 us. We also automatically watch for &#8220;destroy&#8221; and&nbsp;unlink.</p>
-<p><code>VIPS_ARGUMENT_SET_ALWAYS</code> is handy for arguments which are set from C. For
+<p><a href="flags.ArgumentFlags.html#set-always"><code>VIPS_ARGUMENT_SET_ALWAYS</code></a> is handy for arguments which are set from C. For
 example, VipsImage::width is a property that gives access to the Xsize
 member of struct _VipsImage. We default its &#8216;assigned&#8217; to <span class="caps">TRUE</span>
 since the field is always set directly by&nbsp;C.</p>
-<p><code>VIPS_ARGUMENT_DEPRECATED</code> arguments are not shown in help text, are not
+<p><a href="flags.ArgumentFlags.html#deprecated"><code>VIPS_ARGUMENT_DEPRECATED</code></a> arguments are not shown in help text, are not
 looked for if required, are not checked for &#8220;have-been-set&#8221;. You can
 deprecate a required argument, but you must obviously add a new required
 argument if you&nbsp;do.</p>
-<p>Input args with <code>VIPS_ARGUMENT_MODIFY</code> will be modified by the operation.
+<p>Input args with <a href="flags.ArgumentFlags.html#modify"><code>VIPS_ARGUMENT_MODIFY</code></a> will be modified by the operation.
 This is used for things like the in-place drawing&nbsp;operations.</p>
-<p><code>VIPS_ARGUMENT_NON_HASHABLE</code> stops the argument being used in hash and
+<p><a href="flags.ArgumentFlags.html#non-hashable"><code>VIPS_ARGUMENT_NON_HASHABLE</code></a> stops the argument being used in hash and
 equality tests. It&#8217;s useful for arguments like <code>revalidate</code> which
 control the behaviour of the operator&nbsp;cache.</p>
       </div>

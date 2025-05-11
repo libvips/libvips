@@ -116,7 +116,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/conversion/conversion.c#L249">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/conversion/conversion.c#L248">[src]</a>
         
       </h4>
 
@@ -124,12 +124,12 @@ SPDX-License-Identifier: LGPL-2.1-or-later
       <p>See <a href="method.Image.embed.html"><code>vips_embed()</code></a>, <a href="method.Image.conv.html"><code>vips_conv()</code></a>, <a href="method.Image.affine.html"><code>vips_affine()</code></a> and so&nbsp;on.</p>
 <p>When the edges of an image are extended, you can specify
 how you want the extension&nbsp;done.</p>
-<p><a href="enum.Extend.html#black"><code>VIPS_EXTEND_BLACK</code></a> &#8212;- new pixels are black, ie. all bits are&nbsp;zero.</p>
-<p><a href="enum.Extend.html#copy"><code>VIPS_EXTEND_COPY</code></a> &#8212;- each new pixel takes the value of the nearest edge&nbsp;pixel</p>
-<p><a href="enum.Extend.html#repeat"><code>VIPS_EXTEND_REPEAT</code></a> &#8212;- the image is tiled to fill the new&nbsp;area</p>
-<p><a href="enum.Extend.html#mirror"><code>VIPS_EXTEND_MIRROR</code></a> &#8212;- the image is reflected and tiled to reduce hash&nbsp;edges</p>
-<p><a href="enum.Extend.html#white"><code>VIPS_EXTEND_WHITE</code></a> &#8212;- new pixels are white, ie. all bits are&nbsp;set</p>
-<p><a href="enum.Extend.html#background"><code>VIPS_EXTEND_BACKGROUND</code></a> &#8212;- colour set from the <code>background</code> property</p>
+<p><a href="enum.Extend.html#black"><code>VIPS_EXTEND_BLACK</code></a> &#8212; new pixels are black, ie. all bits are&nbsp;zero.</p>
+<p><a href="enum.Extend.html#copy"><code>VIPS_EXTEND_COPY</code></a> &#8212; each new pixel takes the value of the nearest edge&nbsp;pixel</p>
+<p><a href="enum.Extend.html#repeat"><code>VIPS_EXTEND_REPEAT</code></a> &#8212; the image is tiled to fill the new&nbsp;area</p>
+<p><a href="enum.Extend.html#mirror"><code>VIPS_EXTEND_MIRROR</code></a> &#8212; the image is reflected and tiled to reduce hash&nbsp;edges</p>
+<p><a href="enum.Extend.html#white"><code>VIPS_EXTEND_WHITE</code></a> &#8212; new pixels are white, ie. all bits are&nbsp;set</p>
+<p><a href="enum.Extend.html#background"><code>VIPS_EXTEND_BACKGROUND</code></a> &#8212; colour set from the <code>background</code> property</p>
 <p>We have to specify the exact value of each enum member since we have to
 keep these frozen for back compat with&nbsp;vips7.</p>
 <div class="admonition seealso">

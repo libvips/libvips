@@ -330,6 +330,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.equal_const1.html">equal_const1</a>
   
+    <a class="method" href="method.Image.eval.html">eval</a>
+  
     <a class="method" href="method.Image.exp.html">exp</a>
   
     <a class="method" href="method.Image.exp10.html">exp10</a>
@@ -684,6 +686,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.polar.html">polar</a>
   
+    <a class="method" href="method.Image.posteval.html">posteval</a>
+  
     <a class="method" href="method.Image.pow.html">pow</a>
   
     <a class="method" href="method.Image.pow_const.html">pow_const</a>
@@ -693,6 +697,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.ppmsave.html">ppmsave</a>
   
     <a class="method" href="method.Image.ppmsave_target.html">ppmsave_target</a>
+  
+    <a class="method" href="method.Image.preeval.html">preeval</a>
   
     <a class="method" href="method.Image.premultiply.html">premultiply</a>
   
@@ -945,7 +951,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a class="anchor" href="#declaration"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L555">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L562">[src]</a>
         
       </h4>
 
@@ -966,14 +972,14 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L3196">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L3199">[src]</a>
         
       </h4>
 
       <div class="docblock">
         <p>Write a line of pixels to an image. This function must be called repeatedly
 with <code>ypos</code> increasing from 0 to <a href="property.Image.height.html"><code>VipsImage:height</code></a>.
-<code>linebuffer</code> must be VIPS_IMAGE_SIZEOF_LINE() bytes&nbsp;long.</p>
+<code>linebuffer</code> must be <a href="func.IMAGE_SIZEOF_LINE.html"><code>VIPS_IMAGE_SIZEOF_LINE()</code></a> bytes&nbsp;long.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See&nbsp;also</p>
 <p><a href="method.Image.generate.html"><code>vips_image_generate()</code></a>.</p>

@@ -306,7 +306,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a href="#declaration" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L506">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L513">[src]</a>
         
       </h4>
 
@@ -325,7 +325,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L2551">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L2554">[src]</a>
         
       </h4>
 
@@ -335,7 +335,7 @@ disc. The file will be automatically deleted when the image is destroyed.
 <code>format</code> is something like &#8220;&percnt;s.v&#8221; for a vips&nbsp;file.</p>
 <p>The file is created in the temporary directory. This is set with the
 environment variable <span class="caps">TMPDIR</span>. If this is not set, then on Unix systems, vips
-will default to /tmp. On Windows, vips uses GetTempPath() to find the
+will default to /tmp. On Windows, vips uses <code>GetTempPath()</code> to find the
 temporary&nbsp;directory.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See&nbsp;also</p>

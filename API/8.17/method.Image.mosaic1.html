@@ -330,6 +330,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.equal_const1.html">equal_const1</a>
   
+    <a class="method" href="method.Image.eval.html">eval</a>
+  
     <a class="method" href="method.Image.exp.html">exp</a>
   
     <a class="method" href="method.Image.exp10.html">exp10</a>
@@ -684,6 +686,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.polar.html">polar</a>
   
+    <a class="method" href="method.Image.posteval.html">posteval</a>
+  
     <a class="method" href="method.Image.pow.html">pow</a>
   
     <a class="method" href="method.Image.pow_const.html">pow_const</a>
@@ -693,6 +697,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.ppmsave.html">ppmsave</a>
   
     <a class="method" href="method.Image.ppmsave_target.html">ppmsave_target</a>
+  
+    <a class="method" href="method.Image.preeval.html">preeval</a>
   
     <a class="method" href="method.Image.premultiply.html">premultiply</a>
   
@@ -988,11 +994,11 @@ necessary before the&nbsp;join.</p>
 <p>If <code>search</code> is <code>TRUE</code>, before performing the transformation, the tie-points
 are improved by searching an area of <code>sec</code> of size <code>harea</code> for a
 object of size <code>hwindow</code> in <code>ref</code>.</p>
-<p><code>mblend</code> limits  the  maximum size of the
-blend area.  A value of &#8220;-1&#8221; means &#8220;unlimited&#8221;. The two images are blended
+<p><code>mblend</code> limits the maximum size of the
+blend area. A value of &#8220;-1&#8221; means &#8220;unlimited&#8221;. The two images are blended
 with a raised&nbsp;cosine.</p>
 <p>Pixels with all bands equal to zero are &#8220;transparent&#8221;, that
-is, zero pixels in the overlap area do not  contribute  to  the  merge.
+is, zero pixels in the overlap area do not contribute to the merge.
 This makes it possible to join non-rectangular&nbsp;images.</p>
 <p>If the number of bands differs, one of the images
 must have one band. In this case, an n-band image is formed from the

@@ -129,17 +129,17 @@ specialisation.  When demanding output from a pipeline,
 <a href="method.Image.generate.html"><code>vips_image_generate()</code></a>
 will use the most general style requested by the operations
 in the&nbsp;pipeline.</p>
-<p><code>VIPS_DEMAND_STYLE_SMALLTILE</code> &#8212; This is the most general demand format.
+<p><a href="enum.DemandStyle.html#smalltile"><code>VIPS_DEMAND_STYLE_SMALLTILE</code></a> &#8212; This is the most general demand format.
 Output is demanded in small (around 100x100 pel) sections. This style works
 reasonably efficiently, even for bizarre operations like 45 degree&nbsp;rotate.</p>
-<p><code>VIPS_DEMAND_STYLE_FATSTRIP</code> &#8212; This operation would like to output strips
+<p><a href="enum.DemandStyle.html#fatstrip"><code>VIPS_DEMAND_STYLE_FATSTRIP</code></a> &#8212; This operation would like to output strips
 the width of the image and as high as possible. This option is suitable
 for area operations which do not violently transform coordinates, such
 as <a href="method.Image.conv.html"><code>vips_conv()</code></a>.</p>
-<p><code>VIPS_DEMAND_STYLE_THINSTRIP</code> &#8212; This operation would like to output strips
+<p><a href="enum.DemandStyle.html#thinstrip"><code>VIPS_DEMAND_STYLE_THINSTRIP</code></a> &#8212; This operation would like to output strips
 the width of the image and a few pels high. This option is suitable for
 point-to-point operations, such as those in the arithmetic&nbsp;package.</p>
-<p><code>VIPS_DEMAND_STYLE_ANY</code> &#8212; This image is not being demand-read from a disc
+<p><a href="enum.DemandStyle.html#any"><code>VIPS_DEMAND_STYLE_ANY</code></a> &#8212; This image is not being demand-read from a disc
 file (even indirectly) so any demand style is <span class="caps">OK</span>. It&#8217;s used for things like
 <a href="ctor.Image.black.html"><code>vips_black()</code></a> where the pixels are&nbsp;calculated.</p>
 <div class="admonition seealso">

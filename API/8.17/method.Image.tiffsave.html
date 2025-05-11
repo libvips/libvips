@@ -330,6 +330,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.equal_const1.html">equal_const1</a>
   
+    <a class="method" href="method.Image.eval.html">eval</a>
+  
     <a class="method" href="method.Image.exp.html">exp</a>
   
     <a class="method" href="method.Image.exp10.html">exp10</a>
@@ -684,6 +686,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.polar.html">polar</a>
   
+    <a class="method" href="method.Image.posteval.html">posteval</a>
+  
     <a class="method" href="method.Image.pow.html">pow</a>
   
     <a class="method" href="method.Image.pow_const.html">pow_const</a>
@@ -693,6 +697,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.ppmsave.html">ppmsave</a>
   
     <a class="method" href="method.Image.ppmsave_target.html">ppmsave_target</a>
+  
+    <a class="method" href="method.Image.preeval.html">preeval</a>
   
     <a class="method" href="method.Image.premultiply.html">premultiply</a>
   
@@ -1038,9 +1044,9 @@ InDesign, will only work with premultiplied&nbsp;alpha.</p>
 <div class="admonition tip">
 <p class="admonition-title">Optional&nbsp;arguments</p>
 <ul>
-<li><code>compression</code>: use this <a href="enum.ForeignTiffCompression.html"><code>VipsForeignTiffCompression</code></a></li>
+<li><code>compression</code>: <a href="enum.ForeignTiffCompression.html"><code>VipsForeignTiffCompression</code></a>, write with this&nbsp;compression</li>
 <li><code>Q</code>: <code>gint</code>, quality&nbsp;factor</li>
-<li><code>predictor</code>: use this <a href="enum.ForeignTiffPredictor.html"><code>VipsForeignTiffPredictor</code></a></li>
+<li><code>predictor</code>: <a href="enum.ForeignTiffPredictor.html"><code>VipsForeignTiffPredictor</code></a>, use this&nbsp;predictor</li>
 <li><code>tile</code>: <code>gboolean</code>, set <code>TRUE</code> to write a tiled&nbsp;tiff</li>
 <li><code>tile_width</code>: <code>gint</code>, for tile&nbsp;size</li>
 <li><code>tile_height</code>: <code>gint</code>, for tile&nbsp;size</li>
@@ -1048,16 +1054,16 @@ InDesign, will only work with premultiplied&nbsp;alpha.</p>
 <li><code>bitdepth</code>: <code>gint</code>, change bit depth to 1,2, or 4&nbsp;bit</li>
 <li><code>miniswhite</code>: <code>gboolean</code>, write 1-bit images as <span class="caps">MINISWHITE</span></li>
 <li><code>resunit</code>: <a href="enum.ForeignTiffResunit.html"><code>VipsForeignTiffResunit</code></a> for resolution&nbsp;unit</li>
-<li><code>xres</code>: <code>gdouble</code> horizontal resolution in&nbsp;pixels/mm</li>
-<li><code>yres</code>: <code>gdouble</code> vertical resolution in&nbsp;pixels/mm</li>
+<li><code>xres</code>: <code>gdouble</code>, horizontal resolution in&nbsp;pixels/mm</li>
+<li><code>yres</code>: <code>gdouble</code>, vertical resolution in&nbsp;pixels/mm</li>
 <li><code>bigtiff</code>: <code>gboolean</code>, write a BigTiff&nbsp;file</li>
 <li><code>properties</code>: <code>gboolean</code>, set <code>TRUE</code> to write an <span class="caps">IMAGEDESCRIPTION</span>&nbsp;tag</li>
 <li><code>region_shrink</code>: <a href="enum.RegionShrink.html"><code>VipsRegionShrink</code></a> How to shrink each 2x2&nbsp;region.</li>
 <li><code>level</code>: <code>gint</code>, Zstd or Deflate (zlib) compression&nbsp;level</li>
 <li><code>lossless</code>: <code>gboolean</code>, WebP lossless&nbsp;mode</li>
 <li><code>depth</code>: <a href="enum.ForeignDzDepth.html"><code>VipsForeignDzDepth</code></a> how deep to make the&nbsp;pyramid</li>
-<li><code>subifd</code>: <code>gboolean</code> write pyr layers as&nbsp;sub-ifds</li>
-<li><code>premultiply</code>: <code>gboolean</code> write premultiplied&nbsp;alpha</li>
+<li><code>subifd</code>: <code>gboolean</code>, write pyr layers as&nbsp;sub-ifds</li>
+<li><code>premultiply</code>: <code>gboolean</code>, write premultiplied&nbsp;alpha</li>
 </ul>
 </div>
 <div class="admonition seealso">

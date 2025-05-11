@@ -330,6 +330,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.equal_const1.html">equal_const1</a>
   
+    <a class="method" href="method.Image.eval.html">eval</a>
+  
     <a class="method" href="method.Image.exp.html">exp</a>
   
     <a class="method" href="method.Image.exp10.html">exp10</a>
@@ -684,6 +686,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.polar.html">polar</a>
   
+    <a class="method" href="method.Image.posteval.html">posteval</a>
+  
     <a class="method" href="method.Image.pow.html">pow</a>
   
     <a class="method" href="method.Image.pow_const.html">pow_const</a>
@@ -693,6 +697,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.ppmsave.html">ppmsave</a>
   
     <a class="method" href="method.Image.ppmsave_target.html">ppmsave_target</a>
+  
+    <a class="method" href="method.Image.preeval.html">preeval</a>
   
     <a class="method" href="method.Image.premultiply.html">premultiply</a>
   
@@ -975,7 +981,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 
       <div class="docblock">
         <p>Generates an image. The action depends on the image&nbsp;type.</p>
-<p>For images created with <a href="ctor.Image.new.html"><code>vips_image_new()</code></a>, <code>vips_image_generate()</code> just
+<p>For images created with <a href="ctor.Image.new.html"><code>vips_image_new()</code></a>, <a href="method.Image.generate.html"><code>vips_image_generate()</code></a> just
 attaches the start/generate/stop callbacks and&nbsp;returns.</p>
 <p>For images created with <a href="ctor.Image.new_memory.html"><code>vips_image_new_memory()</code></a>, memory is allocated for
 the whole image and it is entirely generated using <a href="func.sink_memory.html"><code>vips_sink_memory()</code></a>.</p>

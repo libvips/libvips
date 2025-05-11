@@ -306,7 +306,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a href="#declaration" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L464">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L471">[src]</a>
         
       </h4>
 
@@ -326,22 +326,15 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L1842">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L1846">[src]</a>
         
       </h4>
 
       <div class="docblock">
-        <div class="admonition note">
-<p class="admonition-title">Optional&nbsp;arguments</p>
-<ul>
-<li><code>access</code>: hint <a href="enum.Access.html"><code>VipsAccess</code></a> mode to&nbsp;loader</li>
-<li><code>memory</code>: force load via&nbsp;memory</li>
-</ul>
-</div>
-<p><a href="ctor.Image.new_from_file.html"><code>vips_image_new_from_file()</code></a> opens <code>name</code> for reading. It can load files
+        <p><a href="ctor.Image.new_from_file.html"><code>vips_image_new_from_file()</code></a> opens <code>name</code> for reading. It can load files
 in many image formats, including <span class="caps">VIPS</span>, <span class="caps">TIFF</span>, <span class="caps">PNG</span>, <span class="caps">JPEG</span>, <span class="caps">FITS</span>, Matlab,
 OpenEXR, <span class="caps">CSV</span>, WebP, Radiance, <span class="caps">RAW</span>, <span class="caps">PPM</span> and&nbsp;others.</p>
-<p>Load options may be appended to <code>filename</code> as &#8220;[name=value,&#8230;]&#8221; or given as
+<p>Load options may be appended to <code>filename</code> as <code>[name=value,...]</code> or given as
 a <span class="caps">NULL</span>-terminated list of name-value pairs at the end of the arguments.
 Options given in the function call override options given in the filename.
 Many loaders add extra options, see <a href="ctor.Image.jpegload.html"><code>vips_jpegload()</code></a>, for&nbsp;example.</p>
@@ -374,8 +367,7 @@ The default threshold is 100 <span class="caps">MB</span>.</p>
 </code></pre></div>
 
 <p>Will open &#8220;fred.tif&#8221;, reading page&nbsp;12.</p>
-<div class="codehilite"><pre><span></span><code><span class="n">VipsImage</span><span class="w"> </span><span class="o">*</span><span class="n">image</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vips_image_new_from_file</span><span class="p">(</span><span class="s">&quot;fred.jpg[shrink=2]&quot;</span><span class="p">,</span>
-<span class="w">    </span><span class="nb">NULL</span><span class="p">);</span>
+<div class="codehilite"><pre><span></span><code><span class="n">VipsImage</span><span class="w"> </span><span class="o">*</span><span class="n">image</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vips_image_new_from_file</span><span class="p">(</span><span class="s">&quot;fred.jpg[shrink=2]&quot;</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">);</span>
 </code></pre></div>
 
 <p>Will open <code>fred.jpg</code>, downsampling by a factor of&nbsp;two.</p>
@@ -383,6 +375,13 @@ The default threshold is 100 <span class="caps">MB</span>.</p>
 file is in and therefore what options are available. If you need more
 control over the loading process, you can call loaders directly, see
 <a href="ctor.Image.jpegload.html"><code>vips_jpegload()</code></a>, for&nbsp;example.</p>
+<div class="admonition tip">
+<p class="admonition-title">Optional&nbsp;arguments</p>
+<ul>
+<li><code>access</code>: <a href="enum.Access.html"><code>VipsAccess</code></a>, hint expected access&nbsp;pattern</li>
+<li><code>memory</code>: <code>gboolean</code>, force load via&nbsp;memory</li>
+</ul>
+</div>
 <div class="admonition seealso">
 <p class="admonition-title">See&nbsp;also</p>
 <p><a href="type_func.Foreign.find_load.html"><code>vips_foreign_find_load()</code></a>, <a href="type_func.Foreign.is_a.html"><code>vips_foreign_is_a()</code></a>,
