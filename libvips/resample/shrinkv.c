@@ -524,7 +524,7 @@ vips_shrinkv_build(VipsObject *object)
 	/* We have to keep a line buffer as we sum columns.
 	 */
 	shrink->sizeof_line_buffer =
-		in->Xsize * in->Bands * vips__fatstrip_height * acc_size;
+		(size_t) in->Xsize * in->Bands * vips__fatstrip_height * acc_size;
 
 	/* For uchar input, try to make a vector path.
 	 */
