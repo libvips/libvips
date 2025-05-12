@@ -158,8 +158,8 @@
  * The suffix list is used to select a format to save a file in, and to pick a
  * loader if you don't define [func@Foreign.is_a].
  *
- * You should also define [property@VipsObject:nickname] and
- * [property@VipsObject:description] in [class@Object].
+ * You should also define [property@Object:nickname] and
+ * [property@Object:description] in [class@Object].
  *
  * As a complete example, here's code for a PNG loader, minus the actual
  * calls to libpng.

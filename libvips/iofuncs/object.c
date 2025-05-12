@@ -3242,7 +3242,7 @@ vips_object_unref_outputs(VipsObject *object)
  *
  * Fetch the object description. Useful for language bindings.
  *
- * [property@VipsObject:description] is only available after `_build()`, which can be too
+ * [property@Object:description] is only available after `_build()`, which can be too
  * late. This function fetches from the instance, if possible, but falls back
  * to the class description if we are too early.
  *

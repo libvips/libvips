@@ -56,7 +56,7 @@
  *
  * An abstract base class for all operations in libvips.
  *
- * It builds on [class@VipsObject] to provide the introspection and
+ * It builds on [class@Object] to provide the introspection and
  * command-line interface to libvips.
  *
  * It also maintains a cache of recent operations. See below.

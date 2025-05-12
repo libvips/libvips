@@ -80,7 +80,7 @@
 /**
  * VipsThreadState:
  *
- * A [class@VipsThreadState] represents a per-thread state.
+ * A [class@ThreadState] represents a per-thread state.
  *
  * [callback@ThreadpoolAllocateFn] functions can use these members to
  * communicate with [callback@ThreadpoolWorkFn] functions.
