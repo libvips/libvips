@@ -56,7 +56,7 @@
  *
  * An abstract base class for all operations in libvips.
  *
- * It builds on [class@VipsObject] to provide the introspection and
+ * It builds on [class@Object] to provide the introspection and
  * command-line interface to libvips.
  *
  * It also maintains a cache of recent operations. See below.
@@ -140,7 +140,7 @@
  *
  * if (vips_invert(im, &t[0], NULL) ||
  *     vips_flip(t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
- *   return -1;
+ *     return -1;
  * ```
  *
  * where `parent` is some enclosing object which will be unreffed when this

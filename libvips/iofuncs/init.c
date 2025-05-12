@@ -234,20 +234,20 @@ vips_get_prgname(void)
  *
  * [func@INIT] does approximately the following:
  *
- * + checks that the libvips your program is expecting is
+ * - checks that the libvips your program is expecting is
  *   binary-compatible with the vips library you're running against
  *
- * + sets a minimum stack size, see above
+ * - sets a minimum stack size, see above
  *
- * + initialises any libraries that VIPS is using, including GObject
+ * - initialises any libraries that VIPS is using, including GObject
  *   and the threading system, if necessary
  *
- * + guesses where the VIPS data files are and sets up
+ * - guesses where the VIPS data files are and sets up
  *   internationalisation -- see [func@guess_prefix]
  *
- * + creates the main vips types, including [class@Image] and friends
+ * - creates the main vips types, including [class@Image] and friends
  *
- * + loads any plugins from $libdir/vips-x.y/, where x and y are the
+ * - loads any plugins from $libdir/vips-x.y/, where x and y are the
  *   major and minor version numbers for this VIPS.
  *
  * Example:

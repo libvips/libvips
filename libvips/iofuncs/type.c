@@ -339,7 +339,7 @@ vips_area_free_array_object(GObject **array, VipsArea *area)
  * An area which holds an array of [class@GObject.Object] s. See [ctor@Area.new_array]. When
  * the area is freed, each [class@GObject.Object] will be unreffed.
  *
- * Add an extra NULL element at the end, handy for eg.
+ * Add an extra `NULL` element at the end, handy for eg.
  * [func@Image.pipeline_array] etc.
  *
  * ::: seealso
@@ -556,7 +556,7 @@ transform_save_string_ref_string(const GValue *src_value, GValue *dest_value)
  * ::: seealso
  *     [method@Area.unref].
  *
- * Returns: (transfer full) (nullable): the new [struct@RefString], or NULL on
+ * Returns: (transfer full) (nullable): the new [struct@RefString], or `NULL` on
  * error.
  */
 VipsRefString *
@@ -1274,7 +1274,7 @@ G_DEFINE_BOXED_TYPE_WITH_CODE(VipsArrayDouble, vips_array_double,
  * will be automatically unreffed for you by
  * [method@Area.unref].
  *
- * Add an extra NULL element at the end, handy for eg.
+ * Add an extra `NULL` element at the end, handy for eg.
  * [func@Image.pipeline_array] etc.
  *
  * ::: seealso
@@ -1313,7 +1313,7 @@ vips_array_image_new(VipsImage **array, int n)
  * will be automatically unreffed for you by
  * [method@Area.unref].
  *
- * Add an extra NULL element at the end, handy for eg.
+ * Add an extra `NULL` element at the end, handy for eg.
  * [func@Image.pipeline_array] etc.
  *
  * ::: seealso

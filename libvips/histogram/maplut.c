@@ -783,10 +783,10 @@ vips_maplut_init(VipsMaplut *maplut)
  * The lut may have any type and the output image will be that type.
  *
  * The input image will be cast to one of the unsigned integer types, that is,
- * VIPS_FORMAT_UCHAR, VIPS_FORMAT_USHORT or VIPS_FORMAT_UINT.
+ * [enum@Vips.BandFormat.UCHAR], [enum@Vips.BandFormat.USHORT] or [enum@Vips.BandFormat.UINT].
  *
  * If @lut is too small for the input type (for example, if @in is
- * VIPS_FORMAT_UCHAR but @lut only has 100 elements), the lut is padded out
+ * [enum@Vips.BandFormat.UCHAR] but @lut only has 100 elements), the lut is padded out
  * by copying the last element. Overflows are reported at the end of
  * computation.
  * If @lut is too large, extra values are ignored.

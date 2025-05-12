@@ -1049,7 +1049,7 @@ vips_source_is_mappable(VipsSource *source)
  * @source: source to operate on
  *
  * Test if this source is a simple file with support for seek. Named pipes,
- * for example, will fail this test. If TRUE, you can use
+ * for example, will fail this test. If `TRUE`, you can use
  * [method@Connection.filename] to find the filename.
  *
  * Use this to add basic source support for older loaders which can only work
@@ -1073,7 +1073,7 @@ vips_source_is_file(VipsSource *source)
 /**
  * vips_source_map:
  * @source: source to operate on
- * @length: return the file length here, or NULL
+ * @length: return the file length here, or `NULL`
  *
  * Map the source entirely into memory and return a pointer to the
  * start. If @length is non-NULL, the source size is written to it.
@@ -1083,7 +1083,7 @@ vips_source_is_file(VipsSource *source)
  *
  * The pointer is valid for as long as @source is alive.
  *
- * Returns: a pointer to the start of the file contents, or NULL on error.
+ * Returns: a pointer to the start of the file contents, or `NULL` on error.
  */
 const void *
 vips_source_map(VipsSource *source, size_t *length)
@@ -1142,7 +1142,7 @@ vips_source_map_cb(void *a, VipsArea *area)
  * Just like [method@Source.map], but return a [struct@Blob] containing the
  * pointer. @source will stay alive as long as the result is alive.
  *
- * Returns: a new [struct@Blob] containing the data, or NULL on error.
+ * Returns: a new [struct@Blob] containing the data, or `NULL` on error.
  */
 VipsBlob *
 vips_source_map_blob(VipsSource *source)
@@ -1381,9 +1381,9 @@ vips_source_sniff_at_most(VipsSource *source,
  * @length: number of bytes to sniff
  *
  * Return a pointer to the first few bytes of the file. If the file is too
- * short, return NULL.
+ * short, return `NULL`.
  *
- * Returns: a pointer to the bytes at the start of the file, or NULL on error.
+ * Returns: a pointer to the bytes at the start of the file, or `NULL` on error.
  */
 unsigned char *
 vips_source_sniff(VipsSource *source, size_t length)

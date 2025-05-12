@@ -141,7 +141,7 @@ vips_connection_init(VipsConnection *connection)
  * vips_connection_filename:
  * @connection: connection to operate on
  *
- * Returns: any filename associated with this connection, or NULL.
+ * Returns: any filename associated with this connection, or `NULL`.
  */
 const char *
 vips_connection_filename(VipsConnection *connection)

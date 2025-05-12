@@ -91,7 +91,7 @@ G_DEFINE_ABSTRACT_TYPE(VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT);
  * The interpolated value should be written to the pixel pointed to by @out.
  *
  * ::: seealso
- *     [struct@VipsInterpolateClass].
+ *     [struct@InterpolateClass].
  */
 
 /**
@@ -117,8 +117,8 @@ G_DEFINE_ABSTRACT_TYPE(VipsInterpolate, vips_interpolate, VIPS_TYPE_OBJECT);
  * offset that a specific interpolator needs, or you can leave
  * @get_window_offset `NULL` and set a constant value in @window_offset.
  *
- * You also need to set [property@VipsObject:nickname] and
- * [property@VipsObject:description] in [class@Object].
+ * You also need to set [property@Object:nickname] and
+ * [property@Object:description] in [class@Object].
  *
  * ::: seealso
  *     [callback@InterpolateMethod], [class@Object] or

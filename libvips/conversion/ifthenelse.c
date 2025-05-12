@@ -582,7 +582,7 @@ vips_ifthenelse_init(VipsIfthenelse *ifthenelse)
  * and @in2 using the formula:
  *
  * ```
- *     out = (cond / 255) * in1 + (1 - cond / 255) * in2
+ * out = (cond / 255) * in1 + (1 - cond / 255) * in2
  * ```
  *
  * ::: tip "Optional arguments"

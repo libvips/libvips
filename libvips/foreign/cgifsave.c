@@ -1153,15 +1153,15 @@ vips_foreign_save_cgif_buffer_init(VipsForeignSaveCgifBuffer *buffer)
  * Use @interpalette_maxerror to set the threshold below which the
  * previously generated palette will be reused.
  *
- * If @reuse is TRUE, the GIF will be saved with a single global
+ * If @reuse is `TRUE`, the GIF will be saved with a single global
  * palette taken from the metadata in @in, and no new palette optimisation
  * will be done.
  *
- * If @interlace is TRUE, the GIF file will be interlaced (progressive GIF).
+ * If @interlace is `TRUE`, the GIF file will be interlaced (progressive GIF).
  * These files may be better for display over a slow network
  * connection, but need more memory to encode.
  *
- * If @keep_duplicate_frames is TRUE, duplicate frames in the input will be
+ * If @keep_duplicate_frames is `TRUE`, duplicate frames in the input will be
  * kept in the output instead of combining them.
  *
  * ::: tip "Optional arguments"
