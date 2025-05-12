@@ -457,11 +457,11 @@ file_compare(VipsForeignClass *a, VipsForeignClass *b, void *user_data)
 /**
  * vips_foreign_map:
  * @base: base class to search below (eg. "VipsForeignLoad")
- * @fn: (scope call): function to apply to each [class@Foreign]Class
+ * @fn: (scope call): function to apply to each [class@Foreign]
  * @a: user data
  * @b: user data
  *
- * Apply a function to every [class@Foreign]Class that VIPS knows about. Foreigns
+ * Apply a function to every [class@Foreign] that VIPS knows about. Foreigns
  * are presented to the function in priority order.
  *
  * Like all VIPS map functions, if @fn returns `NULL`, iteration continues. If
