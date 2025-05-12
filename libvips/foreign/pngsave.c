@@ -372,7 +372,7 @@ vips_foreign_save_png_file_build(VipsObject *object)
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_png_file_parent_class)->
-		build(object)
+		build(object);
 }
 
 static void
