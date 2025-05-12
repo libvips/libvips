@@ -476,7 +476,8 @@ write_free(Write *write)
  * The function should write the pixels in @area from @region. @a is the
  * value passed into [method@Image.sink_disc].
  *
- * See also: [method@Image.sink_disc].
+ * ::: seealso
+ *     [method@Image.sink_disc].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -498,7 +499,8 @@ write_free(Write *write)
  * disc files. Things like [method@Image.jpegsave], for example, use this to write
  * images to files in JPEG format.
  *
- * See also: [func@concurrency_set].
+ * ::: seealso
+ *     [func@concurrency_set].
  *
  * Returns: 0 on success, -1 on error.
  */
