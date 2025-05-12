@@ -635,7 +635,7 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * differencing. Please refer to the libtiff
  * specifications for further discussion of various predictors.
  *
- * Set @tile to TRUE to write a tiled tiff.  By default tiff are written in
+ * Set @tile to `TRUE` to write a tiled tiff.  By default tiff are written in
  * strips. Use @tile_width and @tile_height to set the tile size. The defaiult
  * is 128 by 128.
  *

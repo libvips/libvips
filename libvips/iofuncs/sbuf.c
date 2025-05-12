@@ -323,7 +323,7 @@ vips_sbuf_require(VipsSbuf *sbuf, int require)
  * line character (or characters, for DOS files) are removed, and the string
  * is terminated with a null (`\0` character).
  *
- * Returns NULL on end of file or read error.
+ * Returns `NULL` on end of file or read error.
  *
  * If the line is longer than some arbitrary (but large) limit, it is
  * truncated. If you need to be able to read very long lines, use the
@@ -332,7 +332,7 @@ vips_sbuf_require(VipsSbuf *sbuf, int require)
  * The return value is owned by @sbuf and must not be freed. It
  * is valid until the next get call to @sbuf.
  *
- * Returns: the next line of text, or NULL on EOF or read error.
+ * Returns: the next line of text, or `NULL` on EOF or read error.
  */
 const char *
 vips_sbuf_get_line(VipsSbuf *sbuf)
@@ -398,7 +398,7 @@ vips_sbuf_get_line(VipsSbuf *sbuf)
  * This is slower than [method@Sbuf.get_line], but can work with lines of
  * any length.
  *
- * Returns: the next line of text, or NULL on EOF or read error.
+ * Returns: the next line of text, or `NULL` on EOF or read error.
  */
 char *
 vips_sbuf_get_line_copy(VipsSbuf *sbuf)
@@ -464,7 +464,7 @@ vips_sbuf_get_line_copy(VipsSbuf *sbuf)
  * The return value is owned by @sbuf and must not be freed. It
  * is valid until the next get call to @sbuf.
  *
- * Returns: the next block of non-whitespace, or NULL on EOF or read error.
+ * Returns: the next block of non-whitespace, or `NULL` on EOF or read error.
  */
 const char *
 vips_sbuf_get_non_whitespace(VipsSbuf *sbuf)

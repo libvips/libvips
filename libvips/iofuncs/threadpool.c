@@ -555,7 +555,7 @@ vips_threadpool_new(VipsImage *im)
  * ::: seealso
  *     [func@threadpool_run].
  *
- * Returns: a new [class@ThreadState] object, or NULL on error
+ * Returns: a new [class@ThreadState] object, or `NULL` on error
  */
 
 /**

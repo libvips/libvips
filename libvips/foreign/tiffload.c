@@ -502,7 +502,7 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * operations will use [const@META_ORIENTATION], if present, to set the
  * orientation of output images.
  *
- * If @autorotate is TRUE, the image will be rotated upright during load and
+ * If @autorotate is `TRUE`, the image will be rotated upright during load and
  * no metadata attached. This can be very slow.
  *
  * If @subifd is -1 (the default), the main image is selected for each page.

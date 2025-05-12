@@ -274,7 +274,7 @@ vips_relationalv(VipsImage *left, VipsImage *right, VipsImage **out,
  *
  * Perform various relational operations on pairs of images.
  *
- * The output type is always uchar, with 0 for FALSE and 255 for TRUE.
+ * The output type is always uchar, with 0 for `FALSE` and 255 for `TRUE`.
  *
  * Less-than and greater-than for complex images compare the modulus.
  *
@@ -657,7 +657,7 @@ vips_relational_constv(VipsImage *in, VipsImage **out,
  * Perform various relational operations on an image and an array of
  * constants.
  *
- * The output type is always uchar, with 0 for FALSE and 255 for TRUE.
+ * The output type is always uchar, with 0 for `FALSE` and 255 for `TRUE`.
  *
  * If the array of constants has just one element, that constant is used for
  * all image bands. If the array has more than one element and they have

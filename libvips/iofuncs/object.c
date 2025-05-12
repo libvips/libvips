@@ -181,7 +181,7 @@
  *
  * [flags@Vips.ArgumentFlags.SET_ALWAYS] is handy for arguments which are set from C. For
  * example, VipsImage::width is a property that gives access to the Xsize
- * member of struct _VipsImage. We default its 'assigned' to TRUE
+ * member of struct _VipsImage. We default its 'assigned' to `TRUE`
  * since the field is always set directly by C.
  *
  * [flags@Vips.ArgumentFlags.DEPRECATED] arguments are not shown in help text, are not
@@ -2956,7 +2956,7 @@ vips_class_build_hash_cb(void *dummy)
  *
  * Search below @basename, return the [alias@GObject.Type] of the class
  * whose name or @nickname matches, or 0 for not found.
- * If @basename is NULL, the whole of [class@Object] is searched.
+ * If @basename is `NULL`, the whole of [class@Object] is searched.
  *
  * This function uses a cache, so it should be quick.
  *
@@ -3055,11 +3055,11 @@ vips_object_local_array_cb(VipsObject *parent, VipsObjectLocal *local)
  * @parent: objects unref when this object unrefs
  * @n: array size
  *
- * Make an array of NULL VipsObject pointers. When @parent closes, every
- * non-NULL pointer in the array will be unreffed and the array will be
+ * Make an array of `NULL` VipsObject pointers. When @parent closes, every
+ * non-`NULL` pointer in the array will be unreffed and the array will be
  * freed. Handy for creating a set of temporary images for a function.
  *
- * The array is NULL-terminated, ie. contains an extra NULL element at the
+ * The array is `NULL`-terminated, ie. contains an extra `NULL` element at the
  * end.
  *
  * Example:
@@ -3075,7 +3075,7 @@ vips_object_local_array_cb(VipsObject *parent, VipsObjectLocal *local)
  *   return -1;
  * ```
  *
- * Returns: an array of NULL pointers of length @n
+ * Returns: an array of `NULL` pointers of length @n
  */
 VipsObject **
 vips_object_local_array(VipsObject *parent, int n)
