@@ -508,6 +508,17 @@ class TestForeign:
         after = pyvips.Image.new_from_buffer(data, "")
         assert (self.rgba - after).abs().max() == 0
 
+        # we should be able to save an 8-bit image as a 16-bit PNG
+        rgb = pyvips.Image.new_from_file(JPEG_FILE)
+        data = rgb.pngsave_buffer(bitdepth=16)
+        rgb16 = pyvips.Image.pngload_buffer(data, "")
+        assert rgb16.format == "ushort"
+
+        # we should be able to save a 16-bit image as a 8-bit PNG
+        data = rgb16.pngsave_buffer(bitdepth=8)
+        rgb = pyvips.Image.pngload_buffer(data, "")
+        assert rgb.format == "uchar"
+
     @skip_if_no("tiffload")
     def test_tiff(self):
         def tiff_valid(im):

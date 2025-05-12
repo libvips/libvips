@@ -358,8 +358,7 @@ vips_foreign_save_spng_write_block(VipsRegion *region, VipsRect *area,
 		sizeof_line = VIPS_REGION_SIZEOF_LINE(region);
 
 		if (spng->bitdepth < 8) {
-			vips_foreign_save_spng_pack(spng,
-				spng->line, line, sizeof_line);
+			vips_foreign_save_spng_pack(spng, spng->line, line, sizeof_line);
 			line = spng->line;
 			sizeof_line = spng->sizeof_line;
 		}
@@ -578,8 +577,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 		}
 	}
 	else {
-		if (vips_sink_disc(in,
-				vips_foreign_save_spng_write_block, spng))
+		if (vips_sink_disc(in, vips_foreign_save_spng_write_block, spng))
 			return -1;
 	}
 
@@ -618,12 +616,25 @@ vips_foreign_save_spng_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "colours"))
 		spng->bitdepth = ceil(log2(spng->colours));
 
-	/* Cast in down to 8 bit if we can.
+	/* The bitdepth param can change the interpretation.
 	 */
-	if (spng->bitdepth <= 8) {
+	VipsInterpretation interpretation;
+	if (in->Bands > 2) {
+	   if (spng->bitdepth > 8)
+		   interpretation = VIPS_INTERPRETATION_RGB16;
+	   else
+		   interpretation = VIPS_INTERPRETATION_sRGB;
+	}
+	else {
+	   if (spng->bitdepth > 8)
+		   interpretation = VIPS_INTERPRETATION_GREY16;
+	   else
+		   interpretation = VIPS_INTERPRETATION_B_W;
+	}
+	if (in->Type != interpretation) {
 		VipsImage *x;
 
-		if (vips_cast(in, &x, VIPS_FORMAT_UCHAR, NULL)) {
+		if (vips_colourspace(in, &x, interpretation, NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
