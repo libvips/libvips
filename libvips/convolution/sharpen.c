@@ -409,34 +409,34 @@ vips_sharpen_init(VipsSharpen *sharpen)
  * The lookup table is formed like this:
  *
  * ```
- * .                     ^
- * .                  y2 |- - - - - -----------
- * .                     |         /
- * .                     |        / slope m2
- * .                     |    .../
- * .             -x1     | ...   |
- * . -------------------...---------------------->
- * .             |   ... |      x1
- * .             |... slope m1
- * .             /       |
- * .            / m2     |
- * .           /         |
- * .          /          |
- * .         /           |
- * .        /            |
- * . ______/ _ _ _ _ _ _ | -y3
- * .                     |
+ *                     ^
+ *                  y2 |- - - - - -----------
+ *                     |         /
+ *                     |        / slope m2
+ *                     |    .../
+ *             -x1     | ...   |
+ * -------------------...---------------------->
+ *             |   ... |      x1
+ *             |... slope m1
+ *             /       |
+ *            / m2     |
+ *           /         |
+ *          /          |
+ *         /           |
+ *        /            |
+ * ______/ _ _ _ _ _ _ | -y3
+ *                     |
  * ```
  *
  * For screen output, we suggest the following settings (the defaults):
  *
  * ```
- *   sigma == 0.5
- *   x1 == 2
- *   y2 == 10         (don't brighten by more than 10 L*)
- *   y3 == 20         (can darken by up to 20 L*)
- *   m1 == 0          (no sharpening in flat areas)
- *   m2 == 3          (some sharpening in jaggy areas)
+ * sigma == 0.5
+ * x1 == 2
+ * y2 == 10         (don't brighten by more than 10 L*)
+ * y3 == 20         (can darken by up to 20 L*)
+ * m1 == 0          (no sharpening in flat areas)
+ * m2 == 3          (some sharpening in jaggy areas)
  * ```
  *
  * If you want more or less sharpening, we suggest you just change the

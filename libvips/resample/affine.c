@@ -732,16 +732,16 @@ vips_affine_init(VipsAffine *affine)
  * The transform is:
  *
  * ```
- *  X = @a * (x + @idx) + @b * (y + @idy) + @odx
- *  Y = @c * (x + @idx) + @d * (y + @idy) + @doy
- *  ```
+ * X = @a * (x + @idx) + @b * (y + @idy) + @odx
+ * Y = @c * (x + @idx) + @d * (y + @idy) + @doy
+ * ```
  *
- *  where:
+ * where:
  *
- *  ```
- *  x and y are the coordinates in input image.
- *  X and Y are the coordinates in output image.
- *  (0,0) is the upper left corner.
+ * ```
+ * x and y are the coordinates in input image.
+ * X and Y are the coordinates in output image.
+ * (0,0) is the upper left corner.
  * ```
  *
  * The section of the output space defined by @oarea is written to

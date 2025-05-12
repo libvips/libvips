@@ -3072,7 +3072,7 @@ vips_object_local_array_cb(VipsObject *parent, VipsObjectLocal *local)
  *     vips_invert(t[0], &t[1], NULL) ||
  *     vips_add(t[1], t[0], &t[2], NULL) ||
  *     vips_costra(t[2], out, NULL))
- *   return -1;
+ *     return -1;
  * ```
  *
  * Returns: an array of `NULL` pointers of length @n

@@ -140,7 +140,7 @@
  *
  * if (vips_invert(im, &t[0], NULL) ||
  *     vips_flip(t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL))
- *   return -1;
+ *     return -1;
  * ```
  *
  * where `parent` is some enclosing object which will be unreffed when this

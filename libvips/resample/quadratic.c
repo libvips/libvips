@@ -370,15 +370,15 @@ vips_quadratic_init(VipsQuadratic *quadratic)
  * The coefficients are in the input matrix, ordered as:
  *
  * ```
- *   a g
- *   --
- *   b h
- *   c i
- *   --
- *   d j
- *   --
- *   e k
- *   f l
+ * a g
+ * --
+ * b h
+ * c i
+ * --
+ * d j
+ * --
+ * e k
+ * f l
  * ```
  *
  * The matrix height may be 1, 3, 4, 6
