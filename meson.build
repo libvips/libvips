@@ -481,7 +481,7 @@ if pdfium_dep.found()
     pdf_loader = pdfium_dep
 endif
 
-libheif_dep = dependency('libheif', version: '>=1.4.0', required: get_option('heif'))
+libheif_dep = dependency('libheif', version: '>=1.11.0', required: get_option('heif'))
 libheif_module = false
 if libheif_dep.found()
     libheif_module = modules_enabled and not get_option('heif-module').disabled()
@@ -492,18 +492,6 @@ if libheif_dep.found()
         external_deps += libheif_dep
     endif
     cfg_var.set('HAVE_HEIF', true)
-    # added in 1.6.0
-    cfg_var.set('HAVE_HEIF_COLOR_PROFILE', cpp.has_function('heif_image_handle_get_raw_color_profile', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
-    cfg_var.set('HAVE_HEIF_SET_MAX_IMAGE_SIZE_LIMIT', cpp.has_function('heif_context_set_maximum_image_size_limit', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
-    # added in 1.7.0
-    cfg_var.set('HAVE_HEIF_DECODING_OPTIONS_CONVERT_HDR_TO_8BIT', cpp.has_member('struct heif_decoding_options', 'convert_hdr_to_8bit', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
-    # heif_main_brand added in 1.4.0, but heif_avif appeared in 1.7 ... just check
-    # the libheif version number since testing for enums is annoying
-    cfg_var.set('HAVE_HEIF_AVIF', libheif_dep.version().version_compare('>=1.7.0'))
-    # added in 1.10.0
-    cfg_var.set('HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES', cpp.has_function('heif_encoder_parameter_get_valid_integer_values', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
-    # added in 1.11.0
-    cfg_var.set('HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE', cpp.has_member('struct heif_encoding_options', 'output_nclx_profile', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
     # heif_init added in 1.13.0
     cfg_var.set('HAVE_HEIF_INIT', libheif_dep.version().version_compare('>=1.13.0'))
     # heif_encoding_options.image_orientation added in 1.14.0

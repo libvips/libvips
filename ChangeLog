@@ -31,6 +31,7 @@ master
   public API
 - jxlsave writes in chunks, for lower memory use on large images (but we now
   need libjxl 0.11 at minimum)
+- increase minimum version of libheif dependency to 1.11.0
 
 8.16.1
 
