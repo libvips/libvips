@@ -1429,7 +1429,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 
 	/* If this is a mono-ish looking image and our saver supports mono, we
 	 * are done. We are not too strict about what a mono image is! We need to
-	 * work for things like "extract_band 1" on an RGB Image.
+	 * work for things like "extract_band 1" on an RGB image.
 	 */
 	if ((saveable & VIPS_FOREIGN_SAVEABLE_MONO) &&
 		in->Bands < 3) {
@@ -1533,6 +1533,9 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	/* in holds a reference to the output of our chain as we build it.
 	 */
 	g_object_ref(in);
+
+	g_assert(format);
+	g_assert(coding);
 
 	/* For coded images, can this class save the coding we are in now?
 	 * Nothing to do.
@@ -1638,11 +1641,8 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 	/* Convert to the format the saver likes, based on the original format.
 	 */
-	if (in->Coding == VIPS_CODING_NONE &&
-		format) {
-		if (vips_cast(in, &out, format[original_format],
-			"shift", TRUE,
-			NULL)) {
+	if (in->Coding == VIPS_CODING_NONE) {
+		if (vips_cast(in, &out, format[original_format], NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
