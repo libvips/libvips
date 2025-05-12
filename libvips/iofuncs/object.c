@@ -180,7 +180,7 @@
  * us. We also automatically watch for "destroy" and unlink.
  *
  * [flags@Vips.ArgumentFlags.SET_ALWAYS] is handy for arguments which are set from C. For
- * example, VipsImage::width is a property that gives access to the Xsize
+ * example, [property@Image:width] is a property that gives access to the Xsize
  * member of struct _VipsImage. We default its 'assigned' to `TRUE`
  * since the field is always set directly by C.
  *
@@ -582,7 +582,7 @@ vips_argument_table_destroy(VipsArgumentTable *table)
  * @a: client data
  * @b: client data
  *
- * Loop over the vips_arguments to an object. Stop when @fn returns non-`NULL`
+ * Loop over the [struct@Argument] of an object. Stop when @fn returns non-`NULL`
  * and return that value.
  *
  * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
@@ -3055,7 +3055,7 @@ vips_object_local_array_cb(VipsObject *parent, VipsObjectLocal *local)
  * @parent: objects unref when this object unrefs
  * @n: array size
  *
- * Make an array of `NULL` VipsObject pointers. When @parent closes, every
+ * Make an array of `NULL` [class@Object] pointers. When @parent closes, every
  * non-`NULL` pointer in the array will be unreffed and the array will be
  * freed. Handy for creating a set of temporary images for a function.
  *

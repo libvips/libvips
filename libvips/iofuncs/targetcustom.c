@@ -329,7 +329,7 @@ vips_target_custom_class_init(VipsTargetCustomClass *class)
 	 * VipsTargetCustom::finish:
 	 * @target_custom: the target being operated on
 	 *
-	 * Deprecated for VipsTargetCustom::end.
+	 * Deprecated for [signal@TargetCustom::end].
 	 */
 	vips_target_custom_signals[SIG_FINISH] = g_signal_new("finish",
 		G_TYPE_FROM_CLASS(class),
