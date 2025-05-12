@@ -288,9 +288,9 @@ vips_premultiply_init(VipsPremultiply *premultiply)
  * The final band is taken to be the alpha and the bands are transformed as:
  *
  * ```
- *   alpha = clip(0, in[in.bands - 1], max_alpha)
- *   norm = alpha / max_alpha
- *   out = [in[0] * norm, ..., in[in.bands - 1] * norm, alpha]
+ * alpha = clip(0, in[in.bands - 1], max_alpha)
+ * norm = alpha / max_alpha
+ * out = [in[0] * norm, ..., in[in.bands - 1] * norm, alpha]
  * ```
  *
  * So for an N-band image, the first N - 1 bands are multiplied by the clipped

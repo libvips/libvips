@@ -196,7 +196,7 @@ vips__concurrency_get_default(void)
  * [func@threadpool_run].
  *
  * The special value 0 means "default". In this case, the number of threads
- * is set by the environment variable VIPS_CONCURRENCY, or if that is not
+ * is set by the environment variable `VIPS_CONCURRENCY`, or if that is not
  * set, the number of threads available on the host machine.
  *
  * ::: seealso
@@ -228,12 +228,12 @@ vips_concurrency_set(int concurrency)
  *
  * If [func@concurrency_set] has been called, this value is used. The special
  * value 0 means "default". You can also use the command-line argument
- * "--vips-concurrency" to set this value.
+ * `--vips-concurrency` to set this value.
  *
  * If [func@concurrency_set] has not been called and no command-line argument
- * was used, vips uses the value of the environment variable VIPS_CONCURRENCY,
+ * was used, vips uses the value of the environment variable `VIPS_CONCURRENCY`.
  *
- * If VIPS_CONCURRENCY has not been set, vips finds the number of hardware
+ * If `VIPS_CONCURRENCY` has not been set, vips finds the number of hardware
  * threads that the host machine can run in parallel and uses that value.
  *
  * The final value is clipped to the range 1 - 1024.

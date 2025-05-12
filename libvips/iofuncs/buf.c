@@ -61,9 +61,9 @@
  *
  * vips_buf_appends(&buf, "Numbers are: ");
  * for (i = 0; i < array_length; i++) {
- *   if (i > 0)
- *     vips_buf_appends(&buf, ", ");
- *   vips_buf_appendg(&buf, array[i]);
+ *     if (i > 0)
+ *         vips_buf_appends(&buf, ", ");
+ *     vips_buf_appendg(&buf, array[i]);
  * }
  * printf("%s", vips_buf_all(&buf));
  * ```

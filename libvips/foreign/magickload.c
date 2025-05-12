@@ -75,7 +75,7 @@
  * attached to the libMagick image is copied on to the VIPS image.
  *
  * The reader should also work with most versions of GraphicsMagick. See the
- * "--with-magickpackage" configure option.
+ * `-Dmagick-package` configure option.
  *
  * The file format is usually guessed from the filename suffix, or sniffed
  * from the file contents.

@@ -158,8 +158,8 @@
  * The suffix list is used to select a format to save a file in, and to pick a
  * loader if you don't define [func@Foreign.is_a].
  *
- * You should also define [property@VipsObject:nickname] and
- * [property@VipsObject:description] in [class@Object].
+ * You should also define [property@Object:nickname] and
+ * [property@Object:description] in [class@Object].
  *
  * As a complete example, here's code for a PNG loader, minus the actual
  * calls to libpng.
@@ -457,11 +457,11 @@ file_compare(VipsForeignClass *a, VipsForeignClass *b, void *user_data)
 /**
  * vips_foreign_map:
  * @base: base class to search below (eg. "VipsForeignLoad")
- * @fn: (scope call): function to apply to each [class@Foreign]Class
+ * @fn: (scope call): function to apply to each [class@Foreign]
  * @a: user data
  * @b: user data
  *
- * Apply a function to every [class@Foreign]Class that VIPS knows about. Foreigns
+ * Apply a function to every [class@Foreign] that VIPS knows about. Foreigns
  * are presented to the function in priority order.
  *
  * Like all VIPS map functions, if @fn returns `NULL`, iteration continues. If

@@ -622,7 +622,7 @@ vips_boolean_constv(VipsImage *in, VipsImage **out,
  * Perform various boolean operations on an image against an array of
  * constants.
  *
- * The output type is always uchar, with 0 for FALSE and 255 for TRUE.
+ * The output type is always uchar, with 0 for `FALSE` and 255 for `TRUE`.
  *
  * If the array of constants has just one element, that constant is used for
  * all image bands. If the array has more than one element and they have

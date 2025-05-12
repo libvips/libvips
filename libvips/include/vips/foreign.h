@@ -317,7 +317,8 @@ void vips_foreign_load_invalidate(VipsImage *image);
  *
  * The set of image types supported by a saver.
  *
- * See also: [class@ForeignSave].
+ * ::: seealso
+ *     [class@ForeignSave].
  */
 typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_SAVEABLE_MONO = 1,

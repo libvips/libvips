@@ -180,8 +180,8 @@
  * us. We also automatically watch for "destroy" and unlink.
  *
  * [flags@Vips.ArgumentFlags.SET_ALWAYS] is handy for arguments which are set from C. For
- * example, VipsImage::width is a property that gives access to the Xsize
- * member of struct _VipsImage. We default its 'assigned' to TRUE
+ * example, [property@Image:width] is a property that gives access to the Xsize
+ * member of struct _VipsImage. We default its 'assigned' to `TRUE`
  * since the field is always set directly by C.
  *
  * [flags@Vips.ArgumentFlags.DEPRECATED] arguments are not shown in help text, are not
@@ -582,7 +582,7 @@ vips_argument_table_destroy(VipsArgumentTable *table)
  * @a: client data
  * @b: client data
  *
- * Loop over the vips_arguments to an object. Stop when @fn returns non-`NULL`
+ * Loop over the [struct@Argument] of an object. Stop when @fn returns non-`NULL`
  * and return that value.
  *
  * Returns: `NULL` if @fn returns `NULL` for all arguments, otherwise the first
@@ -2956,7 +2956,7 @@ vips_class_build_hash_cb(void *dummy)
  *
  * Search below @basename, return the [alias@GObject.Type] of the class
  * whose name or @nickname matches, or 0 for not found.
- * If @basename is NULL, the whole of [class@Object] is searched.
+ * If @basename is `NULL`, the whole of [class@Object] is searched.
  *
  * This function uses a cache, so it should be quick.
  *
@@ -3055,11 +3055,11 @@ vips_object_local_array_cb(VipsObject *parent, VipsObjectLocal *local)
  * @parent: objects unref when this object unrefs
  * @n: array size
  *
- * Make an array of NULL VipsObject pointers. When @parent closes, every
- * non-NULL pointer in the array will be unreffed and the array will be
+ * Make an array of `NULL` [class@Object] pointers. When @parent closes, every
+ * non-`NULL` pointer in the array will be unreffed and the array will be
  * freed. Handy for creating a set of temporary images for a function.
  *
- * The array is NULL-terminated, ie. contains an extra NULL element at the
+ * The array is `NULL`-terminated, ie. contains an extra `NULL` element at the
  * end.
  *
  * Example:
@@ -3072,10 +3072,10 @@ vips_object_local_array_cb(VipsObject *parent, VipsObjectLocal *local)
  *     vips_invert(t[0], &t[1], NULL) ||
  *     vips_add(t[1], t[0], &t[2], NULL) ||
  *     vips_costra(t[2], out, NULL))
- *   return -1;
+ *     return -1;
  * ```
  *
- * Returns: an array of NULL pointers of length @n
+ * Returns: an array of `NULL` pointers of length @n
  */
 VipsObject **
 vips_object_local_array(VipsObject *parent, int n)
@@ -3242,7 +3242,7 @@ vips_object_unref_outputs(VipsObject *object)
  *
  * Fetch the object description. Useful for language bindings.
  *
- * [property@VipsObject:description] is only available after `_build()`, which can be too
+ * [property@Object:description] is only available after `_build()`, which can be too
  * late. This function fetches from the instance, if possible, but falls back
  * to the class description if we are too early.
  *

@@ -320,11 +320,11 @@
  * @X: x coordinate
  * @Y: y coordinate
  *
- * This macro returns a pointer to a pixel in an image, cast to a [alias@Pel]*.
+ * This macro returns a pointer to a pixel in an image, cast to a [alias@Pel] \*.
  * It only works for images which are fully available in memory, so memory
  * buffers and small mapped images only.
  *
- * If VIPS_DEBUG is defined, you get a version that checks bounds for you.
+ * If `VIPS_DEBUG` is defined, you get a version that checks bounds for you.
  *
  * ::: seealso
  *     [method@Image.wio_input], [method@Image.inplace], [func@REGION_ADDR].
@@ -343,7 +343,7 @@
  * fully available in memory, so memory buffers and small
  * mapped images only.
  *
- * If VIPS_DEBUG is defined, you get a version that checks bounds and image
+ * If `VIPS_DEBUG` is defined, you get a version that checks bounds and image
  * type for you.
  *
  * ::: seealso
@@ -386,8 +386,8 @@ G_DEFINE_TYPE(VipsImage, vips_image, VIPS_TYPE_OBJECT);
  * @progress: `TRUE` to enable progress messages
  *
  * If set, vips will print messages about the progress of computation to
- * stdout. This can also be enabled with the --vips-progress option, or by
- * setting the environment variable VIPS_PROGRESS.
+ * stdout. This can also be enabled with the `--vips-progress` option, or by
+ * setting the environment variable `VIPS_PROGRESS`.
  */
 void
 vips_progress_set(gboolean progress)
@@ -1447,7 +1447,7 @@ vips_image_minimise_all(VipsImage *image)
  * vips_image_is_sequential:
  * @image: [class@Image] to minimise
  *
- * TRUE if any of the images upstream from @image were opened in sequential
+ * `TRUE` if any of the images upstream from @image were opened in sequential
  * mode. Some operations change behaviour slightly in sequential mode to
  * optimize memory behaviour.
  *
@@ -1853,7 +1853,7 @@ vips_filename_get_options(const char *vips_filename)
  * OpenEXR, CSV, WebP, Radiance, RAW, PPM and others.
  *
  * Load options may be appended to @filename as `[name=value,...]` or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * a `NULL`-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  * Many loaders add extra options, see [ctor@Image.jpegload], for example.
  *
@@ -2139,7 +2139,7 @@ vips_image_new_from_memory_copy(const void *data, size_t size,
  * freed when the image is closed. See for example [signal@Object::close].
  *
  * Load options may be given in @option_string as `[name=value,...]` or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * a `NULL`-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  *
  * ::: seealso
@@ -2189,7 +2189,7 @@ vips_image_new_from_buffer(const void *buf, size_t len,
  * loader recommended by [func@Foreign.find_load_source].
  *
  * Load options may be given in @option_string as `[name=value,...]` or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * a `NULL`-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the string.
  *
  * ::: seealso
@@ -2513,7 +2513,7 @@ vips_image_set_delete_on_close(VipsImage *image, gboolean delete_on_close)
  *
  * Return the number of bytes at which we flip between open via memory and
  * open via disc. This defaults to 100mb, but can be changed with the
- * VIPS_DISC_THRESHOLD environment variable or the --vips-disc-threshold
+ * `VIPS_DISC_THRESHOLD` environment variable or the `--vips-disc-threshold`
  * command-line flag. See [ctor@Image.new_from_file].
  *
  * Returns: disc threshold in bytes.
@@ -2679,7 +2679,7 @@ vips_image_write(VipsImage *image, VipsImage *out)
  * [func@Foreign.find_save].
  *
  * Save options may be appended to @filename as `[name=value,...]` or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * a `NULL`-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  *
  * ::: seealso
@@ -2743,7 +2743,7 @@ vips_image_write_to_file(VipsImage *image, const char *name, ...)
  * Writes @in to a memory buffer in a format specified by @suffix.
  *
  * Save options may be appended to @suffix as `[name=value,...]` or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * a `NULL`-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  *
  * Currently only TIFF, JPEG and PNG formats are supported.
@@ -2833,7 +2833,7 @@ vips_image_write_to_buffer(VipsImage *in,
  * Writes @in to @output in format @suffix.
  *
  * Save options may be appended to @suffix as `[name=value,...]` or given as
- * a NULL-terminated list of name-value pairs at the end of the arguments.
+ * a `NULL`-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  *
  * You can call the various save operations directly if you wish, see
