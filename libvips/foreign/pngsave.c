@@ -128,13 +128,13 @@ vips_foreign_save_png_build(VipsObject *object)
 	 */
 	VipsInterpretation interpretation;
 	if (in->Bands > 2) {
-	   if (spng->bitdepth > 8)
+	   if (png->bitdepth > 8)
 		   interpretation = VIPS_INTERPRETATION_RGB16;
 	   else
 		   interpretation = VIPS_INTERPRETATION_sRGB;
 	}
 	else {
-	   if (spng->bitdepth > 8)
+	   if (png->bitdepth > 8)
 		   interpretation = VIPS_INTERPRETATION_GREY16;
 	   else
 		   interpretation = VIPS_INTERPRETATION_B_W;
