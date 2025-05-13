@@ -355,6 +355,11 @@ vips_foreign_load_heif_build(VipsObject *object)
 		 */
 		heif_context_set_maximum_image_size_limit(heif->ctx,
 			heif->unlimited ? USHRT_MAX : 0x4000);
+#ifdef HAVE_HEIF_MAX_TOTAL_MEMORY
+		if (!heif->unlimited)
+			heif_context_get_security_limits(heif->ctx)
+				->max_total_memory = 2UL * 1024 * 1024 * 1024;
+#endif /* HAVE_HEIF_MAX_TOTAL_MEMORY */
 #ifdef HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS
 		if (heif->unlimited)
 			heif_context_set_security_limits(heif->ctx,
