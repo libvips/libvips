@@ -150,6 +150,20 @@ vips_foreign_save_png_build(VipsObject *object)
 		in = x;
 	}
 
+	/* Because of the way conversion works, we can be passed ushort srgb
+	 * images.
+	 */
+	if (in->Type == VIPS_INTERPRETATION_sRGB) {
+		VipsImage *x;
+
+		if (vips_cast_uchar(in, &x, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = x;
+	}
+
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
 	 */

@@ -511,12 +511,12 @@ class TestForeign:
         # we should be able to save an 8-bit image as a 16-bit PNG
         rgb = pyvips.Image.new_from_file(JPEG_FILE)
         data = rgb.pngsave_buffer(bitdepth=16)
-        rgb16 = pyvips.Image.pngload_buffer(data, "")
+        rgb16 = pyvips.Image.pngload_buffer(data)
         assert rgb16.format == "ushort"
 
         # we should be able to save a 16-bit image as a 8-bit PNG
         data = rgb16.pngsave_buffer(bitdepth=8)
-        rgb = pyvips.Image.pngload_buffer(data, "")
+        rgb = pyvips.Image.pngload_buffer(data)
         assert rgb.format == "uchar"
 
     @skip_if_no("tiffload")
