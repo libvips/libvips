@@ -102,6 +102,7 @@ vips_foreign_save_png_build(VipsObject *object)
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 
 	VipsImage *in;
+	VipsImage *x;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_parent_class)->build(object))
 		return -1;
@@ -139,30 +140,12 @@ vips_foreign_save_png_build(VipsObject *object)
 	   else
 		   interpretation = VIPS_INTERPRETATION_B_W;
 	}
-	if (in->Type != interpretation) {
-		VipsImage *x;
-
-		if (vips_colourspace(in, &x, interpretation, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
+	if (vips_colourspace(in, &x, interpretation, NULL)) {
 		g_object_unref(in);
-		in = x;
+		return -1;
 	}
-
-	/* Because of the way conversion works, we can be passed ushort srgb
-	 * images.
-	 */
-	if (in->Type == VIPS_INTERPRETATION_sRGB) {
-		VipsImage *x;
-
-		if (vips_cast_uchar(in, &x, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
-		g_object_unref(in);
-		in = x;
-	}
+	g_object_unref(in);
+	in = x;
 
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
