@@ -1375,13 +1375,16 @@ vips_foreign_save_new_from_string(const char *string)
 
 /* Apply a set of saveable flags.
  *
+ *  - unpack rad and labq
  *	- if the saver supports mono and we have a mono-looking image, we are done
  *	- if the saver supports CMYK and we have a CMYK-looking image, we are done
  *	- if this is a CMYK-looking image, import to XYZ
- *	- go to rgb
- *	- if the saver supports rgb, we are done
+ *	- if the saver supports rgb, go to rgb
  *	- if the saver supports cmyk, go to cmyk
  *	- if the saver supports mono, go to mono
+ *
+ * we output 16 bit images if the source is 16 bits ... a later stage
+ * uses the format[] table to cut this down to the size the saver wants
  */
 static int
 vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
@@ -1404,7 +1407,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		return 0;
 	}
 
-	/* If this is an VIPS_CODING_LABQ, we can go straight to RGB.
+	/* If this is VIPS_CODING_LABQ, we can go straight to RGB.
 	 */
 	if (in->Coding == VIPS_CODING_LABQ) {
 		if (vips_LabQ2sRGB(in, &out, NULL)) {
@@ -1415,7 +1418,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If this is an VIPS_CODING_RAD, we unpack to float. This could be
+	/* If this is VIPS_CODING_RAD, we unpack to float. This could be
 	 * scRGB or XYZ.
 	 */
 	if (in->Coding == VIPS_CODING_RAD) {
@@ -1478,7 +1481,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		return 0;
 	}
 
-	/* If the saver supports CMYK, go to RGB, or RGB16 if this is a ushort
+	/* If the saver supports CMYK, go to CMYK, 16 bits if this is a ushort
 	 * source.
 	 */
 	if (saveable & VIPS_FOREIGN_SAVEABLE_CMYK) {
@@ -1639,10 +1642,10 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		}
 	}
 
-	/* Convert to the format the saver likes, based on the original format.
+	/* Convert to the format the saver likes.
 	 */
 	if (in->Coding == VIPS_CODING_NONE) {
-		if (vips_cast(in, &out, format[original_format], NULL)) {
+		if (vips_cast(in, &out, format[in->BandFmt], NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
