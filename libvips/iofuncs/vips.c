@@ -359,13 +359,11 @@ vips__read_header_bytes(VipsImage *im, unsigned char *from)
 	 */
 	value = g_enum_get_value(g_type_class_ref(VIPS_TYPE_INTERPRETATION),
 		im->Type);
-	if (!value ||
-		strcmp(value->value_nick, "last") == 0)
+	if (!value)
 		im->Type = VIPS_INTERPRETATION_ERROR;
 	value = g_enum_get_value(g_type_class_ref(VIPS_TYPE_CODING),
 		im->Coding);
-	if (!value ||
-		strcmp(value->value_nick, "last") == 0)
+	if (!value)
 		im->Coding = VIPS_CODING_ERROR;
 
 	/* Offset, Res, etc. don't affect vips file layout, just
