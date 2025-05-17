@@ -334,6 +334,28 @@ typedef enum /*< flags >*/ {
 } VipsForeignSaveable;
 
 /**
+ * VipsForeignCoding:
+ * @VIPS_FOREIGN_CODING_NONE: saver supports [enum@Vips.Coding.NONE]
+ * @VIPS_FOREIGN_CODING_LABQ: saver supports [enum@Vips.Coding.LABQ]
+ * @VIPS_FOREIGN_CODING_RAD: saver supports [enum@Vips.Coding.RAD]
+ * @VIPS_FOREIGN_CODING_ALL: saver supports all coding types
+ *
+ * The set of coding types supported by a saver.
+ *
+ * ::: seealso
+ *     [enum@Coding].
+ */
+typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_CODING_NONE = 1 << 0,
+	VIPS_FOREIGN_CODING_LABQ = 1 << 1,
+	VIPS_FOREIGN_CODING_RAD = 1 << 2,
+
+	VIPS_FOREIGN_CODING_ALL = (VIPS_FOREIGN_CODING_NONE |
+		VIPS_FOREIGN_CODING_LABQ |
+		VIPS_FOREIGN_CODING_RAD)
+} VipsForeignCoding;
+
+/**
  * VipsForeignKeep:
  * @VIPS_FOREIGN_KEEP_NONE: don't attach metadata
  * @VIPS_FOREIGN_KEEP_EXIF: keep Exif metadata
@@ -357,7 +379,7 @@ typedef enum /*< flags >*/ {
 		VIPS_FOREIGN_KEEP_XMP |
 		VIPS_FOREIGN_KEEP_IPTC |
 		VIPS_FOREIGN_KEEP_ICC |
-		VIPS_FOREIGN_KEEP_OTHER),
+		VIPS_FOREIGN_KEEP_OTHER)
 } VipsForeignKeep;
 
 typedef struct _VipsForeignSave {
@@ -408,7 +430,7 @@ typedef struct _VipsForeignSaveClass {
 	 *
 	 * @saveable describes the image types that your saver can handle. For
 	 * example, PPM images can have 1 or 3 bands (mono or RGB), so it
-	 * uses VIPS_SAVEABLE_FLAGS_MONO | VIPS_SAVEABLE_FLAGS_RGB.
+	 * uses [flags@Vips.ForeignSaveable.MONO] | [flags@Vips.ForeignSaveable.RGB].
 	 */
 	VipsForeignSaveable saveable;
 
@@ -420,12 +442,13 @@ typedef struct _VipsForeignSaveClass {
 	 */
 	VipsBandFormat *format_table;
 
-	/* The set of coding types this format can save. For example, jpeg can
-	 * only save NONE, so has NONE TRUE and RAD and LABQ FALSE.
+	/* The set of coding types this format can save. For example,
+	 * [method@Image.vipssave] can save all coding types, so it
+	 * uses [flags@Vips.ForeignCoding.ALL]
 	 *
-	 * Default NONE TRUE, RAD and LABQ FALSE.
+	 * Default to [flags@Vips.ForeignCoding.NONE].
 	 */
-	gboolean coding[VIPS_CODING_LAST];
+	VipsForeignCoding coding;
 } VipsForeignSaveClass;
 
 VIPS_API

@@ -128,8 +128,6 @@ extern const char *vips__suffs[];
 static void
 vips_foreign_save_vips_class_init(VipsForeignSaveVipsClass *class)
 {
-	int i;
-
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
@@ -144,8 +142,7 @@ vips_foreign_save_vips_class_init(VipsForeignSaveVipsClass *class)
 	foreign_class->suffs = vips__suffs;
 
 	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
-	for (i = 0; i < VIPS_CODING_LAST; i++)
-		save_class->coding[i] = TRUE;
+	save_class->coding = VIPS_FOREIGN_CODING_ALL;
 }
 
 static void

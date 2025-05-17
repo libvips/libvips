@@ -1526,7 +1526,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
  */
 int
 vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
-	VipsForeignSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
+	VipsForeignSaveable saveable, VipsBandFormat *format, VipsForeignCoding coding,
 	VipsArrayDouble *background)
 {
 	VipsImage *out;
@@ -1536,13 +1536,14 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	g_object_ref(in);
 
 	g_assert(format);
-	g_assert(coding);
 
 	/* For coded images, can this class save the coding we are in now?
 	 * Nothing to do.
 	 */
-	if (in->Coding != VIPS_CODING_NONE &&
-		coding[in->Coding]) {
+	if ((in->Coding == VIPS_CODING_LABQ &&
+			(coding & VIPS_FOREIGN_CODING_LABQ)) ||
+		(in->Coding == VIPS_CODING_RAD &&
+			(coding & VIPS_FOREIGN_CODING_RAD))) {
 		*ready = in;
 		return 0;
 	}
@@ -1650,14 +1651,18 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* Does this class want a coded image? Search the coding table for the
-	 * first one.
+	/* Does this class want a coded image?
 	 */
-	if (coding[in->Coding]) {
+	if ((in->Coding == VIPS_CODING_NONE &&
+			(coding & VIPS_FOREIGN_CODING_NONE)) ||
+		(in->Coding == VIPS_CODING_LABQ &&
+			(coding & VIPS_FOREIGN_CODING_LABQ)) ||
+		(in->Coding == VIPS_CODING_RAD &&
+			(coding & VIPS_FOREIGN_CODING_RAD))) {
 		/* Already there, nothing to do.
 		 */
 	}
-	else if (coding[VIPS_CODING_LABQ]) {
+	else if (coding & VIPS_FOREIGN_CODING_LABQ) {
 		if (vips_Lab2LabQ(in, &out, NULL)) {
 			g_object_unref(in);
 			return -1;
@@ -1665,7 +1670,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		g_object_unref(in);
 		in = out;
 	}
-	else if (coding[VIPS_CODING_RAD]) {
+	else if (coding & VIPS_FOREIGN_CODING_RAD) {
 		if (vips_float2rad(in, &out, NULL)) {
 			g_object_unref(in);
 			return -1;
@@ -1673,7 +1678,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		g_object_unref(in);
 		in = out;
 	}
-	else if (coding[VIPS_CODING_NONE]) {
+	else if (coding & VIPS_FOREIGN_CODING_NONE) {
 		if (vips_image_decode(in, &out)) {
 			g_object_unref(in);
 			return -1;
@@ -1832,8 +1837,6 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
-	int i;
-
 	gobject_class->dispose = vips_foreign_save_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -1856,9 +1859,7 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 
 	/* Default to no coding allowed.
 	 */
-	for (i = 0; i < VIPS_CODING_LAST; i++)
-		class->coding[i] = FALSE;
-	class->coding[VIPS_CODING_NONE] = TRUE;
+	class->coding = VIPS_FOREIGN_CODING_NONE;
 
 	/* Default to no cast on save.
 	 */
