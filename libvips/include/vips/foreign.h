@@ -309,11 +309,11 @@ void vips_foreign_load_invalidate(VipsImage *image);
 
 /**
  * VipsForeignSaveable:
+ * @VIPS_FOREIGN_SAVEABLE_ANY: saver supports everything (eg. TIFF)
  * @VIPS_FOREIGN_SAVEABLE_MONO: 1 band
  * @VIPS_FOREIGN_SAVEABLE_RGB: 3 bands
  * @VIPS_FOREIGN_SAVEABLE_CMYK: 4 bands
  * @VIPS_FOREIGN_SAVEABLE_ALPHA: an extra band
- * @VIPS_FOREIGN_SAVEABLE_ANY: saver supports everything (eg. TIFF)
  *
  * The set of image types supported by a saver.
  *
@@ -321,12 +321,16 @@ void vips_foreign_load_invalidate(VipsImage *image);
  *     [class@ForeignSave].
  */
 typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_SAVEABLE_ANY = 0,
 	VIPS_FOREIGN_SAVEABLE_MONO = 1,
 	VIPS_FOREIGN_SAVEABLE_RGB = 2,
 	VIPS_FOREIGN_SAVEABLE_CMYK = 4,
 	VIPS_FOREIGN_SAVEABLE_ALPHA = 8,
-	VIPS_FOREIGN_SAVEABLE_ANY = 16,
-	VIPS_FOREIGN_SAVEABLE_ALL = 31,
+
+	VIPS_FOREIGN_SAVEABLE_ALL = (VIPS_FOREIGN_SAVEABLE_MONO |
+		VIPS_FOREIGN_SAVEABLE_RGB |
+		VIPS_FOREIGN_SAVEABLE_CMYK |
+		VIPS_FOREIGN_SAVEABLE_ALPHA)
 } VipsForeignSaveable;
 
 /**
