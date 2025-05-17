@@ -254,7 +254,7 @@ vips_foreign_save_tiff_class_init(VipsForeignSaveTiffClass *class)
 	foreign_class->suffs = vips__foreign_tiff_suffs;
 
 	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
-	save_class->coding[VIPS_CODING_LABQ] = TRUE;
+	save_class->coding |= VIPS_FOREIGN_CODING_LABQ;
 
 	VIPS_ARG_ENUM(class, "compression", 6,
 		_("Compression"),
