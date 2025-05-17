@@ -216,17 +216,13 @@ list_operation_arg(VipsObjectClass *object_class,
 	/* These are the pspecs that vips uses that have interesting values.
 	 */
 	if (G_IS_PARAM_SPEC_ENUM(pspec)) {
-		GTypeClass *class = g_type_class_ref(type);
+		/* GParamSpecEnum holds a ref on the class so we just peek.
+		 */
+		GEnumClass *genum = g_type_class_peek(type);
 
-		GEnumClass *genum;
 		int i;
 
-		/* Should be impossible, no need to warn.
-		 */
-		if (!class)
-			return NULL;
-
-		genum = G_ENUM_CLASS(class);
+		g_assert(genum);
 
 		printf("word:");
 
