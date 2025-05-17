@@ -473,6 +473,8 @@ int vips_snprintf(char *str, size_t size, const char *format, ...)
 /* This has been deprecated and replaced by VipsForeignSaveable.
  */
 typedef enum /*< skip >*/ {
+	VIPS_SAVEABLE_ANY =
+		VIPS_FOREIGN_SAVEABLE_ANY,
 	VIPS_SAVEABLE_MONO =
 		VIPS_FOREIGN_SAVEABLE_MONO,
 	VIPS_SAVEABLE_RGB =
@@ -483,8 +485,6 @@ typedef enum /*< skip >*/ {
 		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA,
 	VIPS_SAVEABLE_RGB_CMYK =
 		VIPS_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_CMYK,
-	VIPS_SAVEABLE_ANY =
-		VIPS_FOREIGN_SAVEABLE_ANY,
 	VIPS_SAVEABLE_LAST = 99,
 } VipsSaveable;
 
