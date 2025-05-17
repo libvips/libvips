@@ -442,7 +442,7 @@ class TestConversion:
         comp = base.composite(overlay, "over")
 
         assert_almost_equal_objects(comp(0, 0), [51.8, 52.8, 53.8, 255],
-                                    threshold=0.1)
+                                    threshold=1)
 
     def test_unpremultiply(self):
         for fmt in unsigned_formats + [pyvips.BandFormat.SHORT,

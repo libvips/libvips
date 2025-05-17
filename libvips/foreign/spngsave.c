@@ -358,8 +358,7 @@ vips_foreign_save_spng_write_block(VipsRegion *region, VipsRect *area,
 		sizeof_line = VIPS_REGION_SIZEOF_LINE(region);
 
 		if (spng->bitdepth < 8) {
-			vips_foreign_save_spng_pack(spng,
-				spng->line, line, sizeof_line);
+			vips_foreign_save_spng_pack(spng, spng->line, line, sizeof_line);
 			line = spng->line;
 			sizeof_line = spng->sizeof_line;
 		}
@@ -578,8 +577,7 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 		}
 	}
 	else {
-		if (vips_sink_disc(in,
-				vips_foreign_save_spng_write_block, spng))
+		if (vips_sink_disc(in, vips_foreign_save_spng_write_block, spng))
 			return -1;
 	}
 
@@ -596,6 +594,7 @@ vips_foreign_save_spng_build(VipsObject *object)
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
 
 	VipsImage *in;
+	VipsImage *x;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_parent_class)->build(object))
 		return -1;
@@ -618,18 +617,27 @@ vips_foreign_save_spng_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "colours"))
 		spng->bitdepth = ceil(log2(spng->colours));
 
-	/* Cast in down to 8 bit if we can.
+	/* The bitdepth param can change the interpretation.
 	 */
-	if (spng->bitdepth <= 8) {
-		VipsImage *x;
-
-		if (vips_cast(in, &x, VIPS_FORMAT_UCHAR, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
-		g_object_unref(in);
-		in = x;
+	VipsInterpretation interpretation;
+	if (in->Bands > 2) {
+	   if (spng->bitdepth > 8)
+		   interpretation = VIPS_INTERPRETATION_RGB16;
+	   else
+		   interpretation = VIPS_INTERPRETATION_sRGB;
 	}
+	else {
+	   if (spng->bitdepth > 8)
+		   interpretation = VIPS_INTERPRETATION_GREY16;
+	   else
+		   interpretation = VIPS_INTERPRETATION_B_W;
+	}
+	if (vips_colourspace(in, &x, interpretation, NULL)) {
+		g_object_unref(in);
+		return -1;
+	}
+	g_object_unref(in);
+	in = x;
 
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettisation.
@@ -784,11 +792,8 @@ vips_foreign_save_spng_target_build(VipsObject *object)
 	spng->target = target->target;
 	g_object_ref(spng->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_spng_target_parent_class)
+		->build(object);
 }
 
 static void
