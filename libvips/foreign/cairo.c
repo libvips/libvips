@@ -134,32 +134,17 @@ vips__bgra2rgba(guint32 *restrict p, int n)
  * The data is assumed to be RGBA (R, G, B, A) 32-bit floats per pixel.
  */
 void vips__rgba128f_unpremultiplied(float *p, int n) {
-    // Iterate over each pixel in the current row
-    for (int x = 0; x < n; x++) {
-        // Calculate the pointer to the start of the current pixel (4 floats: R, G, B, A)
-        float *pixel = p + x * 4;
+	float *restrict pixel = p;
+	for (int x = 0; x < n; x++) {
+		float r = pixel[0];
+		float g = pixel[1];
+		float b = pixel[2];
+		float a = pixel[3];
 
-        float r_prem = pixel[0]; // Premultiplied Red
-        float g_prem = pixel[1]; // Premultiplied Green
-        float b_prem = pixel[2]; // Premultiplied Blue
-        float a = pixel[3]; // Alpha value
+		pixel[0] = a > 0.00001 ? r / a : 0.0;
+		pixel[1] = a > 0.00001 ? g / a : 0.0;
+		pixel[2] = a > 0.00001 ? b / a : 0.0;
 
-        // Use a small epsilon for float comparison to avoid division by exact zero,
-        // which can happen with floating-point numbers.
-        if (a > 0.00001) {
-            // Unpremultiply color channels by dividing by alpha
-            pixel[0] = (r_prem / a); // Write Straight Red back to buffer
-            pixel[1] = (g_prem / a); // Write Straight Green back to buffer
-            pixel[2] = (b_prem / a); // Write Straight Blue back to buffer
-            // pixel[3] (alpha) remains unchanged in memory
-        } else {
-            // Handle fully transparent pixels (alpha is 0 or very close to 0).
-            // The color is undefined, so set color channels to 0.0.
-            // The alpha channel should already be 0.0 in this case.
-            pixel[0] = 0.0;
-            pixel[1] = 0.0;
-            pixel[2] = 0.0;
-            // pixel[3] remains 0.0
-        }
-    }
+		pixel += 4;
+	}
 }

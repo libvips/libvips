@@ -557,24 +557,12 @@ vips_foreign_load_svg_parse(VipsForeignLoadSvg *svg, VipsImage *out)
 	 */
 	res = svg->dpi / 25.4;
 
-	#ifdef HAVE_128BIT_SVG_RENDERING
-		if (svg->rgb128) {
-			vips_image_init_fields(out,
-				width, height,
-				4, VIPS_FORMAT_FLOAT,
-				VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, res, res);
-		} else {
-			vips_image_init_fields(out,
-				width, height,
-				4, VIPS_FORMAT_UCHAR,
-				VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res);
-		}
-	#else
-		vips_image_init_fields(out,
-			width, height,
-			4, VIPS_FORMAT_UCHAR,
-			VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, res, res);
-	#endif
+	vips_image_init_fields(out,
+		width, height, 4,
+		svg->rgb128 ? VIPS_FORMAT_FLOAT : VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE,
+		svg->rgb128 ? VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
+		res, res);
 
 	/* We use a tilecache, so it's smalltile.
 	 */
@@ -615,27 +603,17 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	 */
 	vips_region_black(out_region);
 
-	#ifdef HAVE_128BIT_SVG_RENDERING
-		if (svg->rgb128) {
-			surface = cairo_image_surface_create_for_data(
-			VIPS_REGION_ADDR(out_region, r->left, r->top),
-			CAIRO_FORMAT_RGBA128F,
-			r->width, r->height,
-			VIPS_REGION_LSKIP(out_region));
-		} else {
-			surface = cairo_image_surface_create_for_data(
-			VIPS_REGION_ADDR(out_region, r->left, r->top),
-			CAIRO_FORMAT_ARGB32,
-			r->width, r->height,
-			VIPS_REGION_LSKIP(out_region));
-		}
-	#else
-		surface = cairo_image_surface_create_for_data(
+#ifdef HAVE_128BIT_SVG_RENDERING
+	cairo_format_t format = svg->rgb128 ? CAIRO_FORMAT_RGBA128F : CAIRO_FORMAT_ARGB32;
+#else
+	cairo_format_t format = CAIRO_FORMAT_ARGB32;
+#endif /*HAVE_128BIT_SVG_RENDERING*/
+
+	surface = cairo_image_surface_create_for_data(
 		VIPS_REGION_ADDR(out_region, r->left, r->top),
-		CAIRO_FORMAT_ARGB32,
+		format,
 		r->width, r->height,
 		VIPS_REGION_LSKIP(out_region));
-	#endif
 	cr = cairo_create(surface);
 	cairo_surface_destroy(surface);
 
@@ -701,32 +679,23 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	cairo_destroy(cr);
 
 #endif /*LIBRSVG_CHECK_VERSION(2, 46, 0)*/
-	#ifdef HAVE_128BIT_SVG_RENDERING
-		if (svg->rgb128) {
-			/* Assuming the surface is RGBA128F and the data is premultiplied.
-			   Loop through each row and unpremultiply the float data.
-			*/
-			for (int y = 0; y < r->height; y++)
-				vips__rgba128f_unpremultiplied(
-					(float *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
-					r->width);
-		} else {
-			/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
-			*/
-			for (y = 0; y < r->height; y++)
-				vips__premultiplied_bgra2rgba(
-					(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
-					r->width);
-		}
-	#else
-		/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
+	if (svg->rgb128) {
+		/* Assuming the surface is RGBA128F and the data is premultiplied.
+		   Loop through each row and unpremultiply the float data.
 		*/
+		for (int y = 0; y < r->height; y++)
+			vips__rgba128f_unpremultiplied(
+				(float *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
+				r->width);
+	}
+	else {
+		/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
+		 */
 		for (y = 0; y < r->height; y++)
 			vips__premultiplied_bgra2rgba(
 				(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
 				r->width);
-	#endif
-
+	}
 
 	return 0;
 }
@@ -734,65 +703,49 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 static int
 vips_foreign_load_svg_load(VipsForeignLoad *load)
 {
-    VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
-    VipsImage **t = (VipsImage **)
-        vips_object_local_array((VipsObject *) load, 3);
+#ifndef HAVE_128BIT_SVG_RENDERING
+	if (svg->rgb128) {
+		vips_error(class->nickname, "128-bit rendering is not supported with this version");
+		return -1;
+	}
+#endif /*HAVE_128BIT_SVG_RENDERING*/
+	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
+	VipsImage **t = (VipsImage **)
+		vips_object_local_array((VipsObject *) load, 3);
 
-    int code = -1; // Assume failure
+	/* Enough tiles for two complete rows.
+	 */
+	t[0] = vips_image_new();
+	if (vips_foreign_load_svg_parse(svg, t[0]) ) {
+		return -1;
+	}
 
-    t[0] = vips_image_new();
-    if (vips_foreign_load_svg_parse(svg, t[0]) ) {
-        // Error handled by vips_foreign_load_svg_parse
-        goto cleanup;
-    }
-
-    if (vips_image_generate(t[0], NULL,
+	if (vips_image_generate(t[0], NULL,
         vips_foreign_load_svg_generate, NULL, svg, NULL) ) {
-        // Error handled by vips_image_generate
-        goto cleanup;
-    }
+		return -1;
+	}
 
-    if (vips_tilecache(t[0], &t[1],
+	if (vips_tilecache(t[0], &t[1],
             "tile_width", TILE_SIZE,
             "tile_height", TILE_SIZE,
             "max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
             NULL) ) {
-        // Error handled by vips_tilecache
-        goto cleanup;
-    }
+		return -1;
+	}
 
-	#ifdef HAVE_128BIT_SVG_RENDERING
-		// Apply gamma correction if 128-bit rendering was requested.
-		if (svg->rgb128) {
-			if (vips_gamma(t[1], &t[2], NULL) ) {
-				g_warning("vips_foreign_load_svg: failed to apply gamma correction");
-				// Error handling in vips_gamma will set the VIPS error
-				goto cleanup;
-			}
-			// Write the gamma-corrected image (t[2]) to the output
-			if (vips_image_write(t[2], load->real)) {
-				// Error handled by vips_image_write
-				goto cleanup;
-			}
-		} else {
-			// If not 128-bit rendering, write the tilecached image (t[1]) directly
-			if (vips_image_write(t[1], load->real)) {
-				// Error handled by vips_image_write
-				goto cleanup;
-			}
+	VipsImage *in = t[1];
+	if (svg->rgb128) {
+		if (vips_gamma(in, &t[2], NULL)) {
+			return -1;
 		}
-	#else
-        // If not 128-bit rendering, write the tilecached image (t[1]) directly
-        if (vips_image_write(t[1], load->real)) {
-            // Error handled by vips_image_write
-            goto cleanup;
-        }
-	#endif
+		in = t[2];
+	}
 
-    code = 0;
+	if (vips_image_write(in, load->real)) {
+		return -1;
+	}
 
-cleanup:
-    return code;
+	return 0;
 }
 
 static void
@@ -855,7 +808,6 @@ vips_foreign_load_svg_class_init(VipsForeignLoadSvgClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadSvg, stylesheet),
 		NULL);
 
-#ifdef HAVE_128BIT_SVG_RENDERING
 	VIPS_ARG_BOOL(class, "rgb128", 25,
 		_("RGB128"),
 		_("Enable 128-bit SVG rendering"),
@@ -863,7 +815,6 @@ vips_foreign_load_svg_class_init(VipsForeignLoadSvgClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadSvg, rgb128),
 		FALSE);
 }
-#endif
 
 static void
 vips_foreign_load_svg_init(VipsForeignLoadSvg *svg)
