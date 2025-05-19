@@ -384,12 +384,19 @@ endif
 librsvg_dep = dependency('librsvg-2.0', version: '>=2.40.3', required: get_option('rsvg'))
 cairo_dep = dependency('cairo', version: '>=1.2', required: get_option('rsvg'))
 librsvg_found = librsvg_dep.found() and cairo_dep.found()
+svg_128bit_support = false
 if librsvg_found
     external_deps += librsvg_dep
     external_deps += cairo_dep
     cfg_var.set('HAVE_RSVG', true)
     # rsvg_handle_set_stylesheet added in librsvg 2.48.0
     cfg_var.set('HAVE_RSVG_HANDLE_SET_STYLESHEET', cc.has_function('rsvg_handle_set_stylesheet', dependencies: librsvg_dep))
+    librsvg_128bit_dep = dependency('librsvg-2.0', version: '>=2.56.90', required: get_option('rsvg'))
+    cairo_128bit_dep = dependency('cairo', version: '>=1.17.2', required: get_option('rsvg'))
+    svg_128bit_support = librsvg_128bit_dep.found() and cairo_128bit_dep.found()
+    if svg_128bit_support
+        cfg_var.set('HAVE_128BIT_SVG_RENDERING', true)
+    endif
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.4.0', required: get_option('openslide'))
@@ -657,6 +664,7 @@ build_summary = {
      'enable Analyze7 load': [get_option('analyze')],
      'enable PPM load/save': [get_option('ppm')],
      'enable GIF load': [get_option('nsgif')],
+     'enable SVG 128-bit rendering': [svg_128bit_support]
     },
 }
 build_features = {
