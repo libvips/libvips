@@ -399,7 +399,7 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		for (i = 0; i < ne; i++) {
 			guint16 v = *((gushort *) p) >> shift;
 
-			q[i] = v;
+			q[i] = VIPS_MIN(v, UCHAR_MAX);
 
 			p += 2;
 		}
