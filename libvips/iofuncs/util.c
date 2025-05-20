@@ -1774,9 +1774,7 @@ vips_enum_from_nick(const char *domain, GType type, const char *nick)
 	if ((enum_value = g_enum_get_value_by_nick(genum, nick)))
 		return enum_value->value;
 
-	/* -1 since we always have a "last" member.
-	 */
-	for (i = 0; i < genum->n_values - 1; i++) {
+	for (i = 0; i < genum->n_values; i++) {
 		if (i > 0)
 			vips_buf_appends(&buf, ", ");
 		vips_buf_appends(&buf, genum->values[i].value_nick);

@@ -105,13 +105,13 @@ typedef enum {
 	 * four standard ones.
 	 */
 	VIPS_INTENT_AUTO = 32,
-	VIPS_INTENT_LAST
+	VIPS_INTENT_LAST	/*< skip >*/
 } VipsIntent;
 
 typedef enum {
 	VIPS_PCS_LAB,
 	VIPS_PCS_XYZ,
-	VIPS_PCS_LAST
+	VIPS_PCS_LAST	/*< skip >*/
 } VipsPCS;
 
 VIPS_API

@@ -80,7 +80,7 @@ typedef enum {
 	VIPS_REGION_SHRINK_MAX,
 	VIPS_REGION_SHRINK_MIN,
 	VIPS_REGION_SHRINK_NEAREST,
-	VIPS_REGION_SHRINK_LAST
+	VIPS_REGION_SHRINK_LAST	/*< skip >*/
 } VipsRegionShrink;
 
 /* Sub-area of image.
