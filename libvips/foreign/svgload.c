@@ -28,6 +28,8 @@
  * 	- support rsvg_handle_get_intrinsic_size_in_pixels()
  * 5/6/22
  * 	- allow random access
+ * 20/5/25
+ *  - support high bit depth rendering (128-bit)
  */
 
 /*
@@ -119,9 +121,9 @@ typedef struct _VipsForeignLoadSvg {
 	 */
 	gboolean unlimited;
 
-	/* Enables 128-bit SVG rendering.
+	/* Enables scRGB 128-bit output (32-bit per channel).
 	 */
-	gboolean rgb128;
+	gboolean high_bitdepth;
 
 	/* Custom CSS.
 	 */
@@ -343,9 +345,9 @@ vips_foreign_load_svg_build(VipsObject *object)
 #endif /*DEBUG*/
 
 #ifndef HAVE_128BIT_SVG_RENDERING
-	if (svg->rgb128) {
-		g_warning("setting rgb128 unsupported");
-		svg->rgb128 = FALSE;
+	if (svg->high_bitdepth) {
+		g_warning("setting high_bitdepth unsupported");
+		svg->high_bitdepth = FALSE;
 	}
 #endif /*HAVE_128BIT_SVG_RENDERING*/
 
@@ -579,9 +581,9 @@ vips_foreign_load_svg_parse(VipsForeignLoadSvg *svg, VipsImage *out)
 
 	vips_image_init_fields(out,
 		width, height, 4,
-		svg->rgb128 ? VIPS_FORMAT_FLOAT : VIPS_FORMAT_UCHAR,
+		svg->high_bitdepth ? VIPS_FORMAT_FLOAT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
-		svg->rgb128 ? VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
+		svg->high_bitdepth ? VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
 		res, res);
 
 	/* We use a tilecache, so it's smalltile.
@@ -624,7 +626,7 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	vips_region_black(out_region);
 
 #ifdef HAVE_128BIT_SVG_RENDERING
-	cairo_format_t format = svg->rgb128 ? CAIRO_FORMAT_RGBA128F : CAIRO_FORMAT_ARGB32;
+	cairo_format_t format = svg->high_bitdepth ? CAIRO_FORMAT_RGBA128F : CAIRO_FORMAT_ARGB32;
 #else
 	cairo_format_t format = CAIRO_FORMAT_ARGB32;
 #endif /*HAVE_128BIT_SVG_RENDERING*/
@@ -699,12 +701,12 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	cairo_destroy(cr);
 
 #endif /*LIBRSVG_CHECK_VERSION(2, 46, 0)*/
-	if (svg->rgb128) {
+	if (svg->high_bitdepth) {
 		/* Assuming the surface is RGBA128F and the data is premultiplied.
 		   Loop through each row and unpremultiply the float data.
 		*/
 		for (int y = 0; y < r->height; y++)
-			vips__rgba128f_unpremultiplied(
+			vips__premultiplied_rgb1282scrgba(
 				(float *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
 				r->width);
 	}
@@ -741,7 +743,7 @@ vips_foreign_load_svg_load(VipsForeignLoad *load)
 		return -1;
 
 	VipsImage *in = t[1];
-	if (svg->rgb128) {
+	if (svg->high_bitdepth) {
 		if (vips_gamma(in, &t[2], NULL))
 			return -1;
 		in = t[2];
@@ -811,11 +813,11 @@ vips_foreign_load_svg_class_init(VipsForeignLoadSvgClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadSvg, stylesheet),
 		NULL);
 
-	VIPS_ARG_BOOL(class, "rgb128", 25,
-		_("RGB128"),
-		_("Enable 128-bit SVG rendering"),
+	VIPS_ARG_BOOL(class, "high_bitdepth", 25,
+		_("HIGH_BITDEPTH"),
+		_("Enable scRGB 128-bit output (32-bit per channel)"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadSvg, rgb128),
+		G_STRUCT_OFFSET(VipsForeignLoadSvg, high_bitdepth),
 		FALSE);
 }
 
@@ -1113,11 +1115,14 @@ vips_foreign_load_svg_buffer_init(VipsForeignLoadSvgBuffer *buffer)
  * During the CSS cascade, the specified stylesheet will be applied with a
  * User Origin. This feature requires librsvg 2.48.0 or later.
  *
+ * Setting @high_bitdepth TRUE enables 128-bit scRGB output."
+ *
  * ::: tip "Optional arguments"
  *     * @dpi: `gdouble`, render at this DPI
  *     * @scale: `gdouble`, scale render by this factor
  *     * @unlimited: `gboolean`, allow SVGs of any size
  *     * @stylesheet: `gchararray`, custom CSS
+ *     * @high_bitdepth: `gboolean`, enable scRGB 128-bit output
  *
  * ::: seealso
  *     [ctor@Image.new_from_file].
@@ -1155,6 +1160,7 @@ vips_svgload(const char *filename, VipsImage **out, ...)
  *     * @scale: `gdouble`, scale render by this factor
  *     * @unlimited: `gboolean`, allow SVGs of any size
  *     * @stylesheet: `gchararray`, custom CSS
+ *     * @high_bitdepth: `gboolean`, enable scRGB 128-bit output
  *
  * ::: seealso
  *     [ctor@Image.svgload].
@@ -1195,6 +1201,7 @@ vips_svgload_buffer(void *buf, size_t len, VipsImage **out, ...)
  *     * @scale: `gdouble`, scale render by this factor
  *     * @unlimited: `gboolean`, allow SVGs of any size
  *     * @stylesheet: `gchararray`, custom CSS
+ *     * @high_bitdepth: `gboolean`, enable scRGB 128-bit output
  *
  * ::: seealso
  *     [ctor@Image.svgload].

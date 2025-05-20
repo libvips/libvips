@@ -133,7 +133,9 @@ vips__bgra2rgba(guint32 *restrict p, int n)
  * Processes ''n'' pixels in the ''p'' buffer.
  * The data is assumed to be RGBA (R, G, B, A) 32-bit floats per pixel.
  */
-void vips__rgba128f_unpremultiplied(float *p, int n) {
+void
+vips__premultiplied_rgb1282scrgba(float *p, int n)
+{
 	float *restrict pixel = p;
 	for (int x = 0; x < n; x++) {
 		float r = pixel[0];
