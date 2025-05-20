@@ -390,8 +390,7 @@ if librsvg_found
     cfg_var.set('HAVE_RSVG', true)
     # rsvg_handle_set_stylesheet added in librsvg 2.48.0
     cfg_var.set('HAVE_RSVG_HANDLE_SET_STYLESHEET', cc.has_function('rsvg_handle_set_stylesheet', dependencies: librsvg_dep))
-    cfg_var.set('HAVE_128BIT_SVG_RENDERING',
-    librsvg_dep.version().version_compare('>=2.56.90') and cairo_dep.version().version_compare('>=1.17.2'))
+    cfg_var.set('HAVE_128BIT_SVG_RENDERING', librsvg_dep.version().version_compare('>=2.56.90') and cairo_dep.version().version_compare('>=1.17.2'))
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.4.0', required: get_option('openslide'))

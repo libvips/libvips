@@ -333,6 +333,26 @@ vips_foreign_load_svg_dispose(GObject *gobject)
 	G_OBJECT_CLASS(vips_foreign_load_svg_parent_class)->dispose(gobject);
 }
 
+static int
+vips_foreign_load_svg_build(VipsObject *object)
+{
+	VipsForeignLoadSvg *svg G_GNUC_UNUSED = (VipsForeignLoadSvg *) object;
+
+#ifdef DEBUG
+	printf("vips_foreign_load_svg_build:\n");
+#endif /*DEBUG*/
+
+#ifndef HAVE_128BIT_SVG_RENDERING
+	if (svg->rgb128) {
+		g_warning("setting rgb128 unsupported");
+		svg->rgb128 = FALSE;
+	}
+#endif /*HAVE_128BIT_SVG_RENDERING*/
+
+	return VIPS_OBJECT_CLASS(vips_foreign_load_svg_parent_class)
+		->build(object);
+}
+
 static VipsForeignFlags
 vips_foreign_load_svg_get_flags_filename(const char *filename)
 {
@@ -703,12 +723,6 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 static int
 vips_foreign_load_svg_load(VipsForeignLoad *load)
 {
-#ifndef HAVE_128BIT_SVG_RENDERING
-	if (svg->rgb128) {
-		vips_error(class->nickname, "128-bit rendering is not supported with this version");
-		return -1;
-	}
-#endif /*HAVE_128BIT_SVG_RENDERING*/
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array((VipsObject *) load, 3);
@@ -716,36 +730,24 @@ vips_foreign_load_svg_load(VipsForeignLoad *load)
 	/* Enough tiles for two complete rows.
 	 */
 	t[0] = vips_image_new();
-	if (vips_foreign_load_svg_parse(svg, t[0]) ) {
+	if (vips_foreign_load_svg_parse(svg, t[0]) ||
+		vips_image_generate(t[0], NULL,
+			vips_foreign_load_svg_generate, NULL, svg, NULL) ||
+		vips_tilecache(t[0], &t[1],
+			"tile_width", TILE_SIZE,
+			"tile_height", TILE_SIZE,
+			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
+			NULL))
 		return -1;
-	}
-
-	if (vips_image_generate(t[0], NULL,
-        vips_foreign_load_svg_generate, NULL, svg, NULL) ) {
-		return -1;
-	}
-
-	if (vips_tilecache(t[0], &t[1],
-            "tile_width", TILE_SIZE,
-            "tile_height", TILE_SIZE,
-            "max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
-            NULL) ) {
-		return -1;
-	}
 
 	VipsImage *in = t[1];
 	if (svg->rgb128) {
-		if (vips_gamma(in, &t[2], NULL)) {
+		if (vips_gamma(in, &t[2], NULL))
 			return -1;
-		}
 		in = t[2];
 	}
 
-	if (vips_image_write(in, load->real)) {
-		return -1;
-	}
-
-	return 0;
+	return vips_image_write(in, load->real);
 }
 
 static void
@@ -763,6 +765,7 @@ vips_foreign_load_svg_class_init(VipsForeignLoadSvgClass *class)
 
 	object_class->nickname = "svgload_base";
 	object_class->description = _("load SVG with rsvg");
+	object_class->build = vips_foreign_load_svg_build;
 
 	/* librsvg has not been fuzzed, so should not be used with
 	 * untrusted input unless you are very careful.
