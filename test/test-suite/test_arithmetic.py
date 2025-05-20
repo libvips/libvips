@@ -397,8 +397,7 @@ class TestArithmetic:
             assert pytest.approx(r) == 40
 
     def test_hough_line(self):
-        # hough_line changed the way it codes parameter space in 8.7 ... don't
-        # test earlier versions
+        # hough_line changed the way it codes parameter space (again) in 8.17
         test = pyvips.Image.black(100, 100).draw_line(100, 10, 90, 90, 10)
 
         for fmt in all_formats:
@@ -411,7 +410,7 @@ class TestArithmetic:
             distance = test.height * y // hough.height
 
             assert pytest.approx(angle) == 45
-            assert pytest.approx(distance) == 70
+            assert pytest.approx(distance) == 75
 
     def test_sin(self):
         def my_sin(x):

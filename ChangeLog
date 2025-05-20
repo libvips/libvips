@@ -34,6 +34,7 @@ master
 - increase minimum version of libheif dependency to 1.11.0
 - heifload: limit per-image memory usage to 2GB (requires libheif 1.20.0+).
 - svgload: introduce high_bitdepth parameter for SVG 128-bit load support [kstanikviacbs]
+- improve scaling of hough_line feature space [ecbypi]
 
 8.16.1
 
