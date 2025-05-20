@@ -1529,8 +1529,6 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	VipsForeignSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
 	VipsArrayDouble *background)
 {
-	VipsBandFormat original_format = in->BandFmt;
-
 	VipsImage *out;
 
 	/* in holds a reference to the output of our chain as we build it.
