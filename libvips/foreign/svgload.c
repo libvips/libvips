@@ -344,12 +344,12 @@ vips_foreign_load_svg_build(VipsObject *object)
 	printf("vips_foreign_load_svg_build:\n");
 #endif /*DEBUG*/
 
-#ifndef HAVE_128BIT_SVG_RENDERING
+#ifndef HAVE_CAIRO_FORMAT_RGBA128F
 	if (svg->high_bitdepth) {
-		g_warning("setting high_bitdepth unsupported");
+		g_warning("ignoring high_bitdepth");
 		svg->high_bitdepth = FALSE;
 	}
-#endif /*HAVE_128BIT_SVG_RENDERING*/
+#endif /*HAVE_CAIRO_FORMAT_RGBA128F*/
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_svg_parent_class)
 		->build(object);
@@ -625,12 +625,12 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	 */
 	vips_region_black(out_region);
 
-#ifdef HAVE_128BIT_SVG_RENDERING
+#ifdef HAVE_CAIRO_FORMAT_RGBA128F
 	cairo_format_t format =
 		svg->high_bitdepth ? CAIRO_FORMAT_RGBA128F : CAIRO_FORMAT_ARGB32;
 #else
 	cairo_format_t format = CAIRO_FORMAT_ARGB32;
-#endif /*HAVE_128BIT_SVG_RENDERING*/
+#endif /*HAVE_CAIRO_FORMAT_RGBA128F*/
 
 	surface = cairo_image_surface_create_for_data(
 		VIPS_REGION_ADDR(out_region, r->left, r->top),
@@ -1116,7 +1116,8 @@ vips_foreign_load_svg_buffer_init(VipsForeignLoadSvgBuffer *buffer)
  * During the CSS cascade, the specified stylesheet will be applied with a
  * User Origin. This feature requires librsvg 2.48.0 or later.
  *
- * Set @high_bitdepth to enable 128-bit scRGB output (32-bit per channel).
+ * If @high_bitdepth is set and the version of cairo supports it
+ * (e.g. cairo >= 1.17.2), enable 128-bit scRGB output (32-bit per channel).
  *
  * ::: tip "Optional arguments"
  *     * @dpi: `gdouble`, render at this DPI
