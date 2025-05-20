@@ -2,24 +2,24 @@ master
 
 8.17.0
 
-- add `keep_duplicate_frames` option to GIF save [dloebl]
+- gifsave: add `keep_duplicate_frames` flag [dloebl]
 - add Magic Kernel support [akimon658]
 - tiff: add threadsafe warning/error handlers (requires libtiff 4.5.0+) [lovell]
-- tiffload: add support for fail_on flag [lovell]
-- tiffload: add support for unlimited flag (requires libtiff 4.7.0+) [lovell]
+- tiffload: add support for `fail_on` flag [lovell]
+- tiffload: add support for `unlimited` flag (requires libtiff 4.7.0+) [lovell]
 - much more reliable operation caching
 - colour: add support for auto-selecting the rendering intent [kleisauke]
 - add matrixmultiply
 - better handling of malformed size values [Simcha Kosman]
 - improve performance of vips_shrink() [kleisauke]
-- svgload: add support for custom CSS via stylesheet option [lovell]
+- svgload: add support for custom CSS via `stylesheet` option [lovell]
 - heifload: `unlimited` flag removes all limits (requires libheif 1.19.0+) [lovell]
 - heifsave: improve alpha channel detection [lovell]
 - convi: ensure double sum precision for floats [lovell]
 - improve guard against corrupt ICC profiles with older lcms2 versions [kleisauke]
 - improve vips_sink_screen() thumbnail rendering
 - heifload: improve detection of seek beyond EOF [lovell]
-- add "oneshot" option to jp2kload [mbklein]
+- jp2kload: add `oneshot` flag [mbklein]
 - share and reuse openslide connections
 - drop support for openslide 3.3
 - fix vips_quadratic()
@@ -32,8 +32,8 @@ master
 - jxlsave writes in chunks, for lower memory use on large images (but we now
   need libjxl 0.11 at minimum)
 - increase minimum version of libheif dependency to 1.11.0
-- heifload: limit per-image memory usage to 2GB (requires libheif 1.20.0+).
-- svgload: introduce high_bitdepth parameter for SVG 128-bit load support [kstanikviacbs]
+- heifload: limit per-image memory usage to 2GB (requires libheif 1.20.0+)
+- svgload: add support for scRGB output via `high_bitdepth` flag [kstanikviacbs]
 
 8.16.1
 
