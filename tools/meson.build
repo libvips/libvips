@@ -12,9 +12,3 @@ foreach tool : tools
         install: true
     )
 endforeach
-
-install_data(
-    'vipsprofile',
-    install_dir: get_option('prefix') / get_option('bindir'),
-    install_mode: 'rwxr-xr-x',
-)
