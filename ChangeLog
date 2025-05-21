@@ -34,6 +34,7 @@ master
 - increase minimum version of libheif dependency to 1.11.0
 - heifload: limit per-image memory usage to 2GB (requires libheif 1.20.0+)
 - svgload: add support for scRGB output via `high_bitdepth` flag [kstanikviacbs]
+- remove vipsprofile from default install
 
 8.16.1
 

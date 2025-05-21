@@ -1,4 +1,21 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+
+# this program analyses the trace files generated when running with the
+# --vips-profile flag
+#
+# for example:
+#
+#     $ vips sharpen ~/pics/k2.jpg x.jpg --vips-profile
+#     recording profile in vips-profile.txt
+#     $ vipsprofile
+#     reading from vips-profile.txt
+#     loaded 30001 events
+#     total time = 0.082064
+#     name             alive wait%   work%   unkn%     mem   peakm
+#         worker 40	  0.01	31.8	56.9	11.3	 3.4	 3.4
+#         worker 42	  0.02	37.8	42.1	20.1	 3.4	 3.4
+#     ...
+#     writing to vips-profile.svg
 
 import re
 import cairo
@@ -196,7 +213,7 @@ for thread in threads:
 
     thread.alive = thread.stop - thread.start
 
-    # hide very short-lived threads 
+    # hide very short-lived threads
     thread.hide = thread.alive < 0.01
 
 print('name             alive wait%   work%   unkn%     mem   peakm')
@@ -208,7 +225,7 @@ for thread in threads:
     work_percent = 100 * thread.work / thread.alive
     unkn_percent = 100 - 100 * (thread.work + thread.wait) / thread.alive
 
-    print((f'{thread.thread_name:>13}\t{thread.alive:6.2f}\t' 
+    print((f'{thread.thread_name:>13}\t{thread.alive:6.2f}\t'
            f'{wait_percent:>4.1f}\t{work_percent:>4.1f}\t{unkn_percent:>4.1f}\t'
            f'{thread.mem / (1024 * 1024):>4.1f}\t'
            f'{thread.peak_mem / (1024 * 1024):>4.1f}'))
@@ -225,11 +242,11 @@ print(f'peak memory = {peak_mem / (1024 * 1024):.1f} MB')
 if mem != 0:
     print(f'leak! final memory = {mem / (1024 * 1024):.1f} MB')
 
-# does a list of events contain an overlap? 
+# does a list of events contain an overlap?
 # assume the list of events has been sorted by start time
 def events_overlap(events):
     for i in range(0, len(events) - 1):
-        # we can't just test for stop1 > start2 since one (or both) events 
+        # we can't just test for stop1 > start2 since one (or both) events
         # might have duration zero
         event1 = events[i]
         event2 = events[i + 1]
@@ -287,9 +304,9 @@ for thread in threads:
             overlap_stop = min(event1.stop, event2.stop)
             if overlap_stop - overlap_start > 0:
                 print('overlap:')
-                print('event', event1.gate_location, event1.gate_name, end=' ') 
+                print('event', event1.gate_location, event1.gate_name, end=' ')
                 print('starts at', event1.start, 'stops at', event1.stop)
-                print('event', event2.gate_location, event2.gate_name, end=' ') 
+                print('event', event2.gate_location, event2.gate_name, end=' ')
                 print('starts at', event2.start, 'stops at', event2.stop)
 
     for event in thread.workwait_events:
@@ -306,7 +323,7 @@ for thread in threads:
     y = 1
     for event in thread.other_events:
         if not event.gate_name in gate_positions:
-            # look at all the ys we've allocated previously and see if we can 
+            # look at all the ys we've allocated previously and see if we can
             # add this gate to one of them
             for gate_y in range(1, y):
                 found_overlap = False
@@ -314,7 +331,7 @@ for thread in threads:
                     if gate_positions[gate_name] != gate_y:
                         continue
 
-                    if gates_overlap(thread.other_events, 
+                    if gates_overlap(thread.other_events,
                             event.gate_name, gate_name):
                         found_overlap = True
                         break
@@ -362,7 +379,7 @@ ctx.fill()
 def draw_event(ctx, event):
     left = event.start * PIXELS_PER_SECOND + LEFT_BORDER
     top = event.total_y * PIXELS_PER_GATE + BAR_HEIGHT // 2
-    width = (event.stop - event.start) * PIXELS_PER_SECOND 
+    width = (event.stop - event.start) * PIXELS_PER_SECOND
     height = BAR_HEIGHT
 
     if event.memory:
