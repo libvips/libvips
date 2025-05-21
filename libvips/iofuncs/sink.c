@@ -97,8 +97,8 @@ typedef struct _SinkThreadState {
 	 */
 	void *seq;
 
-	/* The region we walk over sink.t copy. We can't use
-	 * parent_object.reg, it's defined on the outer image.
+	/* The region we walk over sink->t copy. We can't use
+	 * parent_object->reg, it's defined on the outer image.
 	 */
 	VipsRegion *reg;
 

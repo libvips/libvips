@@ -5780,11 +5780,11 @@ public:
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
 	 *   - **stylesheet** -- Custom CSS, const char *.
+	 *   - **high_bitdepth** -- Enable scRGB 128-bit output (32-bit per channel), bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
 	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
-	 *   - **rgb128** -- Enable 128-bit rendering
 	 *
 	 * @param filename Filename to load from.
 	 * @param options Set of options.
@@ -5800,11 +5800,11 @@ public:
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
 	 *   - **stylesheet** -- Custom CSS, const char *.
+	 *   - **high_bitdepth** -- Enable scRGB 128-bit output (32-bit per channel), bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
 	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
-	 *   - **rgb128** -- Enable 128-bit rendering
 	 *
 	 * @param buffer Buffer to load from.
 	 * @param options Set of options.
@@ -5820,11 +5820,11 @@ public:
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
 	 *   - **stylesheet** -- Custom CSS, const char *.
+	 *   - **high_bitdepth** -- Enable scRGB 128-bit output (32-bit per channel), bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
 	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
-	 *   - **rgb128** -- Enable 128-bit rendering
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
