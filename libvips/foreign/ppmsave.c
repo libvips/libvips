@@ -218,12 +218,11 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSavePpm *ppm = (VipsForeignSavePpm *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 5);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 4);
 
 	VipsImage *image;
 	char *magic;
 	char *date;
-	VipsBandFormat target_format;
 	VipsInterpretation target_interpretation;
 	int target_bands;
 
@@ -236,8 +235,8 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	 */
 	if (vips_image_hasalpha(image)) {
 		if (vips_flatten(image, &t[0],
-			"background", save->background,
-			NULL))
+				"background", save->background,
+				NULL))
 			return -1;
 		image = t[0];
 	}
@@ -254,37 +253,27 @@ vips_foreign_save_ppm_build(VipsObject *object)
 	case VIPS_FOREIGN_PPM_FORMAT_PBM:
 		if (!vips_object_argument_isset(object, "bitdepth"))
 			ppm->bitdepth = 1;
-		target_format = VIPS_FORMAT_UCHAR;
 		target_interpretation = VIPS_INTERPRETATION_B_W;
 		target_bands = 1;
 		break;
 
 	case VIPS_FOREIGN_PPM_FORMAT_PGM:
-		if (image->BandFmt == VIPS_FORMAT_USHORT) {
+		if (image->BandFmt == VIPS_FORMAT_USHORT)
 			target_interpretation = VIPS_INTERPRETATION_GREY16;
-			target_format = VIPS_FORMAT_USHORT;
-		}
-		else {
+		else
 			target_interpretation = VIPS_INTERPRETATION_B_W;
-			target_format = VIPS_FORMAT_UCHAR;
-		}
 		target_bands = 1;
 		break;
 
 	case VIPS_FOREIGN_PPM_FORMAT_PPM:
-		if (image->BandFmt == VIPS_FORMAT_USHORT) {
+		if (image->BandFmt == VIPS_FORMAT_USHORT)
 			target_interpretation = VIPS_INTERPRETATION_RGB16;
-			target_format = VIPS_FORMAT_USHORT;
-		}
-		else {
+		else
 			target_interpretation = VIPS_INTERPRETATION_sRGB;
-			target_format = VIPS_FORMAT_UCHAR;
-		}
 		target_bands = 3;
 		break;
 
 	case VIPS_FOREIGN_PPM_FORMAT_PFM:
-		target_format = VIPS_FORMAT_FLOAT;
 		target_interpretation = VIPS_INTERPRETATION_scRGB;
 		if (image->Bands > 1)
 			target_bands = 3;
@@ -295,27 +284,25 @@ vips_foreign_save_ppm_build(VipsObject *object)
 
 	case VIPS_FOREIGN_PPM_FORMAT_PNM:
 	default:
-		/* Just use the input format and interpretation.
+		/* Just use the input interpretation and bands.
 		 */
-		target_format = image->BandFmt;
 		target_interpretation = image->Type;
 		target_bands = image->Bands;
 		break;
 	}
 
-	if (vips_colourspace(image, &t[1], target_interpretation, NULL) ||
-		vips_cast(t[1], &t[2], target_format, NULL))
+	if (vips_colourspace(image, &t[1], target_interpretation, NULL))
 		return -1;
-	image = t[2];
+	image = t[1];
 
 	/* Get bands right.
 	 */
 	if (image->Bands > target_bands) {
-		if (vips_extract_band(image, &t[3], 0,
+		if (vips_extract_band(image, &t[2], 0,
 				"n", target_bands,
 				NULL))
 			return -1;
-		image = t[3];
+		image = t[2];
 	}
 	if (image->Bands < target_bands) {
 		vips_error(class->nickname, "%s", _("too few bands for format"));
@@ -406,9 +393,8 @@ vips_foreign_save_ppm_build(VipsObject *object)
 			char buf[G_ASCII_DTOSTR_BUF_SIZE];
 
 			scale = 1.0;
-			if (vips_image_get_typeof(image, "pfm-scale") &&
-				!vips_image_get_double(image, "pfm-scale", &scale))
-				;
+			if (vips_image_get_typeof(image, "pfm-scale"))
+				vips_image_get_double(image, "pfm-scale", &scale);
 
 			/* Need to be locale independent.
 			 */
