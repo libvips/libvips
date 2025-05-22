@@ -740,10 +740,11 @@ vips_foreign_load_svg_load(VipsForeignLoad *load)
 			"tile_width", TILE_SIZE,
 			"tile_height", TILE_SIZE,
 			"max_tiles", 2 * (1 + t[0]->Xsize / TILE_SIZE),
-			NULL))
+			NULL) ||
+		vips_image_write(t[1], load->real))
 		return -1;
 
-	return vips_image_write(t[1], load->real);
+	return 0;
 }
 
 static void
