@@ -743,14 +743,7 @@ vips_foreign_load_svg_load(VipsForeignLoad *load)
 			NULL))
 		return -1;
 
-	VipsImage *in = t[1];
-	if (svg->high_bitdepth) {
-		if (vips_gamma(in, &t[2], NULL))
-			return -1;
-		in = t[2];
-	}
-
-	return vips_image_write(in, load->real);
+	return vips_image_write(t[1], load->real);
 }
 
 static void
