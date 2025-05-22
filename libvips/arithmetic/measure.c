@@ -161,10 +161,10 @@ vips_measure_build(VipsObject *object)
 				 */
 				if (dev * 5 > fabs(avg) &&
 					fabs(avg) > 3)
-					g_warning(_("%s: "
-								"patch %d x %d, "
-								"band %d: "
-								"avg = %g, sdev = %g"),
+					g_warning("%s: "
+							  "patch %d x %d, "
+							  "band %d: "
+							  "avg = %g, sdev = %g",
 						class->nickname,
 						i, j, b, avg, dev);
 

@@ -579,7 +579,7 @@ png2vips_header(Read *read, VipsImage *out)
 		 */
 		if (!read->unlimited &&
 			num_text > MAX_PNG_TEXT_CHUNKS) {
-			g_warning(_("%d text chunks, only %d text chunks will be loaded"),
+			g_warning("%d text chunks, only %d text chunks will be loaded",
 				num_text, MAX_PNG_TEXT_CHUNKS);
 			num_text = MAX_PNG_TEXT_CHUNKS;
 		}

@@ -1257,7 +1257,7 @@ vips_exif_image_field(VipsImage *image,
 	/* value must be a string.
 	 */
 	if (vips_image_get_string(image, field, &string)) {
-		g_warning(_("bad exif meta \"%s\""), field);
+		g_warning("bad exif meta \"%s\"", field);
 		return NULL;
 	}
 
@@ -1267,7 +1267,7 @@ vips_exif_image_field(VipsImage *image,
 	for (; g_ascii_isdigit(*p); p++)
 		;
 	if (*p != '-') {
-		g_warning(_("bad exif meta \"%s\""), field);
+		g_warning("bad exif meta \"%s\"", field);
 		return NULL;
 	}
 
@@ -1276,7 +1276,7 @@ vips_exif_image_field(VipsImage *image,
 	 */
 	if (!(tag = exif_tag_from_name(p + 1)) &&
 		strcmp(p + 1, "GPSVersionID") != 0) {
-		g_warning(_("bad exif meta \"%s\""), field);
+		g_warning("bad exif meta \"%s\"", field);
 		return NULL;
 	}
 
@@ -1316,7 +1316,7 @@ vips_exif_exif_entry(ExifEntry *entry, VipsExifRemove *ve)
 		/* No easy way to return an error code from here, sadly.
 		 */
 		if (vips_image_get_string(ve->image, vips_name, &vips_value))
-			g_warning(_("bad exif meta \"%s\""), vips_name);
+			g_warning("bad exif meta \"%s\"", vips_name);
 	}
 
 	/* Does this field exist on the image? If not, schedule it for

@@ -182,7 +182,7 @@ vips__concurrency_get_default(void)
 		nthr > MAX_THREADS) {
 		nthr = VIPS_CLIP(1, nthr, MAX_THREADS);
 
-		g_warning(_("threads clipped to %d"), nthr);
+		g_warning("threads clipped to %d", nthr);
 	}
 
 	return nthr;
@@ -212,7 +212,7 @@ vips_concurrency_set(int concurrency)
 	else if (concurrency > MAX_THREADS) {
 		concurrency = MAX_THREADS;
 
-		g_warning(_("threads clipped to %d"), MAX_THREADS);
+		g_warning("threads clipped to %d", MAX_THREADS);
 	}
 
 	vips__concurrency = concurrency;

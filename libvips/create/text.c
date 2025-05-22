@@ -430,7 +430,7 @@ vips_text_build(VipsObject *object)
 		 */
 		if (!FcConfigAppFontAddFile(NULL,
 				(const FcChar8 *) text->fontfile))
-			g_warning(_("unable to load fontfile \"%s\""),
+			g_warning("unable to load fontfile \"%s\"",
 				text->fontfile);
 		g_hash_table_insert(vips_text_fontfiles,
 			text->fontfile,

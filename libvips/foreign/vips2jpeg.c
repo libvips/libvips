@@ -270,8 +270,8 @@ write_blob(Write *write, VipsImage *image, const char *field, int app)
 	 * For now, just ignore oversize objects and warn.
 	 */
 	if (data_length > MAX_BYTES_IN_MARKER)
-		g_warning(_("field \"%s\" is too large "
-					"for a single JPEG marker, ignoring"),
+		g_warning("field \"%s\" is too large "
+				  "for a single JPEG marker, ignoring",
 			field);
 	else {
 #ifdef DEBUG

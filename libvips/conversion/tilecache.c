@@ -715,7 +715,7 @@ vips_tile_cache_gen(VipsRegion *out_region,
 						"vips_tile_cache_gen: error on tile %p\n",
 						tile);
 
-					g_warning(_("error in tile %d x %d"),
+					g_warning("error in tile %d x %d",
 						tile->pos.left, tile->pos.top);
 
 					vips_region_black(tile->region);

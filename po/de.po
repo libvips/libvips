@@ -655,11 +655,6 @@ msgstr "Feld aus Konstanten"
 msgid "maximum of a pair of images"
 msgstr "ein Bilderpaar zusammenführen"
 
-#: libvips/arithmetic/measure.c:164
-#, fuzzy, c-format
-msgid "%s: patch %d x %d, band %d: avg = %g, sdev = %g"
-msgstr "Flicken %d x %d, Band %d: Durchschn. = %g, sdev = %g"
-
 #: libvips/arithmetic/measure.c:191
 #, fuzzy
 msgid "measure a set of patches on a color chart"
@@ -945,16 +940,6 @@ msgstr "nicht implementierter Ausgabefarbraum 0x%x"
 #, fuzzy
 msgid "no device profile"
 msgstr "kein eingebettetes Profil"
-
-#: libvips/colour/icc_transform.c:612 libvips/colour/icc_transform.c:635
-#: libvips/colour/icc_transform.c:658 libvips/iofuncs/operation.c:442
-msgid "input"
-msgstr "Eingabe"
-
-#: libvips/colour/icc_transform.c:612 libvips/colour/icc_transform.c:635
-#: libvips/colour/icc_transform.c:658 libvips/iofuncs/operation.c:443
-msgid "output"
-msgstr "Ausgabe"
 
 #: libvips/colour/icc_transform.c:631
 #, c-format
@@ -2151,11 +2136,6 @@ msgstr ""
 msgid "Keep cache between evaluations"
 msgstr ""
 
-#: libvips/conversion/tilecache.c:708
-#, c-format
-msgid "error in tile %d x %d"
-msgstr ""
-
 #: libvips/conversion/tilecache.c:796
 #, fuzzy
 msgid "cache an image as a set of tiles"
@@ -2860,11 +2840,6 @@ msgstr ""
 #: libvips/create/text.c:406
 msgid "invalid markup in text"
 msgstr "ungültige Auszeichnung im Text"
-
-#: libvips/create/text.c:428
-#, fuzzy, c-format
-msgid "unable to load fontfile \"%s\""
-msgstr "Profil »%s« kann nicht geöffnet werden"
 
 #: libvips/create/text.c:467
 msgid "no text to render"
@@ -3572,11 +3547,6 @@ msgstr "Puffer"
 msgid "Buffer to save to"
 msgstr "Puffer, in den gespeichert werden soll"
 
-#: libvips/foreign/csvload.c:301
-#, fuzzy, c-format
-msgid "bad number, line %d, column %d"
-msgstr "Fehler beim Auswerten von Nummer, Zeile %d, Spalte %d"
-
 #: libvips/foreign/csvload.c:341 libvips/foreign/csvload.c:402
 #: libvips/foreign/csvload.c:434
 #, fuzzy
@@ -3856,12 +3826,6 @@ msgstr "Fenster zu groß"
 #, fuzzy
 msgid "unable to init exif"
 msgstr "kann nicht gekürzt werden"
-
-#: libvips/foreign/exif.c:1260 libvips/foreign/exif.c:1270
-#: libvips/foreign/exif.c:1279 libvips/foreign/exif.c:1319
-#, fuzzy, c-format
-msgid "bad exif meta \"%s\""
-msgstr "falscher Modus »%s«"
 
 #: libvips/foreign/exif.c:1496
 msgid "error saving EXIF"
@@ -4292,11 +4256,6 @@ msgstr "»%s« ist kein bekanntes Dateiformat"
 #: libvips/foreign/jp2ksave.c:963
 msgid "save image in JPEG2000 format"
 msgstr ""
-
-#: libvips/foreign/jpeg2vips.c:415
-#, c-format
-msgid "read gave %ld warnings"
-msgstr "Lesen ergab %ld Warnungen"
 
 #: libvips/foreign/jpeg2vips.c:886 libvips/foreign/spngload.c:529
 #: libvips/foreign/vipspng.c:723
@@ -5210,11 +5169,6 @@ msgstr "Rohdatenbild in Datei-Deskriptor schreiben"
 msgid "write raw image to buffer"
 msgstr "Rohdatenbild in Datei-Deskriptor schreiben"
 
-#: libvips/foreign/spngload.c:252 libvips/foreign/vipspng.c:582
-#, c-format
-msgid "%d text chunks, only %d text chunks will be loaded"
-msgstr ""
-
 #: libvips/foreign/spngload.c:403
 #, fuzzy
 msgid "unknown color type"
@@ -5566,11 +5520,6 @@ msgstr "Bild in TIFF-Datei speichern"
 #, c-format
 msgid "%s"
 msgstr "%s"
-
-#: libvips/foreign/vips2jpeg.c:273
-#, c-format
-msgid "field \"%s\" is too large for a single JPEG marker, ignoring"
-msgstr ""
 
 #: libvips/foreign/vips2jpeg.c:1059
 #, fuzzy
@@ -6092,11 +6041,6 @@ msgstr ""
 msgid "hist_unary operations"
 msgstr "unäre Transaktionen"
 
-#: libvips/histogram/maplut.c:110
-#, c-format
-msgid "%d overflows detected"
-msgstr "%d Überläufe entdeckt"
-
 #: libvips/histogram/maplut.c:738
 msgid "map an image though a lut"
 msgstr ""
@@ -6425,11 +6369,6 @@ msgstr "%s %s: Erledigt in %ds      \n"
 msgid "unable to open \"%s\", file too short"
 msgstr "»%s« kann nicht geöffnet werden, Datei zu klein"
 
-#: libvips/iofuncs/image.c:985
-#, c-format
-msgid "%s is longer than expected"
-msgstr "%s ist länger als erwartet"
-
 #: libvips/iofuncs/image.c:1003
 #, c-format
 msgid "bad mode \"%s\""
@@ -6490,11 +6429,10 @@ msgstr "Verlauf kann nicht gelesen werden"
 msgid "bad array length --- should be %d, you passed %d"
 msgstr ""
 
-#: libvips/iofuncs/image.c:2886 libvips/iofuncs/image.c:2888
-#: libvips/iofuncs/memory.c:336 libvips/iofuncs/memory.c:338
-#: libvips/iofuncs/memory.c:409 libvips/iofuncs/memory.c:411
+#: libvips/iofuncs/image.c:2886 libvips/iofuncs/memory.c:336
+#: libvips/iofuncs/memory.c:409
 #, c-format
-msgid "out of memory --- size == %dMB"
+msgid "out of memory -- size == %dMB"
 msgstr "Hauptspeicher reicht nicht aus – Größe == %dMB"
 
 #: libvips/iofuncs/image.c:3179
@@ -6527,11 +6465,6 @@ msgstr "Bild nicht schreibbar"
 #: libvips/iofuncs/image.c:3602
 msgid "bad file type"
 msgstr "falscher Dateityp"
-
-#: libvips/iofuncs/init.c:316 tools/vips.c:772
-#, fuzzy, c-format
-msgid "unable to load \"%s\" -- %s"
-msgstr "»mmap« nicht möglich: \"%s\" - %s"
 
 #: libvips/iofuncs/init.c:1270
 #, fuzzy
@@ -6697,6 +6630,14 @@ msgstr "in"
 #: libvips/iofuncs/operation.c:409 libvips/iofuncs/operation.c:421
 msgid "max"
 msgstr ""
+
+#: libvips/iofuncs/operation.c:442
+msgid "input"
+msgstr "Eingabe"
+
+#: libvips/iofuncs/operation.c:443
+msgid "output"
+msgstr "Ausgabe"
 
 #: libvips/iofuncs/operation.c:618
 #, fuzzy
@@ -6886,11 +6827,6 @@ msgstr "es kann nicht zu einem %s-Bild ausgegeben werden"
 msgid "command \"%s\" failed"
 msgstr "Befehl fehlgeschlagen: »%s«"
 
-#: libvips/iofuncs/system.c:234
-#, c-format
-msgid "stderr output: %s"
-msgstr ""
-
 #: libvips/iofuncs/system.c:269
 msgid "run an external command"
 msgstr ""
@@ -6948,11 +6884,6 @@ msgstr ""
 #: libvips/iofuncs/thread.c:179
 msgid "unable to create thread"
 msgstr "Thread kann nicht erstellt werden"
-
-#: libvips/iofuncs/thread.c:214 libvips/iofuncs/thread.c:243
-#, c-format
-msgid "threads clipped to %d"
-msgstr "Threads an %d angeheftet"
 
 #: libvips/iofuncs/threadpool.c:193
 msgid "per-thread state for vipsthreadpool"
@@ -7088,8 +7019,7 @@ msgstr "falscher Namensraum in XML"
 msgid "error transforming from save format"
 msgstr "Fehler beim Umwandeln vom gespeicherten Format"
 
-#: libvips/iofuncs/vips.c:784 libvips/iofuncs/vips.c:1056
-#: libvips/iofuncs/window.c:232
+#: libvips/iofuncs/vips.c:784 libvips/iofuncs/window.c:232
 msgid "file has been truncated"
 msgstr "Datei wurde gekürzt"
 
@@ -7102,16 +7032,10 @@ msgstr "Fehler beim Umwandeln in das zu speichernde Format"
 msgid "unable to read header for \"%s\""
 msgstr "Kopfdaten für »%s« können nicht gelesen werden"
 
-#: libvips/iofuncs/vips.c:1055 libvips/iofuncs/window.c:231
+#: libvips/iofuncs/window.c:231
 #, c-format
 msgid "unable to read data for \"%s\", %s"
 msgstr "Daten für »%s« können nicht gelesen werden, %s"
-
-# http://radsite.lbl.gov/radiance/refer/Notes/picture_format.html
-#: libvips/iofuncs/vips.c:1067
-#, fuzzy, c-format
-msgid "error reading vips image metadata: %s"
-msgstr "Fehler beim Lesen der Radiance-Kopfzeilen"
 
 # http://techpubs.sgi.com/library/tpl/cgi-bin/getdoc.cgi?coll=0650&
 #        db=man&fname=/usr/share/catman/p_man/cat3/il_c/ilAbsImg.z
@@ -8059,6 +7983,11 @@ msgstr "Transaktion"
 #: tools/vips.c:706
 msgid "[ACTION] [OPTIONS] [PARAMETERS] - VIPS driver program"
 msgstr "[AKTION] [OPTIONEN] [PARAMETER] - VIPS-Treiberprogramm"
+
+#: tools/vips.c:772
+#, fuzzy, c-format
+msgid "unable to load \"%s\" -- %s"
+msgstr "»mmap« nicht möglich: \"%s\" - %s"
 
 #: tools/vips.c:916
 #, c-format
