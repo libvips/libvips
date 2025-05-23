@@ -142,15 +142,16 @@ vips__premultiplied_rgb1282scrgba(float *restrict p, int n)
 {
 	vips_col_make_tables_RGB_16();
 	for (int x = 0; x < n; x++) {
-		float r = VIPS_CLIP(0, p[0], 1);
-		float g = VIPS_CLIP(0, p[1], 1);
-		float b = VIPS_CLIP(0, p[2], 1);
-		float a = p[3];
+		// CLIP is much faster than FCLIP, and we want an int result
+		int ri = VIPS_CLIP(0, (int) (p[0] * 65535), 65535);
+		int gi = VIPS_CLIP(0, (int) (p[1] * 65535), 65535);
+		int bi = VIPS_CLIP(0, (int) (p[2] * 65535), 65535);
 
 		// linearize the values with LUT
-		r = vips_v2Y_16[(int) (65535 * r)];
-		g = vips_v2Y_16[(int) (65535 * g)];
-		b = vips_v2Y_16[(int) (65535 * b)];
+		float r = vips_v2Y_16[ri];
+		float g = vips_v2Y_16[gi];
+		float b = vips_v2Y_16[bi];
+		float a = p[3];
 
 		p[0] = a > 0.00001 ? r / a : 0.0F;
 		p[1] = a > 0.00001 ? g / a : 0.0F;
