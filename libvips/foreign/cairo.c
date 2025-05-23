@@ -127,88 +127,35 @@ vips__bgra2rgba(guint32 *restrict p, int n)
 	}
 }
 
-/**
- * @brief Converts a normal sRGB color value to a linear sRGB color value.
- *
- * This function removes the gamma correction from a non-linear sRGB component,
- * transforming it into a linear light intensity value. It implements the
- * inverse sRGB Electro-Optical Transfer Function (EOTF).
- *
- * @param c A single non-linear sRGB color component, expected in the [0, 1] range.
- * @return The corresponding linear sRGB color component, also in the [0, 1] range.
- *
- * @note This function is the C port of the `linearize` function found in librsvg.
- * For reference, the Rust source code for this function is available at:
- * https://github.com/GNOME/librsvg/blob/2.60.0/rsvg/build.rs#L28
- */
-static inline float
-linearize(float c)
-{
-	// The threshold (0.04045f) is the point where the linear segment of the
-	// sRGB transfer function (used for encoding) meets the power-law segment.
-	// This value is derived directly from the sRGB specification: 12.92 * 0.0031308.
-	if (c <= 0.04045f) {
-		return c / 12.92f;
-	}
-	else {
-		// Apply the inverse power-law function for sRGB linearization.
-		// All numerical literals use the 'f' suffix to explicitly ensure
-		// single-precision float-point arithmetic throughout the calculation.
-		return powf(((c + 0.055f) / 1.055f), 2.4f);
-	}
-}
+extern float vips_v2Y_16[65536];
+void vips_col_make_tables_RGB_16(void);
 
-/**
- * @brief Converts a row of Cairo-style premultiplied RGBA128F pixels to linear RGBA.
- *
- * This function processes 'n' pixels in the 'p' buffer. For each pixel, it performs
- * two main operations:
- * 1. Un-premultiplies the R, G, and B color components by their respective
- * alpha channel value. This converts colors from a premultiplied format
- * (common in graphics APIs like Cairo) to a straight alpha format.
- * 2. Applies the inverse sRGB gamma correction (linearization) to the
- * un-premultiplied R, G, and B components. This transforms the colors
- * from a perceptually uniform (non-linear sRGB) space to a linear light
- * intensity space, which is often required for further image processing,
- * blending, or accurate color calculations.
- *
- * The input and output data are assumed to be RGBA (Red, Green, Blue, Alpha)
- * with 32-bit floats per channel. The alpha channel (A) remains unchanged
- * (linear) throughout this process.
- *
- * @param p A pointer to the start of the pixel data (premultiplied RGBA floats).
- * @param n The number of pixels to process in the row.
- *
- * @note This function expects the *output* from librsvg (which typically provides
- * premultiplied sRGB data) and converts it to linear space.
- * Therefore, `linearize_float` is called *after* the un-premultiplication step.
+/*
+ * Convert from Cairo-style premultiplied RGBA128F to straight RGBA, for one row.
+ * It also linearizes the pixel values.
+
+ * Processes 'n' pixels in the 'p' buffer.
+ * The data is assumed to be RGBA (R, G, B, A) 32-bit floats per pixel.
  */
 void
 vips__premultiplied_rgb1282scrgba(float *restrict p, int n)
 {
-	// A small epsilon value used to safely check if alpha is close to zero.
-	// This prevents division by zero or numerical instability for nearly transparent pixels.
-	const float ALPHA_EPSILON = 0.00001f;
-
+	vips_col_make_tables_RGB_16();
 	for (int x = 0; x < n; x++) {
-		float r = p[x * 4 + 0];
-		float g = p[x * 4 + 1];
-		float b = p[x * 4 + 2];
-		float a = p[x * 4 + 3]; // Alpha component remains linear
+		float r = VIPS_CLIP(0, p[0], 1);
+		float g = VIPS_CLIP(0, p[1], 1);
+		float b = VIPS_CLIP(0, p[2], 1);
+		float a = p[3];
 
-		// Step 1: Un-premultiply R, G, B components.
-		// If alpha is extremely small, the color components are effectively zero,
-		// and setting them to 0.0f avoids NaN/Inf results from division.
-		float unmultiplied_r = (a > ALPHA_EPSILON) ? r / a : 0.0f;
-		float unmultiplied_g = (a > ALPHA_EPSILON) ? g / a : 0.0f;
-		float unmultiplied_b = (a > ALPHA_EPSILON) ? b / a : 0.0f;
+		// linearize the values with LUT
+		r = vips_v2Y_16[(int) (65535 * r)];
+		g = vips_v2Y_16[(int) (65535 * g)];
+		b = vips_v2Y_16[(int) (65535 * b)];
 
-		// Step 2: Apply sRGB linearization (inverse gamma correction).
-		// This converts the color components from non-linear sRGB space
-		// to a linear light intensity space.
-		p[x * 4 + 0] = linearize(unmultiplied_r);
-		p[x * 4 + 1] = linearize(unmultiplied_g);
-		p[x * 4 + 2] = linearize(unmultiplied_b);
-		p[x * 4 + 3] = a; // Alpha channel is kept as is (linear)
+		p[0] = a > 0.00001 ? r / a : 0.0F;
+		p[1] = a > 0.00001 ? g / a : 0.0F;
+		p[2] = a > 0.00001 ? b / a : 0.0F;
+
+		p += 4;
 	}
 }
