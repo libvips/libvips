@@ -298,7 +298,7 @@ vips_foreign_load_csv_read_double(VipsForeignLoadCsv *csv, double *out)
 			/* Only a warning, since (for example) exported
 			 * spreadsheets will often have text or date fields.
 			 */
-			g_warning(_("bad number, line %d, column %d"),
+			g_warning("bad number, line %d, column %d",
 				csv->lineno, csv->colno);
 	}
 

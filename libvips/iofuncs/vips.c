@@ -1038,8 +1038,8 @@ vips_image_open_input(VipsImage *image)
 		return -1;
 	image->file_length = rsize;
 	if (psize > rsize)
-		g_warning(_("unable to read data for \"%s\", %s"),
-			image->filename, _("file has been truncated"));
+		g_warning("unable to read data for \"%s\", %s",
+			image->filename, "file has been truncated");
 
 	/* Set demand style. This suits a disc file we read sequentially.
 	 */
@@ -1050,7 +1050,7 @@ vips_image_open_input(VipsImage *image)
 	 * harmless.
 	 */
 	if (readhist(image)) {
-		g_warning(_("error reading vips image metadata: %s"),
+		g_warning("error reading vips image metadata: %s",
 			vips_error_buffer());
 		vips_error_clear();
 	}
