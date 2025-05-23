@@ -121,7 +121,7 @@ vips_hough_line_vote(VipsHough *hough, VipsImage *accumulator, int x, int y)
 	for (int i = 0; i < width; i++) {
 		int i90 = i + width / 2;
 		double r = xd * hough_line->sin[i90] + yd * hough_line->sin[i];
-		int ri = r * (height / 2) + height / 2;
+		int ri = (r + 1) * (height / 2.0);
 
 		g_assert(ri >= 0 && ri < height);
 		data[i + ri * width] += 1;
