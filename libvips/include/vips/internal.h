@@ -152,6 +152,8 @@ extern char *vips__disc_threshold;
 extern gboolean vips__cache_dump;
 extern gboolean vips__cache_trace;
 
+extern float vips_v2Y_16[65536];
+
 void vips__thread_init(void);
 void vips__threadpool_init(void);
 void vips__threadpool_shutdown(void);
@@ -328,6 +330,7 @@ void vips__premultiplied_rgb1282scrgba(float *p, int n);
 void vips__bgra2rgba(guint32 *restrict p, int n);
 void vips__Lab2LabQ_vec(VipsPel *out, float *in, int width);
 void vips__LabQ2Lab_vec(float *out, VipsPel *in, int width);
+void vips_col_make_tables_RGB_16(void);
 
 #ifdef DEBUG_LEAK
 extern GQuark vips__image_pixels_quark;

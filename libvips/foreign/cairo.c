@@ -127,9 +127,6 @@ vips__bgra2rgba(guint32 *restrict p, int n)
 	}
 }
 
-extern float vips_v2Y_16[65536];
-void vips_col_make_tables_RGB_16(void);
-
 /*
  * Convert from Cairo-style premultiplied RGBA128F to straight RGBA, for one row.
  * It also linearizes the pixel values.
