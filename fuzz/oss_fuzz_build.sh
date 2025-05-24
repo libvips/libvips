@@ -188,9 +188,6 @@ cmake \
 cmake --build . --target install
 popd
 
-# FIXME: Workaround for https://github.com/mesonbuild/meson/issues/14533
-export LDFLAGS+=" $CFLAGS"
-
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
