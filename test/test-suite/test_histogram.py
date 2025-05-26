@@ -42,13 +42,12 @@ class TestHistogram:
         assert im.avg() < im2.avg()
         assert im.deviate() < im2.deviate()
 
-        if pyvips.at_least_libvips(8, 5):
-            im3 = im.hist_local(10, 10, max_slope=3)
+        im3 = im.hist_local(10, 10, max_slope=3)
 
-            assert im.width == im3.width
-            assert im.height == im3.height
+        assert im.width == im3.width
+        assert im.height == im3.height
 
-            assert im3.deviate() < im2.deviate()
+        assert im3.deviate() < im2.deviate()
 
     def test_hist_match(self):
         im = pyvips.Image.identity()

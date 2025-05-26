@@ -819,16 +819,14 @@ class TestForeign:
         assert im.height == height * 5
 
         # page/n let you pick a range of pages
-        # 'n' param added in 8.5
-        if pyvips.at_least_libvips(8, 5):
-            im = pyvips.Image.magickload(GIF_ANIM_FILE)
-            width = im.width
-            height = im.height
-            im = pyvips.Image.magickload(GIF_ANIM_FILE, page=1, n=2)
-            assert im.width == width
-            assert im.height == height * 2
-            page_height = im.get("page-height")
-            assert page_height == height
+        im = pyvips.Image.magickload(GIF_ANIM_FILE)
+        width = im.width
+        height = im.height
+        im = pyvips.Image.magickload(GIF_ANIM_FILE, page=1, n=2)
+        assert im.width == width
+        assert im.height == height * 2
+        page_height = im.get("page-height")
+        assert page_height == height
 
         # should work for dicom
         im = pyvips.Image.magickload(DICOM_FILE)
@@ -1464,7 +1462,7 @@ class TestForeign:
         # test keep=pyvips.ForeignKeep.ICC ... icc profiles should be
         # passed down
         filename = temp_filename(self.tempdir, '')
-        self.colour.dzsave(filename, keep=1 << 3) # pyvips.ForeignKeep.ICC
+        self.colour.dzsave(filename, keep=pyvips.ForeignKeep.ICC)
 
         y = pyvips.Image.new_from_file(filename + "_files/0/0_0.jpeg")
         assert y.get_typeof("icc-profile-data") != 0
