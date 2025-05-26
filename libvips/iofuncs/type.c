@@ -1179,7 +1179,7 @@ transform_g_string_array_double(const GValue *src_value, GValue *dest_value)
 		if (vips_strtod(p, &array[i])) {
 			/* Set array to length zero to indicate an error.
 			 */
-			g_warning("transform_g_string_array_double: not numeric: %s", p);
+			g_warning("bad argument: not a numeric value \"%s\"", p);
 			vips_value_set_array_double(dest_value, NULL, 0);
 			g_free(str);
 			return;
