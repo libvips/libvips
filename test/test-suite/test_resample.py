@@ -215,9 +215,10 @@ class TestResample:
         assert abs(im1.avg() - im2.avg()) < 1
 
         # linear shrink should work on rgba images
-        im1 = pyvips.Image.thumbnail(RGBA_FILE, 64, linear=True)
-        im2 = pyvips.Image.new_from_file(RGBA_CORRECT_FILE)
-        assert abs(im1.flatten(background=255).avg() - im2.avg()) < 1
+        if have("ppmload"):
+            im1 = pyvips.Image.thumbnail(RGBA_FILE, 64, linear=True)
+            im2 = pyvips.Image.new_from_file(RGBA_CORRECT_FILE)
+            assert abs(im1.flatten(background=255).avg() - im2.avg()) < 1
 
         # thumbnailing a 16-bit image should always make an 8-bit image
         rgb16_buffer = pyvips.Image \

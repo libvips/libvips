@@ -572,28 +572,6 @@ class TestForeign:
 
         self.file_loader("tiffload", TIF4_FILE, tiff4_valid)
 
-        def tiff_ojpeg_tile_valid(im):
-            a = im(10, 10)
-            assert_almost_equal_objects(a, [135.0, 156.0, 177.0, 255.0])
-            assert im.width == 234
-            assert im.height == 213
-            assert im.bands == 4
-            assert im.get("bits-per-sample") == 8
-
-        self.file_loader("tiffload", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
-        self.buffer_loader("tiffload_buffer", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
-
-        def tiff_ojpeg_strip_valid(im):
-            a = im(10, 10)
-            assert_almost_equal_objects(a, [228.0, 15.0, 9.0, 255.0])
-            assert im.width == 160
-            assert im.height == 160
-            assert im.bands == 4
-            assert im.get("bits-per-sample") == 8
-
-        self.file_loader("tiffload", TIF_OJPEG_STRIP_FILE, tiff_ojpeg_strip_valid)
-        self.buffer_loader("tiffload_buffer", TIF_OJPEG_STRIP_FILE, tiff_ojpeg_strip_valid)
-
         def tiff_subsampled_valid(im):
             a = im(10, 10)
             assert_almost_equal_objects(a, [6.0, 5.0, 21.0, 255.0])
@@ -772,6 +750,31 @@ class TestForeign:
             y = pyvips.Image.new_from_buffer(buf, "", page=1)
             z = y.hist_find(band=0)
             assert z(0, 0)[0] + z(255, 0)[0] == y.width * y.height
+
+    @skip_if_no("tiffload")
+    @pytest.mark.xfail(raises=AssertionError, reason="fails when libtiff was configured with --disable-old-jpeg")
+    def test_tiff_ojpeg(self):
+        def tiff_ojpeg_tile_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [135.0, 156.0, 177.0, 255.0])
+            assert im.width == 234
+            assert im.height == 213
+            assert im.bands == 4
+            assert im.get("bits-per-sample") == 8
+
+        self.file_loader("tiffload", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
+        self.buffer_loader("tiffload_buffer", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
+
+        def tiff_ojpeg_strip_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [228.0, 15.0, 9.0, 255.0])
+            assert im.width == 160
+            assert im.height == 160
+            assert im.bands == 4
+            assert im.get("bits-per-sample") == 8
+
+        self.file_loader("tiffload", TIF_OJPEG_STRIP_FILE, tiff_ojpeg_strip_valid)
+        self.buffer_loader("tiffload_buffer", TIF_OJPEG_STRIP_FILE, tiff_ojpeg_strip_valid)
 
     @skip_if_no("jp2kload")
     @skip_if_no("tiffload")
@@ -1540,6 +1543,7 @@ class TestForeign:
             assert y.get("exif-ifd0-XPComment").startswith("banana")
 
     @skip_if_no("heifsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif built with patent-encumbered HEVC dependencies")
     def test_heicsave_16_to_12(self):
         rgb16 = self.colour.colourspace("rgb16")
         data = rgb16.heifsave_buffer(lossless=True)
@@ -1553,6 +1557,7 @@ class TestForeign:
         assert((im - rgb16).abs().max() < 4500)
 
     @skip_if_no("heifsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif built with patent-encumbered HEVC dependencies")
     def test_heicsave_16_to_8(self):
         rgb16 = self.colour.colourspace("rgb16")
         data = rgb16.heifsave_buffer(lossless=True, bitdepth=8)
@@ -1566,6 +1571,7 @@ class TestForeign:
         assert((im - rgb16 / 256).abs().max() < 80)
 
     @skip_if_no("heifsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif built with patent-encumbered HEVC dependencies")
     def test_heicsave_8_to_16(self):
         data = self.colour.heifsave_buffer(lossless=True, bitdepth=12)
         im = pyvips.Image.heifload_buffer(data)
@@ -1693,6 +1699,7 @@ class TestForeign:
         lossless = self.colour.jxlsave_buffer(lossless=True)
         assert len(lossy) < len(lossless) / 5
 
+    @skip_if_no("gifload")
     @skip_if_no("gifsave")
     def test_gifsave(self):
         # Animated GIF round trip
