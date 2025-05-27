@@ -151,8 +151,6 @@ class TestResample:
         assert im2.height == int(im.height / 2.5 + 0.5)
         assert abs(im.avg() - im2.avg()) < 1
 
-    @pytest.mark.skipif(not pyvips.at_least_libvips(8, 5),
-                        reason="requires libvips >= 8.5")
     def test_thumbnail(self):
         im = pyvips.Image.thumbnail(JPEG_FILE, 100)
 
@@ -238,8 +236,6 @@ class TestResample:
             assert thumb.width < thumb.height
             assert thumb.height == 100
 
-    @pytest.mark.skipif(not pyvips.at_least_libvips(8, 5),
-                        reason="requires libvips >= 8.5")
     def test_thumbnail_icc(self):
         im = pyvips.Image.thumbnail(JPEG_FILE_XYB, 442, output_profile="srgb")
 

@@ -71,18 +71,18 @@ class TestIofuncs:
         im1 = pyvips.Image.black(10, 10)
         im1.write_to_file(filename)
 
-        load1 = pyvips.Image.new_from_file(filename);
+        load1 = pyvips.Image.new_from_file(filename)
         assert load1.width == im1.width
 
         im2 = pyvips.Image.black(20, 20)
         im2.write_to_file(filename)
 
         # this will use the old, cached load
-        load2 = pyvips.Image.new_from_file(filename);
+        load2 = pyvips.Image.new_from_file(filename)
         assert load2.width == im1.width
 
         # load again with "revalidate" and we should see the new image
-        load2 = pyvips.Image.new_from_file(filename, revalidate=True);
+        load2 = pyvips.Image.new_from_file(filename, revalidate=True)
         assert load2.width == im2.width
 
         # load once more without revalidate and we should see the cached

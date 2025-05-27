@@ -102,8 +102,6 @@ class TestConnection:
 
         assert (im - self.mono).abs().max() == 0
 
-    @skip_if_no("csvload_source")
-    @skip_if_no("csvsave_target")
     def test_connection_csv(self):
         x = pyvips.Target.new_to_memory()
         self.mono.csvsave_target(x)
