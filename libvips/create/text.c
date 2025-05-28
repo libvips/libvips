@@ -381,7 +381,7 @@ vips_text_autofit(VipsText *text)
 static void *
 vips_text_init_once(void *client)
 {
-	vips_text_fontmap = pango_cairo_font_map_new();;
+	vips_text_fontmap = pango_cairo_font_map_new();
 	vips_text_fontfiles = g_hash_table_new(g_str_hash, g_str_equal);
 
 	return NULL;
@@ -424,7 +424,7 @@ vips_text_build(VipsObject *object)
 
 #ifdef HAVE_FONTCONFIG
 	if (text->fontfile &&
-		!g_hash_table_lookup(vips_text_fontfiles, text->fontfile)) {
+		!g_hash_table_contains(vips_text_fontfiles, text->fontfile)) {
 		/* This can fail if you eg. add the same font from two
 		 * different files. Just warn.
 		 */
@@ -433,8 +433,7 @@ vips_text_build(VipsObject *object)
 			g_warning("unable to load fontfile \"%s\"",
 				text->fontfile);
 		g_hash_table_insert(vips_text_fontfiles,
-			text->fontfile,
-			g_strdup(text->fontfile));
+			g_strdup(text->fontfile), NULL);
 
 		/* We need to inform that pango should invalidate its
 		 * fontconfig cache whenever any changes are made.
