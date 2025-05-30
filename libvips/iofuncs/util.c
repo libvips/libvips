@@ -744,25 +744,22 @@ vips__file_read(FILE *fp, const char *filename, size_t *length_out)
 	if (len == -1) {
 		int size;
 
-		/* Can't get length: read in chunks and realloc() to end of
+		/* Can't get length: read in chunks and g_realloc() to end of
 		 * file.
 		 */
 		str = NULL;
 		len = 0;
 		size = 0;
 		do {
-			char *str2;
-
 			/* Again, a 1gb sanity limit.
 			 */
 			size += 1024;
-			if (size > 1024 * 1024 * 1024 ||
-				!(str2 = realloc(str, size))) {
-				free(str);
+			if (size > 1024 * 1024 * 1024) {
+				g_free(str);
 				vips_error("vips__file_read", "%s", _("out of memory"));
 				return NULL;
 			}
-			str = str2;
+			str = g_realloc(str, size);
 
 			/* -1 to allow space for an extra NULL we add later.
 			 */
@@ -958,8 +955,7 @@ vips__gslist_gvalue_copy(const GSList *list)
 	copy = NULL;
 
 	for (p = list; p; p = p->next)
-		copy = g_slist_prepend(copy,
-			vips__gvalue_copy((GValue *) p->data));
+		copy = g_slist_prepend(copy, vips__gvalue_copy((GValue *) p->data));
 
 	copy = g_slist_reverse(copy);
 
@@ -992,8 +988,7 @@ vips__gslist_gvalue_merge(GSList *a, const GSList *b)
 		for (j = a; j; j = j->next) {
 			GValue *value2 = (GValue *) j->data;
 
-			g_assert(G_VALUE_TYPE(value2) ==
-				VIPS_TYPE_REF_STRING);
+			g_assert(G_VALUE_TYPE(value2) == VIPS_TYPE_REF_STRING);
 
 			/* Just do a pointer compare ... good enough 99.9% of
 			 * the time.
@@ -1004,8 +999,7 @@ vips__gslist_gvalue_merge(GSList *a, const GSList *b)
 		}
 
 		if (!j)
-			tail = g_slist_prepend(tail,
-				vips__gvalue_copy(value));
+			tail = g_slist_prepend(tail, vips__gvalue_copy(value));
 	}
 
 	a = g_slist_concat(a, g_slist_reverse(tail));
@@ -1101,8 +1095,7 @@ vips__seek(int fd, gint64 pos, int whence)
 	gint64 new_pos;
 
 	if ((new_pos = vips__seek_no_error(fd, pos, whence)) == -1) {
-		vips_error_system(errno, "vips__seek",
-			"%s", _("unable to seek"));
+		vips_error_system(errno, "vips__seek", "%s", _("unable to seek"));
 		return -1;
 	}
 
@@ -1365,8 +1358,7 @@ vips__token_must(const char *p, VipsToken *token,
 	char *string, int size)
 {
 	if (!(p = vips__token_get(p, token, string, size))) {
-		vips_error("get_token",
-			"%s", _("unexpected end of string"));
+		vips_error("get_token", "%s", _("unexpected end of string"));
 		return NULL;
 	}
 
@@ -1633,8 +1625,7 @@ vips__temp_name(const char *format)
 
 	int serial = g_atomic_int_add(&global_serial, 1);
 
-	g_snprintf(file, FILENAME_MAX, "vips-%d-%u",
-		serial, g_random_int());
+	g_snprintf(file, FILENAME_MAX, "vips-%d-%u", serial, g_random_int());
 	g_snprintf(file2, FILENAME_MAX, format, file);
 	name = g_build_filename(vips__temp_dir(), file2, NULL);
 
@@ -1960,8 +1951,7 @@ vips_icc_dir_once(void *null)
 		 */
 		char *windowsdir;
 
-		if ((windowsdir = g_utf16_to_utf8(wwindowsdir,
-				 -1, NULL, NULL, NULL))) {
+		if ((windowsdir = g_utf16_to_utf8(wwindowsdir, -1, NULL, NULL, NULL))) {
 			gchar *full_path;
 
 			full_path = g_build_filename(windowsdir,
@@ -1981,8 +1971,7 @@ vips__icc_dir(void)
 {
 	static GOnce once = G_ONCE_INIT;
 
-	return (const char *) g_once(&once,
-		vips_icc_dir_once, NULL);
+	return (const char *) g_once(&once, vips_icc_dir_once, NULL);
 }
 
 #ifdef G_OS_WIN32
@@ -2005,8 +1994,7 @@ vips__windows_prefix_once(void *null)
 	char *prefix;
 
 #ifdef G_OS_WIN32
-	prefix = g_win32_get_package_installation_directory_of_module(
-		vips__dll);
+	prefix = g_win32_get_package_installation_directory_of_module(vips__dll);
 #else  /*!G_OS_WIN32*/
 	prefix = (char *) g_getenv("VIPSHOME");
 #endif /*G_OS_WIN32*/
@@ -2019,8 +2007,7 @@ vips__windows_prefix(void)
 {
 	static GOnce once = G_ONCE_INIT;
 
-	return (const char *) g_once(&once,
-		vips__windows_prefix_once, NULL);
+	return (const char *) g_once(&once, vips__windows_prefix_once, NULL);
 }
 
 char *
