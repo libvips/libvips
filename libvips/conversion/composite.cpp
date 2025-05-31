@@ -1396,12 +1396,20 @@ vips_composite_base_build(VipsObject *object)
 					  : VIPS_INTERPRETATION_sRGB);
 	}
 
-	compositing = (VipsImage **)
-		vips_object_local_array(object, n);
+	compositing = (VipsImage **) vips_object_local_array(object, n);
 	for (int i = 0; i < n; i++)
-		if (vips_colourspace(in[i], &compositing[i],
+		if (in[i]->Type == composite->compositing_space) {
+			/* Already the right type ... just copy the image pointer
+			 * and add a ref.
+			 */
+			compositing[i] = in[i];
+			g_object_ref(in[i]);
+		}
+		else {
+			if (vips_colourspace(in[i], &compositing[i],
 				composite->compositing_space, nullptr))
 			return -1;
+		}
 	in = compositing;
 
 	/* Check that they all now match in bands. This can fail for some
