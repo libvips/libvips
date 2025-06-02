@@ -797,6 +797,9 @@ VIPS_API
 int vips_ppmload(const char *filename, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_ppmload_buffer(void *buf, size_t len, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 int vips_ppmload_source(VipsSource *source, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
