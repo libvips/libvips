@@ -324,10 +324,8 @@ vips_foreign_load_pdf_build(VipsObject *object)
 		g_mutex_unlock(&vips_pdfium_mutex);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_parent_class)
+		->build(object);
 }
 
 static VipsForeignFlags

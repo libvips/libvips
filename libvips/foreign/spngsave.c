@@ -842,11 +842,8 @@ vips_foreign_save_spng_file_build(VipsObject *object)
 	if (!(spng->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_spng_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_spng_file_parent_class)
+		->build(object);
 }
 
 static void

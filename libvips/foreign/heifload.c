@@ -373,10 +373,8 @@ vips_foreign_load_heif_build(VipsObject *object)
 		}
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_heif_parent_class)
+		->build(object);
 }
 
 static const char *heif_magic[] = {
@@ -1232,11 +1230,8 @@ vips_foreign_load_heif_file_build(VipsObject *object)
 		!(heif->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_heif_file_parent_class)
+		->build(object);
 }
 
 static int
@@ -1308,11 +1303,8 @@ vips_foreign_load_heif_buffer_build(VipsObject *object)
 			VIPS_AREA(buffer->buf)->length)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_heif_buffer_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -1376,11 +1368,8 @@ vips_foreign_load_heif_source_build(VipsObject *object)
 		g_object_ref(heif->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_heif_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_heif_source_parent_class)
+		->build(object);
 }
 
 static gboolean

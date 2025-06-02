@@ -878,11 +878,8 @@ vips_foreign_load_openslide_build(VipsObject *object)
 		openslide->filename = filename;
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_openslide_parent_class)
+		->build(object);
 }
 
 static VipsForeignFlags

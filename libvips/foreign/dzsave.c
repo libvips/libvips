@@ -2510,11 +2510,8 @@ vips_foreign_save_dz_target_build(VipsObject *object)
 	dz->target = target->target;
 	g_object_ref(dz->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_dz_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -2570,11 +2567,8 @@ vips_foreign_save_dz_file_build(VipsObject *object)
 
 	dz->filename = file->filename;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_dz_file_parent_class)
+		->build(object);
 }
 
 static void

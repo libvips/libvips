@@ -315,11 +315,8 @@ vips_foreign_save_png_target_build(VipsObject *object)
 	png->target = target->target;
 	g_object_ref(png->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_png_target_parent_class)
+		->build(object);
 }
 
 static void
