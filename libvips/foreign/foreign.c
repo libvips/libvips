@@ -1808,10 +1808,7 @@ vips_foreign_save_build(VipsObject *object)
 		save->ready = ready;
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object);
 }
 
 #define UC VIPS_FORMAT_UCHAR

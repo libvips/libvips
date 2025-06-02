@@ -223,10 +223,8 @@ vips_foreign_load_ppm_build(VipsObject *object)
 	if (ppm->source)
 		ppm->sbuf = vips_sbuf_new_from_source(ppm->source);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_ppm_parent_class)
+		->build(object);
 }
 
 /* Scan the header into our class.
@@ -805,10 +803,8 @@ vips_foreign_load_ppm_file_build(VipsObject *object)
 		!(ppm->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_file_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_ppm_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -936,11 +932,8 @@ vips_foreign_load_ppm_source_build(VipsObject *object)
 		g_object_ref(ppm->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_ppm_source_parent_class)
+		->build(object);
 }
 
 static void

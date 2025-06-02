@@ -860,11 +860,8 @@ vips_foreign_save_heif_file_build(VipsObject *object)
 	if (vips_iscasepostfix(file->filename, ".avif"))
 		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_heif_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -982,11 +979,8 @@ vips_foreign_save_heif_target_build(VipsObject *object)
 		g_object_ref(heif->target);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_heif_target_parent_class)
+		->build(object);
 }
 
 static void

@@ -241,10 +241,8 @@ vips_foreign_load_jp2k_build(VipsObject *object)
 		}
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_parent_class)
+		->build(object);
 }
 
 #define JP2_RFC3745_MAGIC "\x00\x00\x00\x0c\x6a\x50\x20\x20\x0d\x0a\x87\x0a"
@@ -1277,11 +1275,8 @@ vips_foreign_load_jp2k_file_build(VipsObject *object)
 		!(jp2k->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_file_parent_class)
+		->build(object);
 }
 
 const char *vips__jp2k_suffs[] = {
@@ -1359,11 +1354,8 @@ vips_foreign_load_jp2k_buffer_build(VipsObject *object)
 				  VIPS_AREA(buffer->buf)->length)))
 			return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_buffer_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -1434,11 +1426,8 @@ vips_foreign_load_jp2k_source_build(VipsObject *object)
 		g_object_ref(jp2k->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_source_parent_class)
+		->build(object);
 }
 
 static void

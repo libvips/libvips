@@ -252,10 +252,8 @@ vips_foreign_load_magick_build(VipsObject *object)
 	if (magick->page > 0)
 		magick_set_number_scenes(magick->image_info, magick->page, magick->n);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_magick_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_magick_parent_class)
+		->build(object);
 }
 
 static void
