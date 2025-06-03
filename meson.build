@@ -506,9 +506,8 @@ if libheif_dep.found()
     cfg_var.set('HAVE_HEIF_MAX_TOTAL_MEMORY', cpp.has_member('struct heif_security_limits', 'max_total_memory', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
 endif
 
-# need v0.9+ for JxlEncoderAddChunkedFrame()
-libjxl_dep = dependency('libjxl', version: '>=0.9', required: get_option('jpeg-xl'))
-libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.9', required: get_option('jpeg-xl'))
+libjxl_dep = dependency('libjxl', version: '>=0.7', required: get_option('jpeg-xl'))
+libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.7', required: get_option('jpeg-xl'))
 libjxl_found = libjxl_dep.found() and libjxl_threads_dep.found()
 libjxl_module = false
 if libjxl_found
@@ -522,6 +521,10 @@ if libjxl_found
         external_deps += libjxl_threads_dep
     endif
     cfg_var.set('HAVE_LIBJXL', true)
+    # need v0.9+ for chunked write
+    if libjxl_dep.version().version_compare('>=0.9')
+        cfg_var.set('HAVE_LIBJXL_0_9', '1')
+    endif
 endif
 
 # only if pdfium not found
