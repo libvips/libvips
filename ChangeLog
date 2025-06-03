@@ -30,7 +30,7 @@ master
 - move vips_image_preeval(), vips_image_eval(), vips_image_posteval() into the
   public API
 - jxlsave writes in chunks, for lower memory use on large images (but we now
-  need libjxl 0.11 at minimum)
+  need libjxl 0.9 at minimum)
 - increase minimum version of libheif dependency to 1.11.0
 - improve scaling of hough_line feature space [ecbypi]
 - heifload: limit per-image memory usage to 2GB (requires libheif 1.20.0+)
