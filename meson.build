@@ -506,9 +506,9 @@ if libheif_dep.found()
     cfg_var.set('HAVE_HEIF_MAX_TOTAL_MEMORY', cpp.has_member('struct heif_security_limits', 'max_total_memory', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
 endif
 
-# need v0.11+ for chunked write
-libjxl_dep = dependency('libjxl', version: '>=0.11', required: get_option('jpeg-xl'))
-libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.11', required: get_option('jpeg-xl'))
+# need v0.9+ for JxlEncoderAddChunkedFrame()
+libjxl_dep = dependency('libjxl', version: '>=0.9', required: get_option('jpeg-xl'))
+libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.9', required: get_option('jpeg-xl'))
 libjxl_found = libjxl_dep.found() and libjxl_threads_dep.found()
 libjxl_module = false
 if libjxl_found
