@@ -483,7 +483,7 @@ if pdfium_dep.found()
     pdf_loader = pdfium_dep
 endif
 
-libheif_dep = dependency('libheif', version: '>=1.11.0', required: get_option('heif'))
+libheif_dep = dependency('libheif', version: '>=1.7.0', required: get_option('heif'))
 libheif_module = false
 if libheif_dep.found()
     libheif_module = modules_enabled and not get_option('heif-module').disabled()
@@ -494,6 +494,10 @@ if libheif_dep.found()
         external_deps += libheif_dep
     endif
     cfg_var.set('HAVE_HEIF', true)
+    # added in 1.10.0
+    cfg_var.set('HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES', cpp.has_function('heif_encoder_parameter_get_valid_integer_values', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
+    # added in 1.11.0
+    cfg_var.set('HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE', cpp.has_member('struct heif_encoding_options', 'output_nclx_profile', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
     # heif_init added in 1.13.0
     cfg_var.set('HAVE_HEIF_INIT', libheif_dep.version().version_compare('>=1.13.0'))
     # heif_encoding_options.image_orientation added in 1.14.0
