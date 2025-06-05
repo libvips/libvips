@@ -132,7 +132,7 @@ We've spent some time improving the C++ API.
 
 We now use [doxygen](https://www.doxygen.nl) to generate C++ API docs
 automatically, and we've written a set of API comments. Hopefully the [new
-documentation]({{ site.baseurl }}/API/8.11/cpp) should be a big improvement.
+documentation]({{ site.baseurl }}/API/current/cpp) should be a big improvement.
 
 There are a couple of functional improvements too. There's support for
 `VipsInterpolate`, `guint64` and a new constructor,

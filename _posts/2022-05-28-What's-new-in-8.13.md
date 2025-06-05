@@ -48,9 +48,9 @@ blocked, but we've marked all loaders derived from `VipsForeignLoadJpeg`
 only load JPEG files.
 
 See [`vips_block_untrusted_set()`]({{ site.baseurl
-}}/API/current/libvips-vips.html#vips-block-untrusted-set) and
+}}/API/current/func.block_untrusted_set.html) and
 [`vips_operation_block_set()`]({{ site.baseurl
-}}/API/current/VipsOperation.html#vips-operation-block-set) for more details.
+}}/API/current/type_func.Operation.block_set.html) for more details.
 
 # Much better GIF save
 
@@ -185,7 +185,7 @@ has some more notes.
 # General minor improvements
 
 - add `extend`, `background` and `premultiplied` to [`vips_mapim()`]({{ site.baseurl
-  }}/API/current/libvips-resample.html#vips-mapim) to fix edge antialiasing
+  }}/API/current/method.Image.mapim.html) to fix edge antialiasing
   [GavinJoyce]
 - improve the pixel RNG for the noise operators
 - add support for regions in C++ API [shado23]

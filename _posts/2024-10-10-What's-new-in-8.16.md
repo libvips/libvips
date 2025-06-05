@@ -9,7 +9,7 @@ if you need more details.
 ## Signed Distance Fields
 
 libvips has a new
-[`vips_sdf()`]({{ site.baseurl }}/API/8.16/libvips-create.html#vips-sdf)
+[`vips_sdf()`]({{ site.baseurl }}/API/current/ctor.Image.sdf.html)
 operator. This can efficiently generate a range of basic shapes as Signed
 Distance Fields -- these are images where each pixel contains a signed value
 giving the distance to the closest edge. For example:
@@ -62,11 +62,11 @@ To make:
 
 Hmmm, possibly a person rowing a boat. This uses three
 other new operators: [`vips_minpair()`]({{ site.baseurl
-}}/API/8.16/libvips-arithmetic.html#vips-minpair) and [`vips_maxpair()`]({{
-site.baseurl }}/API/8.16/libvips-arithmetic.html#vips-maxpair),
+}}/API/current/method.Image.minpair.html) and [`vips_maxpair()`]({{
+site.baseurl }}/API/current/method.Image.maxpair.html),
 which given a pair of images find the
 pixel-wise max and min, and [`vips_clamp()`]({{ site.baseurl
-}}/API/8.16/libvips-arithmetic.html#vips-clamp), which constrains pixels
+}}/API/current/method.Image.clamp.html), which constrains pixels
 to a range.
 
 SDFs fit really well with libvips on-demand-evaluation. These things
@@ -97,9 +97,9 @@ File format support has been improved (again). Highlights this time are:
 
 * `rawsave` gets  streaming support with
   [`vips_rawsave_target()`]({{ site.baseurl
-  }}/API/8.16/VipsForeignSave.html#vips-rawsave-target) and
+  }}/API/current/method.Image.rawsave_target.html) and
   [`vips_rawsave_buffer()`]({{ site.baseurl
-  }}/API/8.16/VipsForeignSave.html#vips-rawsave-buffer).
+  }}/API/current/method.Image.rawsave_buffer.html).
 
 ## General improvements
 
@@ -107,10 +107,10 @@ There have been some smaller libvips additions and improvements too.
 
 * libvips used to limit image dimensions to 10 million pixels. This is now
   configurable, see [`vips_max_coord_get()`]({{ site.baseurl
-  }}/API/8.16/libvips-vips.html#vips-max-coord-get).
+  }}/API/current/func.max_coord_get.html).
 
 * There's a new (trivial) [`vips_addalpha()`]({{ site.baseurl
-  }}/API/8.16/libvips-conversion.html#vips-addalpha) operation.
+  }}/API/current/method.Image.addalpha.html) operation.
 
 * `vips_getpoint()` has a new `unpack_complex` option.
 

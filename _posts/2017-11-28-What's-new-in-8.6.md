@@ -10,7 +10,7 @@ if you need more details.
 ## New operators
 
 There are five new operators. The largest is [`vips_composite2()`]({{
-site.baseurl }}/API/8.6/libvips-conversion.html#vips-composite2): this will
+site.baseurl }}/API/current/method.Image.composite2.html): this will
 composite a pair of transparent images together using PDF-style blending
 modes. For example, given the standard libtiff and libpng demo images:
 
@@ -27,14 +27,14 @@ Gives:
 [![Composite of PNG and TIFF demo images]({{ site.baseurl }}/assets/images/tn_composite.jpg)]({{ site.baseurl }}/assets/images/composite.png)
 
 `over` is probably the most useful, but `composite2` supports all the [PDF blend
-modes]({{ site.baseurl }}/API/8.6/libvips-conversion.html#VipsBlendMode).
+modes]({{ site.baseurl }}/API/current/enum.BlendMode.html).
 
 `composite2` joins a pair of images, but you can join a whole array of images
 using an array of blend modes in a single operation with `composite`. Options
 let you control the compositing space and premultiplication handling.
 
 [`vips_fill_nearest()`]({{ site.baseurl
-}}/API/8.6/libvips-morphology.html#vips-fill-nearest) replaces every zero
+}}/API/current/method.Image.fill_nearest.html) replaces every zero
 pixel in an image with the nearest non-zero pixel. For example:
 
 [![Fill nearest image]({{ site.baseurl }}/assets/images/tn_fill-nearest.jpg)]({{ site.baseurl }}/assets/images/fill-nearest.png)
@@ -45,16 +45,16 @@ memory. It's handy for things like cell counting, where you want to assign cell
 pixels to the nearest nucleus.
 
 [`vips_find_trim()`]({{ site.baseurl
-}}/API/8.6/libvips-arithmetic.html#vips-find-trim) searches an image in from
+}}/API/current/method.Image.find_trim.html) searches an image in from
 the edges and returns the bounding box of the non-background pixels. It's
 useful for automatically trimming away the edges from scanned images.
 
 [`vips_gravity()`]({{ site.baseurl
-}}/API/8.6/libvips-conversion.html#vips-gravity) places an image within a
+}}/API/current/method.Image.gravity.html) places an image within a
 larger canvas, positioning the image according to a compass direction. It's
 just `vips_embed()` with a convenient interface.
 
-[`vips_thumbnail_image()`]({{ site.baseurl }}/API/8.6/libvips-resample.html#vips-thumbnail-image) lets you thumbnail any image source. It can be
+[`vips_thumbnail_image()`]({{ site.baseurl }}/API/current/method.Image.thumbnail_image.html) lets you thumbnail any image source. It can be
 useful if you need to do something to an image before making a thumbnail.
 
 ## New features
@@ -62,30 +62,30 @@ useful if you need to do something to an image before making a thumbnail.
 There are a few new options for existing operations.
 
 * A `FORCE` [resize
-  mode]({{ site.baseurl }}/API/8.6/libvips-resample.html#VipsSize) lets
+  mode]({{ site.baseurl }}/API/current/enum.Size.html#force) lets
   you break the image aspect ratio in resizing.
 
 * `thumbnail` and `vipsthumbnail` have an [option for rendering
-  intent]({{ site.baseurl }}/API/8.6/libvips-resample.html#vips-thumbnail),
+  intent]({{ site.baseurl }}/API/current/ctor.Image.thumbnail.html),
   credit to kleisauke.
 
-* [`vips_text()`]({{ site.baseurl }}/API/8.6/libvips-create.html#vips-text)
+* [`vips_text()`]({{ site.baseurl }}/API/current/ctor.Image.text.html)
   can autofit text to a box. You give the size of the box to fill,
   and it'll automatically search for a DPI that just fills that area.
   Credit to gargsms.
 
 * [`VIPS_COMBINE_MIN`]({{ site.baseurl
-  }}/API/8.6/libvips-convolution.html#VipsCombine) is a new combining mode
+  }}/API/current/enum.Combine.html#min) is a new combining mode
   for `vips_compass()`, handy for estimating gradients.
 
 * [`vips_hist_find_indexed()`]({{ site.baseurl
-  }}/API/8.6/libvips-arithmetic.html#vips-hist-find-indexed) now has a
+  }}/API/current/method.Image.hist_find_indexed.html) now has a
   `combine` parameter. This makes it possible to quickly find the bounding
   boxes of a large number of objects, for example.
 
 * [`vips_affine()`]({{ site.baseurl
-  }}/API/8.6/libvips-resample.html#vips-affine) and [`vips_similarity()`]({{
-  site.baseurl }}/API/8.6/libvips-resample.html#vips-similarity) have a
+  }}/API/current/method.Image.affine.html) and [`vips_similarity()`]({{
+  site.baseurl }}/API/current/method.Image.similarity.html) have a
   `background` parameter.  Previously, they always used 0 for new pixels
   and you had to composite on something else somehow.
 
@@ -133,9 +133,11 @@ There have been a few changes to existing features.
 Finally there are a range of smaller improvements:
 
 * New C API:
-  [`vips_image_new_from_image()`](http://libvips.github.io/libvips/API/8.6/VipsImage.html#vips-image-new-from-image)
+  [`vips_image_new_from_image()`]({{ site.baseurl
+  }}/API/current/ctor.Image.new_from_image.html)
   and
-  [`vips_image_new_from_image1()`](http://libvips.github.io/libvips/API/8.6/VipsImage.html#vips-image-new-from-image1)
+  [`vips_image_new_from_image1()`]({{ site.baseurl
+  }}/API/current/ctor.Image.new_from_image1.html)
   make a constant image. This has been added to all the language bindings too.
 
 * Better prefix guessing on Windows, credit to tumagonx.

@@ -103,12 +103,12 @@ curious.
 libvips has a pair of new operations which speed up many-way if-then-else.
 
 [`vips_switch()`]({{ site.baseurl
-}}/API/8.9/libvips-conversion.html#vips-switch) takes an array of N condition
+}}/API/current/type_func.Image.switch.html) takes an array of N condition
 images and for each pixel finds the index of the first non-zero pixel. If no
 pixels are non-zero, it sets the output to N + 1.
 
 [`vips_case()`]({ site.baseurl
-}}/API/8.9/API/8.9/libvips-histogram.html#vips-case)
+}}/API/current/method.Image.case.html)
 takes an index image plus an array of N + 1 result images and for each
 pixel copies the pixel selected by the index to the output. 
 

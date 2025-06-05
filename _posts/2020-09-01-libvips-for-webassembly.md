@@ -146,7 +146,7 @@ All libvips operations and enumerations are exposed through
 so that the compiled code can be used in JavaScript.
 
 The binding itself is a variant of
-[libvips' C++ API]({{ site.baseurl }}/API/current/using-from-cpp.html),
+[libvips' C++ API]({{ site.baseurl }}/API/current/using-from-cplusplus.html),
 with additional support for the `emscripten::val` C++ class to transliterate
 JavaScript code to C++. For example, consider this JavaScript code:
 
