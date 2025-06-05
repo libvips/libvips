@@ -7,7 +7,7 @@ so this post tries to introduce this strange tool for people who've not
 come across it before.
 
 If you used nip2, there's a [nip4 for nip2
-users](https://www.libvips.org/2025/03/12/nip4-for-nip2-users.html) post
+users](/2025/03/12/nip4-for-nip2-users.html) post
 which runs though the main differences.
 
 I'll write a "nip4 for nerds" post next week introducing nip4's programming
@@ -21,7 +21,7 @@ You can use it to build image processing pipelines and then execute them on
 large datasets. These pipelines can get quite complex --- I've made systems
 with over 10,000 operations chained together.
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-12-mar-25.png)
+![nip4](/assets/images/nip4-12-mar-25.png)
 
 This workspace analyses pulmonary PET-CT scans. It fits a two compartment
 model to each lung voxel to estimate a rate constant for FDG uptake (a proxy
@@ -30,7 +30,7 @@ for inflammation).
 Here's [the workspace developed in the Charisma
 project](https://github.com/BritishMuseum/bm-charisma). 
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-charisma.png)
+![nip4](/assets/images/nip4-charisma.png)
 
 This workspace standardises and automates technical imaging in museums. You
 can load visible, infrared, ultraviolet, UV-induced visible luminescence and
@@ -45,7 +45,7 @@ does not need a lot of memory. The Charisma workspace above, for example,
 loads in about 5s on this PC, manipulates almost 100GB of images, but runs
 in under 1GB of RAM:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-resources.png)
+![nip4](/assets/images/nip4-resources.png)
 
 Everything is live. You can open an image view window on any of the
 cells in the workspace and watch pixels change as you edit the formula.
@@ -66,7 +66,7 @@ When you start nip4 it looks something like this. I've loaded a test image
 (drag one in, use the folder button at the top left, or start nip4 from the
 command-line with `nip4 my-great-image.jpg`):
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-main-window.png)
+![nip4](/assets/images/nip4-main-window.png)
 
 `A` is the current column, `A1` is a row for the image you loaded, this is all
 in `tab1`. The thing down the left is the set of loaded toolkits. 
@@ -77,7 +77,7 @@ click in the magnifying glass at the top and search for tools by keyword.
 
 If you select Filter > Photographic Negative you'll see:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-negative.png)
+![nip4](/assets/images/nip4-negative.png)
 
 Most tools take one argument, and they are applied to the bottom row 
 in the current column. If you want to apply a tool to a row other than the
@@ -86,12 +86,12 @@ bottom one, select it first by clicking on the row label.
 If you open up `A2` by clicking on the `V` down button next to the label,
 you'll see the cell formula:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-formula.png)
+![nip4](/assets/images/nip4-formula.png)
 
 So the function `Filter_negative_item.action` has been applied to the row `A1`.
 You can edit the formula --- click on it, enter `255 - A1`, and you should see:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-formula2.png)
+![nip4](/assets/images/nip4-formula2.png)
 
 Which computes almost the same result.
 
@@ -103,7 +103,7 @@ scale widget called `A3` to the workspace. Now edit the formula to be
 It looks a bit awkward with the result row `A2` positioned before the scale.
 You can reorder columns by dragging on the row label. 
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-scale.png)
+![nip4](/assets/images/nip4-scale.png)
 
 nip4 does not have an undo operation, instead it has fast and easy duplicate,
 merge and delete. If you make a copy of column `A` before you start changing
@@ -112,7 +112,7 @@ it, you can't lose any of your current work.
 Duplicate column `A` by right-clicking on the column title and selecting
 Duplicate from the menu.  Right-click on `B3` and select Delete, so you have:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-duplicate.png)
+![nip4](/assets/images/nip4-duplicate.png)
 
 Now in the text box at the bottom of column `B`, enter this formula for
 [Solarization](https://en.wikipedia.org/wiki/Solarization_(photography)):
@@ -129,7 +129,7 @@ If you double-click on an image thumbnail, you'll open an image view window.
 These are all live, so as you drag scales, they'll all update. You can zoom
 in and watch the values of individual pixels change as you edit formula.
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-solarise.png)
+![nip4](/assets/images/nip4-solarise.png)
 
 The main window has some other useful features. You can pan large workspaces
 by dragging on the background, the burger menu at the top-right has some
@@ -170,13 +170,13 @@ for each pixel (handy for scientific images), and a burger menu gives
 a set of useful visualisation options such as false colour, log scale,
 and colour management.
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-image-window.png)
+![nip4](/assets/images/nip4-image-window.png)
 
 You can also mark features on images. If you hold down Ctrl and drag down and
 right, you'll create a rectangular region, if you drag up and left you'll mark
 an arrow, if you just Ctrl-click you'll mark a point.
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-regions.png)
+![nip4](/assets/images/nip4-regions.png)
 
 ## Editing complex objects
 
@@ -184,7 +184,7 @@ All compound row objects can be edited. Back in the main window, try pressing
 the down arrow next to the region a few times. You should see something like
 this:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-compound.png)
+![nip4](/assets/images/nip4-compound.png)
 
 You can edit any of these member values. For example, try setting `top` to
 be a fixed value, like 900. Now go back to the image window and try dragging
@@ -236,7 +236,7 @@ two scales and the third will update.
 If you open up the new scale widget, you'll see that `from` and `to` have
 been set appropriately for the possible range:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-add-scale.png)
+![nip4](/assets/images/nip4-add-scale.png)
 
 Just as with regions, you can also set the formula for any of these members.
 

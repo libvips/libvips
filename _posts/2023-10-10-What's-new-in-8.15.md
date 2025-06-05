@@ -138,11 +138,11 @@ library, `libarchive`, which should improve portability.
 * PDF loading with PDFium now includes support for PDF forms, making it
   capable of rendering user-provided input in checkboxes and text fields.
 * We've added two new edge detectors,
-  [`vips_scharr()`](/API/current/libvips-convolution.html#vips-scharr) and
-  [`vips_prewitt()`](/API/current/libvips-convolution.html#vips-prewitt),
+  [`vips_scharr()`](/API/current/method.Image.scharr.html) and
+  [`vips_prewitt()`](/API/current/method.Image.prewitt.html),
   and improved the accuracy of
-  [`vips_sobel()`](/API/current/libvips-convolution.html#vips-sobel).  
-* [`vips_find_trim()`](/API/current/libvips-arithmetic.html#vips-find-trim)
+  [`vips_sobel()`](/API/current/method.Image.sobel.html).  
+* [`vips_find_trim()`](/API/current/method.Image.find_trim.html)
   features a `line_art` option.
 * GIF load now sets `interlaced=1` for interlaced GIF images.  
 * Improved C++ binding, taking advantage of C++11 features.  

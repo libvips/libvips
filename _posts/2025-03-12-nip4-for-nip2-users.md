@@ -21,7 +21,7 @@ corners everywhere.  And nip2 is a "kitchen sink" program --- it has lots
 of features which seemed like a good idea at the time, but which I never
 ended up using much. 
 
-![nip2]({{ site.baseurl }}/assets/images/nip2.png)
+![nip2](/assets/images/nip2.png)
 
 nip4 is a rewrite of nip2 with the following aims:
 
@@ -39,7 +39,7 @@ nip4 is a rewrite of nip2 with the following aims:
 
 And here is nip4, running the same very complex workspace:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-12-mar-25.png)
+![nip4](/assets/images/nip4-12-mar-25.png)
 
 ## New image window
 
@@ -81,7 +81,7 @@ pan, and so on.
 The big change in the main window is the new toolkit bar down the left,
 replacing the old Toolkits menu.
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-toolkits.png)
+![nip4](/assets/images/nip4-toolkits.png)
 
 It slides left and right as you select items or go back, and it stays open
 after clicking on a tool, so you can use several related tools together, which
@@ -91,7 +91,7 @@ It also supports keyword search. Click on the magnifying glass at the
 top-left, then type something related to what you want. Entering "lab", for
 example, will show all the tools related to CIELAB colourspace, for example:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-toolkits-search.png)
+![nip4](/assets/images/nip4-toolkits-search.png)
 
 Searching is fuzzy, so you don't need to be exact.
 
@@ -111,7 +111,7 @@ back to the workspace and right-click on the row for that region. You can
 change region properties by opening the row a few times and editing the
 members:
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-region.png)
+![nip4](/assets/images/nip4-region.png)
 
 This works for all objects: open the row, edit the members. 
 
@@ -122,14 +122,14 @@ crash ...** from the main burger menu and you see a table of recent
 workspace auto-backups, sorted by the process ID and time. Doubleclick one of
 them to restore it.
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-recover.png)
+![nip4](/assets/images/nip4-recover.png)
 
 ## New graphing window
 
 The graphing window has been rewritten and [now uses
 kplot](https://github.com/kristapsdz/kplot).
 
-![nip4]({{ site.baseurl }}/assets/images/nip4-plot.png)
+![nip4](/assets/images/nip4-plot.png)
 
 It no longer supports bar plots, but everything else works, and it's very
 fast.

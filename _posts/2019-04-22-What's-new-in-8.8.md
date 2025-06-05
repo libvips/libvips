@@ -36,7 +36,7 @@ $ vipsthumbnail dancing_banana2.lossless.webp -o x.gif
 
 Makes:
 
-![First frame of banana]({{ site.baseurl }}/assets/images/onebanana.gif)
+![First frame of banana](/assets/images/onebanana.gif)
 
 But:
 
@@ -46,7 +46,7 @@ $ vipsthumbnail dancing_banana2.lossless.webp[n=-1] -o x.gif
 
 Makes:
 
-![All of banana]({{ site.baseurl }}/assets/images/manybanana.gif)
+![All of banana](/assets/images/manybanana.gif)
 
 It'll work for any many-page format, so you can thumbnail many-page TIFFs,
 or even PDFs. For example:
@@ -61,7 +61,7 @@ sys 0m0.085s
 That's rendering a 40 page PDF as an animated webp image in 0.8s, though I'm 
 not sure if it's a useful thing to do.
 
-![All of banana]({{ site.baseurl }}/assets/images/nipguide.gif)
+![All of banana](/assets/images/nipguide.gif)
 
 # Built-in colour profiles
 

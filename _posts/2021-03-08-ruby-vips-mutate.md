@@ -55,7 +55,7 @@ $ /usr/bin/time -f %M:%e ./circles.rb ~/pics/nina.jpg x.jpg
 
 To make this:
 
-![random circles]({{ site.baseurl }}/assets/images/circles1.jpg)
+![random circles](/assets/images/circles1.jpg)
 
 It works, but 13s and almost 5gb of memory to draw 1,000 circles is really
 not good.

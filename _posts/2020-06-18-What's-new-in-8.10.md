@@ -51,7 +51,7 @@ Bioformats-style (OME-TIFF) image pyramids.
 
 libvips used to only write TIFF pyramids like this:
 
-![Old-style libvips TIFF pyramids]({{ site.baseurl }}/assets/images/old-pyr.png)
+![Old-style libvips TIFF pyramids](/assets/images/old-pyr.png)
 
 Each smaller version of the image is stored in a subsequent page in the TIFF
 file. This is easy and convenient, and how most TIFF pyramids writers work, but
@@ -70,7 +70,7 @@ for each band inside the page.
 
 A two-band OME-TIFF pyramid might look like this:
 
-![Bioformats-style TIFF pyramids]({{ site.baseurl }}/assets/images/new-pyr.png)
+![Bioformats-style TIFF pyramids](/assets/images/new-pyr.png)
 
 libvips has been able to read and write OME-TIFF for a long time, but it
 has not been able to read and write these SUBIFD images.

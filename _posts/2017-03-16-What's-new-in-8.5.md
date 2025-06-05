@@ -8,10 +8,10 @@ ChangeLog if you need more details.
 ## New operators
 
 Almost all of the logic from the `vipsthumbnail` program is now in
-a pair of new operators, [`vips_thumbnail()`]({{ site.baseurl
-}}/API/current/libvips-resample.html#vips-thumbnail)
-and [`vips_thumbnail_buffer()`]({{ site.baseurl
-}}/API/current/libvips-resample.html#vips-thumbnail-buffer).  These are
+a pair of new operators, [`vips_thumbnail()`](
+/API/current/ctor.Image.thumbnail.html)
+and [`vips_thumbnail_buffer()`](
+/API/current/ctor.Image.thumbnail_buffer.html).  These are
 very handy for the various scripting languages with vips bindings: you can
 now make a high-quality, high-speed thumbnail in PHP (for example) with just:
 
@@ -26,16 +26,16 @@ The new thumbnail operator has also picked up some useful features:
 * **Smart crop** A new cropping mode called `attention` searches the image for
   edges, skin tones and areas of saturated colour, and
   attempts to position the crop box over the most significant
-  feature. There's a [`vips_smartcrop()`]({{ site.baseurl
-  }}/API/current/libvips-conversion.html#vips-smartcrop) operator as well.
+  feature. There's a [`vips_smartcrop()`](
+  /API/current/method.Image.smartcrop.html) operator as well.
 
 * **Crop constraints** Thanks to tomasc, libvips has crop constraints. You 
   can set it to only thumbnail if the image is larger or smaller than the target 
   (the `<` and `>` modifiers in imagemagick), and to crop to a width or height. 
 
 * **Buffer sources** 
-  [`vips_thumbnail_buffer()`]({{ site.baseurl
-  }}/API/current/libvips-resample.html#vips-thumbnail-buffer) will thumbnail
+  [`vips_thumbnail_buffer()`](
+  /API/current/ctor.Image.thumbnail_buffer.html) will thumbnail
   an image held as a formatted block of data in memory. This is useful for
   cloud services, where the filesystem is often rather slow.
 
@@ -44,16 +44,16 @@ make local histogram equalisation more useful.
 
 Plain local equalization removes
 all global brightness variation and can make images
-hard to understand.  [`vips_hist_local()`]({{ site.baseurl
-}}/API/current/libvips-histogram.html#vips-hist-local) now has a `max-slope`
+hard to understand.  [`vips_hist_local()`](
+/API/current/method.Image.hist_local.html) now has a `max-slope`
 parameter you can use to limit how much equalisation can alter your image. A
 value of 3 generally works well.
 
 For example, here's the famous NASA image of Io on the left, straight
 local-histogram equalization in the centre, and CLAHE on the right.
 
-[![Io with CLAHE]({{ site.baseurl }}/assets/images/tn_clahe.jpg)]({{
-site.baseurl }}/assets/images/clahe.jpg)
+[![Io with CLAHE](/assets/images/tn_clahe.jpg)](
+/assets/images/clahe.jpg)
 
 The centre image looks horrible, but it does have a lot of local detail. The
 CLAHE one is a interesting compromise: it still looks like the original, but
