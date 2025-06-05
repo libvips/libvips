@@ -1,5 +1,5 @@
 project('vips', 'c', 'cpp',
-    version: '8.17.0-rc1',
+    version: '8.17.0',
     meson_version: '>=0.55',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
