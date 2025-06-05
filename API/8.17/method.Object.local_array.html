@@ -186,10 +186,10 @@ SPDX-License-Identifier: LGPL-2.1-or-later
       </h4>
 
       <div class="docblock">
-        <p>Make an array of <span class="caps">NULL</span> VipsObject pointers. When <code>parent</code> closes, every
-non-<span class="caps">NULL</span> pointer in the array will be unreffed and the array will be
+        <p>Make an array of <code>NULL</code> <a href="class.Object.html"><code>VipsObject</code></a> pointers. When <code>parent</code> closes, every
+non-<code>NULL</code> pointer in the array will be unreffed and the array will be
 freed. Handy for creating a set of temporary images for a&nbsp;function.</p>
-<p>The array is <span class="caps">NULL</span>-terminated, ie. contains an extra <span class="caps">NULL</span> element at the&nbsp;end.</p>
+<p>The array is <code>NULL</code>-terminated, ie. contains an extra <code>NULL</code> element at the&nbsp;end.</p>
 <p>Example:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">VipsObject</span><span class="w"> </span><span class="o">**</span><span class="n">t</span><span class="p">;</span>
 
@@ -198,7 +198,7 @@ freed. Handy for creating a set of temporary images for a&nbsp;function.</p>
 <span class="w">    </span><span class="n">vips_invert</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="o">&amp;</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="o">||</span>
 <span class="w">    </span><span class="n">vips_add</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="w"> </span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="w"> </span><span class="o">&amp;</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="o">||</span>
 <span class="w">    </span><span class="n">vips_costra</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span><span class="w"> </span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">))</span>
-<span class="w">  </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
 </code></pre></div>
       </div>
 
@@ -262,7 +262,7 @@ freed. Handy for creating a set of temporary images for a&nbsp;function.</p>
         <div class="returns">
           <div class="arg-description">
             <p><em>Type:</em>&nbsp;<a href="class.Object.html"><code>VipsObject</code></a></p>
-            <p>An array of <span class="caps">NULL</span> pointers of length <code>n</code>.</p>
+            <p>An array of <code>NULL</code> pointers of length <code>n</code>.</p>
           </div>
           <div>
             <table>

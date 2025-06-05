@@ -224,6 +224,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="ctor.Image.ppmload.html">ppmload</a>
   
+    <a class="method" href="ctor.Image.ppmload_buffer.html">ppmload_buffer</a>
+  
     <a class="method" href="ctor.Image.ppmload_source.html">ppmload_source</a>
   
     <a class="method" href="ctor.Image.radload.html">radload</a>
@@ -306,7 +308,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a href="#declaration" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L815">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L846">[src]</a>
         
       </h4>
 
@@ -327,7 +329,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/svgload.c#L1037">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/svgload.c#L1090">[src]</a>
         
       </h4>
 
@@ -343,6 +345,8 @@ allow SVGs of any&nbsp;size.</p>
 <p>A <span class="caps">UTF</span>-8 string containing custom <span class="caps">CSS</span> can be provided via <code>stylesheet</code>.
 During the <span class="caps">CSS</span> cascade, the specified stylesheet will be applied with a
 User Origin. This feature requires librsvg 2.48.0 or&nbsp;later.</p>
+<p>If <code>high_bitdepth</code> is set and the version of cairo supports it
+(e.g. cairo &gt;= 1.17.2), enable 128-bit scRGB output (32-bit per&nbsp;channel).</p>
 <div class="admonition tip">
 <p class="admonition-title">Optional&nbsp;arguments</p>
 <ul>
@@ -350,6 +354,7 @@ User Origin. This feature requires librsvg 2.48.0 or&nbsp;later.</p>
 <li><code>scale</code>: <code>gdouble</code>, scale render by this&nbsp;factor</li>
 <li><code>unlimited</code>: <code>gboolean</code>, allow SVGs of any&nbsp;size</li>
 <li><code>stylesheet</code>: <code>gchararray</code>, custom <span class="caps">CSS</span></li>
+<li><code>high_bitdepth</code>: <code>gboolean</code>, enable scRGB 128-bit&nbsp;output</li>
 </ul>
 </div>
 <div class="admonition seealso">

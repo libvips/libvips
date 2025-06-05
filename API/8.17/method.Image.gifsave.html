@@ -951,7 +951,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a class="anchor" href="#declaration"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L838">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L869">[src]</a>
         
       </h4>
 
@@ -991,13 +991,13 @@ Pixels which don&#8217;t change from frame to frame can be made transparent,
 improving the compression rate. Default&nbsp;0.</p>
 <p>Use <code>interpalette_maxerror</code> to set the threshold below which the
 previously generated palette will be&nbsp;reused.</p>
-<p>If <code>reuse</code> is <span class="caps">TRUE</span>, the <span class="caps">GIF</span> will be saved with a single global
+<p>If <code>reuse</code> is <code>TRUE</code>, the <span class="caps">GIF</span> will be saved with a single global
 palette taken from the metadata in <code>in</code>, and no new palette optimisation
 will be&nbsp;done.</p>
-<p>If <code>interlace</code> is <span class="caps">TRUE</span>, the <span class="caps">GIF</span> file will be interlaced (progressive <span class="caps">GIF</span>).
+<p>If <code>interlace</code> is <code>TRUE</code>, the <span class="caps">GIF</span> file will be interlaced (progressive <span class="caps">GIF</span>).
 These files may be better for display over a slow network
 connection, but need more memory to&nbsp;encode.</p>
-<p>If <code>keep_duplicate_frames</code> is <span class="caps">TRUE</span>, duplicate frames in the input will be
+<p>If <code>keep_duplicate_frames</code> is <code>TRUE</code>, duplicate frames in the input will be
 kept in the output instead of combining&nbsp;them.</p>
 <div class="admonition tip">
 <p class="admonition-title">Optional&nbsp;arguments</p>

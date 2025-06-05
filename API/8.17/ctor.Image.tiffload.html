@@ -224,6 +224,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="ctor.Image.ppmload.html">ppmload</a>
   
+    <a class="method" href="ctor.Image.ppmload_buffer.html">ppmload_buffer</a>
+  
     <a class="method" href="ctor.Image.ppmload_source.html">ppmload_source</a>
   
     <a class="method" href="ctor.Image.radload.html">radload</a>
@@ -306,7 +308,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a href="#declaration" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L605">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L633">[src]</a>
         
       </h4>
 
@@ -327,7 +329,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/tiffload.c#L474">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/tiffload.c#L465">[src]</a>
         
       </h4>
 
@@ -350,7 +352,7 @@ this field
 as they wish later in processing. See <a href="method.Image.autorot.html"><code>vips_autorot()</code></a>. Save
 operations will use <a href="const.META_ORIENTATION.html"><code>VIPS_META_ORIENTATION</code></a>, if present, to set the
 orientation of output&nbsp;images.</p>
-<p>If <code>autorotate</code> is <span class="caps">TRUE</span>, the image will be rotated upright during load and
+<p>If <code>autorotate</code> is <code>TRUE</code>, the image will be rotated upright during load and
 no metadata attached. This can be very&nbsp;slow.</p>
 <p>If <code>subifd</code> is -1 (the default), the main image is selected for each page.
 If it is 0 or greater and there is a <span class="caps">SUBIFD</span> tag, the indexed <span class="caps">SUBIFD</span> is

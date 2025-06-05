@@ -983,32 +983,32 @@ transformed to <a href="enum.Interpretation.html#labs"><code>VIPS_INTERPRETATION
 high-frequency signal. This signal is passed through a lookup table formed
 from the five parameters and added back to <code>in</code>.</p>
 <p>The lookup table is formed like&nbsp;this:</p>
-<div class="codehilite"><pre><span></span><code>.                     ^
-.                  y2 |- - - - - -----------
-.                     |         /
-.                     |        / slope m2
-.                     |    .../
-.             -x1     | ...   |
-. -------------------...----------------------&gt;
-.             |   ... |      x1
-.             |... slope m1
-.             /       |
-.            / m2     |
-.           /         |
-.          /          |
-.         /           |
-.        /            |
-. ______/ _ _ _ _ _ _ | -y3
-.                     |
+<div class="codehilite"><pre><span></span><code>                    ^
+                 y2 |- - - - - -----------
+                    |         /
+                    |        / slope m2
+                    |    .../
+            -x1     | ...   |
+-------------------...----------------------&gt;
+            |   ... |      x1
+            |... slope m1
+            /       |
+           / m2     |
+          /         |
+         /          |
+        /           |
+       /            |
+______/ _ _ _ _ _ _ | -y3
+                    |
 </code></pre></div>
 
 <p>For screen output, we suggest the following settings (the&nbsp;defaults):</p>
-<div class="codehilite"><pre><span></span><code>  sigma == 0.5
-  x1 == 2
-  y2 == 10         (don&#39;t brighten by more than 10 L*)
-  y3 == 20         (can darken by up to 20 L*)
-  m1 == 0          (no sharpening in flat areas)
-  m2 == 3          (some sharpening in jaggy areas)
+<div class="codehilite"><pre><span></span><code>sigma == 0.5
+x1 == 2
+y2 == 10         (don&#39;t brighten by more than 10 L*)
+y3 == 20         (can darken by up to 20 L*)
+m1 == 0          (no sharpening in flat areas)
+m2 == 3          (some sharpening in jaggy areas)
 </code></pre></div>
 
 <p>If you want more or less sharpening, we suggest you just change the

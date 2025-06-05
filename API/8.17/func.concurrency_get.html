@@ -131,10 +131,10 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 <p>vips gets this values from these sources in&nbsp;turn:</p>
 <p>If <a href="func.concurrency_set.html"><code>vips_concurrency_set()</code></a> has been called, this value is used. The special
 value 0 means &#8220;default&#8221;. You can also use the command-line argument
-&#8220;&#8212;vips-concurrency&#8221; to set this&nbsp;value.</p>
+<code>--vips-concurrency</code> to set this&nbsp;value.</p>
 <p>If <a href="func.concurrency_set.html"><code>vips_concurrency_set()</code></a> has not been called and no command-line argument
-was used, vips uses the value of the environment variable&nbsp;VIPS_CONCURRENCY,</p>
-<p>If VIPS_CONCURRENCY has not been set, vips finds the number of hardware
+was used, vips uses the value of the environment variable <code>VIPS_CONCURRENCY</code>.</p>
+<p>If <code>VIPS_CONCURRENCY</code> has not been set, vips finds the number of hardware
 threads that the host machine can run in parallel and uses that&nbsp;value.</p>
 <p>The final value is clipped to the range 1 -&nbsp;1024.</p>
 <div class="admonition seealso">

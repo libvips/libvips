@@ -224,6 +224,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="ctor.Image.ppmload.html">ppmload</a>
   
+    <a class="method" href="ctor.Image.ppmload_buffer.html">ppmload_buffer</a>
+  
     <a class="method" href="ctor.Image.ppmload_source.html">ppmload_source</a>
   
     <a class="method" href="ctor.Image.radload.html">radload</a>
@@ -335,7 +337,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 in many image formats, including <span class="caps">VIPS</span>, <span class="caps">TIFF</span>, <span class="caps">PNG</span>, <span class="caps">JPEG</span>, <span class="caps">FITS</span>, Matlab,
 OpenEXR, <span class="caps">CSV</span>, WebP, Radiance, <span class="caps">RAW</span>, <span class="caps">PPM</span> and&nbsp;others.</p>
 <p>Load options may be appended to <code>filename</code> as <code>[name=value,...]</code> or given as
-a <span class="caps">NULL</span>-terminated list of name-value pairs at the end of the arguments.
+a <code>NULL</code>-terminated list of name-value pairs at the end of the arguments.
 Options given in the function call override options given in the filename.
 Many loaders add extra options, see <a href="ctor.Image.jpegload.html"><code>vips_jpegload()</code></a>, for&nbsp;example.</p>
 <p><a href="ctor.Image.new_from_file.html"><code>vips_image_new_from_file()</code></a> always returns immediately with the header

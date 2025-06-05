@@ -150,7 +150,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         <p>Fetch the next line of text from <code>sbuf</code> and return it. The end of
 line character (or characters, for <span class="caps">DOS</span> files) are removed, and the string
 is terminated with a null (<code>\0</code> character).</p>
-<p>Returns <span class="caps">NULL</span> on end of file or read&nbsp;error.</p>
+<p>Returns <code>NULL</code> on end of file or read&nbsp;error.</p>
 <p>If the line is longer than some arbitrary (but large) limit, it is
 truncated. If you need to be able to read very long lines, use the
 slower <a href="method.Sbuf.get_line_copy.html"><code>vips_sbuf_get_line_copy()</code></a>.</p>
@@ -184,7 +184,7 @@ is valid until the next get call to <code>sbuf</code>.</p>
         <div class="returns">
           <div class="arg-description">
             <p><em>Type:</em>&nbsp;<code>const char*</code></p>
-            <p>The next line of text, or <span class="caps">NULL</span> on <span class="caps">EOF</span> or read&nbsp;error.</p>
+            <p>The next line of text, or <code>NULL</code> on <span class="caps">EOF</span> or read&nbsp;error.</p>
           </div>
           <div>
             <table>
