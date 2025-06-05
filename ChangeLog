@@ -38,7 +38,7 @@ master
 - remove vipsprofile from default install
 - add ppmload_buffer [kleisauke]
 
-8.16.1
+26/3/25 8.16.1
 
 - support multipage JXL
 - fix PFM byte order on big-endian machines [agoode]
