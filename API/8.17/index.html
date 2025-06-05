@@ -1260,6 +1260,16 @@ downsize, or force a&nbsp;size.</p>
           </tr>
           
           <tr class="section-item">
+            <td><a title="ForeignCoding" class="symbol" href="flags.ForeignCoding.html">ForeignCoding</a></td>
+            
+            <td class="docblock-summary">
+            <p>The set of coding types supported by a&nbsp;saver.</p>
+            <p></p>
+            </td>
+            
+          </tr>
+          
+          <tr class="section-item">
             <td><a title="ForeignFlags" class="symbol" href="flags.ForeignFlags.html">ForeignFlags</a></td>
             
             <td class="docblock-summary">
@@ -2763,7 +2773,7 @@ methods.</p>
             <td class="docblock-summary">
             <p>Return the number of bytes at which we flip between open via memory and
 open via disc. This defaults to 100mb, but can be changed with the
-VIPS_DISC_THRESHOLD environment variable or the &#8212;vips-disc-threshold
+<code>VIPS_DISC_THRESHOLD</code> environment variable or the <code>--vips-disc-threshold</code>
 command-line flag. See <code>vips_image_new_from_file()</code>.</p>
             <p></p>
             </td>
@@ -3364,7 +3374,7 @@ available is&nbsp;low.</p>
             <td class="docblock-summary">
             <p>Search below <code>basename</code>, return the <code>GType</code> of the class
 whose name or <code>nickname</code> matches, or 0 for not found.
-If <code>basename</code> is <span class="caps">NULL</span>, the whole of <code>VipsObject</code> is&nbsp;searched.</p>
+If <code>basename</code> is <code>NULL</code>, the whole of <code>VipsObject</code> is&nbsp;searched.</p>
             <p></p>
             </td>
             
@@ -4158,7 +4168,7 @@ Do not&nbsp;free.</p>
             <td><a title="IMAGE_ADDR" class="symbol" href="func.IMAGE_ADDR.html">IMAGE_ADDR</a></td>
             
             <td class="docblock-summary">
-            <p>This macro returns a pointer to a pixel in an image, cast to a <code>VipsPel</code>*.
+            <p>This macro returns a pointer to a pixel in an image, cast to a <code>VipsPel</code> *.
 It only works for images which are fully available in memory, so memory
 buffers and small mapped images&nbsp;only.</p>
             <p></p>

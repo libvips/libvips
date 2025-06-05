@@ -224,6 +224,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="ctor.Image.ppmload.html">ppmload</a>
   
+    <a class="method" href="ctor.Image.ppmload_buffer.html">ppmload_buffer</a>
+  
     <a class="method" href="ctor.Image.ppmload_source.html">ppmload_source</a>
   
     <a class="method" href="ctor.Image.radload.html">radload</a>
@@ -306,7 +308,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a href="#declaration" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L685">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L713">[src]</a>
         
       </h4>
 
@@ -339,7 +341,7 @@ The reader can handle any ImageMagick image, including the float and double
 formats. It will work with any quantum size, including <span class="caps">HDR</span>. Any metadata
 attached to the libMagick image is copied on to the <span class="caps">VIPS</span>&nbsp;image.</p>
 <p>The reader should also work with most versions of GraphicsMagick. See the
-&#8220;&#8212;with-magickpackage&#8221; configure&nbsp;option.</p>
+<code>-Dmagick-package</code> configure&nbsp;option.</p>
 <p>The file format is usually guessed from the filename suffix, or sniffed
 from the file&nbsp;contents.</p>
 <p>Normally it will only load the first image in a many-image sequence (such

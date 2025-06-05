@@ -7,6 +7,8 @@
 @import url("solarized-light.css") (prefers-color-scheme: light);
 @import url("solarized-dark.css") (prefers-color-scheme: dark);
 
+@import url("fonts.css");
+
 /*********************************
  * LIGHT THEME
  *********************************/

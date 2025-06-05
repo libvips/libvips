@@ -18,7 +18,7 @@ FileUtils.remove_entry_secure(out_dir, force = true)
 puts "copying GI-DocGen output ..."
 FileUtils.cp_r "#{ARGV[0]}/share/doc/vips", "API/#{version}"
 
-if File.directory? "#{ARGV[0]}/share/doc/vips-doc/html"
+if File.directory? "#{ARGV[0]}/share/doc/vips-cpp/html"
     puts "copying Doxygen output ..."
-    FileUtils.cp_r "#{ARGV[0]}/share/doc/vips-doc/html", "API/#{version}/cpp"
+    FileUtils.cp_r "#{ARGV[0]}/share/doc/vips-cpp/html", "API/#{version}/cpp"
 end

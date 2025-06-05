@@ -981,9 +981,9 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         <p>Map an image through another image acting as a <span class="caps">LUT</span> (Look Up Table).
 The lut may have any type and the output image will be that&nbsp;type.</p>
 <p>The input image will be cast to one of the unsigned integer types, that is,
-VIPS_FORMAT_UCHAR, VIPS_FORMAT_USHORT or&nbsp;VIPS_FORMAT_UINT.</p>
+<a href="enum.BandFormat.html#uchar"><code>VIPS_FORMAT_UCHAR</code></a>, <a href="enum.BandFormat.html#ushort"><code>VIPS_FORMAT_USHORT</code></a> or <a href="enum.BandFormat.html#uint"><code>VIPS_FORMAT_UINT</code></a>.</p>
 <p>If <code>lut</code> is too small for the input type (for example, if <code>in</code> is
-VIPS_FORMAT_UCHAR but <code>lut</code> only has 100 elements), the lut is padded out
+<a href="enum.BandFormat.html#uchar"><code>VIPS_FORMAT_UCHAR</code></a> but <code>lut</code> only has 100 elements), the lut is padded out
 by copying the last element. Overflows are reported at the end of
 computation.
 If <code>lut</code> is too large, extra values are&nbsp;ignored.</p>

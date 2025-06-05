@@ -983,16 +983,14 @@ SPDX-License-Identifier: LGPL-2.1-or-later
       <div class="docblock">
         <p>This operator performs an affine transform on an image using <code>interpolate</code>.</p>
 <p>The transform&nbsp;is:</p>
-<div class="codehilite"><pre><span></span><code> X = @a * (x + @idx) + @b * (y + @idy) + @odx
- Y = @c * (x + @idx) + @d * (y + @idy) + @doy
- ```
+<div class="codehilite"><pre><span></span><code>X = @a * (x + @idx) + @b * (y + @idy) + @odx
+Y = @c * (x + @idx) + @d * (y + @idy) + @doy
+</code></pre></div>
 
- where:
-
- ```
- x and y are the coordinates in input image.
- X and Y are the coordinates in output image.
- (0,0) is the upper left corner.
+<p>where:</p>
+<div class="codehilite"><pre><span></span><code>x and y are the coordinates in input image.
+X and Y are the coordinates in output image.
+(0,0) is the upper left corner.
 </code></pre></div>
 
 <p>The section of the output space defined by <code>oarea</code> is written to

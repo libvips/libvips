@@ -1,8 +1,8 @@
 var searchData=
 [
   ['valid_0',['valid',['../classVRegion.html#a50df67dd52c94f12f5b5866c0b4cfcd2',1,'VRegion']]],
-  ['verror_1',['verror',['../classVError.html#a5c958cdd2db95fae3fff44d42faad0e7',1,'VError::VError(const std::string &amp;what)'],['../classVError.html#ab1d010040971ed115602dd0b37d33aa4',1,'VError::VError()']]],
-  ['vimage_2',['vimage',['../classVImage.html#ac52264e3aa6b2440f5e998ff46fafed6',1,'VImage::VImage(VipsImage *image, VSteal steal=STEAL)'],['../classVImage.html#abeb08d44761ac18be711991421e4bbe9',1,'VImage::VImage()']]],
+  ['verror_1',['VError',['../classVError.html#a5c958cdd2db95fae3fff44d42faad0e7',1,'VError::VError(const std::string &amp;what)'],['../classVError.html#ab1d010040971ed115602dd0b37d33aa4',1,'VError::VError()']]],
+  ['vimage_2',['VImage',['../classVImage.html#ac52264e3aa6b2440f5e998ff46fafed6',1,'VImage::VImage(VipsImage *image, VSteal steal=STEAL)'],['../classVImage.html#abeb08d44761ac18be711991421e4bbe9',1,'VImage::VImage()']]],
   ['vinterpolate_3',['VInterpolate',['../classVInterpolate.html#a87f3737658b1557e4b07b304a4c774d8',1,'VInterpolate']]],
   ['vipsload_4',['vipsload',['../classVImage.html#a39dc44f471728dbfa37d7316f4b851f1',1,'VImage']]],
   ['vipsload_5fsource_5',['vipsload_source',['../classVImage.html#a2529ea97b4c113c3b4472172cb21ac50',1,'VImage']]],

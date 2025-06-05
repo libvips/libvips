@@ -126,8 +126,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 <p>Input gobjects are automatically reffed, output gobjects automatically ref
 us. We also automatically watch for &#8220;destroy&#8221; and&nbsp;unlink.</p>
 <p><a href="flags.ArgumentFlags.html#set-always"><code>VIPS_ARGUMENT_SET_ALWAYS</code></a> is handy for arguments which are set from C. For
-example, VipsImage::width is a property that gives access to the Xsize
-member of struct _VipsImage. We default its &#8216;assigned&#8217; to <span class="caps">TRUE</span>
+example, <a href="property.Image.width.html"><code>VipsImage:width</code></a> is a property that gives access to the Xsize
+member of struct _VipsImage. We default its &#8216;assigned&#8217; to <code>TRUE</code>
 since the field is always set directly by&nbsp;C.</p>
 <p><a href="flags.ArgumentFlags.html#deprecated"><code>VIPS_ARGUMENT_DEPRECATED</code></a> arguments are not shown in help text, are not
 looked for if required, are not checked for &#8220;have-been-set&#8221;. You can
