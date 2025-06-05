@@ -34,7 +34,7 @@ patents and is fast enough to be practical.
 
 I made a sample image. You'll need to zoom in to check details:
 
-![image compression comparison]({{ site.baseurl }}/assets/images/astronauts.png)
+![image compression comparison](/assets/images/astronauts.png)
 
 Compression and decompression is quite a bit quicker than HEIC:
 
@@ -98,7 +98,7 @@ $ vips text x.png "😀<span foreground='red'>red</span><span background='cyan'>
 
 Makes this:
 
-![coloured text]({{ site.baseurl }}/assets/images/text.png)
+![coloured text](/assets/images/text.png)
 
 You can then use `composite` to render these text RGBA images on to another
 image.
@@ -132,7 +132,7 @@ We've spent some time improving the C++ API.
 
 We now use [doxygen](https://www.doxygen.nl) to generate C++ API docs
 automatically, and we've written a set of API comments. Hopefully the [new
-documentation]({{ site.baseurl }}/API/current/cpp) should be a big improvement.
+documentation](/API/current/cpp) should be a big improvement.
 
 There are a couple of functional improvements too. There's support for
 `VipsInterpolate`, `guint64` and a new constructor,

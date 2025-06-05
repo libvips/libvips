@@ -9,11 +9,11 @@ pre-compiled binaries for flatpak and Windows by the end of February.
 Here's the per-voxel Patlak workspace I made for analyzing pulmonary FDG-PET
 scans:
 
-![FDG-PET workspace]({{ site.baseurl }}/assets/images/nip4-jan-1.png)
+![FDG-PET workspace](/assets/images/nip4-jan-1.png)
 
 The **About nip4** menu item shows some stats:
 
-![Workspace stats]({{ site.baseurl }}/assets/images/nip4-jan-2.png)
+![Workspace stats](/assets/images/nip4-jan-2.png)
 
 So this workspace has:
 
@@ -26,7 +26,7 @@ So this workspace has:
 Here's the [Charisma
 workspace](https://www.academia.edu/7276130/J_Dyer_G_Verri_and_J_Cupitt_Multispectral_Imaging_in_Reflectance_and_Photo_induced_Luminescence_modes_a_User_Manual_European_CHARISMA_Project):
 
-![Charisma workspace]({{ site.baseurl }}/assets/images/nip4-jan-3.png)
+![Charisma workspace](/assets/images/nip4-jan-3.png)
 
 This thing is for museum imaging: you give it images taken under visible,
 infrared, and UV light with various filters and it aligns them and computes
@@ -49,7 +49,7 @@ but if there's a crash (sadly inevitable in alpha software) they'll still
 be there when it restarts. Click on **Recover after crash** and you get
 this window:
 
-![Recover after crash]({{ site.baseurl }}/assets/images/nip4-jan-4.png)
+![Recover after crash](/assets/images/nip4-jan-4.png)
 
 You can see the saves from each nip4 workspace and select one to recover it.
 The **Delete all backups** button wipes the temp area if it's getting too big.
@@ -67,14 +67,14 @@ workspace background and select **Workspace definitions** and a panel opens on
 the right with all the local definitions. You can edit them and press the
 **Play** button to process your changes and update everything.
 
-![Workspace definitions]({{ site.baseurl }}/assets/images/nip4-jan-5.png)
+![Workspace definitions](/assets/images/nip4-jan-5.png)
 
 ### Edit toolkits
 
 Right-click on the workspace background, pick **Edit toolkits** and you get
 the programming window:
 
-![Programming window]({{ site.baseurl }}/assets/images/nip4-jan-6.png)
+![Programming window](/assets/images/nip4-jan-6.png)
 
 You can edit and compile any of the built-in toolkits, though it's a bit
 barebones for now. 

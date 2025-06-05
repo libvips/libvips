@@ -39,7 +39,7 @@ write buckets using http `GET` and `POST` requests to addresses like
 Processing with a system that works in whole images, like
 ImageMagick, happens like this:
 
-![Processing with image-at-a-time systems]({{ site.baseurl }}/assets/images/magick-s3.png)
+![Processing with image-at-a-time systems](/assets/images/magick-s3.png)
 
 Reading from the left, first the data is downloaded from the bucket into
 a large area of memory, then the image is decompressed, then processed,
@@ -53,7 +53,7 @@ Current libvips is able to execute decode, process and encode all at the same
 time, in parallel, and without needing any intermediate images. It looks
 more like this:
 
-![Processing with current libvips]({{ site.baseurl }}/assets/images/old-libvips-s3.png)
+![Processing with current libvips](/assets/images/old-libvips-s3.png)
 
 Because the middle sections are overlapped we get much better *latency*:
 the total time the whole process takes from start to finish is much lower.
@@ -65,7 +65,7 @@ storage until it has finished compressing the whole output image.
 This is where true streaming comes in. libvips git master can now decode
 directly from a pipe and encode directly to a pipe. It looks more like this:
 
-![Processing with libvips streams]({{ site.baseurl }}/assets/images/new-libvips-s3.png)
+![Processing with libvips streams](/assets/images/new-libvips-s3.png)
 
 Now *everything* overlaps, and latency should drop again.
 

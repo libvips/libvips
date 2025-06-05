@@ -47,10 +47,10 @@ blocked, but we've marked all loaders derived from `VipsForeignLoadJpeg`
 (so all the libjpeg loaders) as runnable. After these calls, libvips will
 only load JPEG files.
 
-See [`vips_block_untrusted_set()`]({{ site.baseurl
-}}/API/current/func.block_untrusted_set.html) and
-[`vips_operation_block_set()`]({{ site.baseurl
-}}/API/current/type_func.Operation.block_set.html) for more details.
+See [`vips_block_untrusted_set()`](
+/API/current/func.block_untrusted_set.html) and
+[`vips_operation_block_set()`](
+/API/current/type_func.Operation.block_set.html) for more details.
 
 # Much better GIF save
 
@@ -87,8 +87,8 @@ needs 4x less memory, makes GIFs which are 20% smaller, and produces higher
 quality output.
 
 The new GIF saver now has quite a few options to control
-compression, take [a look at the docs]({{ site.baseurl
-}}/API/current/VipsForeignSave.html#vips-gifsave).
+compression, take [a look at the docs](
+/API/current/VipsForeignSave.html#vips-gifsave).
 
 # Image resize quality improvements
 
@@ -184,8 +184,8 @@ has some more notes.
 
 # General minor improvements
 
-- add `extend`, `background` and `premultiplied` to [`vips_mapim()`]({{ site.baseurl
-  }}/API/current/method.Image.mapim.html) to fix edge antialiasing
+- add `extend`, `background` and `premultiplied` to [`vips_mapim()`](
+  /API/current/method.Image.mapim.html) to fix edge antialiasing
   [GavinJoyce]
 - improve the pixel RNG for the noise operators
 - add support for regions in C++ API [shado23]

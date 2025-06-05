@@ -20,14 +20,14 @@ result to the output.
 
 It looked something like this:
 
-![Processing with current libvips]({{ site.baseurl
-}}/assets/images/old-libvips-s3.png)
+![Processing with current libvips](
+/assets/images/old-libvips-s3.png)
 
 libvips now lets you connect pipelines to any source or destination, so
 you can do something more like this:
 
-![Processing with libvips streams]({{ site.baseurl
-}}/assets/images/new-libvips-s3.png)
+![Processing with libvips streams](
+/assets/images/new-libvips-s3.png)
 
 There's no buffering, so there should be a useful drop in latency.
 
@@ -80,8 +80,8 @@ image.write_to_target target, ".png"
 
 There's an optional `finish` handler. 
 
-A [post a few weeks ago]({{ site.baseurl
-}}/2019/11/29/True-streaming-for-libvips.html) introducing this in more
+A [post a few weeks ago](
+/2019/11/29/True-streaming-for-libvips.html) introducing this in more
 detail. pyvips, C and C++ also support this new feature.
 
 # OSS-Fuzz integration
@@ -94,21 +94,21 @@ their clusters is idle, it starts analyzing our code.
 It's been working away since August and only found two serious bugs, so that's
 great, and both have been fixed in 8.8. This means 8.9 should be very solid.
 
-There was a [post a few months ago]({{ site.baseurl
-}}2019/08/18/libvips-in-oss-fuzz.html) with a lot more detail, if you're
+There was a [post a few months ago](
+2019/08/18/libvips-in-oss-fuzz.html) with a lot more detail, if you're
 curious.
 
 # Switch/case
 
 libvips has a pair of new operations which speed up many-way if-then-else.
 
-[`vips_switch()`]({{ site.baseurl
-}}/API/current/type_func.Image.switch.html) takes an array of N condition
+[`vips_switch()`](
+/API/current/type_func.Image.switch.html) takes an array of N condition
 images and for each pixel finds the index of the first non-zero pixel. If no
 pixels are non-zero, it sets the output to N + 1.
 
-[`vips_case()`]({ site.baseurl
-}}/API/current/method.Image.case.html)
+[`vips_case()`](
+/API/current/method.Image.case.html)
 takes an index image plus an array of N + 1 result images and for each
 pixel copies the pixel selected by the index to the output. 
 

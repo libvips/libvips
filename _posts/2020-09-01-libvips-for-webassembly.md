@@ -146,7 +146,7 @@ All libvips operations and enumerations are exposed through
 so that the compiled code can be used in JavaScript.
 
 The binding itself is a variant of
-[libvips' C++ API]({{ site.baseurl }}/API/current/using-from-cplusplus.html),
+[libvips' C++ API](/API/current/using-from-cplusplus.html),
 with additional support for the `emscripten::val` C++ class to transliterate
 JavaScript code to C++. For example, consider this JavaScript code:
 
@@ -162,7 +162,7 @@ Which shrinks an image to fit within a 128×128 box. Excess pixels are trimmed
 away using the `attention` strategy that positioned the crop box over the
 most significant feature:
 
-[![Attention strategy]({{ site.baseurl }}/API/current/tn_owl.jpg)]({{ site.baseurl }}/API/current/tn_owl.jpg)
+[![Attention strategy](/API/current/tn_owl.jpg)](/API/current/tn_owl.jpg)
 
 This function and enumeration was automatically generated within C++ as:
 ```cpp

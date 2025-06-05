@@ -9,7 +9,7 @@ if you need more details.
 ## Signed Distance Fields
 
 libvips has a new
-[`vips_sdf()`]({{ site.baseurl }}/API/current/ctor.Image.sdf.html)
+[`vips_sdf()`](/API/current/ctor.Image.sdf.html)
 operator. This can efficiently generate a range of basic shapes as Signed
 Distance Fields -- these are images where each pixel contains a signed value
 giving the distance to the closest edge. For example:
@@ -22,7 +22,7 @@ Makes a 512 x 512 pixel float image of a circle with radius 200, centered
 on 256 x 256. As you move out and away from the edge, values become
 increasingly positive, as you move within the circle, values become negative.
 
-![SDF circle]({{ site.baseurl }}/assets/images/sdf-circle.png)
+![SDF circle](/assets/images/sdf-circle.png)
 
 The great thing about SDFs is that they are quick to make and very easy to
 combine to make more complex shapes. For example, you could write:
@@ -58,15 +58,15 @@ sdf.clamp().linear(-255, 255, uchar=True).write_to_file(sys.argv[1])
 
 To make:
 
-![SDF boat]({{ site.baseurl }}/assets/images/sdf-boat.png)
+![SDF boat](/assets/images/sdf-boat.png)
 
 Hmmm, possibly a person rowing a boat. This uses three
-other new operators: [`vips_minpair()`]({{ site.baseurl
-}}/API/current/method.Image.minpair.html) and [`vips_maxpair()`]({{
-site.baseurl }}/API/current/method.Image.maxpair.html),
+other new operators: [`vips_minpair()`](
+/API/current/method.Image.minpair.html) and [`vips_maxpair()`](
+/API/current/method.Image.maxpair.html),
 which given a pair of images find the
-pixel-wise max and min, and [`vips_clamp()`]({{ site.baseurl
-}}/API/current/method.Image.clamp.html), which constrains pixels
+pixel-wise max and min, and [`vips_clamp()`](
+/API/current/method.Image.clamp.html), which constrains pixels
 to a range.
 
 SDFs fit really well with libvips on-demand-evaluation. These things
@@ -96,21 +96,21 @@ File format support has been improved (again). Highlights this time are:
 * PFM load and save now uses scRGB colourspace (ie. linear 0-1).
 
 * `rawsave` gets  streaming support with
-  [`vips_rawsave_target()`]({{ site.baseurl
-  }}/API/current/method.Image.rawsave_target.html) and
-  [`vips_rawsave_buffer()`]({{ site.baseurl
-  }}/API/current/method.Image.rawsave_buffer.html).
+  [`vips_rawsave_target()`](
+  /API/current/method.Image.rawsave_target.html) and
+  [`vips_rawsave_buffer()`](
+  /API/current/method.Image.rawsave_buffer.html).
 
 ## General improvements
 
 There have been some smaller libvips additions and improvements too.
 
 * libvips used to limit image dimensions to 10 million pixels. This is now
-  configurable, see [`vips_max_coord_get()`]({{ site.baseurl
-  }}/API/current/func.max_coord_get.html).
+  configurable, see [`vips_max_coord_get()`](
+  /API/current/func.max_coord_get.html).
 
-* There's a new (trivial) [`vips_addalpha()`]({{ site.baseurl
-  }}/API/current/method.Image.addalpha.html) operation.
+* There's a new (trivial) [`vips_addalpha()`](
+  /API/current/method.Image.addalpha.html) operation.
 
 * `vips_getpoint()` has a new `unpack_complex` option.
 
