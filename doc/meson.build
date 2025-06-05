@@ -66,7 +66,7 @@ vips_gir_doc = custom_target(
   depends: vips_gir[0],
 )
 
-custom_target('libvips-doc',
+custom_target('vips-docs',
   input: [vips_toml, vips_gir_doc],
   output: 'vips',
   command: [
