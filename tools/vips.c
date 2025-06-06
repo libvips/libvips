@@ -230,9 +230,7 @@ list_operation_arg(VipsObjectClass *object_class,
 
 		printf("word:");
 
-		/* -1 since we always have a "last" member.
-		 */
-		for (i = 0; i < genum->n_values - 1; i++) {
+		for (i = 0; i < genum->n_values; i++) {
 			if (i > 0)
 				printf("|");
 			printf("%s", genum->values[i].value_nick);
