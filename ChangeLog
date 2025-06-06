@@ -2,7 +2,7 @@ master
 
 8.17.1
 
-- fix build with meson 0.52 [lovell]
+- fix API docs build with meson < 0.60 [lovell]
 
 5/6/25 8.17.0
 
@@ -42,7 +42,7 @@ master
 - remove vipsprofile from default install
 - add ppmload_buffer [kleisauke]
 
-26/3/25 8.16.1
+12/3/25 8.16.1
 
 - support multipage JXL
 - fix PFM byte order on big-endian machines [agoode]
