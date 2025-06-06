@@ -23,7 +23,7 @@ version_patch = version_parts[2]
 # binary interface changed: increment current, reset revision to 0
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
-library_revision = 0
+library_revision = 1
 library_current = 61
 library_age = 19
 library_version = '@0@.@1@.@2@'.format(library_current - library_age, library_age, library_revision)
