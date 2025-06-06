@@ -1,6 +1,10 @@
 master
 
-8.17.0
+8.17.1
+
+- fix build with meson 0.52 [lovell]
+
+5/6/25 8.17.0
 
 - gifsave: add `keep_duplicate_frames` flag [dloebl]
 - add Magic Kernel support [akimon658]
