@@ -388,10 +388,8 @@ if librsvg_found
     external_deps += librsvg_dep
     external_deps += cairo_dep
     cfg_var.set('HAVE_RSVG', true)
-    # rsvg_handle_set_stylesheet added in librsvg 2.48.0
-    cfg_var.set('HAVE_RSVG_HANDLE_SET_STYLESHEET', cc.has_function('rsvg_handle_set_stylesheet', dependencies: librsvg_dep))
     # CAIRO_FORMAT_RGBA128F added in cairo 1.17.2
-    cfg_var.set('HAVE_CAIRO_FORMAT_RGBA128F', cc.has_type('CAIRO_FORMAT_RGBA128F', dependencies: cairo_dep, prefix: '#include <cairo.h>'))
+    cfg_var.set('HAVE_CAIRO_FORMAT_RGBA128F', cc.has_type('CAIRO_FORMAT_RGBA128F', prefix: '#include <cairo.h>', dependencies: cairo_dep))
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.4.0', required: get_option('openslide'))
@@ -405,8 +403,8 @@ if openslide_dep.found()
         external_deps += openslide_dep
     endif
     cfg_var.set('HAVE_OPENSLIDE', true)
-    cfg_var.set('HAVE_OPENSLIDE_ICC', cc.has_function('openslide_get_icc_profile_size', dependencies: openslide_dep))
-    cfg_var.set('HAVE_OPENSLIDE_CACHE_CREATE', cc.has_function('openslide_cache_create', dependencies: openslide_dep))
+    cfg_var.set('HAVE_OPENSLIDE_ICC', cc.has_function('openslide_get_icc_profile_size', prefix: '#include <openslide.h>', dependencies: openslide_dep))
+    cfg_var.set('HAVE_OPENSLIDE_CACHE_CREATE', cc.has_function('openslide_cache_create', prefix: '#include <openslide.h>', dependencies: openslide_dep))
 endif
 
 matio_dep = dependency('matio', required: get_option('matio'))
