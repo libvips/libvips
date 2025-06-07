@@ -640,8 +640,9 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	cr = cairo_create(surface);
 	cairo_surface_destroy(surface);
 
-#ifdef HAVE_RSVG_HANDLE_SET_STYLESHEET
-	if (svg->stylesheet && g_utf8_validate(svg->stylesheet, -1, NULL)) {
+#if LIBRSVG_CHECK_VERSION(2, 48, 0)
+	if (svg->stylesheet &&
+		g_utf8_validate(svg->stylesheet, -1, NULL)) {
 		GError *error = NULL;
 		if (!rsvg_handle_set_stylesheet(svg->page,
 				(const guint8 *) svg->stylesheet,

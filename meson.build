@@ -388,8 +388,6 @@ if librsvg_found
     external_deps += librsvg_dep
     external_deps += cairo_dep
     cfg_var.set('HAVE_RSVG', true)
-    # rsvg_handle_set_stylesheet added in librsvg 2.48.0
-    cfg_var.set('HAVE_RSVG_HANDLE_SET_STYLESHEET', cc.has_function('rsvg_handle_set_stylesheet', prefix: '#include <librsvg/rsvg.h>', dependencies: librsvg_dep))
     # CAIRO_FORMAT_RGBA128F added in cairo 1.17.2
     cfg_var.set('HAVE_CAIRO_FORMAT_RGBA128F', cc.has_type('CAIRO_FORMAT_RGBA128F', prefix: '#include <cairo.h>', dependencies: cairo_dep))
 endif
