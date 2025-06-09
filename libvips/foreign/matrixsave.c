@@ -308,10 +308,8 @@ vips_foreign_print_matrix_build(VipsObject *object)
 	if (!(matrix->target = vips_target_new_to_descriptor(1)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_print_matrix_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_print_matrix_parent_class)
+		->build(object);
 }
 
 static void

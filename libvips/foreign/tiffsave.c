@@ -254,7 +254,7 @@ vips_foreign_save_tiff_class_init(VipsForeignSaveTiffClass *class)
 	foreign_class->suffs = vips__foreign_tiff_suffs;
 
 	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
-	save_class->coding[VIPS_CODING_LABQ] = TRUE;
+	save_class->coding |= VIPS_FOREIGN_CODING_LABQ;
 
 	VIPS_ARG_ENUM(class, "compression", 6,
 		_("Compression"),
@@ -452,11 +452,8 @@ vips_foreign_save_tiff_target_build(VipsObject *object)
 	tiff->target = target->target;
 	g_object_ref(tiff->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_tiff_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -506,11 +503,8 @@ vips_foreign_save_tiff_file_build(VipsObject *object)
 	if (!(tiff->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_tiff_file_parent_class)
+		->build(object);
 }
 
 static void

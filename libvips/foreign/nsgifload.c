@@ -715,11 +715,8 @@ vips_foreign_load_gif_file_build(VipsObject *object)
 					vips_source_new_from_file(file->filename)))
 			return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_file_parent_class)
+		->build(object);
 }
 
 static const char *vips_foreign_nsgif_suffs[] = {
@@ -801,11 +798,8 @@ vips_foreign_load_nsgif_buffer_build(VipsObject *object)
 			  buffer->blob->length)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_buffer_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_buffer_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -878,11 +872,8 @@ vips_foreign_load_nsgif_source_build(VipsObject *object)
 		g_object_ref(gif->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_source_parent_class)
+		->build(object);
 }
 
 static void

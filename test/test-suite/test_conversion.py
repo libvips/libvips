@@ -242,7 +242,6 @@ class TestConversion:
             pixel = [int(x) & 0xff for x in pixel]
             assert_almost_equal_objects(pixel, [255, 255, 255])
 
-    @skip_if_no("gravity")
     def test_gravity(self):
         im = pyvips.Image.black(1, 1) + 255
 
@@ -317,13 +316,11 @@ class TestConversion:
             pixel = sub(5, 5)
             assert_almost_equal_objects(pixel, [2, 3, 4])
 
-    @skip_if_no("smartcrop")
     def test_smartcrop(self):
         test = self.image.smartcrop(100, 100)
         assert test.width == 100
         assert test.height == 100
 
-    @skip_if_no("smartcrop")
     def test_smartcrop_attention(self):
         test, opts = self.image.smartcrop(
             100, 100,
@@ -434,7 +431,6 @@ class TestConversion:
                 # differs ... don't require huge accuracy
                 assert abs(x - y) < 2
 
-    @skip_if_no("composite")
     def test_composite(self):
         # 50% transparent image
         overlay = self.colour.bandjoin(128)

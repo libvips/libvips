@@ -260,7 +260,8 @@ API docs each function links to for more details.
 | `pngsave_buffer` | Save image to buffer as png | [method@Image.pngsave_buffer] |
 | `pngsave_target` | Save image to target as png | [method@Image.pngsave_target] |
 | `ppmload` | Load ppm from file | [ctor@Image.ppmload] |
-| `ppmload_source` | Load ppm base class | [ctor@Image.ppmload_source] |
+| `ppmload_buffer` | Load ppm from buffer | [ctor@Image.ppmload_buffer] |
+| `ppmload_source` | Load ppm from source | [ctor@Image.ppmload_source] |
 | `ppmsave` | Save image to ppm file | [method@Image.ppmsave] |
 | `ppmsave_target` | Save to ppm | [method@Image.ppmsave_target] |
 | `premultiply` | Premultiply image alpha | [method@Image.premultiply] |

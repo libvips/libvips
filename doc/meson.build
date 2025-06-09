@@ -59,14 +59,14 @@ vips_toml = configure_file(
 
 fixup_gir_for_doc = find_program('fixup-gir-for-doc.py')
 
-vips_gir_doc = custom_target(
+vips_gir_doc = custom_target('vips-gir-docs',
   input: vips_gir[0],
   output: 'Vips-@0@.0-doc.gir'.format(version_major),
   command: [fixup_gir_for_doc, '@INPUT@', '@OUTPUT@'],
   depends: vips_gir[0],
 )
 
-custom_target('libvips-doc',
+custom_target('vips-docs',
   input: [vips_toml, vips_gir_doc],
   output: 'vips',
   command: [

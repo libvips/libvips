@@ -102,6 +102,7 @@ vips_foreign_save_png_build(VipsObject *object)
 	VipsForeignSavePng *png = (VipsForeignSavePng *) object;
 
 	VipsImage *in;
+	VipsImage *x;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_parent_class)->build(object))
 		return -1;
@@ -124,18 +125,27 @@ vips_foreign_save_png_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "colours"))
 		png->bitdepth = ceil(log2(png->colours));
 
-	/* Cast in down to 8 bit if we can.
+	/* The bitdepth param can change the interpretation.
 	 */
-	if (png->bitdepth <= 8) {
-		VipsImage *x;
-
-		if (vips_cast(in, &x, VIPS_FORMAT_UCHAR, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
-		g_object_unref(in);
-		in = x;
+	VipsInterpretation interpretation;
+	if (in->Bands > 2) {
+	   if (png->bitdepth > 8)
+		   interpretation = VIPS_INTERPRETATION_RGB16;
+	   else
+		   interpretation = VIPS_INTERPRETATION_sRGB;
 	}
+	else {
+	   if (png->bitdepth > 8)
+		   interpretation = VIPS_INTERPRETATION_GREY16;
+	   else
+		   interpretation = VIPS_INTERPRETATION_B_W;
+	}
+	if (vips_colourspace(in, &x, interpretation, NULL)) {
+		g_object_unref(in);
+		return -1;
+	}
+	g_object_unref(in);
+	in = x;
 
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
@@ -305,11 +315,8 @@ vips_foreign_save_png_target_build(VipsObject *object)
 	png->target = target->target;
 	g_object_ref(png->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_png_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -358,10 +365,8 @@ vips_foreign_save_png_file_build(VipsObject *object)
 	if (!(png->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_file_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_png_file_parent_class)->
+		build(object);
 }
 
 static void

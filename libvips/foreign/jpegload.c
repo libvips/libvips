@@ -117,10 +117,8 @@ vips_foreign_load_jpeg_build(VipsObject *object)
 		return -1;
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jpeg_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jpeg_parent_class)
+		->build(object);
 }
 
 static VipsForeignFlags
@@ -241,11 +239,8 @@ vips_foreign_load_jpeg_source_build(VipsObject *object)
 		g_object_ref(jpeg->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jpeg_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jpeg_source_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -310,11 +305,8 @@ vips_foreign_load_jpeg_file_build(VipsObject *object)
 				vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jpeg_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jpeg_file_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -388,11 +380,8 @@ vips_foreign_load_jpeg_buffer_build(VipsObject *object)
 			  VIPS_AREA(buffer->blob)->length)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jpeg_buffer_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jpeg_buffer_parent_class)
+		->build(object);
 }
 
 static gboolean

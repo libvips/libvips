@@ -140,10 +140,8 @@ vips_foreign_load_csv_build(VipsObject *object)
 	csv->sepmap[(int) '\n'] = 0;
 	csv->whitemap[(int) '\n'] = 0;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_csv_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_csv_parent_class)
+		->build(object);
 }
 
 static VipsForeignFlags
@@ -298,7 +296,7 @@ vips_foreign_load_csv_read_double(VipsForeignLoadCsv *csv, double *out)
 			/* Only a warning, since (for example) exported
 			 * spreadsheets will often have text or date fields.
 			 */
-			g_warning(_("bad number, line %d, column %d"),
+			g_warning("bad number, line %d, column %d",
 				csv->lineno, csv->colno);
 	}
 
@@ -556,10 +554,8 @@ vips_foreign_load_csv_file_build(VipsObject *object)
 					vips_source_new_from_file(file->filename)))
 			return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_csv_file_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_csv_file_parent_class)
+		->build(object);
 }
 
 static const char *vips_foreign_load_csv_suffs[] = {
@@ -622,11 +618,8 @@ vips_foreign_load_csv_source_build(VipsObject *object)
 		g_object_ref(csv->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_csv_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_csv_source_parent_class)
+		->build(object);
 }
 
 static gboolean

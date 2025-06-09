@@ -412,7 +412,7 @@ static int
 readjpeg_free(ReadJpeg *jpeg)
 {
 	if (jpeg->eman.pub.num_warnings != 0) {
-		g_warning(_("read gave %ld warnings"),
+		g_warning("read gave %ld warnings",
 			jpeg->eman.pub.num_warnings);
 		g_warning("%s", vips_error_buffer());
 

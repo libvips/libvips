@@ -126,3 +126,34 @@ vips__bgra2rgba(guint32 *restrict p, int n)
 		p[x] = GUINT32_TO_BE(rgba);
 	}
 }
+
+/*
+ * Convert from Cairo-style premultiplied RGBA128F to straight RGBA, for one row.
+ * It also linearizes the pixel values.
+
+ * Processes 'n' pixels in the 'p' buffer.
+ * The data is assumed to be RGBA (R, G, B, A) 32-bit floats per pixel.
+ */
+void
+vips__premultiplied_rgb1282scrgba(float *restrict p, int n)
+{
+	vips_col_make_tables_RGB_16();
+	for (int x = 0; x < n; x++) {
+		// CLIP is much faster than FCLIP, and we want an int result
+		int ri = VIPS_CLIP(0, (int) (p[0] * 65535), 65535);
+		int gi = VIPS_CLIP(0, (int) (p[1] * 65535), 65535);
+		int bi = VIPS_CLIP(0, (int) (p[2] * 65535), 65535);
+
+		// linearize the values with LUT
+		float r = vips_v2Y_16[ri];
+		float g = vips_v2Y_16[gi];
+		float b = vips_v2Y_16[bi];
+		float a = p[3];
+
+		p[0] = a > 0.00001 ? r / a : 0.0F;
+		p[1] = a > 0.00001 ? g / a : 0.0F;
+		p[2] = a > 0.00001 ? b / a : 0.0F;
+
+		p += 4;
+	}
+}

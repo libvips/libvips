@@ -2047,17 +2047,12 @@ vips_foreign_save_dz_build(VipsObject *object)
 	 */
 	if (dz->direct) {
 		VipsImage *z;
-		gboolean coding[VIPS_CODING_LAST];
-
-		for (int i = 0; i < VIPS_CODING_LAST; i++)
-			coding[i] = FALSE;
-		coding[VIPS_CODING_NONE] = TRUE;
 
 		if (vips__foreign_convert_saveable(save->ready, &z,
 			VIPS_FOREIGN_SAVEABLE_MONO |
 				VIPS_FOREIGN_SAVEABLE_RGB |
 				VIPS_FOREIGN_SAVEABLE_CMYK,
-			bandfmt_dzsave, coding, save->background))
+			bandfmt_dzsave, VIPS_FOREIGN_CODING_NONE, save->background))
 			return -1;
 
 		VIPS_UNREF(save->ready);
@@ -2325,7 +2320,7 @@ vips_foreign_save_dz_class_init(VipsForeignSaveDzClass *class)
 
 	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 	save_class->format_table = bandfmt_dz;
-	save_class->coding[VIPS_CODING_LABQ] = TRUE;
+	save_class->coding |= VIPS_FOREIGN_CODING_LABQ;
 
 	VIPS_ARG_STRING(class, "imagename", 2,
 		_("Image name"),
@@ -2515,11 +2510,8 @@ vips_foreign_save_dz_target_build(VipsObject *object)
 	dz->target = target->target;
 	g_object_ref(dz->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_dz_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -2575,11 +2567,8 @@ vips_foreign_save_dz_file_build(VipsObject *object)
 
 	dz->filename = file->filename;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_dz_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_dz_file_parent_class)
+		->build(object);
 }
 
 static void

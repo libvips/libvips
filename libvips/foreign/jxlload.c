@@ -205,10 +205,8 @@ vips_foreign_load_jxl_build(VipsObject *object)
 		return -1;
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jxl_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jxl_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -949,6 +947,9 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 
 		case JXL_DEC_COLOR_ENCODING:
 			if (JxlDecoderGetICCProfileSize(jxl->decoder,
+#ifndef HAVE_LIBJXL_0_9
+					&jxl->format,
+#endif
 					JXL_COLOR_PROFILE_TARGET_DATA, &jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl, "JxlDecoderGetICCProfileSize");
 				return -1;
@@ -962,6 +963,9 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 				return -1;
 
 			if (JxlDecoderGetColorAsICCProfile(jxl->decoder,
+#ifndef HAVE_LIBJXL_0_9
+					&jxl->format,
+#endif
 					JXL_COLOR_PROFILE_TARGET_DATA,
 					jxl->icc_data, jxl->icc_size)) {
 				vips_foreign_load_jxl_error(jxl,
@@ -1164,10 +1168,8 @@ vips_foreign_load_jxl_file_build(VipsObject *object)
 		!(jxl->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jxl_file_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jxl_file_parent_class)
+		->build(object);
 }
 
 const char *vips__jxl_suffs[] = { ".jxl", NULL };
@@ -1244,10 +1246,8 @@ vips_foreign_load_jxl_buffer_build(VipsObject *object)
 				  VIPS_AREA(buffer->buf)->length)))
 			return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jxl_file_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jxl_buffer_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -1318,11 +1318,8 @@ vips_foreign_load_jxl_source_build(VipsObject *object)
 		g_object_ref(jxl->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_jxl_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_jxl_source_parent_class)
+		->build(object);
 }
 
 static void

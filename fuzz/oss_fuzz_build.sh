@@ -188,16 +188,15 @@ cmake \
 cmake --build . --target install
 popd
 
-# FIXME: Workaround for https://github.com/mesonbuild/meson/issues/14533
-export LDFLAGS+=" $CFLAGS"
+# FIXME: Workaround for https://github.com/mesonbuild/meson/issues/14640
+export LDFLAGS+=" -Wl,-rpath=\$ORIGIN/lib"
 
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debugoptimized \
-  -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dmodules=disabled \
-  -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE" \
-  -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
+  -Dbackend_max_links=4 -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dmodules=disabled \
+  -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE"
 meson install -C build --tag devel
 
 # Copy fuzz executables to $OUT

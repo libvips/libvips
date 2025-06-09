@@ -107,7 +107,7 @@ vips_maplut_posteval(VipsImage *image, VipsProgress *progress,
 	VipsMaplut *maplut)
 {
 	if (maplut->overflow)
-		g_warning(_("%d overflows detected"), maplut->overflow);
+		g_warning("%d overflows detected", maplut->overflow);
 }
 
 /* Our sequence value: the region this sequence is using, and local stats.

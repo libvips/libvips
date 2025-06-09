@@ -1375,13 +1375,16 @@ vips_foreign_save_new_from_string(const char *string)
 
 /* Apply a set of saveable flags.
  *
+ *  - unpack rad and labq
  *	- if the saver supports mono and we have a mono-looking image, we are done
  *	- if the saver supports CMYK and we have a CMYK-looking image, we are done
  *	- if this is a CMYK-looking image, import to XYZ
- *	- go to rgb
- *	- if the saver supports rgb, we are done
+ *	- if the saver supports rgb, go to rgb
  *	- if the saver supports cmyk, go to cmyk
  *	- if the saver supports mono, go to mono
+ *
+ * we output 16 bit images if the source is 16 bits ... a later stage
+ * uses the format[] table to cut this down to the size the saver wants
  */
 static int
 vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
@@ -1399,12 +1402,12 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 
 	/* ANY? we are done.
 	 */
-	if (saveable & VIPS_FOREIGN_SAVEABLE_ANY) {
+	if (saveable == VIPS_FOREIGN_SAVEABLE_ANY) {
 		*ready = in;
 		return 0;
 	}
 
-	/* If this is an VIPS_CODING_LABQ, we can go straight to RGB.
+	/* If this is VIPS_CODING_LABQ, we can go straight to RGB.
 	 */
 	if (in->Coding == VIPS_CODING_LABQ) {
 		if (vips_LabQ2sRGB(in, &out, NULL)) {
@@ -1415,7 +1418,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If this is an VIPS_CODING_RAD, we unpack to float. This could be
+	/* If this is VIPS_CODING_RAD, we unpack to float. This could be
 	 * scRGB or XYZ.
 	 */
 	if (in->Coding == VIPS_CODING_RAD) {
@@ -1478,7 +1481,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		return 0;
 	}
 
-	/* If the saver supports CMYK, go to RGB, or RGB16 if this is a ushort
+	/* If the saver supports CMYK, go to CMYK, 16 bits if this is a ushort
 	 * source.
 	 */
 	if (saveable & VIPS_FOREIGN_SAVEABLE_CMYK) {
@@ -1523,11 +1526,9 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
  */
 int
 vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
-	VipsForeignSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
+	VipsForeignSaveable saveable, VipsBandFormat *format, VipsForeignCoding coding,
 	VipsArrayDouble *background)
 {
-	VipsBandFormat original_format = in->BandFmt;
-
 	VipsImage *out;
 
 	/* in holds a reference to the output of our chain as we build it.
@@ -1535,13 +1536,14 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	g_object_ref(in);
 
 	g_assert(format);
-	g_assert(coding);
 
 	/* For coded images, can this class save the coding we are in now?
 	 * Nothing to do.
 	 */
-	if (in->Coding != VIPS_CODING_NONE &&
-		coding[in->Coding]) {
+	if ((in->Coding == VIPS_CODING_LABQ &&
+			(coding & VIPS_FOREIGN_CODING_LABQ)) ||
+		(in->Coding == VIPS_CODING_RAD &&
+			(coding & VIPS_FOREIGN_CODING_RAD))) {
 		*ready = in;
 		return 0;
 	}
@@ -1550,7 +1552,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 * format, we have nothing to do.
 	 */
 	if (in->Coding == VIPS_CODING_NONE &&
-		(saveable & VIPS_FOREIGN_SAVEABLE_ANY) &&
+		(saveable == VIPS_FOREIGN_SAVEABLE_ANY) &&
 		format[in->BandFmt] == in->BandFmt) {
 		*ready = in;
 		return 0;
@@ -1620,11 +1622,10 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			break;
 		}
 
-		if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
-			max_bands += 1;
-
-		if (saveable & VIPS_FOREIGN_SAVEABLE_ANY)
+		if (saveable == VIPS_FOREIGN_SAVEABLE_ANY)
 			max_bands = in->Bands;
+		else if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
+			max_bands += 1;
 
 		if (max_bands > 0 &&
 			in->Bands > max_bands) {
@@ -1639,10 +1640,10 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		}
 	}
 
-	/* Convert to the format the saver likes, based on the original format.
+	/* Convert to the format the saver likes.
 	 */
 	if (in->Coding == VIPS_CODING_NONE) {
-		if (vips_cast(in, &out, format[original_format], NULL)) {
+		if (vips_cast(in, &out, format[in->BandFmt], NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
@@ -1650,14 +1651,18 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* Does this class want a coded image? Search the coding table for the
-	 * first one.
+	/* Does this class want a coded image?
 	 */
-	if (coding[in->Coding]) {
+	if ((in->Coding == VIPS_CODING_NONE &&
+			(coding & VIPS_FOREIGN_CODING_NONE)) ||
+		(in->Coding == VIPS_CODING_LABQ &&
+			(coding & VIPS_FOREIGN_CODING_LABQ)) ||
+		(in->Coding == VIPS_CODING_RAD &&
+			(coding & VIPS_FOREIGN_CODING_RAD))) {
 		/* Already there, nothing to do.
 		 */
 	}
-	else if (coding[VIPS_CODING_LABQ]) {
+	else if (coding & VIPS_FOREIGN_CODING_LABQ) {
 		if (vips_Lab2LabQ(in, &out, NULL)) {
 			g_object_unref(in);
 			return -1;
@@ -1665,7 +1670,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		g_object_unref(in);
 		in = out;
 	}
-	else if (coding[VIPS_CODING_RAD]) {
+	else if (coding & VIPS_FOREIGN_CODING_RAD) {
 		if (vips_float2rad(in, &out, NULL)) {
 			g_object_unref(in);
 			return -1;
@@ -1673,7 +1678,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		g_object_unref(in);
 		in = out;
 	}
-	else if (coding[VIPS_CODING_NONE]) {
+	else if (coding & VIPS_FOREIGN_CODING_NONE) {
 		if (vips_image_decode(in, &out)) {
 			g_object_unref(in);
 			return -1;
@@ -1803,10 +1808,7 @@ vips_foreign_save_build(VipsObject *object)
 		save->ready = ready;
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object);
 }
 
 #define UC VIPS_FORMAT_UCHAR
@@ -1832,8 +1834,6 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 
-	int i;
-
 	gobject_class->dispose = vips_foreign_save_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -1856,9 +1856,7 @@ vips_foreign_save_class_init(VipsForeignSaveClass *class)
 
 	/* Default to no coding allowed.
 	 */
-	for (i = 0; i < VIPS_CODING_LAST; i++)
-		class->coding[i] = FALSE;
-	class->coding[VIPS_CODING_NONE] = TRUE;
+	class->coding = VIPS_FOREIGN_CODING_NONE;
 
 	/* Default to no cast on save.
 	 */
@@ -2923,6 +2921,7 @@ vips_foreign_operation_init(void)
 	extern GType vips_foreign_load_mat_get_type(void);
 
 	extern GType vips_foreign_load_ppm_file_get_type(void);
+	extern GType vips_foreign_load_ppm_buffer_get_type(void);
 	extern GType vips_foreign_load_ppm_source_get_type(void);
 	extern GType vips_foreign_save_ppm_file_get_type(void);
 	extern GType vips_foreign_save_pbm_target_get_type(void);
@@ -3082,6 +3081,7 @@ vips_foreign_operation_init(void)
 
 #ifdef HAVE_PPM
 	vips_foreign_load_ppm_file_get_type();
+	vips_foreign_load_ppm_buffer_get_type();
 	vips_foreign_load_ppm_source_get_type();
 	vips_foreign_save_ppm_file_get_type();
 	vips_foreign_save_pbm_target_get_type();

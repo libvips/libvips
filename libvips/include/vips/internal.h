@@ -152,6 +152,8 @@ extern char *vips__disc_threshold;
 extern gboolean vips__cache_dump;
 extern gboolean vips__cache_trace;
 
+extern float vips_v2Y_16[65536];
+
 void vips__thread_init(void);
 void vips__threadpool_init(void);
 void vips__threadpool_shutdown(void);
@@ -324,9 +326,11 @@ VIPS_API
 void vips__premultiplied_bgra2rgba(guint32 *restrict p, int n);
 VIPS_API
 void vips__rgba2bgra_premultiplied(guint32 *restrict p, int n);
+void vips__premultiplied_rgb1282scrgba(float *p, int n);
 void vips__bgra2rgba(guint32 *restrict p, int n);
 void vips__Lab2LabQ_vec(VipsPel *out, float *in, int width);
 void vips__LabQ2Lab_vec(float *out, VipsPel *in, int width);
+void vips_col_make_tables_RGB_16(void);
 
 #ifdef DEBUG_LEAK
 extern GQuark vips__image_pixels_quark;
@@ -342,7 +346,7 @@ typedef struct _VipsImagePixels {
 } VipsImagePixels;
 
 int vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
-	VipsForeignSaveable saveable, VipsBandFormat *format, VipsCoding *coding,
+	VipsForeignSaveable saveable, VipsBandFormat *format, VipsForeignCoding coding,
 	VipsArrayDouble *background);
 
 int vips_foreign_load(const char *filename, VipsImage **out, ...)

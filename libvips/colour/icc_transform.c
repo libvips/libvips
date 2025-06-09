@@ -609,7 +609,7 @@ vips_icc_load_profile_blob(VipsIcc *icc, VipsBlob *blob,
 
 #ifdef DEBUG
 	printf("loading %s profile, intent %s, from blob %p\n",
-		direction == LCMS_USED_AS_INPUT ? _("input") : _("output"),
+		direction == LCMS_USED_AS_INPUT ? "input" : "output",
 		vips_enum_nick(VIPS_TYPE_INTENT, icc->intent),
 		blob);
 #endif /*DEBUG*/
@@ -634,11 +634,11 @@ vips_icc_load_profile_blob(VipsIcc *icc, VipsBlob *blob,
 
 	if (icc->intent != VIPS_INTENT_AUTO &&
 		icc->selected_intent != icc->intent)
-		g_warning(_("fallback to suggested %s intent, as profile "
-					"does not support %s %s intent"),
+		g_warning("fallback to suggested %s intent, as profile "
+				  "does not support %s %s intent",
 			vips_enum_nick(VIPS_TYPE_INTENT, icc->selected_intent),
 			vips_enum_nick(VIPS_TYPE_INTENT, icc->intent),
-			direction == LCMS_USED_AS_INPUT ? _("input") : _("output"));
+			direction == LCMS_USED_AS_INPUT ? "input" : "output");
 
 #ifdef DEBUG
 	vips_icc_print_profile("loaded from blob to make", profile);
@@ -659,9 +659,9 @@ vips_icc_load_profile_blob(VipsIcc *icc, VipsBlob *blob,
 
 	if (!cmsIsIntentSupported(profile, icc->selected_intent, direction)) {
 		VIPS_FREEF(cmsCloseProfile, profile);
-		g_warning(_("profile does not support %s %s intent"),
+		g_warning("profile does not support %s %s intent",
 			vips_enum_nick(VIPS_TYPE_INTENT, icc->selected_intent),
-			direction == LCMS_USED_AS_INPUT ? _("input") : _("output"));
+			direction == LCMS_USED_AS_INPUT ? "input" : "output");
 		return NULL;
 	}
 

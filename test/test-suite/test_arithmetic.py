@@ -397,8 +397,7 @@ class TestArithmetic:
             assert pytest.approx(r) == 40
 
     def test_hough_line(self):
-        # hough_line changed the way it codes parameter space in 8.7 ... don't
-        # test earlier versions
+        # hough_line changed the way it codes parameter space (again) in 8.17
         test = pyvips.Image.black(100, 100).draw_line(100, 10, 90, 90, 10)
 
         for fmt in all_formats:
@@ -411,7 +410,7 @@ class TestArithmetic:
             distance = test.height * y // hough.height
 
             assert pytest.approx(angle) == 45
-            assert pytest.approx(distance) == 70
+            assert pytest.approx(distance) == 75
 
     def test_sin(self):
         def my_sin(x):
@@ -470,10 +469,6 @@ class TestArithmetic:
         im = (pyvips.Image.black(100, 100) + [1, 2, 3]) / 3.0
         self.run_unary([im], my_atan, fmt=noncomplex_formats)
 
-    # this requires pyvips 2.1.16 for sinh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
-            versiontuple('2.1.16'),
-            reason='your pyvips is too old')
     def test_sinh(self):
         def my_sinh(x):
             if isinstance(x, pyvips.Image):
@@ -483,10 +478,6 @@ class TestArithmetic:
 
         self.run_unary(self.all_images, my_sinh, fmt=noncomplex_formats)
 
-    # this requires pyvips 2.1.16 for cosh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
-            versiontuple('2.1.16'),
-            reason='your pyvips is too old')
     def test_cosh(self):
         def my_cosh(x):
             if isinstance(x, pyvips.Image):
@@ -496,10 +487,6 @@ class TestArithmetic:
 
         self.run_unary(self.all_images, my_cosh, fmt=noncomplex_formats)
 
-    # this requires pyvips 2.1.16 for tanh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
-            versiontuple('2.1.16'),
-            reason='your pyvips is too old')
     def test_tanh(self):
         def my_tanh(x):
             if isinstance(x, pyvips.Image):
@@ -509,10 +496,6 @@ class TestArithmetic:
 
         self.run_unary(self.all_images, my_tanh, fmt=noncomplex_formats)
 
-    # this requires pyvips 2.1.16 for asinh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
-            versiontuple('2.1.16'),
-            reason='your pyvips is too old')
     def test_asinh(self):
         def my_asinh(x):
             if isinstance(x, pyvips.Image):
@@ -523,10 +506,6 @@ class TestArithmetic:
         im = (pyvips.Image.black(100, 100) + [4, 5, 6]) / 3.0
         self.run_unary([im], my_asinh, fmt=noncomplex_formats)
 
-    # this requires pyvips 2.1.16 for acosh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
-            versiontuple('2.1.16'),
-            reason='your pyvips is too old')
     def test_acosh(self):
         def my_acosh(x):
             if isinstance(x, pyvips.Image):
@@ -537,10 +516,6 @@ class TestArithmetic:
         im = (pyvips.Image.black(100, 100) + [4, 5, 6]) / 3.0
         self.run_unary([im], my_acosh, fmt=noncomplex_formats)
 
-    # this requires pyvips 2.1.16 for atanh
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
-            versiontuple('2.1.16'),
-            reason='your pyvips is too old')
     def test_atanh(self):
         def my_atanh(x):
             if isinstance(x, pyvips.Image):
@@ -551,10 +526,6 @@ class TestArithmetic:
         im = (pyvips.Image.black(100, 100) + [0, 1, 2]) / 3.0
         self.run_unary([im], my_atanh, fmt=noncomplex_formats)
 
-    # this requires pyvips 2.1.16 for atan2
-    @pytest.mark.skipif(versiontuple(pyvips.__version__) <
-            versiontuple('2.1.16'),
-            reason='your pyvips is too old')
     def test_atan2(self):
         def my_atan2(x, y):
             if isinstance(x, pyvips.Image):
@@ -680,27 +651,26 @@ class TestArithmetic:
             assert pytest.approx(p2) == 10
 
     def test_find_trim(self):
-        if pyvips.type_find("VipsOperation", "find_trim") != 0:
-            im = pyvips.Image.black(50, 60) + 100
-            test = im.embed(10, 20, 200, 300, extend="white")
+        im = pyvips.Image.black(50, 60) + 100
+        test = im.embed(10, 20, 200, 300, extend="white")
 
-            for x in unsigned_formats + float_formats:
-                a = test.cast(x)
-                left, top, width, height = a.find_trim()
+        for x in unsigned_formats + float_formats:
+            a = test.cast(x)
+            left, top, width, height = a.find_trim()
 
-                assert left == 10
-                assert top == 20
-                assert width == 50
-                assert height == 60
-
-            test_rgb = test.bandjoin([test, test])
-            left, top, width, height = test_rgb.find_trim(line_art=True,
-                                                          background=[255, 255,
-                                                                      255])
             assert left == 10
             assert top == 20
             assert width == 50
             assert height == 60
+
+        test_rgb = test.bandjoin([test, test])
+        left, top, width, height = test_rgb.find_trim(line_art=True,
+                                                      background=[255, 255,
+                                                                  255])
+        assert left == 10
+        assert top == 20
+        assert width == 50
+        assert height == 60
 
     def test_profile(self):
         test = pyvips.Image.black(100, 100).draw_rect(100, 40, 50, 1, 1)

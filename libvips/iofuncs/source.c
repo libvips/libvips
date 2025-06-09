@@ -762,8 +762,7 @@ vips_source_print(VipsSource *source)
 	printf("  source->data = %p\n", source->data);
 	printf("  source->header_bytes = %p\n", source->header_bytes);
 	if (source->header_bytes)
-		printf("  source->header_bytes->len = %d\n",
-			source->header_bytes->len);
+		printf("  source->header_bytes->len = %d\n", source->header_bytes->len);
 	printf("  source->sniff = %p\n", source->sniff);
 	if (source->sniff)
 		printf("  source->sniff->len = %d\n", source->sniff->len);
@@ -1250,8 +1249,7 @@ vips_source_seek(VipsSource *source, gint64 offset, int whence)
 	 */
 	if (new_pos < 0 ||
 		(source->length != -1 && new_pos > source->length)) {
-		vips_error(nick,
-			_("bad seek to %" G_GINT64_FORMAT), new_pos);
+		vips_error(nick, _("bad seek to %" G_GINT64_FORMAT), new_pos);
 		return -1;
 	}
 

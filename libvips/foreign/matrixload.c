@@ -94,10 +94,8 @@ vips_foreign_load_matrix_build(VipsObject *object)
 	if (!(matrix->sbuf = vips_sbuf_new_from_source(matrix->source)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_matrix_parent_class)
+		->build(object);
 }
 
 static VipsForeignFlags
@@ -315,11 +313,8 @@ vips_foreign_load_matrix_file_build(VipsObject *object)
 					vips_source_new_from_file(file->filename)))
 			return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_matrix_file_parent_class)
+		->build(object);
 }
 
 static const char *vips_foreign_load_matrix_suffs[] = {
@@ -408,11 +403,8 @@ vips_foreign_load_matrix_source_build(VipsObject *object)
 		g_object_ref(matrix->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_matrix_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_matrix_source_parent_class)
+		->build(object);
 }
 
 static int
@@ -429,7 +421,8 @@ vips_foreign_load_matrix_source_is_a_source(VipsSource *source)
 
 	if ((bytes_read = vips_source_sniff_at_most(source, &data, 79)) <= 0)
 		return FALSE;
-	g_strlcpy(line, (const char *) data, 80);
+	data[bytes_read] = '\0';
+	g_strlcpy(line, (const char *) data, sizeof(line));
 
 	vips_error_freeze();
 	result = parse_matrix_header(line, &width, &height, &scale, &offset);

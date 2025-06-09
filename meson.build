@@ -1,5 +1,5 @@
 project('vips', 'c', 'cpp',
-    version: '8.17.0',
+    version: '8.17.1',
     meson_version: '>=0.55',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
@@ -23,7 +23,7 @@ version_patch = version_parts[2]
 # binary interface changed: increment current, reset revision to 0
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
-library_revision = 0
+library_revision = 1
 library_current = 61
 library_age = 19
 library_version = '@0@.@1@.@2@'.format(library_current - library_age, library_age, library_revision)
@@ -388,8 +388,8 @@ if librsvg_found
     external_deps += librsvg_dep
     external_deps += cairo_dep
     cfg_var.set('HAVE_RSVG', true)
-    # rsvg_handle_set_stylesheet added in librsvg 2.48.0
-    cfg_var.set('HAVE_RSVG_HANDLE_SET_STYLESHEET', cc.has_function('rsvg_handle_set_stylesheet', dependencies: librsvg_dep))
+    # CAIRO_FORMAT_RGBA128F added in cairo 1.17.2
+    cfg_var.set('HAVE_CAIRO_FORMAT_RGBA128F', cc.has_type('CAIRO_FORMAT_RGBA128F', prefix: '#include <cairo.h>', dependencies: cairo_dep))
 endif
 
 openslide_dep = dependency('openslide', version: '>=3.4.0', required: get_option('openslide'))
@@ -403,8 +403,8 @@ if openslide_dep.found()
         external_deps += openslide_dep
     endif
     cfg_var.set('HAVE_OPENSLIDE', true)
-    cfg_var.set('HAVE_OPENSLIDE_ICC', cc.has_function('openslide_get_icc_profile_size', dependencies: openslide_dep))
-    cfg_var.set('HAVE_OPENSLIDE_CACHE_CREATE', cc.has_function('openslide_cache_create', dependencies: openslide_dep))
+    cfg_var.set('HAVE_OPENSLIDE_ICC', cc.has_function('openslide_get_icc_profile_size', prefix: '#include <openslide.h>', dependencies: openslide_dep))
+    cfg_var.set('HAVE_OPENSLIDE_CACHE_CREATE', cc.has_function('openslide_cache_create', prefix: '#include <openslide.h>', dependencies: openslide_dep))
 endif
 
 matio_dep = dependency('matio', required: get_option('matio'))
@@ -481,7 +481,7 @@ if pdfium_dep.found()
     pdf_loader = pdfium_dep
 endif
 
-libheif_dep = dependency('libheif', version: '>=1.11.0', required: get_option('heif'))
+libheif_dep = dependency('libheif', version: '>=1.7.0', required: get_option('heif'))
 libheif_module = false
 if libheif_dep.found()
     libheif_module = modules_enabled and not get_option('heif-module').disabled()
@@ -492,6 +492,10 @@ if libheif_dep.found()
         external_deps += libheif_dep
     endif
     cfg_var.set('HAVE_HEIF', true)
+    # added in 1.10.0
+    cfg_var.set('HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES', cpp.has_function('heif_encoder_parameter_get_valid_integer_values', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
+    # added in 1.11.0
+    cfg_var.set('HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE', cpp.has_member('struct heif_encoding_options', 'output_nclx_profile', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
     # heif_init added in 1.13.0
     cfg_var.set('HAVE_HEIF_INIT', libheif_dep.version().version_compare('>=1.13.0'))
     # heif_encoding_options.image_orientation added in 1.14.0
@@ -504,9 +508,8 @@ if libheif_dep.found()
     cfg_var.set('HAVE_HEIF_MAX_TOTAL_MEMORY', cpp.has_member('struct heif_security_limits', 'max_total_memory', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
 endif
 
-# need v0.11+ for chunked write
-libjxl_dep = dependency('libjxl', version: '>=0.11', required: get_option('jpeg-xl'))
-libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.11', required: get_option('jpeg-xl'))
+libjxl_dep = dependency('libjxl', version: '>=0.7', required: get_option('jpeg-xl'))
+libjxl_threads_dep = dependency('libjxl_threads', version: '>=0.7', required: get_option('jpeg-xl'))
 libjxl_found = libjxl_dep.found() and libjxl_threads_dep.found()
 libjxl_module = false
 if libjxl_found
@@ -520,6 +523,10 @@ if libjxl_found
         external_deps += libjxl_threads_dep
     endif
     cfg_var.set('HAVE_LIBJXL', true)
+    # need v0.9+ for chunked write
+    if libjxl_dep.version().version_compare('>=0.9')
+        cfg_var.set('HAVE_LIBJXL_0_9', '1')
+    endif
 endif
 
 # only if pdfium not found

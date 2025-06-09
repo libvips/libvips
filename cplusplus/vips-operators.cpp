@@ -2731,6 +2731,18 @@ VImage::ppmload(const char *filename, VOption *options)
 }
 
 VImage
+VImage::ppmload_buffer(VipsBlob *buffer, VOption *options)
+{
+	VImage out;
+
+	call("ppmload_buffer", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("buffer", buffer));
+
+	return out;
+}
+
+VImage
 VImage::ppmload_source(VSource source, VOption *options)
 {
 	VImage out;

@@ -314,7 +314,7 @@ vips_load_plugins(const char *fmt, ...)
 			 */
 			g_module_make_resident(module);
 		else
-			g_warning(_("unable to load \"%s\" -- %s"),
+			g_warning("unable to load \"%s\" -- %s",
 				path, g_module_error());
 	}
 

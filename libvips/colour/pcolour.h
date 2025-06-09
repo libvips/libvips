@@ -209,10 +209,8 @@ void vips__pythagoras_line(VipsColour *colour,
  * vips_col_make_tables_RGB_16() before use to initialize.
  */
 extern float vips_v2Y_8[256];
-extern float vips_v2Y_16[65536];
 
 void vips_col_make_tables_RGB_8(void);
-void vips_col_make_tables_RGB_16(void);
 
 /* A colour-transforming function.
  */

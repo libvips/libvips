@@ -128,8 +128,6 @@ extern const char *vips__suffs[];
 static void
 vips_foreign_save_vips_class_init(VipsForeignSaveVipsClass *class)
 {
-	int i;
-
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
@@ -144,8 +142,7 @@ vips_foreign_save_vips_class_init(VipsForeignSaveVipsClass *class)
 	foreign_class->suffs = vips__suffs;
 
 	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
-	for (i = 0; i < VIPS_CODING_LAST; i++)
-		save_class->coding[i] = TRUE;
+	save_class->coding = VIPS_FOREIGN_CODING_ALL;
 }
 
 static void
@@ -173,11 +170,8 @@ vips_foreign_save_vips_file_build(VipsObject *object)
 	if (!(vips->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_vips_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_vips_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -228,11 +222,8 @@ vips_foreign_save_vips_target_build(VipsObject *object)
 	vips->target = target->target;
 	g_object_ref(vips->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_vips_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_vips_target_parent_class)
+		->build(object);
 }
 
 static void

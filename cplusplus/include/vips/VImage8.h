@@ -5074,7 +5074,22 @@ public:
 	static VImage ppmload(const char *filename, VOption *options = nullptr);
 
 	/**
-	 * Load ppm base class.
+	 * Load ppm from buffer.
+	 *
+	 * **Optional parameters**
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param buffer Buffer to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage ppmload_buffer(VipsBlob *buffer, VOption *options = nullptr);
+
+	/**
+	 * Load ppm from source.
 	 *
 	 * **Optional parameters**
 	 *   - **memory** -- Force open via memory, bool.
@@ -5780,6 +5795,7 @@ public:
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
 	 *   - **stylesheet** -- Custom CSS, const char *.
+	 *   - **high_bitdepth** -- Enable scRGB 128-bit output (32-bit per channel), bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5799,6 +5815,7 @@ public:
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
 	 *   - **stylesheet** -- Custom CSS, const char *.
+	 *   - **high_bitdepth** -- Enable scRGB 128-bit output (32-bit per channel), bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -5818,6 +5835,7 @@ public:
 	 *   - **scale** -- Scale output by this factor, double.
 	 *   - **unlimited** -- Allow SVG of any size, bool.
 	 *   - **stylesheet** -- Custom CSS, const char *.
+	 *   - **high_bitdepth** -- Enable scRGB 128-bit output (32-bit per channel), bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.

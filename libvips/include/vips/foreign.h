@@ -309,11 +309,11 @@ void vips_foreign_load_invalidate(VipsImage *image);
 
 /**
  * VipsForeignSaveable:
+ * @VIPS_FOREIGN_SAVEABLE_ANY: saver supports everything (eg. TIFF)
  * @VIPS_FOREIGN_SAVEABLE_MONO: 1 band
  * @VIPS_FOREIGN_SAVEABLE_RGB: 3 bands
  * @VIPS_FOREIGN_SAVEABLE_CMYK: 4 bands
  * @VIPS_FOREIGN_SAVEABLE_ALPHA: an extra band
- * @VIPS_FOREIGN_SAVEABLE_ANY: saver supports everything (eg. TIFF)
  *
  * The set of image types supported by a saver.
  *
@@ -321,13 +321,39 @@ void vips_foreign_load_invalidate(VipsImage *image);
  *     [class@ForeignSave].
  */
 typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_SAVEABLE_ANY = 0,
 	VIPS_FOREIGN_SAVEABLE_MONO = 1,
 	VIPS_FOREIGN_SAVEABLE_RGB = 2,
 	VIPS_FOREIGN_SAVEABLE_CMYK = 4,
 	VIPS_FOREIGN_SAVEABLE_ALPHA = 8,
-	VIPS_FOREIGN_SAVEABLE_ANY = 16,
-	VIPS_FOREIGN_SAVEABLE_ALL = 31,
+
+	VIPS_FOREIGN_SAVEABLE_ALL = (VIPS_FOREIGN_SAVEABLE_MONO |
+		VIPS_FOREIGN_SAVEABLE_RGB |
+		VIPS_FOREIGN_SAVEABLE_CMYK |
+		VIPS_FOREIGN_SAVEABLE_ALPHA)
 } VipsForeignSaveable;
+
+/**
+ * VipsForeignCoding:
+ * @VIPS_FOREIGN_CODING_NONE: saver supports [enum@Vips.Coding.NONE]
+ * @VIPS_FOREIGN_CODING_LABQ: saver supports [enum@Vips.Coding.LABQ]
+ * @VIPS_FOREIGN_CODING_RAD: saver supports [enum@Vips.Coding.RAD]
+ * @VIPS_FOREIGN_CODING_ALL: saver supports all coding types
+ *
+ * The set of coding types supported by a saver.
+ *
+ * ::: seealso
+ *     [enum@Coding].
+ */
+typedef enum /*< flags >*/ {
+	VIPS_FOREIGN_CODING_NONE = 1 << 0,
+	VIPS_FOREIGN_CODING_LABQ = 1 << 1,
+	VIPS_FOREIGN_CODING_RAD = 1 << 2,
+
+	VIPS_FOREIGN_CODING_ALL = (VIPS_FOREIGN_CODING_NONE |
+		VIPS_FOREIGN_CODING_LABQ |
+		VIPS_FOREIGN_CODING_RAD)
+} VipsForeignCoding;
 
 /**
  * VipsForeignKeep:
@@ -353,7 +379,7 @@ typedef enum /*< flags >*/ {
 		VIPS_FOREIGN_KEEP_XMP |
 		VIPS_FOREIGN_KEEP_IPTC |
 		VIPS_FOREIGN_KEEP_ICC |
-		VIPS_FOREIGN_KEEP_OTHER),
+		VIPS_FOREIGN_KEEP_OTHER)
 } VipsForeignKeep;
 
 typedef struct _VipsForeignSave {
@@ -404,7 +430,7 @@ typedef struct _VipsForeignSaveClass {
 	 *
 	 * @saveable describes the image types that your saver can handle. For
 	 * example, PPM images can have 1 or 3 bands (mono or RGB), so it
-	 * uses VIPS_SAVEABLE_FLAGS_MONO | VIPS_SAVEABLE_FLAGS_RGB.
+	 * uses [flags@Vips.ForeignSaveable.MONO] | [flags@Vips.ForeignSaveable.RGB].
 	 */
 	VipsForeignSaveable saveable;
 
@@ -416,12 +442,13 @@ typedef struct _VipsForeignSaveClass {
 	 */
 	VipsBandFormat *format_table;
 
-	/* The set of coding types this format can save. For example, jpeg can
-	 * only save NONE, so has NONE TRUE and RAD and LABQ FALSE.
+	/* The set of coding types this format can save. For example,
+	 * [method@Image.vipssave] can save all coding types, so it
+	 * uses [flags@Vips.ForeignCoding.ALL]
 	 *
-	 * Default NONE TRUE, RAD and LABQ FALSE.
+	 * Default to [flags@Vips.ForeignCoding.NONE].
 	 */
-	gboolean coding[VIPS_CODING_LAST];
+	VipsForeignCoding coding;
 } VipsForeignSaveClass;
 
 VIPS_API
@@ -768,6 +795,9 @@ typedef enum {
 
 VIPS_API
 int vips_ppmload(const char *filename, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_ppmload_buffer(void *buf, size_t len, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_ppmload_source(VipsSource *source, VipsImage **out, ...)

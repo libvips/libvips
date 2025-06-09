@@ -29,7 +29,7 @@ def check_sections(args):
         content = Path(file).read_text()
         comment_start_idx = content.find('<!-- ')
         if comment_start_idx == -1:
-            print(f'ERROR: File {file} does not contain a HTML comment',
+            print(f"ERROR: File '{file}' does not contain a HTML comment",
                   file=sys.stderr)
             sys.exit(1)
 
@@ -39,21 +39,21 @@ def check_sections(args):
         file_dict[section_covers] = {'file': file, 'content': content}
 
     tag_parser_dict = {
-        f'{{{namespace['goi']}}}alias': lambda n, _ : f'[alias@{n.attrib['name']}]',
-        f'{{{namespace['goi']}}}bitfield': lambda n, _ : f'[flags@{n.attrib['name']}]',
-        f'{{{namespace['goi']}}}callback': lambda n, _ : f'[callback@{n.attrib['name']}]',
-        f'{{{namespace['goi']}}}class': lambda n, _ : f'[class@{n.attrib['name']}]',
-        f'{{{namespace['goi']}}}constructor': lambda n, p : f'[ctor@{p}{n.attrib['name']}]',
-        f'{{{namespace['goi']}}}method': lambda n, p : f'[method@{p}{n.attrib['name']}]',
-        f'{{{namespace['goi']}}}constant': lambda n, _ : f'[const@{n.attrib['name']}]',
-        f'{{{namespace['goi']}}}enumeration': lambda n, _ : f'[enum@{n.attrib['name']}]',
-        f'{{{namespace['goi']}}}function-macro': lambda n, _ : f'[func@{n.attrib['name']}]',
-        f'{{{namespace['goi']}}}function': lambda n, p : f'[func@{p}{n.attrib['name']}]',
+        f'{{{namespace["goi"]}}}alias': lambda n, _ : f'[alias@{n.attrib["name"]}]',
+        f'{{{namespace["goi"]}}}bitfield': lambda n, _ : f'[flags@{n.attrib["name"]}]',
+        f'{{{namespace["goi"]}}}callback': lambda n, _ : f'[callback@{n.attrib["name"]}]',
+        f'{{{namespace["goi"]}}}class': lambda n, _ : f'[class@{n.attrib["name"]}]',
+        f'{{{namespace["goi"]}}}constructor': lambda n, p : f'[ctor@{p}{n.attrib["name"]}]',
+        f'{{{namespace["goi"]}}}method': lambda n, p : f'[method@{p}{n.attrib["name"]}]',
+        f'{{{namespace["goi"]}}}constant': lambda n, _ : f'[const@{n.attrib["name"]}]',
+        f'{{{namespace["goi"]}}}enumeration': lambda n, _ : f'[enum@{n.attrib["name"]}]',
+        f'{{{namespace["goi"]}}}function-macro': lambda n, _ : f'[func@{n.attrib["name"]}]',
+        f'{{{namespace["goi"]}}}function': lambda n, p : f'[func@{p}{n.attrib["name"]}]',
         # each struct has its own documentation
-        # f'{{{namespace['goi']}}}record': lambda n, _ : f'[struct@{n.attrib['name']}]',
+        # f'{{{namespace["goi"]}}}record': lambda n, _ : f'[struct@{n.attrib["name"]}]',
         # struct and enum members do not need to be listed
-        # f'{{{namespace['goi']}}}field': lambda n, p : f'[struct@Vips.{p}{n.attrib['name']}]',
-        # f'{{{namespace['goi']}}}member': lambda n, p : f'[enum@Vips.{p}{n.attrib['name']}]',
+        # f'{{{namespace["goi"]}}}field': lambda n, p : f'[struct@Vips.{p}{n.attrib["name"]}]',
+        # f'{{{namespace["goi"]}}}member': lambda n, p : f'[enum@Vips.{p}{n.attrib["name"]}]',
     }
 
     exitcode = 0

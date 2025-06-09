@@ -231,7 +231,7 @@ vips_system_build(VipsObject *object)
 	if (std_error) {
 		g_strchomp(std_error);
 		if (strcmp(std_error, "") != 0)
-			g_warning(_("stderr output: %s"), std_error);
+			g_warning("stderr output: %s", std_error);
 	}
 	if (std_output) {
 		g_strchomp(std_output);

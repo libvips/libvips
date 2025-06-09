@@ -96,8 +96,7 @@ vips_foreign_save_rad_class_init(VipsForeignSaveRadClass *class)
 	save_class->saveable =
 		VIPS_FOREIGN_SAVEABLE_MONO | VIPS_FOREIGN_SAVEABLE_RGB;
 	save_class->format_table = vips_foreign_save_rad_format_table;
-	save_class->coding[VIPS_CODING_NONE] = FALSE;
-	save_class->coding[VIPS_CODING_RAD] = TRUE;
+	save_class->coding = VIPS_FOREIGN_CODING_RAD;
 }
 
 static void
