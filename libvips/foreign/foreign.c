@@ -1467,8 +1467,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 * source.
 	 */
 	if (saveable & VIPS_FOREIGN_SAVEABLE_RGB) {
-		interpretation = sixteenbit ?
-			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
+		interpretation = sixteenbit ? VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
 
 		if (vips_colourspace(in, &out, interpretation, NULL)) {
 			g_object_unref(in);
@@ -1486,9 +1485,9 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 */
 	if (saveable & VIPS_FOREIGN_SAVEABLE_CMYK) {
 		if (vips_icc_export(in, &out,
-			"output-profile", "cmyk",
-			"depth", sixteenbit ? 16 : 8,
-			NULL)) {
+				"output-profile", "cmyk",
+				"depth", sixteenbit ? 16 : 8,
+				NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
@@ -1503,8 +1502,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 * source.
 	 */
 	if (saveable & VIPS_FOREIGN_SAVEABLE_MONO) {
-		interpretation = sixteenbit ?
-			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
+		interpretation = sixteenbit ? VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
 
 		if (vips_colourspace(in, &out, interpretation, NULL)) {
 			g_object_unref(in);
@@ -3056,6 +3054,8 @@ vips_foreign_operation_init(void)
 	extern GType vips_foreign_save_cgif_buffer_get_type(void);
 	extern GType vips_foreign_save_cgif_target_get_type(void);
 
+	extern GType vips_foreign_load_dcraw_file_get_type(void);
+
 	vips_foreign_load_csv_file_get_type();
 	vips_foreign_load_csv_source_get_type();
 	vips_foreign_save_csv_file_get_type();
@@ -3142,6 +3142,10 @@ vips_foreign_operation_init(void)
 	vips_foreign_load_nsgif_buffer_get_type();
 	vips_foreign_load_nsgif_source_get_type();
 #endif /*HAVE_NSGIF*/
+
+#ifdef HAVE_LIBRAW
+	vips_foreign_load_dcraw_file_get_type();
+#endif /*HAVE_LIBRAW*/
 
 #ifdef HAVE_CGIF
 	vips_foreign_save_cgif_file_get_type();
