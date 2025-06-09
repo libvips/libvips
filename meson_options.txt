@@ -203,6 +203,11 @@ option('quantizr',
   value: 'auto',
   description: 'Build with quantizr')
 
+option('raw',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with libraw')
+
 option('rsvg',
   type: 'feature',
   value: 'auto',

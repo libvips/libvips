@@ -429,6 +429,12 @@ if openexr_dep.found()
     cfg_var.set('HAVE_OPENEXR', true)
 endif
 
+libraw_dep = dependency('libraw_r', required: get_option('raw'))
+if libraw_dep.found()
+    external_deps += libraw_dep
+    cfg_var.set('HAVE_LIBRAW', true)
+endif
+
 # 2.4 is the first one to have working threading and tiling
 libopenjp2_dep = dependency('libopenjp2', version: '>=2.4', required: get_option('openjpeg'))
 if libopenjp2_dep.found()
@@ -689,6 +695,7 @@ build_features = {
      'NIfTI load/save': ['libnifti', libnifti_found ? libnifti_dep : disabler()],
      'FITS load/save': ['cfitsio', cfitsio_dep],
      'GIF save': ['cgif', cgif_dep],
+     'RAW load': ['libraw', libraw_dep],
      'Magick @0@'.format('/'.join(get_option('magick-features'))): [get_option('magick-package'), magick_found ? magick_dep : disabler(), magick_module],
     },
 }
