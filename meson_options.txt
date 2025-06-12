@@ -236,6 +236,11 @@ option('nsgif',
   value: true,
   description: 'Build with nsgif')
 
+option('libraw',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with libraw')
+
 option('ppm',
   type: 'boolean',
   value: true,

@@ -123,6 +123,10 @@ if not openslide_module
     foreign_sources += openslide_module_sources
 endif
 
+if get_option('libraw').enabled()
+    foreign_sources += files('dcrawload.c')
+endif
+
 libvips_sources += foreign_sources
 
 foreign_lib = static_library('foreign',
