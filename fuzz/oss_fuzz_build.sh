@@ -94,10 +94,10 @@ cmake \
   -DENABLE_STATIC=TRUE \
   -DENABLE_SHARED=FALSE \
   -DWITH_TURBOJPEG=FALSE \
+  -DWITH_TOOLS=FALSE \
+  -DWITH_TESTS=FALSE \
   .
-cmake --build . --target jpeg-static
-cmake --install . --component lib
-cmake --install . --component include
+cmake --build . --target install
 popd
 
 # libspng
