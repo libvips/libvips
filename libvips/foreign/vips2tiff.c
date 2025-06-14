@@ -459,7 +459,7 @@ static int
 wtiff_handler_warning(TIFF *tiff, void* user_data,
 	const char *module, const char *fmt, va_list ap)
 {
-	g_logv("vips2tiff", G_LOG_LEVEL_WARNING, fmt, ap);
+	g_logv(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, fmt, ap);
 	return 1;
 }
 
