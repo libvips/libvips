@@ -626,7 +626,8 @@ rtiff_handler_warning(TIFF *tiff, void* user_data,
 			rtiff->failed = TRUE;
 		}
 	}
-	g_logv("tiff2vips", G_LOG_LEVEL_WARNING, fmt, ap);
+
+	g_logv(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, fmt, ap);
 	return 1;
 }
 
