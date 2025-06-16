@@ -1643,7 +1643,17 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	/* Convert to the format the saver likes.
 	 */
 	if (in->Coding == VIPS_CODING_NONE) {
-		if (vips_cast(in, &out, format[in->BandFmt], NULL)) {
+		/* If the saver does not support 16-bit output, automatically
+		 * shift it down. This is the behaviour we want for saving an
+		 * RGB16 image as JPEG, for example.
+		 */
+		gboolean needs_shift =
+			!vips_band_format_is8bit(in->BandFmt) &&
+			vips_band_format_is8bit(format[in->BandFmt]);
+
+		if (vips_cast(in, &out, format[in->BandFmt],
+			"shift", needs_shift,
+			NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
