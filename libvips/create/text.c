@@ -416,6 +416,15 @@ vips_text_build(VipsObject *object)
 
 	text->context = pango_font_map_create_context(vips_text_fontmap);
 
+	if (text->rgba) {
+		/* Prevent use of subpixel anti-aliasing to avoid artefacts.
+		 */
+		cairo_font_options_t *opts = cairo_font_options_create();
+		cairo_font_options_set_antialias(opts, CAIRO_ANTIALIAS_GRAY);
+		pango_cairo_context_set_font_options(text->context, opts);
+		cairo_font_options_destroy(opts);
+	}
+
 	/* Because we set resolution on vips_text_fontmap and that's shared
 	 * between all vips_text instances, we must lock all the way to the
 	 * end of text rendering.
