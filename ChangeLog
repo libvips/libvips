@@ -1,5 +1,7 @@
 master
 
+- add dcrawload: load raw camera files using libraw [lxsameer]
+
 8.17.1
 
 - fix API docs build with meson < 0.60 [lovell]
