@@ -3064,6 +3064,8 @@ vips_foreign_operation_init(void)
 	extern GType vips_foreign_save_cgif_buffer_get_type(void);
 	extern GType vips_foreign_save_cgif_target_get_type(void);
 
+	extern GType vips_foreign_load_dcraw_file_get_type(void);
+
 	vips_foreign_load_csv_file_get_type();
 	vips_foreign_load_csv_source_get_type();
 	vips_foreign_save_csv_file_get_type();
@@ -3151,6 +3153,10 @@ vips_foreign_operation_init(void)
 	vips_foreign_load_nsgif_buffer_get_type();
 	vips_foreign_load_nsgif_source_get_type();
 #endif /*HAVE_NSGIF*/
+
+#ifdef HAVE_LIBRAW
+	vips_foreign_load_dcraw_file_get_type();
+#endif /*HAVE_LIBRAW*/
 
 #ifdef HAVE_CGIF
 	vips_foreign_save_cgif_file_get_type();

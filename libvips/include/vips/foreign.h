@@ -876,6 +876,10 @@ int vips_gifsave_target(VipsImage *in, VipsTarget *target, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
+int vips_dcrawload(const char *filename, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
 int vips_heifload(const char *filename, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
