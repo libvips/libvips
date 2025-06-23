@@ -98,8 +98,8 @@ vips_foreign_load_dcraw_build(VipsObject *object)
 {
 	VipsForeignLoadDcRaw *raw = VIPS_FOREIGN_LOAD_DCRAW(object);
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(raw);
-	raw->raw_processor = libraw_init(0);
 
+	raw->raw_processor = libraw_init(0);
 	if (!raw->raw_processor) {
 		vips_error(class->nickname, _("unable to initialize libraw"));
 		return -1;
@@ -110,33 +110,24 @@ vips_foreign_load_dcraw_build(VipsObject *object)
 }
 
 static VipsForeignFlags
-vips_foreign_load_dcraw_get_flags_filename(const char *filename)
+vips_foreign_load_dcraw_get_flags(VipsForeignLoad *load)
 {
 	return 0;
 }
 
-static VipsForeignFlags
-vips_foreign_load_dcraw_get_flags(VipsForeignLoad *load)
+static void
+vips_foreign_load_dcraw_error(VipsForeignLoadDcRaw *raw,
+	const char *message, int code)
 {
-	return 0;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(raw);
+
+	vips_error(class->nickname, "%s: %s", message, libraw_strerror(code));
 }
 
 static int
 vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadDcRaw *raw = (VipsForeignLoadDcRaw *) load;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(raw);
-
-	const void *data;
-	size_t length;
-	VipsImage *image;
-	VipsImage *x;
-	GDateTime *dt;
-
-	/* Map the whole source into memory.
-	 */
-	if (!(data = vips_source_map(raw->source, &length)))
-		return -1;
 
 	/* Enforce VIPS_FORMAT_USHORT output.
 	 */
@@ -146,37 +137,51 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 	 */
 	raw->raw_processor->params.use_camera_wb = 1;
 
-	int result = libraw_open_buffer(raw->raw_processor, data, length);
+	/* We can use the libraw file interface for filename sources. This
+	 * interface can often read more metadata, since it can open secondary
+	 * files.
+	 */
+	int result;
+	if (vips_source_is_file(raw->source)) {
+		const char *filename =
+			vips_connection_filename(VIPS_CONNECTION(raw->source));
+
+		result = libraw_open_file(raw->raw_processor, filename);
+	}
+	else {
+		size_t length;
+		const void *data;
+
+		if (!(data = vips_source_map(raw->source, &length)))
+			return -1;
+		result = libraw_open_buffer(raw->raw_processor, data, length);
+	}
 	if (result != LIBRAW_SUCCESS) {
-		vips_error(class->nickname, "%s : %s",
-			_("unable to read the source"), libraw_strerror(result));
+		vips_foreign_load_dcraw_error(raw, _("unable to read"), result);
 		return -1;
 	}
 
 	result = libraw_unpack(raw->raw_processor);
 	if (result != LIBRAW_SUCCESS) {
-		vips_error(class->nickname, "%s : %s",
-			_("unable to unpack the source"), libraw_strerror(result));
+		vips_foreign_load_dcraw_error(raw, _("unable to unpack"), result);
 		return -1;
 	}
 
-	/* Process the image (demosaicing, white balance, etc.)
+	/* Process the image (demosaicing, white balance, etc.).
 	 */
 	result = libraw_dcraw_process(raw->raw_processor);
-
 	if (result != LIBRAW_SUCCESS) {
-		vips_error(class->nickname,
-			"error processing RAW data: %s\n", libraw_strerror(result));
+		vips_foreign_load_dcraw_error(raw, _("unable to process"), result);
 		return -1;
 	}
 
 	if (!(raw->processed =
-				libraw_dcraw_make_mem_image(raw->raw_processor, &result))) {
-		vips_error(class->nickname,
-			"error creating processed image: %s\n", libraw_strerror(result));
+			libraw_dcraw_make_mem_image(raw->raw_processor, &result))) {
+		vips_foreign_load_dcraw_error(raw, _("unable to build image"), result);
 		return -1;
 	}
 
+	VipsImage *image;
 	if (!(image = vips_image_new_from_memory(
 			  raw->processed->data, raw->processed->data_size,
 			  raw->processed->width, raw->processed->height,
@@ -201,6 +206,7 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 	vips_image_set_double(image, "raw-focal-length",
 		raw->raw_processor->other.focal_len);
 
+	GDateTime *dt;
 	if (raw->raw_processor->other.timestamp &&
 		(dt = g_date_time_new_from_unix_utc(
 			 raw->raw_processor->other.timestamp))) {
@@ -212,6 +218,7 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 	/* What a hack. Remove the @out that's there now and replace it with
 	 * our image.
 	 */
+	VipsImage *x;
 	g_object_get(load, "out", &x, NULL);
 	g_object_unref(x);
 	g_object_unref(x);
@@ -235,8 +242,6 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 	object_class->description = _("load RAW camera files");
 	object_class->build = vips_foreign_load_dcraw_build;
 
-	/* LibRaw is fuzzed, but not by us.
-	 */
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	load_class->get_flags = vips_foreign_load_dcraw_get_flags;
@@ -277,6 +282,12 @@ vips_foreign_load_dcraw_file_build(VipsObject *object)
 		->build(object);
 }
 
+static VipsForeignFlags
+vips_foreign_load_dcraw_file_get_flags_filename(const char *filename)
+{
+	return 0;
+}
+
 static void
 vips_foreign_load_dcraw_file_class_init(VipsForeignLoadDcRawFileClass *class)
 {
@@ -295,7 +306,7 @@ vips_foreign_load_dcraw_file_class_init(VipsForeignLoadDcRawFileClass *class)
 	foreign_class->suffs = vips_foreign_dcraw_suffs;
 
 	load_class->get_flags_filename =
-		vips_foreign_load_dcraw_get_flags_filename;
+		vips_foreign_load_dcraw_file_get_flags_filename;
 
 	VIPS_ARG_STRING(class, "filename", 1,
 		_("Filename"),
