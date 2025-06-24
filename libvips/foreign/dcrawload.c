@@ -124,6 +124,13 @@ vips_foreign_load_dcraw_error(VipsForeignLoadDcRaw *raw,
 	vips_error(class->nickname, "%s: %s", message, libraw_strerror(code));
 }
 
+static void
+vips_foreign_load_dcraw_close(VipsImage *image,
+	libraw_processed_image_t *processed)
+{
+	VIPS_FREEF(libraw_dcraw_clear_mem, processed);
+}
+
 static int
 vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 {
@@ -188,6 +195,22 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 			  raw->processed->colors, VIPS_FORMAT_USHORT)))
 		return -1;
 
+	/* We must only free the memory when the image closes.
+	 */
+	g_signal_connect(image, "close",
+		G_CALLBACK(vips_foreign_load_dcraw_close), raw->processed);
+	raw->processed = NULL;
+
+	VipsImage *x;
+	if (vips_copy(image, &x,
+			"interpretation", VIPS_INTERPRETATION_RGB16,
+			NULL)) {
+		VIPS_UNREF(image);
+		return -1;
+	}
+	VIPS_UNREF(image);
+	image = x;
+
 	VIPS_SETSTR(image->filename,
 		vips_connection_filename(VIPS_CONNECTION(raw->source)));
 
@@ -206,19 +229,22 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 	vips_image_set_double(image, "raw-focal-length",
 		raw->raw_processor->other.focal_len);
 
-	GDateTime *dt;
-	if (raw->raw_processor->other.timestamp &&
-		(dt = g_date_time_new_from_unix_utc(
-			 raw->raw_processor->other.timestamp))) {
-		vips_image_set_string(image, "raw-timestamp",
-			g_date_time_format_iso8601(dt));
+	GDateTime *dt =
+		g_date_time_new_from_unix_utc(raw->raw_processor->other.timestamp);
+	if (dt) {
+		char *str = g_date_time_format_iso8601(dt);
+		if (str) {
+			vips_image_set_string(image, "raw-timestamp", str);
+
+			g_free(str);
+		}
+
 		g_date_time_unref(dt);
 	}
 
 	/* What a hack. Remove the @out that's there now and replace it with
 	 * our image.
 	 */
-	VipsImage *x;
 	g_object_get(load, "out", &x, NULL);
 	g_object_unref(x);
 	g_object_unref(x);
@@ -234,6 +260,7 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_dcraw_dispose;
@@ -243,6 +270,12 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 	object_class->build = vips_foreign_load_dcraw_build;
 
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
+
+	/* We need to be ahead of JPEG and TIFF, since many cameras use those
+	 * formats as containers. We are very slow to open, but we only test the
+	 * filename suffix, so that's fine.
+	 */
+	foreign_class->priority = 100;
 
 	load_class->get_flags = vips_foreign_load_dcraw_get_flags;
 	load_class->header = vips_foreign_load_dcraw_header;
