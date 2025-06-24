@@ -62,6 +62,8 @@ static const char *vips_foreign_dcraw_suffs[] = {
 typedef struct _VipsForeignLoadDcRaw {
 	VipsForeignLoad parent_object;
 
+	int bitdepth;
+
 	/* LibRaw processor.
 	 */
 	libraw_data_t *raw_processor;
@@ -93,22 +95,6 @@ vips_foreign_load_dcraw_dispose(GObject *gobject)
 	G_OBJECT_CLASS(vips_foreign_load_dcraw_parent_class)->dispose(gobject);
 }
 
-static int
-vips_foreign_load_dcraw_build(VipsObject *object)
-{
-	VipsForeignLoadDcRaw *raw = VIPS_FOREIGN_LOAD_DCRAW(object);
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(raw);
-
-	raw->raw_processor = libraw_init(0);
-	if (!raw->raw_processor) {
-		vips_error(class->nickname, _("unable to initialize libraw"));
-		return -1;
-	}
-
-	return VIPS_OBJECT_CLASS(vips_foreign_load_dcraw_parent_class)
-		->build(object);
-}
-
 static VipsForeignFlags
 vips_foreign_load_dcraw_get_flags(VipsForeignLoad *load)
 {
@@ -131,86 +117,10 @@ vips_foreign_load_dcraw_close(VipsImage *image,
 	VIPS_FREEF(libraw_dcraw_clear_mem, processed);
 }
 
-static int
-vips_foreign_load_dcraw_header(VipsForeignLoad *load)
+static void
+vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
+	VipsImage *image)
 {
-	VipsForeignLoadDcRaw *raw = (VipsForeignLoadDcRaw *) load;
-
-	/* Enforce VIPS_FORMAT_USHORT output.
-	 */
-	raw->raw_processor->params.output_bps = 16;
-
-	/* Apply camera white balance.
-	 */
-	raw->raw_processor->params.use_camera_wb = 1;
-
-	/* We can use the libraw file interface for filename sources. This
-	 * interface can often read more metadata, since it can open secondary
-	 * files.
-	 */
-	int result;
-	if (vips_source_is_file(raw->source)) {
-		const char *filename =
-			vips_connection_filename(VIPS_CONNECTION(raw->source));
-
-		result = libraw_open_file(raw->raw_processor, filename);
-	}
-	else {
-		size_t length;
-		const void *data;
-
-		if (!(data = vips_source_map(raw->source, &length)))
-			return -1;
-		result = libraw_open_buffer(raw->raw_processor, data, length);
-	}
-	if (result != LIBRAW_SUCCESS) {
-		vips_foreign_load_dcraw_error(raw, _("unable to read"), result);
-		return -1;
-	}
-
-	result = libraw_unpack(raw->raw_processor);
-	if (result != LIBRAW_SUCCESS) {
-		vips_foreign_load_dcraw_error(raw, _("unable to unpack"), result);
-		return -1;
-	}
-
-	/* Process the image (demosaicing, white balance, etc.).
-	 */
-	result = libraw_dcraw_process(raw->raw_processor);
-	if (result != LIBRAW_SUCCESS) {
-		vips_foreign_load_dcraw_error(raw, _("unable to process"), result);
-		return -1;
-	}
-
-	if (!(raw->processed =
-			libraw_dcraw_make_mem_image(raw->raw_processor, &result))) {
-		vips_foreign_load_dcraw_error(raw, _("unable to build image"), result);
-		return -1;
-	}
-
-	VipsImage *image;
-	if (!(image = vips_image_new_from_memory(
-			  raw->processed->data, raw->processed->data_size,
-			  raw->processed->width, raw->processed->height,
-			  raw->processed->colors, VIPS_FORMAT_USHORT)))
-		return -1;
-
-	/* We must only free the memory when the image closes.
-	 */
-	g_signal_connect(image, "close",
-		G_CALLBACK(vips_foreign_load_dcraw_close), raw->processed);
-	raw->processed = NULL;
-
-	VipsImage *x;
-	if (vips_copy(image, &x,
-			"interpretation", VIPS_INTERPRETATION_RGB16,
-			NULL)) {
-		VIPS_UNREF(image);
-		return -1;
-	}
-	VIPS_UNREF(image);
-	image = x;
-
 	VIPS_SETSTR(image->filename,
 		vips_connection_filename(VIPS_CONNECTION(raw->source)));
 
@@ -241,15 +151,123 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 
 		g_date_time_unref(dt);
 	}
+}
 
-	/* What a hack. Remove the @out that's there now and replace it with
-	 * our image.
+static int
+vips_foreign_load_dcraw_header(VipsForeignLoad *load)
+{
+	VipsForeignLoadDcRaw *raw = (VipsForeignLoadDcRaw *) load;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(raw);
+
+	int result;
+
+	raw->raw_processor = libraw_init(0);
+	if (!raw->raw_processor) {
+		vips_error(class->nickname, _("unable to initialize libraw"));
+		return -1;
+	}
+
+	if (raw->bitdepth != 8 &&
+		raw->bitdepth != 16) {
+		vips_error(class->nickname, "%s", _("bad bitdepth"));
+		return -1;
+	}
+	raw->raw_processor->params.output_bps = raw->bitdepth;
+
+	/* Apply camera white balance.
 	 */
-	g_object_get(load, "out", &x, NULL);
-	g_object_unref(x);
-	g_object_unref(x);
+	raw->raw_processor->params.use_camera_wb = 1;
 
-	g_object_set(load, "out", image, NULL);
+	/* We can use the libraw file interface for filename sources. This
+	 * interface can often read more metadata, since it can open secondary
+	 * files.
+	 */
+	if (vips_source_is_file(raw->source)) {
+		const char *filename =
+			vips_connection_filename(VIPS_CONNECTION(raw->source));
+
+		result = libraw_open_file(raw->raw_processor, filename);
+	}
+	else {
+		size_t length;
+		const void *data;
+
+		if (!(data = vips_source_map(raw->source, &length)))
+			return -1;
+		result = libraw_open_buffer(raw->raw_processor, data, length);
+	}
+	if (result != LIBRAW_SUCCESS) {
+		vips_foreign_load_dcraw_error(raw, _("unable to read"), result);
+		return -1;
+	}
+
+	vips_image_init_fields(load->out,
+		raw->raw_processor->sizes.iwidth, raw->raw_processor->sizes.iheight, 3,
+		raw->bitdepth > 8 ?
+			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE,
+		raw->bitdepth > 8 ?
+			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB,
+		1.0, 1.0);
+
+	vips_foreign_load_dcraw_set_metadata(raw, load->out);
+
+	return 0;
+}
+
+static int
+vips_foreign_load_dcraw_load(VipsForeignLoad *load)
+{
+	VipsForeignLoadDcRaw *raw = (VipsForeignLoadDcRaw *) load;
+
+	int result;
+
+	g_assert(raw->raw_processor);
+
+	result = libraw_unpack(raw->raw_processor);
+	if (result != LIBRAW_SUCCESS) {
+		vips_foreign_load_dcraw_error(raw, _("unable to unpack"), result);
+		return -1;
+	}
+
+	/* Process the image (demosaicing, white balance, etc.).
+	 */
+	result = libraw_dcraw_process(raw->raw_processor);
+	if (result != LIBRAW_SUCCESS) {
+		vips_foreign_load_dcraw_error(raw, _("unable to process"), result);
+		return -1;
+	}
+
+	if (!(raw->processed =
+			libraw_dcraw_make_mem_image(raw->raw_processor, &result))) {
+		vips_foreign_load_dcraw_error(raw, _("unable to build image"), result);
+		return -1;
+	}
+
+	VipsImage *image;
+	if (!(image = vips_image_new_from_memory(
+		raw->processed->data, raw->processed->data_size,
+		raw->processed->width, raw->processed->height,
+		raw->processed->colors,
+		raw->bitdepth > 8 ?
+			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR)))
+		return -1;
+	image->Type = raw->bitdepth > 8 ?
+		VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
+	vips_foreign_load_dcraw_set_metadata(raw, image);
+
+	/* We must only free the memory when the image closes.
+	 */
+	g_signal_connect(image, "close",
+		G_CALLBACK(vips_foreign_load_dcraw_close), raw->processed);
+	raw->processed = NULL;
+
+	if (vips_image_write(image, load->real)) {
+		VIPS_UNREF(image);
+		return -1;
+	}
+
+	VIPS_UNREF(image);
 
 	return 0;
 }
@@ -264,10 +282,11 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_dcraw_dispose;
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "dcrawload_base";
 	object_class->description = _("load RAW camera files");
-	object_class->build = vips_foreign_load_dcraw_build;
 
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
@@ -279,12 +298,20 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 
 	load_class->get_flags = vips_foreign_load_dcraw_get_flags;
 	load_class->header = vips_foreign_load_dcraw_header;
-	load_class->load = NULL;
+	load_class->load = vips_foreign_load_dcraw_load;
+
+	VIPS_ARG_INT(class, "bitdepth", 12,
+		_("Bit depth"),
+		_("Number of bits per pixel"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, bitdepth),
+		8, 16, 8);
 }
 
 static void
 vips_foreign_load_dcraw_init(VipsForeignLoadDcRaw *raw)
 {
+	raw->bitdepth = 8;
 }
 
 typedef struct _VipsForeignLoadDcRawFile {
