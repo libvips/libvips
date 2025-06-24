@@ -154,14 +154,13 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		g_date_time_unref(dt);
 	}
 
-	if (raw->raw_processor->idata.xmpdata) {
-		unsigned int len = raw->raw_processor->idata.xmplen;
-		char *data = vips_malloc(image, len);
+	if (raw->raw_processor->idata.xmpdata)
+		vips_image_set_blob_copy(image, VIPS_META_XMP_NAME,
+			raw->raw_processor->idata.xmpdata,
+			raw->raw_processor->idata.xmplen);
 
-		memcpy(data, raw->raw_processor->idata.xmpdata, len);
-		vips_image_set_blob(image, VIPS_META_XMP_NAME,
-			(VipsCallbackFn) g_free, data, len);
-	}
+	vips_image_set_string(image, "raw-lens",
+		raw->raw_processor->lens.Lens);
 
 }
 
