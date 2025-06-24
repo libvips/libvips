@@ -162,6 +162,11 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	vips_image_set_string(image, "raw-lens",
 		raw->raw_processor->lens.Lens);
 
+	if (raw->raw_processor->color.profile)
+		vips_image_set_blob_copy(image, VIPS_META_ICC_NAME,
+			raw->raw_processor->color.profile,
+			raw->raw_processor->color.profile_length);
+
 }
 
 static int
