@@ -130,6 +130,8 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		raw->raw_processor->idata.make);
 	vips_image_set_string(image, "raw-model",
 		raw->raw_processor->idata.model);
+	vips_image_set_string(image, "raw-software",
+		raw->raw_processor->idata.software);
 	vips_image_set_double(image, "raw-iso",
 		raw->raw_processor->other.iso_speed);
 	vips_image_set_double(image, "raw-shutter",
@@ -151,6 +153,16 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 		g_date_time_unref(dt);
 	}
+
+	if (raw->raw_processor->idata.xmpdata) {
+		unsigned int len = raw->raw_processor->idata.xmplen;
+		char *data = vips_malloc(image, len);
+
+		memcpy(data, raw->raw_processor->idata.xmpdata, len);
+		vips_image_set_blob(image, VIPS_META_XMP_NAME,
+			(VipsCallbackFn) g_free, data, len);
+	}
+
 }
 
 static int
@@ -202,7 +214,9 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 	}
 
 	vips_image_init_fields(load->out,
-		raw->raw_processor->sizes.iwidth, raw->raw_processor->sizes.iheight, 3,
+		raw->raw_processor->sizes.iwidth,
+		raw->raw_processor->sizes.iheight,
+		raw->raw_processor->idata.colors,
 		raw->bitdepth > 8 ?
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
