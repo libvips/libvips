@@ -332,6 +332,64 @@ vips_foreign_load_dcraw_init(VipsForeignLoadDcRaw *raw)
 	raw->bitdepth = 8;
 }
 
+typedef struct _VipsForeignLoadDcRawSource {
+	VipsForeignLoadDcRaw parent_object;
+
+	/* Load from a source.
+	 */
+	VipsSource *source;
+
+} VipsForeignLoadDcRawSource;
+
+typedef VipsForeignLoadDcRawClass VipsForeignLoadDcRawSourceClass;
+
+G_DEFINE_TYPE(VipsForeignLoadDcRawSource, vips_foreign_load_dcraw_source,
+	vips_foreign_load_dcraw_get_type());
+
+static int
+vips_foreign_load_dcraw_source_build(VipsObject *object)
+{
+	VipsForeignLoadDcRaw *dcraw = (VipsForeignLoadDcRaw *) object;
+	VipsForeignLoadDcRawSource *source = (VipsForeignLoadDcRawSource *) object;
+
+	if (source->source) {
+		dcraw->source = source->source;
+		g_object_ref(dcraw->source);
+	}
+
+	return VIPS_OBJECT_CLASS(vips_foreign_load_dcraw_source_parent_class)
+		->build(object);
+}
+
+static void
+vips_foreign_load_dcraw_source_class_init(
+	VipsForeignLoadDcRawSourceClass *class)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "dcrawload_source";
+	object_class->build = vips_foreign_load_dcraw_source_build;
+
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
+
+	VIPS_ARG_OBJECT(class, "source", 1,
+		_("Source"),
+		_("Source to load from"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadDcRawSource, source),
+		VIPS_TYPE_SOURCE);
+}
+
+static void
+vips_foreign_load_dcraw_source_init(VipsForeignLoadDcRawSource *source)
+{
+}
+
 typedef struct _VipsForeignLoadDcRawFile {
 	VipsForeignLoadDcRaw parent_object;
 
@@ -378,7 +436,6 @@ vips_foreign_load_dcraw_file_class_init(VipsForeignLoadDcRawFileClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "dcrawload";
-	object_class->description = _("load RAW with libraw");
 	object_class->build = vips_foreign_load_dcraw_file_build;
 
 	foreign_class->suffs = vips_foreign_dcraw_suffs;
@@ -399,6 +456,62 @@ vips_foreign_load_dcraw_file_init(VipsForeignLoadDcRawFile *file)
 {
 }
 
+typedef struct _VipsForeignLoadRawBuffer {
+	VipsForeignLoadDcRaw parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsBlob *blob;
+
+} VipsForeignLoadDcRawBuffer;
+
+typedef VipsForeignLoadDcRawClass VipsForeignLoadDcRawBufferClass;
+
+G_DEFINE_TYPE(VipsForeignLoadDcRawBuffer, vips_foreign_load_dcraw_buffer,
+	vips_foreign_load_dcraw_get_type());
+
+static int
+vips_foreign_load_dcraw_buffer_build(VipsObject *object)
+{
+	VipsForeignLoadDcRaw *raw = (VipsForeignLoadDcRaw *) object;
+	VipsForeignLoadDcRawBuffer *buffer = (VipsForeignLoadDcRawBuffer *) object;
+
+	if (buffer->blob &&
+		!(raw->source = vips_source_new_from_memory(
+			  VIPS_AREA(buffer->blob)->data,
+			  VIPS_AREA(buffer->blob)->length)))
+		return -1;
+
+	return VIPS_OBJECT_CLASS(vips_foreign_load_dcraw_buffer_parent_class)
+		->build(object);
+}
+
+static void
+vips_foreign_load_dcraw_buffer_class_init(
+	VipsForeignLoadDcRawBufferClass *class)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "rawload_buffer";
+	object_class->build = vips_foreign_load_dcraw_buffer_build;
+
+	VIPS_ARG_BOXED(class, "buffer", 1,
+		_("Buffer"),
+		_("Buffer to load from"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadDcRawBuffer, blob),
+		VIPS_TYPE_BLOB);
+}
+
+static void
+vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
+{
+}
+
 #endif /*HAVE_LIBRAW*/
 
 /**
@@ -409,11 +522,16 @@ vips_foreign_load_dcraw_file_init(VipsForeignLoadDcRawFile *file)
  *
  * Read a RAW camera file using LibRaw.
  *
- * This loader supports the most RAW formats including:
- * ARW, CR2, CR3, CRW, DNG, NEF, NRW, ORF, PEF, RAF, RAW, RW2, SRW, X3F, ...
+ * This loader supports the most RAW formats, including
+ * ARW, CR2, CR3, CRW, DNG, NEF, NRW, ORF, PEF, RAF, RAW, RW2, SRW, X3F, and
+ * many others.
  *
  * The loader applies demosaicing and basic processing to produce an RGB or
- * grayscale image suitable for further processing.
+ * grayscale image suitable for further processing. It attaches XMP and ICC
+ * metadata, if present.
+ *
+ * ::: tip "Optional arguments"
+ *     * @bitdepth: `gint`, load as 8 or 16 bit data
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -426,6 +544,72 @@ vips_dcrawload(const char *filename, VipsImage **out, ...)
 	va_start(ap, out);
 	result = vips_call_split("dcrawload", ap, filename, out);
 	va_end(ap);
+
+	return result;
+}
+
+/**
+ * vips_dcrawload_source:
+ * @source: source to load from
+ * @out: (out): image to write
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Exactly as [ctor@Image.dcrawload], but read from a source.
+ *
+ * ::: tip "Optional arguments"
+ *     * @bitdepth: `gint`, load as 8 or 16 bit data
+ *
+ * ::: seealso
+ *     [ctor@Image.dcrawload].
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_dcrawload_source(VipsSource *source, VipsImage **out, ...)
+{
+	va_list ap;
+	int result;
+
+	va_start(ap, out);
+	result = vips_call_split("dcrawload_source", ap, source, out);
+	va_end(ap);
+
+	return result;
+}
+
+/**
+ * vips_dcrawload_buffer:
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): output image
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Exactly as [ctor@Image.dcrawload], but read from a buffer.
+ *
+ * ::: tip "Optional arguments"
+ *     * @bitdepth: `gint`, load as 8 or 16 bit data
+ *
+ * ::: seealso
+ *     [ctor@Image.dcrawload].
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_dcrawload_buffer(void *buf, size_t len, VipsImage **out, ...)
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new(NULL, buf, len);
+
+	va_start(ap, out);
+	result = vips_call_split("dcrawload_buffer", ap, blob, out);
+	va_end(ap);
+
+	vips_area_unref(VIPS_AREA(blob));
 
 	return result;
 }
