@@ -186,22 +186,21 @@ vips_foreign_save_tiff_build(VipsObject *object)
 		vips_isprefix("in", p))
 		resunit = VIPS_FOREIGN_TIFF_RESUNIT_INCH;
 
-	double xres;
-	xres = ready->Xres;
-	if (vips_object_argument_isset(object, "xres")) {
-		if (resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH)
-			xres = tiff->xres * 25.4;
-		else
-			xres = tiff->xres * 10.0;
-	}
+	double xres = vips_object_argument_isset(object, "xres")
+		? tiff->xres
+		: ready->Xres;
 
-	double yres;
-	yres = ready->Yres;
-	if (vips_object_argument_isset(object, "yres")) {
-		if (resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH)
-			yres = tiff->yres * 25.4;
-		else
-			yres = tiff->yres * 10.0;
+	double yres = vips_object_argument_isset(object, "yres")
+		? tiff->yres
+		: ready->Yres;
+
+	if (tiff->resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH) {
+		xres *= 25.4;
+		yres *= 25.4;
+	}
+	else {
+		xres *= 10.0;
+		yres *= 10.0;
 	}
 
 	if (vips__tiff_write_target(ready, tiff->target,
