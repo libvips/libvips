@@ -117,7 +117,7 @@ vips_foreign_load_dcraw_close(VipsImage *image,
 	VIPS_FREEF(libraw_dcraw_clear_mem, processed);
 }
 
-static void
+static int
 vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	VipsImage *image)
 {
@@ -167,6 +167,62 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 			raw->raw_processor->color.profile,
 			raw->raw_processor->color.profile_length);
 
+	/* Search the available thumbnails for the largest that's smaller than
+	 * the main image and has a known type.
+	 */
+	libraw_image_sizes_t *sizes = &raw->raw_processor->sizes;
+	libraw_thumbnail_list_t *thumbs_list = &raw->raw_processor->thumbs_list;
+
+	int thumb_index;
+
+	thumb_index = -1;
+	for (int i = 0; i < thumbs_list->thumbcount; i++) {
+		libraw_thumbnail_item_t *best = thumb_index == -1 ?
+			NULL : &thumbs_list->thumblist[thumb_index];
+		libraw_thumbnail_item_t *this = &thumbs_list->thumblist[i];
+
+		// only support JPEG thumbnails for now
+		if (this->tformat != LIBRAW_INTERNAL_THUMBNAIL_JPEG)
+			continue;
+
+		// useless thumbnails the same size as the main image are very
+		// common
+		if (this->twidth >= sizes->iwidth &&
+			this->theight >= sizes->iheight)
+			continue;
+
+		// must be 8-bit, must match the main image in bands
+		int bpp = this->tmisc & ((1 << 5) - 1);
+		int bands = this->tmisc >> 5;
+		if (bpp != 8 ||
+			bands != raw->raw_processor->idata.colors)
+			continue;
+
+		// size must be sane (under 1mb).
+		if (this->tlength > 1024 * 1024)
+			continue;
+
+		if (!best ||
+			this->twidth > best->twidth ||
+			this->theight > best->theight)
+			thumb_index = i;
+	}
+
+	if (thumb_index != -1) {
+		int result;
+		result = libraw_unpack_thumb_ex(raw->raw_processor, thumb_index);
+		if (result != LIBRAW_SUCCESS) {
+			vips_foreign_load_dcraw_error(raw,
+				_("unable to unpack thumbnail"), result);
+			return -1;
+		}
+
+		vips_image_set_blob_copy(image, "raw-thumbnail-data",
+			raw->raw_processor->thumbnail.thumb,
+			raw->raw_processor->thumbnail.tlength);
+	}
+
+	return 0;
 }
 
 static int
@@ -179,7 +235,7 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 
 	raw->raw_processor = libraw_init(0);
 	if (!raw->raw_processor) {
-		vips_error(class->nickname, _("unable to initialize libraw"));
+		vips_error(class->nickname, "%s", _("unable to initialize libraw"));
 		return -1;
 	}
 
@@ -224,11 +280,12 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 		raw->bitdepth > 8 ?
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
-		raw->bitdepth > 8 ?
-			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB,
+		VIPS_INTERPRETATION_ERROR,
 		1.0, 1.0);
+	load->out->Type = vips_image_guess_interpretation(load->out);
 
-	vips_foreign_load_dcraw_set_metadata(raw, load->out);
+	if (vips_foreign_load_dcraw_set_metadata(raw, load->out))
+		return -1;
 
 	return 0;
 }
@@ -270,11 +327,14 @@ vips_foreign_load_dcraw_load(VipsForeignLoad *load)
 		raw->bitdepth > 8 ?
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR)))
 		return -1;
-	image->Type = raw->bitdepth > 8 ?
-		VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
-	vips_foreign_load_dcraw_set_metadata(raw, image);
+	image->Type = vips_image_guess_interpretation(image);
 
-	/* We must only free the memory when the image closes.
+	if (vips_foreign_load_dcraw_set_metadata(raw, image)) {
+		VIPS_UNREF(image);
+		return -1;
+	}
+
+	/* We must only free the memory when this image closes.
 	 */
 	g_signal_connect(image, "close",
 		G_CALLBACK(vips_foreign_load_dcraw_close), raw->processed);
@@ -324,6 +384,7 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, bitdepth),
 		8, 16, 8);
+
 }
 
 static void
