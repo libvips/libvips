@@ -422,6 +422,12 @@ vips_foreign_load_dcraw_source_build(VipsObject *object)
 		->build(object);
 }
 
+static gboolean
+vips_foreign_load_dcrawload_source_is_a_source(VipsSource *source)
+{
+	return FALSE;
+}
+
 static void
 vips_foreign_load_dcraw_source_class_init(
 	VipsForeignLoadDcRawSourceClass *class)
@@ -429,6 +435,7 @@ vips_foreign_load_dcraw_source_class_init(
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -437,6 +444,8 @@ vips_foreign_load_dcraw_source_class_init(
 	object_class->build = vips_foreign_load_dcraw_source_build;
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
+
+	load_class->is_a_source = vips_foreign_load_dcrawload_source_is_a_source;
 
 	VIPS_ARG_OBJECT(class, "source", 1,
 		_("Source"),
@@ -547,18 +556,27 @@ vips_foreign_load_dcraw_buffer_build(VipsObject *object)
 		->build(object);
 }
 
+static gboolean
+vips_foreign_load_dcrawload_buffer_is_a_buffer(const void *buf, size_t len)
+{
+	return FALSE;
+}
+
 static void
 vips_foreign_load_dcraw_buffer_class_init(
 	VipsForeignLoadDcRawBufferClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "dcrawload_buffer";
 	object_class->build = vips_foreign_load_dcraw_buffer_build;
+
+	load_class->is_a_buffer = vips_foreign_load_dcrawload_buffer_is_a_buffer;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,
 		_("Buffer"),
