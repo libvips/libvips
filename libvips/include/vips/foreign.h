@@ -878,6 +878,12 @@ int vips_gifsave_target(VipsImage *in, VipsTarget *target, ...)
 VIPS_API
 int vips_dcrawload(const char *filename, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_dcrawload_buffer(void *buf, size_t len, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_dcrawload_source(VipsSource *source, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
 int vips_heifload(const char *filename, VipsImage **out, ...)

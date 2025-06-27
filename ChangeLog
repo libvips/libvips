@@ -1,6 +1,7 @@
 master
 
-- add dcrawload: load raw camera files using libraw [lxsameer]
+- add dcrawload, dcrawload_source, dcrawload_buffer: load raw camera files
+  using libraw [lxsameer]
 
 8.17.1
 
