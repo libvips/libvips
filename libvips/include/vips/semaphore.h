@@ -53,11 +53,7 @@ typedef struct {
 	int v;
 
 	GMutex mutex;
-
-	/* FIXME: sizeof(GCond) != sizeof(GCond *)
-	 * https://gitlab.gnome.org/GNOME/glib/-/issues/1256
-	 */
-	GCond *cond;
+	GCond cond;
 } VipsSemaphore;
 
 VIPS_API
