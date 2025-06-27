@@ -52,11 +52,11 @@
 		VIPS_TYPE_FOREIGN_LOAD_DCRAW, VipsForeignLoadDcRaw))
 
 static const char *vips_foreign_dcraw_suffs[] = {
-	".arw", ".cr2", ".cr3", ".crw", ".dng", ".nef", ".nrw",
-	".orf", ".pef", ".raf", ".raw", ".rw2", ".srw", ".x3f",
-	".erf", ".kdc", ".mdc", ".mos", ".pxn", ".srf",
-	".3fr", ".ari", ".cap", ".cin", ".dcr", ".fff", ".iiq", ".k25",
-	".mrw", ".ori", ".rwl", ".sr2", NULL
+	".3fr", ".ari", ".arw", ".cap", ".cin", ".cr2", ".cr3",
+	".crw", ".dcr", ".dng", ".erf", ".fff", ".iiq", ".k25",
+	".kdc", ".mdc", ".mos", ".mrw", ".nef", ".nrw", ".orf",
+	".ori", ".pef", ".pxn", ".raf", ".raw", ".rw2", ".rwl",
+	".sr2", ".srf", ".srw", ".x3f", NULL
 };
 
 typedef struct _VipsForeignLoadDcRaw {
