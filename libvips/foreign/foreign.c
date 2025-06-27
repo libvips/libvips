@@ -1643,7 +1643,17 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	/* Convert to the format the saver likes.
 	 */
 	if (in->Coding == VIPS_CODING_NONE) {
-		if (vips_cast(in, &out, format[in->BandFmt], NULL)) {
+		/* If the saver does not support 16-bit output, automatically
+		 * shift it down. This is the behaviour we want for saving an
+		 * RGB16 image as JPEG, for example.
+		 */
+		gboolean needs_shift =
+			!vips_band_format_is8bit(in->BandFmt) &&
+			vips_band_format_is8bit(format[in->BandFmt]);
+
+		if (vips_cast(in, &out, format[in->BandFmt],
+			"shift", needs_shift,
+			NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
@@ -3054,6 +3064,10 @@ vips_foreign_operation_init(void)
 	extern GType vips_foreign_save_cgif_buffer_get_type(void);
 	extern GType vips_foreign_save_cgif_target_get_type(void);
 
+	extern GType vips_foreign_load_dcraw_file_get_type(void);
+	extern GType vips_foreign_load_dcraw_buffer_get_type(void);
+	extern GType vips_foreign_load_dcraw_source_get_type(void);
+
 	vips_foreign_load_csv_file_get_type();
 	vips_foreign_load_csv_source_get_type();
 	vips_foreign_save_csv_file_get_type();
@@ -3141,6 +3155,12 @@ vips_foreign_operation_init(void)
 	vips_foreign_load_nsgif_buffer_get_type();
 	vips_foreign_load_nsgif_source_get_type();
 #endif /*HAVE_NSGIF*/
+
+#ifdef HAVE_LIBRAW
+	vips_foreign_load_dcraw_file_get_type();
+	vips_foreign_load_dcraw_buffer_get_type();
+	vips_foreign_load_dcraw_source_get_type();
+#endif /*HAVE_LIBRAW*/
 
 #ifdef HAVE_CGIF
 	vips_foreign_save_cgif_file_get_type();

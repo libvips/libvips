@@ -509,15 +509,23 @@ class TestForeign:
         assert (self.rgba - after).abs().max() == 0
 
         # we should be able to save an 8-bit image as a 16-bit PNG
-        rgb = pyvips.Image.new_from_file(JPEG_FILE)
-        data = rgb.pngsave_buffer(bitdepth=16)
+        data = self.colour.pngsave_buffer(bitdepth=16)
         rgb16 = pyvips.Image.pngload_buffer(data)
         assert rgb16.format == "ushort"
 
-        # we should be able to save a 16-bit image as a 8-bit PNG
+        # we should be able to save a 16-bit image as an 8-bit PNG
         data = rgb16.pngsave_buffer(bitdepth=8)
         rgb = pyvips.Image.pngload_buffer(data)
         assert rgb.format == "uchar"
+
+        # we should be able to save a 16-bit image as an 8-bit WebP
+        if have("webpsave"):
+            data = rgb16.webpsave_buffer(lossless=True)
+            rgb = pyvips.Image.webpload_buffer(data)
+            assert rgb.format == "uchar"
+            # ... and check if it was correctly shifted down
+            # https://github.com/libvips/libvips/issues/4568
+            assert (self.colour - rgb).abs().max() == 0
 
     @skip_if_no("tiffload")
     def test_tiff(self):

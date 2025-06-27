@@ -1,5 +1,5 @@
 project('vips', 'c', 'cpp',
-    version: '8.17.1',
+    version: '8.18.0',
     meson_version: '>=0.55',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
@@ -23,9 +23,9 @@ version_patch = version_parts[2]
 # binary interface changed: increment current, reset revision to 0
 #   binary interface changes backwards compatible?: increment age
 #   binary interface changes not backwards compatible?: reset age to 0
-library_revision = 1
-library_current = 61
-library_age = 19
+library_revision = 0
+library_current = 62
+library_age = 20
 library_version = '@0@.@1@.@2@'.format(library_current - library_age, library_age, library_revision)
 darwin_versions = [library_current + 1, '@0@.@1@'.format(library_current + 1, library_revision)]
 
@@ -427,6 +427,12 @@ if openexr_dep.found()
     cfg_var.set('HAVE_OPENEXR', true)
 endif
 
+libraw_dep = dependency('libraw_r', required: get_option('raw'))
+if libraw_dep.found()
+    external_deps += libraw_dep
+    cfg_var.set('HAVE_LIBRAW', true)
+endif
+
 # 2.4 is the first one to have working threading and tiling
 libopenjp2_dep = dependency('libopenjp2', version: '>=2.4', required: get_option('openjpeg'))
 if libopenjp2_dep.found()
@@ -694,6 +700,7 @@ build_features = {
      'NIfTI load/save': ['libnifti', libnifti_found ? libnifti_dep : disabler()],
      'FITS load/save': ['cfitsio', cfitsio_dep],
      'GIF save': ['cgif', cgif_dep],
+     'RAW load': ['libraw', libraw_dep],
      'Magick @0@'.format('/'.join(get_option('magick-features'))): [get_option('magick-package'), magick_found ? magick_dep : disabler(), magick_module],
     },
 }

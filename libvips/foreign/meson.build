@@ -10,6 +10,7 @@ foreign_sources = files(
     'cgifsave.c',
     'csvload.c',
     'csvsave.c',
+    'dcrawload.c',
     'dzsave.c',
     'exif.c',
     'fits.c',
