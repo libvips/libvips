@@ -980,18 +980,30 @@ vips_foreign_load_magick7_source_header(VipsForeignLoad *load)
 	printf("vips_foreign_load_magick7_source_header: %p\n", load);
 #endif /*DEBUG*/
 
-	size_t length;
-	const void *data;
-	if (!(data = vips_source_map(magick7_source->source, &length)))
-		return -1;
+	if (vips_source_is_file(magick7_source->source)) {
+		const char *filename =
+			vips_connection_filename(VIPS_CONNECTION(magick7_source->source));
+
+		g_strlcpy(magick7->image_info->filename, filename, MaxTextExtent);
+		magick_sniff_file(magick7->image_info, filename);
+		magick7->image = ReadImage(magick7->image_info, magick7->exception);
+	}
+	else {
+		size_t length;
+		const void *data;
+
+		if (!(data = vips_source_map(magick7_source->source, &length)))
+			return -1;
+
+		magick_sniff_bytes(magick7->image_info, data, length);
+		magick7->image = BlobToImage(magick7->image_info, data, length,
+			magick7->exception);
+	}
 
 	/* It would be great if we could PingImage and just read the header,
 	 * but sadly many IM coders do not support ping. The critical one for
 	 * us is DICOM. TGA also has issues.
 	 */
-	magick_sniff_bytes(magick7->image_info, data, length);
-	magick7->image = BlobToImage(magick7->image_info, data, length,
-		magick7->exception);
 	if (!magick7->image) {
 		vips_foreign_load_magick7_error(magick7);
 		return -1;
