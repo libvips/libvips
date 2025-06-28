@@ -3000,8 +3000,10 @@ vips_foreign_operation_init(void)
 
 	extern GType vips_foreign_load_magick_file_get_type(void);
 	extern GType vips_foreign_load_magick_buffer_get_type(void);
+	extern GType vips_foreign_load_magick_source_get_type(void);
 	extern GType vips_foreign_load_magick7_file_get_type(void);
 	extern GType vips_foreign_load_magick7_buffer_get_type(void);
+	extern GType vips_foreign_load_magick7_source_get_type(void);
 
 	extern GType vips_foreign_save_magick_file_get_type(void);
 	extern GType vips_foreign_save_magick_buffer_get_type(void);
@@ -3234,11 +3236,13 @@ vips_foreign_operation_init(void)
 #ifdef HAVE_MAGICK6
 	vips_foreign_load_magick_file_get_type();
 	vips_foreign_load_magick_buffer_get_type();
+	vips_foreign_load_magick_source_get_type();
 #endif /*HAVE_MAGICK6*/
 
 #ifdef HAVE_MAGICK7
 	vips_foreign_load_magick7_file_get_type();
 	vips_foreign_load_magick7_buffer_get_type();
+	vips_foreign_load_magick7_source_get_type();
 #endif /*HAVE_MAGICK7*/
 #endif /*defined(ENABLE_MAGICKLOAD) && !defined(MAGICK_MODULE)*/
 

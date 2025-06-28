@@ -2,6 +2,7 @@ master
 
 - add dcrawload, dcrawload_source, dcrawload_buffer: load raw camera files
   using libraw [lxsameer]
+- add magickload_source: load from a source with imagemagick
 
 8.17.1
 
