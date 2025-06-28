@@ -1120,15 +1120,15 @@ vips_foreign_load_magick_source_header(VipsForeignLoad *load)
 		const char *filename =
 			vips_connection_filename(VIPS_CONNECTION(magick_source->source));
 
-		g_strlcpy(magick7->image_info->filename, filename, MagickPathExtent);
-		magick_sniff_file(magick7->image_info, filename);
-		magick7->image = ReadImage(magick7->image_info, magick7->exception);
+		g_strlcpy(magick->image_info->filename, filename, MagickPathExtent);
+		magick_sniff_file(magick->image_info, filename);
+		magick->image = ReadImage(magick->image_info, magick->exception);
 	}
 	else {
 		size_t length;
 		const void *data;
 
-		if (!(data = vips_source_map(raw->source, &length)))
+		if (!(data = vips_source_map(magick_source->source, &length)))
 			return -1;
 		magick_sniff_bytes(magick->image_info, data, length);
 		magick->image = BlobToImage(magick->image_info,
