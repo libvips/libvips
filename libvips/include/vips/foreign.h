@@ -716,6 +716,9 @@ VIPS_API
 int vips_magickload_buffer(void *buf, size_t len, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_magickload_source(VipsSource *source, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 int vips_magicksave(VipsImage *in, const char *filename, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API

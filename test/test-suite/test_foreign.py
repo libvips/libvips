@@ -806,6 +806,9 @@ class TestForeign:
 
         self.file_loader("magickload", BMP_FILE, bmp_valid)
         self.buffer_loader("magickload_buffer", BMP_FILE, bmp_valid)
+        source = pyvips.Source.new_from_file(BMP_FILE)
+        x = pyvips.Image.new_from_source(source, "")
+        bmp_valid(x)
 
         # we should have rgb or rgba for svg files ... different versions of
         # IM handle this differently. GM even gives 1 band.
@@ -877,10 +880,11 @@ class TestForeign:
         assert im.width == 433
         assert im.height == 433
 
-
         # load should see metadata like eg. icc profiles
         im = pyvips.Image.magickload(JPEG_FILE)
         assert len(im.get("icc-profile-data")) == 564
+
+        im = pyvips.Image.magickload(JPEG_FILE)
 
     # added in 8.7
     @skip_if_no("magicksave")
