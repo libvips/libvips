@@ -1091,7 +1091,7 @@ vips_foreign_load_magick_source_is_a_source(VipsSource *source)
 {
 	const unsigned char *p;
 
-	// just use the first 100 byes, we don't want to force too much into
+	// just use the first 100 bytes, we don't want to force too much into
 	// memory
 	return (p = vips_source_sniff(source, 100)) &&
 		magick_ismagick(p, 100);
