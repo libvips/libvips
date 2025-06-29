@@ -1765,9 +1765,15 @@ vips_enum_from_nick(const char *domain, GType type, const char *nick)
 	if ((enum_value = g_enum_get_value_by_nick(genum, nick)))
 		return enum_value->value;
 
-	/* -1 since we always have a "last" member.
+	/* Compat for "last" members. Assumes all enums define a `_LAST` value;
+	 * behaviour is undefined otherwise. Note that there could be potential
+	 * gaps in enum values (e.g. VipsInterpretation), so we cannot return
+	 * `genum->n_values` directly.
 	 */
-	for (i = 0; i < genum->n_values - 1; i++) {
+	if (nick && g_str_equal(nick, "last"))
+		return genum->values[genum->n_values - 1].value + 1;
+
+	for (i = 0; i < genum->n_values; i++) {
 		if (i > 0)
 			vips_buf_appends(&buf, ", ");
 		vips_buf_appends(&buf, genum->values[i].value_nick);

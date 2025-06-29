@@ -47,7 +47,7 @@ typedef enum {
 	VIPS_KERNEL_LANCZOS3,
 	VIPS_KERNEL_MKS2013,
 	VIPS_KERNEL_MKS2021,
-	VIPS_KERNEL_LAST
+	VIPS_KERNEL_LAST	/*< skip >*/
 } VipsKernel;
 
 typedef enum {
@@ -55,7 +55,7 @@ typedef enum {
 	VIPS_SIZE_UP,
 	VIPS_SIZE_DOWN,
 	VIPS_SIZE_FORCE,
-	VIPS_SIZE_LAST
+	VIPS_SIZE_LAST	/*< skip >*/
 } VipsSize;
 
 VIPS_API

@@ -342,9 +342,7 @@ vips_operation_pspec_usage(VipsBuf *buf, GParamSpec *pspec)
 		vips_buf_appendf(buf, "%s", _("allowed enums"));
 		vips_buf_appendf(buf, ": ");
 
-		/* -1 since we always have a "last" member.
-		 */
-		for (i = 0; i < genum->n_values - 1; i++) {
+		for (i = 0; i < genum->n_values; i++) {
 			if (i > 0)
 				vips_buf_appends(buf, ", ");
 			vips_buf_appends(buf, genum->values[i].value_nick);
