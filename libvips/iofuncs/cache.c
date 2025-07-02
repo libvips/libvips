@@ -890,6 +890,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 	 * it to the cache, if appropriate.
 	 */
 	if (!hit) {
+#ifdef DEBUG_LEAK
 		unsigned int hash_before = 0;
 		VipsOperation *operation_before = NULL;
 
@@ -900,10 +901,12 @@ vips_cache_operation_buildp(VipsOperation **operation)
 			hash_before = vips_operation_hash(*operation);
 			operation_before = vips_operation_copy(*operation);
 		}
+#endif /*DEBUG_LEAK*/
 
 		if (vips_object_build(VIPS_OBJECT(*operation)))
 			return -1;
 
+#ifdef DEBUG_LEAK
 		if (vips__leak &&
 			!(flags & VIPS_OPERATION_NOCACHE) &&
 			hash_before != vips_operation_hash(*operation)) {
@@ -929,6 +932,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 		}
 
 		VIPS_UNREF(operation_before);
+#endif /*DEBUG_LEAK*/
 
 		/* Retrieve the flags again, as vips_foreign_load_build() may
 		 * set load->nocache.
