@@ -11,6 +11,8 @@ master
 - tiff: use correct log domain in threadsafe warning handlers [kleisauke]
 - shift 16-bit output down to 8-bit when unsupported by saver [kleisauke]
 - text: prevent use of rgba subpixel anti-aliasing [lovell]
+- tiffsave: always apply resolution unit conversion [kleisauke]
+- cache: suppress invalidation errors in release builds [kleisauke]
 
 5/6/25 8.17.0
 
