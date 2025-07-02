@@ -456,6 +456,7 @@ vips_operation_copy_argument(VipsObject *object,
 	return NULL;
 }
 
+#ifdef DEBUG_LEAK
 static VipsOperation *
 vips_operation_copy(VipsOperation *operation)
 {
@@ -467,6 +468,7 @@ vips_operation_copy(VipsOperation *operation)
 
 	return new;
 }
+#endif /*DEBUG_LEAK*/
 
 static void *
 vips_object_unref_arg(VipsObject *object,
