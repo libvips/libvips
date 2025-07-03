@@ -431,6 +431,7 @@ vips_operation_equal(VipsOperation *a, VipsOperation *b)
 	return FALSE;
 }
 
+#ifdef DEBUG_LEAK
 static void *
 vips_operation_copy_argument(VipsObject *object,
 	GParamSpec *pspec,
@@ -456,7 +457,6 @@ vips_operation_copy_argument(VipsObject *object,
 	return NULL;
 }
 
-#ifdef DEBUG_LEAK
 static VipsOperation *
 vips_operation_copy(VipsOperation *operation)
 {
