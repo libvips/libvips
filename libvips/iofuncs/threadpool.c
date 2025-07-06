@@ -379,8 +379,6 @@ vips_thread_main_loop(void *a, void *b)
 	VipsWorker *worker = (VipsWorker *) a;
 	VipsThreadpool *pool = worker->pool;
 
-	g_assert(pool == worker->pool);
-
 	VIPS_GATE_START("vips_thread_main_loop: thread");
 
 	g_private_set(&worker_key, worker);
@@ -481,9 +479,6 @@ vips_threadpool_wait(VipsThreadpool *pool)
 static void
 vips_threadpool_free(VipsThreadpool *pool)
 {
-	VIPS_DEBUG_MSG("vips_threadpool_free: \"%s\" (%p)\n",
-		pool->im->filename, pool);
-
 	vips_threadpool_wait(pool);
 
 	g_mutex_clear(&pool->allocate_lock);
@@ -531,9 +526,6 @@ vips_threadpool_new(VipsImage *im)
 	 * concurrency.
 	 */
 	pool->max_workers = vips_image_get_concurrency(im, pool->max_workers);
-
-	VIPS_DEBUG_MSG("vips_threadpool_new: \"%s\" (%p), with %d threads\n",
-		im->filename, pool, pool->max_workers);
 
 	return pool;
 }
