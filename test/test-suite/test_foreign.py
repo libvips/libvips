@@ -1407,6 +1407,27 @@ class TestForeign:
         assert x.width == 256
         assert x.height == 256
 
+        # IIIF v2
+        im = pyvips.Image.black(3509, 2506, bands=3)
+        filename = temp_filename(self.tempdir, '')
+        im.dzsave(filename, layout="iiif")
+        assert os.path.exists(filename + "/info.json")
+        assert os.path.exists(filename + "/0,0,512,512/512,/0/default.jpg")
+        assert os.path.exists(filename + "/2560,2048,512,458/512,/0/default.jpg")
+        x = pyvips.Image.new_from_file(filename + "/full/439,/0/default.jpg")
+        assert x.width == 439
+        assert x.height == 314
+
+        # IIIF v3
+        filename = temp_filename(self.tempdir, '')
+        im.dzsave(filename, layout="iiif3")
+        assert os.path.exists(filename + "/info.json")
+        assert os.path.exists(filename + "/0,0,512,512/512,512/0/default.jpg")
+        assert os.path.exists(filename + "/2560,2048,512,458/512,458/0/default.jpg")
+        x = pyvips.Image.new_from_file(filename + "/full/439,314/0/default.jpg")
+        assert x.width == 439
+        assert x.height == 314
+
         # test zip output
         filename = temp_filename(self.tempdir, '.zip')
         self.colour.dzsave(filename)
