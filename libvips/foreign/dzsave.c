@@ -1212,6 +1212,9 @@ tile_name(Level *level, int x, int y)
 			save->ready->Xsize - left);
 		int height = VIPS_MIN(dz->tile_size * level->sub,
 			save->ready->Ysize - top);
+		gboolean is_region_full = left == 0 && top == 0 &&
+			width == save->ready->Xsize &&
+			height == save->ready->Ysize;
 
 		/* Rotation is always 0.
 		 */
@@ -1223,11 +1226,17 @@ tile_name(Level *level, int x, int y)
 			int ysize = VIPS_MIN(dz->tile_size,
 				level->height - y * dz->tile_size);
 
-			g_snprintf(subdir, VIPS_PATH_MAX,
-				"%d,%d,%d,%d" G_DIR_SEPARATOR_S "%d,%d" G_DIR_SEPARATOR_S "%d",
-				left, top, width, height,
-				xsize, ysize,
-				rotation);
+			if (is_region_full)
+				g_snprintf(subdir, VIPS_PATH_MAX,
+					"full" G_DIR_SEPARATOR_S "%d,%d" G_DIR_SEPARATOR_S "%d",
+					xsize, ysize,
+					rotation);
+			else
+				g_snprintf(subdir, VIPS_PATH_MAX,
+					"%d,%d,%d,%d" G_DIR_SEPARATOR_S "%d,%d" G_DIR_SEPARATOR_S "%d",
+					left, top, width, height,
+					xsize, ysize,
+					rotation);
 		}
 		else {
 			/* IIIF2 "size" is just real tile width, I think.
@@ -1235,11 +1244,17 @@ tile_name(Level *level, int x, int y)
 			int size = VIPS_MIN(dz->tile_size,
 				level->width - x * dz->tile_size);
 
-			g_snprintf(subdir, VIPS_PATH_MAX,
-				"%d,%d,%d,%d" G_DIR_SEPARATOR_S "%d," G_DIR_SEPARATOR_S "%d",
-				left, top, width, height,
-				size,
-				rotation);
+			if (is_region_full)
+				g_snprintf(subdir, VIPS_PATH_MAX,
+					"full" G_DIR_SEPARATOR_S "%d," G_DIR_SEPARATOR_S "%d",
+					size,
+					rotation);
+			else
+				g_snprintf(subdir, VIPS_PATH_MAX,
+					"%d,%d,%d,%d" G_DIR_SEPARATOR_S "%d," G_DIR_SEPARATOR_S "%d",
+					left, top, width, height,
+					size,
+					rotation);
 		}
 
 		g_snprintf(name, VIPS_PATH_MAX, "default%s", dz->file_suffix);

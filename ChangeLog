@@ -13,6 +13,7 @@ master
 - text: prevent use of rgba subpixel anti-aliasing [lovell]
 - tiffsave: always apply resolution unit conversion [kleisauke]
 - cache: suppress invalidation errors in release builds [kleisauke]
+- dzsave: IIIF: use named region of 'full' when no crop takes place [lovell]
 
 5/6/25 8.17.0
 
