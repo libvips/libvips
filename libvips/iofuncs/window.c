@@ -4,6 +4,8 @@
  *	- from region.c
  * 19/3/09
  *	- block mmaps of nodata images
+ * 6/7/25
+ *	- use much larger mmap windows to limit scrolling
  */
 
 /*
@@ -66,14 +68,11 @@
  */
 int vips__read_test;
 
-/* Add this many lines above and below the mmap() window.
+/* Add this many lines above and below the mmap() window. We only want to
+ * scroll windows when working with VERY large files. All modern machines have
+ * huge vmem limits.
  */
-int vips__window_margin_pixels = VIPS__WINDOW_MARGIN_PIXELS;
-
-/* Always map at least this many bytes. There's no point making tiny windows
- * on small files.
- */
-int vips__window_margin_bytes = VIPS__WINDOW_MARGIN_BYTES;
+int vips__window_margin_pixels = 20000;
 
 /* Track global mmap usage.
  */
@@ -343,8 +342,6 @@ vips_window_find(VipsImage *im, int top, int height)
 VipsWindow *
 vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 {
-	int margin;
-
 	/* We have a window and it has the pixels we need.
 	 */
 	if (window &&
@@ -384,13 +381,11 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 		return window;
 	}
 
-	/* We have to make a new window. Make it a bit bigger than strictly
-	 * necessary.
+	/* We have to make a new window. Add a margin to make sure we'll only
+	 * need to scroll on extremely large files.
 	 */
-	margin = VIPS_MIN(vips__window_margin_pixels,
-		vips__window_margin_bytes / VIPS_IMAGE_SIZEOF_LINE(im));
-	top -= margin;
-	height += margin * 2;
+	top -= vips__window_margin_pixels;
+	height += vips__window_margin_pixels * 2;
 	top = VIPS_CLIP(0, top, im->Ysize - 1);
 	height = VIPS_CLIP(0, height, im->Ysize - top);
 

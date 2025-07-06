@@ -3,6 +3,7 @@ master
 - add dcrawload, dcrawload_source, dcrawload_buffer: load raw camera files
   using libraw [lxsameer]
 - add magickload_source: load from a source with imagemagick
+- use much larger mmap windows to limit scrolling
 
 8.17.1
 
