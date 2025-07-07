@@ -601,12 +601,9 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 
 			/* 4 means RGBA.
 			 */
-			if (!(bitmap = FPDFBitmap_CreateEx(rect.width, rect.height, 4,
-					VIPS_REGION_ADDR(out_region, rect.left, rect.top),
-					VIPS_REGION_LSKIP(out_region)))) {
-				g_mutex_unlock(&vips_pdfium_mutex);
-				return -1;
-			}
+			bitmap = FPDFBitmap_CreateEx(rect.width, rect.height, 4,
+				VIPS_REGION_ADDR(out_region, rect.left, rect.top),
+				VIPS_REGION_LSKIP(out_region));
 
 			/* Only paint the background if there's no transparency.
 			 */
