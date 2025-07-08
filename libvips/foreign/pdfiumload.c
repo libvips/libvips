@@ -584,47 +584,53 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 
 	top = r->top;
 	while (top < VIPS_RECT_BOTTOM(r)) {
-		VipsRect rect;
 		FPDF_BITMAP bitmap;
 
+		/* Is the rect within this page? It might not be if the output is more
+		 * than one tile wide and this page is narrower.
+		 */
+		VipsRect rect;
 		vips_rect_intersectrect(r, &pdf->pages[i], &rect);
+		if (rect.width > 0 &&
+			rect.height > 0) {
 
-		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
-			return -1;
+			if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
+				return -1;
 
-		vips__worker_lock(&vips_pdfium_mutex);
+			vips__worker_lock(&vips_pdfium_mutex);
 
-		/* 4 means RGBA.
-		 */
-		bitmap = FPDFBitmap_CreateEx(rect.width, rect.height, 4,
-			VIPS_REGION_ADDR(out_region, rect.left, rect.top),
-			VIPS_REGION_LSKIP(out_region));
+			/* 4 means RGBA.
+			 */
+			bitmap = FPDFBitmap_CreateEx(rect.width, rect.height, 4,
+				VIPS_REGION_ADDR(out_region, rect.left, rect.top),
+				VIPS_REGION_LSKIP(out_region));
 
-		/* Only paint the background if there's no transparency.
-		 */
-		if (!FPDFPage_HasTransparency(pdf->page)) {
-			FPDF_DWORD ink = *((guint32 *) pdf->ink);
+			/* Only paint the background if there's no transparency.
+			 */
+			if (!FPDFPage_HasTransparency(pdf->page)) {
+				FPDF_DWORD ink = *((guint32 *) pdf->ink);
 
-			FPDFBitmap_FillRect(bitmap,
-				0, 0, rect.width, rect.height, ink);
+				FPDFBitmap_FillRect(bitmap,
+					0, 0, rect.width, rect.height, ink);
+			}
+
+			// pdfium writes bgra by default, we need rgba
+			FPDF_RenderPageBitmap(bitmap, pdf->page,
+				pdf->pages[i].left - rect.left,
+				pdf->pages[i].top - rect.top,
+				pdf->pages[i].width, pdf->pages[i].height,
+				0, FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER);
+
+			FPDF_FFLDraw(pdf->form, bitmap, pdf->page,
+				pdf->pages[i].left - rect.left,
+				pdf->pages[i].top - rect.top,
+				pdf->pages[i].width, pdf->pages[i].height,
+				0, FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER);
+
+			FPDFBitmap_Destroy(bitmap);
+
+			g_mutex_unlock(&vips_pdfium_mutex);
 		}
-
-		// pdfium writes bgra by default, we need rgba
-		FPDF_RenderPageBitmap(bitmap, pdf->page,
-			pdf->pages[i].left - rect.left,
-			pdf->pages[i].top - rect.top,
-			pdf->pages[i].width, pdf->pages[i].height,
-			0, FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER);
-
-		FPDF_FFLDraw(pdf->form, bitmap, pdf->page,
-			pdf->pages[i].left - rect.left,
-			pdf->pages[i].top - rect.top,
-			pdf->pages[i].width, pdf->pages[i].height,
-			0, FPDF_ANNOT | FPDF_REVERSE_BYTE_ORDER);
-
-		FPDFBitmap_Destroy(bitmap);
-
-		g_mutex_unlock(&vips_pdfium_mutex);
 
 		top += rect.height;
 		i += 1;
