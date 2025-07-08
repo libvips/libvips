@@ -377,10 +377,6 @@ char *vips__disc_threshold = NULL;
  */
 static GMutex vips__minimise_lock;
 
-/* Set to hint access mode.
- */
-static GQuark vips_image_access_quark = 0;
-
 static guint vips_image_signals[SIG_LAST] = { 0 };
 
 G_DEFINE_TYPE(VipsImage, vips_image, VIPS_TYPE_OBJECT);
@@ -1307,8 +1303,6 @@ vips_image_class_init(VipsImageClass *class)
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0);
-
-	vips_image_access_quark = g_quark_from_static_string("vips-image-access");
 }
 
 static void
@@ -3927,25 +3921,4 @@ vips__view_image(VipsImage *image)
 	vips_area_unref(VIPS_AREA(array));
 
 	return result;
-}
-
-/* Set and get the vips image access hint. -1 for no hint set.
- *
- * This is used by foreign.c to enable large mmap windows.
- */
-
-void
-vips__image_set_access(VipsImage *image, VipsAccess access)
-{
-	void *data = GINT_TO_POINTER(access + 1);
-
-	g_object_set_qdata(G_OBJECT(image), vips_image_access_quark, data);
-}
-
-VipsAccess
-vips__image_get_access(VipsImage *image)
-{
-	void *data = g_object_get_qdata(G_OBJECT(image), vips_image_access_quark);
-
-	return (VipsAccess) (GPOINTER_TO_INT(data) - 1);
 }

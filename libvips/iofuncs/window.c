@@ -68,10 +68,14 @@
  */
 int vips__read_test;
 
-/* Add this many lines above and below the mmap() window. We only want to
- * scroll windows when working with VERY large files.
+/* The window size we aim for.
+ *
+ * Large enough to hold the needed pixels, then expanded up to this size. 10MB
+ * on a 32-bit machine (since VMEM is limited), 10gb on a 64-bit machine (since
+ * the VMEM limit will be extremely large).
  */
-int vips__window_margin_pixels = 128;
+static gint64 vips__window_bytes =
+	(gint64) 1024 * 1024 * (sizeof(size_t) > 4 ? 10000 : 10);
 
 /* Track global mmap usage.
  */
@@ -380,18 +384,22 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 		return window;
 	}
 
-	/* Map the whole file in RANDOM mode.
+	/* Add a margin around our window to try to reduce window scrolling.
+	 *
+	 * This will be very large on 64-bit machines, but rather small on 32-bits.
 	 */
-	if (vips__image_get_access(im) == VIPS_ACCESS_RANDOM) {
-		top = 0;
-		height = im->Ysize;
-	}
-	else {
-		top -= vips__window_margin_pixels;
-		height += vips__window_margin_pixels * 2;
-		top = VIPS_CLIP(0, top, im->Ysize - 1);
-		height = VIPS_CLIP(0, height, im->Ysize - top);
-	}
+	gint64 line_bytes = VIPS_IMAGE_SIZEOF_LINE(im);
+	gint64 window_bytes = height * line_bytes;
+	gint64 margin_bytes =
+		(VIPS_MAX(window_bytes, vips__window_bytes) - window_bytes) / 2;
+	gint64 margin_lines = VIPS_MAX(0, margin_bytes / line_bytes);
+
+	top -= margin_lines;
+	height += margin_lines * 2;
+	top = VIPS_CLIP(0, top, im->Ysize - 1);
+	height = VIPS_CLIP(0, height, im->Ysize - top);
+
+	printf("vips_window_take: top = %d, height = %d\n", top, height);
 
 	if (!(window = vips_window_new(im, top, height))) {
 		g_mutex_unlock(&im->sslock);
