@@ -1023,7 +1023,7 @@ vips_foreign_load_start(VipsImage *out, void *a, void *b)
 
 		/* If we rewind the image, we want to reopen in random access mode.
 		 *
-		 * Lazy open is always used to get RANDOM iamges, and the random hint
+		 * Lazy open is always used to get RANDOM images, and the random hint
 		 * on a vips image enables fully mmaped files.
 		 */
 		vips__image_set_access(load->real, VIPS_ACCESS_RANDOM);
