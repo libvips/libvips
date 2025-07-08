@@ -203,9 +203,6 @@ vips__worker_exit(void)
 {
 	Render *render = (Render *) g_private_get(&render_worker_key);
 
-	if (render && render->shutdown)
-		printf("vips__worker_exit: early exit for render %p\n", render);
-
 	return render && render->shutdown;
 }
 
