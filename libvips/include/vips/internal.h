@@ -239,6 +239,9 @@ extern GMutex vips__global_lock;
 
 int vips_image_written(VipsImage *image);
 
+void vips__image_set_access(VipsImage *image, VipsAccess access);
+VipsAccess vips__image_get_access(VipsImage *image);
+
 /* Defined in `vips.h`, unless building with `-Ddeprecated=false`
  */
 #if !VIPS_ENABLE_DEPRECATED

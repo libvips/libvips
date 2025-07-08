@@ -69,10 +69,9 @@
 int vips__read_test;
 
 /* Add this many lines above and below the mmap() window. We only want to
- * scroll windows when working with VERY large files. All modern machines have
- * huge vmem limits.
+ * scroll windows when working with VERY large files.
  */
-int vips__window_margin_pixels = 20000;
+int vips__window_margin_pixels = 128;
 
 /* Track global mmap usage.
  */
@@ -381,13 +380,18 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 		return window;
 	}
 
-	/* We have to make a new window. Add a margin to make sure we'll only
-	 * need to scroll on extremely large files.
+	/* Map the whole file in RANDOM mode.
 	 */
-	top -= vips__window_margin_pixels;
-	height += vips__window_margin_pixels * 2;
-	top = VIPS_CLIP(0, top, im->Ysize - 1);
-	height = VIPS_CLIP(0, height, im->Ysize - top);
+	if (vips__image_get_access(im) == VIPS_ACCESS_RANDOM) {
+		top = 0;
+		height = im->Ysize;
+	}
+	else {
+		top -= vips__window_margin_pixels;
+		height += vips__window_margin_pixels * 2;
+		top = VIPS_CLIP(0, top, im->Ysize - 1);
+		height = VIPS_CLIP(0, height, im->Ysize - top);
+	}
 
 	if (!(window = vips_window_new(im, top, height))) {
 		g_mutex_unlock(&im->sslock);

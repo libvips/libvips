@@ -357,19 +357,19 @@ static GQuark vips__foreign_load_operation = 0;
  *
  * Some hints about the image loader.
  *
- * [flags@Vips.ForeignFlags.PARTIAL] means that the image can be read directly from the
- * file without needing to be unpacked to a temporary image first.
+ * [flags@Vips.ForeignFlags.PARTIAL] means that the image can be read directly
+ * from the file without needing to be unpacked to a temporary image first.
  *
- * [flags@Vips.ForeignFlags.SEQUENTIAL] means that the loader supports lazy reading, but
- * only top-to-bottom (sequential) access. Formats like PNG can read sets of
- * scanlines, for example, but only in order.
+ * [flags@Vips.ForeignFlags.SEQUENTIAL] means that the loader supports lazy
+ * reading, but only top-to-bottom (sequential) access. Formats like PNG can
+ * read sets of scanlines, for example, but only in order.
  *
  * If neither PARTIAL or SEQUENTIAL is set, the loader only supports whole
  * image read. Setting both PARTIAL and SEQUENTIAL is an error.
  *
- * [flags@Vips.ForeignFlags.BIGENDIAN] means that image pixels are most-significant byte
- * first. Depending on the native byte order of the host machine, you may
- * need to swap bytes. See [method@Image.copy].
+ * [flags@Vips.ForeignFlags.BIGENDIAN] means that image pixels are
+ * most-significant byte first. Depending on the native byte order of the
+ * host machine, you may need to swap bytes. See [method@Image.copy].
  */
 
 G_DEFINE_ABSTRACT_TYPE(VipsForeign, vips_foreign, VIPS_TYPE_OPERATION);
@@ -1020,6 +1020,13 @@ vips_foreign_load_start(VipsImage *out, void *a, void *b)
 		 * @out, so eval signals on ->real need to appear on ->out.
 		 */
 		load->real->progress_signal = load->out;
+
+		/* If we rewind the image, we want to reopen in random access mode.
+		 *
+		 * Lazy open is always used to get RANDOM iamges, and the random hint
+		 * on a vips image enables fully mmaped files.
+		 */
+		vips__image_set_access(load->real, VIPS_ACCESS_RANDOM);
 
 		/* Note the load object on the image. Loaders can use
 		 * this to signal invalidate if they hit a load error. See

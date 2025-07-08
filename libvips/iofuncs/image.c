@@ -377,6 +377,10 @@ char *vips__disc_threshold = NULL;
  */
 static GMutex vips__minimise_lock;
 
+/* Set to hint access mode.
+ */
+static GQuark vips_image_access_quark = 0;
+
 static guint vips_image_signals[SIG_LAST] = { 0 };
 
 G_DEFINE_TYPE(VipsImage, vips_image, VIPS_TYPE_OBJECT);
@@ -832,9 +836,6 @@ vips_image_build(VipsObject *object)
 	 */
 	switch (mode[0]) {
 	case 'v':
-		/* Used by 'r' for native open of vips, see below. Also by
-		 * vips_image_rewind_output().
-		 */
 		if (vips_image_open_input(image))
 			return -1;
 
@@ -857,8 +858,7 @@ vips_image_build(VipsObject *object)
 				/* Open the image in t, then byteswap to this
 				 * image.
 				 */
-				if (!(t = vips_image_new_mode(filename,
-						  "v")))
+				if (!(t = vips_image_new_mode(filename, "v")))
 					return -1;
 
 				if (vips_byteswap(t, &t2, NULL)) {
@@ -918,9 +918,8 @@ vips_image_build(VipsObject *object)
 			image->dtype = VIPS_IMAGE_OPENOUT;
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
-			g_signal_connect(image, "written",
-				G_CALLBACK(vips_image_save_cb),
-				NULL);
+			g_signal_connect(image,
+				"written", G_CALLBACK(vips_image_save_cb), NULL);
 		}
 	} break;
 
@@ -958,8 +957,7 @@ vips_image_build(VipsObject *object)
 			image->sizeof_header;
 		if (image->file_length < sizeof_image) {
 			vips_error("VipsImage",
-				_("unable to open \"%s\", file too short"),
-				image->filename);
+				_("unable to open \"%s\", file too short"), image->filename);
 			return -1;
 		}
 
@@ -967,8 +965,7 @@ vips_image_build(VipsObject *object)
 		 * still be able to process it without coredumps.
 		 */
 		if (image->file_length > sizeof_image)
-			g_warning("%s is longer than expected",
-				image->filename);
+			g_warning("%s is longer than expected", image->filename);
 		break;
 
 	case 'm':
@@ -986,7 +983,6 @@ vips_image_build(VipsObject *object)
 
 	default:
 		vips_error("VipsImage", _("bad mode \"%s\""), mode);
-
 		return -1;
 	}
 
@@ -1311,6 +1307,8 @@ vips_image_class_init(VipsImageClass *class)
 		NULL, NULL,
 		g_cclosure_marshal_VOID__VOID,
 		G_TYPE_NONE, 0);
+
+	vips_image_access_quark = g_quark_from_static_string("vips-image-access");
 }
 
 static void
@@ -1759,8 +1757,8 @@ vips_image_new_mode(const char *filename, const char *mode)
 /**
  * vips_image_new_memory: (skip)
  *
- * [ctor@Image.new_memory] creates a new [class@Image] which, when written to, will
- * create a memory image.
+ * [ctor@Image.new_memory] creates a new [class@Image] which, when written to,
+ * will create a memory image.
  *
  * ::: seealso
  *     [ctor@Image.new].
@@ -3309,8 +3307,7 @@ vips_image_rewind_output(VipsImage *image)
 		NULL);
 	if (vips_object_build(VIPS_OBJECT(image))) {
 		vips_error("VipsImage",
-			_("auto-rewind for %s failed"),
-			image->filename);
+			_("auto-rewind for %s failed"), image->filename);
 		return -1;
 	}
 
@@ -3657,8 +3654,7 @@ vips_image_pio_input(VipsImage *image)
 		/* Should have been written to.
 		 */
 		if (!image->data) {
-			vips_error("vips_image_pio_input",
-				"%s", _("no image data"));
+			vips_error("vips_image_pio_input", "%s", _("no image data"));
 			return -1;
 		}
 
@@ -3683,7 +3679,6 @@ vips_image_pio_input(VipsImage *image)
 		break;
 
 	case VIPS_IMAGE_OPENOUT:
-
 		/* Free any resources the image holds and reset to a base
 		 * state.
 		 */
@@ -3693,8 +3688,7 @@ vips_image_pio_input(VipsImage *image)
 		break;
 
 	default:
-		vips_error("vips_image_pio_input",
-			"%s", _("image not readable"));
+		vips_error("vips_image_pio_input", "%s", _("image not readable"));
 		return -1;
 	}
 
@@ -3933,4 +3927,25 @@ vips__view_image(VipsImage *image)
 	vips_area_unref(VIPS_AREA(array));
 
 	return result;
+}
+
+/* Set and get the vips image access hint. -1 for no hint set.
+ *
+ * This is used by foreign.c to enable large mmap windows.
+ */
+
+void
+vips__image_set_access(VipsImage *image, VipsAccess access)
+{
+	void *data = GINT_TO_POINTER(access + 1);
+
+	g_object_set_qdata(G_OBJECT(image), vips_image_access_quark, data);
+}
+
+VipsAccess
+vips__image_get_access(VipsImage *image)
+{
+	void *data = g_object_get_qdata(G_OBJECT(image), vips_image_access_quark);
+
+	return (VipsAccess) (GPOINTER_TO_INT(data) - 1);
 }
