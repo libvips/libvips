@@ -399,7 +399,9 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 	top = VIPS_CLIP(0, top, im->Ysize - 1);
 	height = VIPS_CLIP(0, height, im->Ysize - top);
 
+#ifdef DEBUG
 	printf("vips_window_take: top = %d, height = %d\n", top, height);
+#endif /*DEBUG*/
 
 	if (!(window = vips_window_new(im, top, height))) {
 		g_mutex_unlock(&im->sslock);
