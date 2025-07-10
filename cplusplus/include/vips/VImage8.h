@@ -4860,6 +4860,7 @@ public:
 	 *   - **scale** -- Factor to scale by, double.
 	 *   - **background** -- Background colour, std::vector<double>.
 	 *   - **password** -- Password to decrypt with, const char *.
+	 *   - **page_box** -- The region of the page to render, VipsForeignPdfPageBox.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -4881,6 +4882,7 @@ public:
 	 *   - **scale** -- Factor to scale by, double.
 	 *   - **background** -- Background colour, std::vector<double>.
 	 *   - **password** -- Password to decrypt with, const char *.
+	 *   - **page_box** -- The region of the page to render, VipsForeignPdfPageBox.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -4902,6 +4904,7 @@ public:
 	 *   - **scale** -- Factor to scale by, double.
 	 *   - **background** -- Background colour, std::vector<double>.
 	 *   - **password** -- Password to decrypt with, const char *.
+	 *   - **page_box** -- The region of the page to render, VipsForeignPdfPageBox.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.

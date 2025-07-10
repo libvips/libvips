@@ -110,6 +110,7 @@ EOF
 #include <fpdf_doc.h>
 #include <fpdf_edit.h>
 #include <fpdf_formfill.h>
+#include <fpdf_transformpage.h>
 
 #define TILE_SIZE (4000)
 
@@ -164,6 +165,10 @@ typedef struct _VipsForeignLoadPdf {
 	/* The [double] background converted to image format.
 	 */
 	VipsPel *ink;
+
+	/* Render this page box.
+	 */
+	VipsForeignPdfPageBox page_box;
 
 } VipsForeignLoadPdf;
 
@@ -448,6 +453,49 @@ vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 	return 0;
 }
 
+static void
+vips_foreign_load_pdf_apply_page_box(FPDF_PAGE page, VipsForeignPdfPageBox box)
+{
+	float left, bottom, right, top;
+
+	/* Avoid locking when no change in region to render.
+	 */
+	if (box == VIPS_FOREIGN_PDF_PAGE_BOX_CROP)
+		return;
+
+	g_mutex_lock(&vips_pdfium_mutex);
+	switch (box) {
+	case VIPS_FOREIGN_PDF_PAGE_BOX_MEDIA:
+		if (FPDFPage_GetMediaBox(page, &left, &bottom, &right, &top))
+			FPDFPage_SetCropBox(page, left, bottom, right, top);
+		else
+			g_warning("missing media box, using default crop box");
+		break;
+	case VIPS_FOREIGN_PDF_PAGE_BOX_TRIM:
+		if (FPDFPage_GetTrimBox(page, &left, &bottom, &right, &top))
+			FPDFPage_SetCropBox(page, left, bottom, right, top);
+		else
+			g_warning("missing trim box, using default crop box");
+		break;
+	case VIPS_FOREIGN_PDF_PAGE_BOX_BLEED:
+		if (FPDFPage_GetBleedBox(page, &left, &bottom, &right, &top))
+			FPDFPage_SetCropBox(page, left, bottom, right, top);
+		else
+			g_warning("missing bleed box, using default crop box");
+		break;
+	case VIPS_FOREIGN_PDF_PAGE_BOX_ART:
+		if (FPDFPage_GetArtBox(page, &left, &bottom, &right, &top))
+			FPDFPage_SetCropBox(page, left, bottom, right, top);
+		else
+			g_warning("missing art box, using default crop box");
+		break;
+	case VIPS_FOREIGN_PDF_PAGE_BOX_CROP:
+	default:
+		break;
+	}
+	g_mutex_unlock(&vips_pdfium_mutex);
+}
+
 static int
 vips_foreign_load_pdf_header(VipsForeignLoad *load)
 {
@@ -492,6 +540,12 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 			return -1;
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
+
+		/* Attempt to apply selected page box using the page coordinate
+		 * system (bottom left) before calculating render dimensions
+		 * using the client coordinate system (top left). */
+		vips_foreign_load_pdf_apply_page_box(pdf->page, pdf->page_box);
+
 		/* We do round to nearest, in the same way that vips_resize()
 		 * does round to nearest. Without this, things like
 		 * shrink-on-load will break.
@@ -736,6 +790,14 @@ vips_foreign_load_pdf_class_init(VipsForeignLoadPdfClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadPdf, password),
 		NULL);
+
+	VIPS_ARG_ENUM(class, "page_box", 26,
+		_("Page box"),
+		_("The region of the page to render"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadPdf, page_box),
+		VIPS_TYPE_FOREIGN_PDF_PAGE_BOX,
+		VIPS_FOREIGN_PDF_PAGE_BOX_CROP);
 }
 
 static void
@@ -746,6 +808,7 @@ vips_foreign_load_pdf_init(VipsForeignLoadPdf *pdf)
 	pdf->n = 1;
 	pdf->current_page = -1;
 	pdf->background = vips_array_double_newv(1, 255.0);
+	pdf->page_box = VIPS_FOREIGN_PDF_PAGE_BOX_CROP;
 }
 
 typedef struct _VipsForeignLoadPdfFile {
@@ -804,7 +867,7 @@ vips_foreign_load_pdf_file_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload";
-	object_class->description = _("load PDF from file");
+	object_class->description = _("load PDF from file (pdfium)");
 	object_class->build = vips_foreign_load_pdf_file_build;
 
 	foreign_class->suffs = vips__pdf_suffs;
@@ -867,7 +930,7 @@ vips_foreign_load_pdf_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_buffer";
-	object_class->description = _("load PDF from buffer");
+	object_class->description = _("load PDF from buffer (pdfium)");
 	object_class->build = vips_foreign_load_pdf_buffer_build;
 
 	load_class->is_a_buffer = vips__pdf_is_a_buffer;
@@ -925,7 +988,7 @@ vips_foreign_load_pdf_source_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_source";
-	object_class->description = _("load PDF from source");
+	object_class->description = _("load PDF from source (pdfium)");
 	object_class->build = vips_foreign_load_pdf_source_build;
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
