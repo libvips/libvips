@@ -4,6 +4,8 @@
  *	- from region.c
  * 19/3/09
  *	- block mmaps of nodata images
+ * 6/7/25
+ *	- use much larger mmap windows to limit scrolling
  */
 
 /*
@@ -66,14 +68,14 @@
  */
 int vips__read_test;
 
-/* Add this many lines above and below the mmap() window.
+/* The window size we aim for.
+ *
+ * Large enough to hold the needed pixels, then expanded up to this size. 10MB
+ * on a 32-bit machine (since VMEM is limited), 10gb on a 64-bit machine (since
+ * the VMEM limit will be extremely large).
  */
-int vips__window_margin_pixels = VIPS__WINDOW_MARGIN_PIXELS;
-
-/* Always map at least this many bytes. There's no point making tiny windows
- * on small files.
- */
-int vips__window_margin_bytes = VIPS__WINDOW_MARGIN_BYTES;
+static gint64 vips__window_bytes =
+	(gint64) 1024 * 1024 * (sizeof(size_t) > 4 ? 10000 : 10);
 
 /* Track global mmap usage.
  */
@@ -343,8 +345,6 @@ vips_window_find(VipsImage *im, int top, int height)
 VipsWindow *
 vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 {
-	int margin;
-
 	/* We have a window and it has the pixels we need.
 	 */
 	if (window &&
@@ -384,15 +384,24 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 		return window;
 	}
 
-	/* We have to make a new window. Make it a bit bigger than strictly
-	 * necessary.
+	/* Add a margin around our window to try to reduce window scrolling.
+	 *
+	 * This will be very large on 64-bit machines, but rather small on 32-bits.
 	 */
-	margin = VIPS_MIN(vips__window_margin_pixels,
-		vips__window_margin_bytes / VIPS_IMAGE_SIZEOF_LINE(im));
-	top -= margin;
-	height += margin * 2;
+	gint64 line_bytes = VIPS_IMAGE_SIZEOF_LINE(im);
+	gint64 window_bytes = height * line_bytes;
+	gint64 margin_bytes =
+		(VIPS_MAX(window_bytes, vips__window_bytes) - window_bytes) / 2;
+	gint64 margin_lines = VIPS_MAX(0, margin_bytes / line_bytes);
+
+	top -= margin_lines;
+	height += margin_lines * 2;
 	top = VIPS_CLIP(0, top, im->Ysize - 1);
 	height = VIPS_CLIP(0, height, im->Ysize - top);
+
+#ifdef DEBUG
+	printf("vips_window_take: top = %d, height = %d\n", top, height);
+#endif /*DEBUG*/
 
 	if (!(window = vips_window_new(im, top, height))) {
 		g_mutex_unlock(&im->sslock);

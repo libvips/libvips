@@ -832,9 +832,6 @@ vips_image_build(VipsObject *object)
 	 */
 	switch (mode[0]) {
 	case 'v':
-		/* Used by 'r' for native open of vips, see below. Also by
-		 * vips_image_rewind_output().
-		 */
 		if (vips_image_open_input(image))
 			return -1;
 
@@ -857,8 +854,7 @@ vips_image_build(VipsObject *object)
 				/* Open the image in t, then byteswap to this
 				 * image.
 				 */
-				if (!(t = vips_image_new_mode(filename,
-						  "v")))
+				if (!(t = vips_image_new_mode(filename, "v")))
 					return -1;
 
 				if (vips_byteswap(t, &t2, NULL)) {
@@ -918,9 +914,8 @@ vips_image_build(VipsObject *object)
 			image->dtype = VIPS_IMAGE_OPENOUT;
 		else {
 			image->dtype = VIPS_IMAGE_PARTIAL;
-			g_signal_connect(image, "written",
-				G_CALLBACK(vips_image_save_cb),
-				NULL);
+			g_signal_connect(image,
+				"written", G_CALLBACK(vips_image_save_cb), NULL);
 		}
 	} break;
 
@@ -958,8 +953,7 @@ vips_image_build(VipsObject *object)
 			image->sizeof_header;
 		if (image->file_length < sizeof_image) {
 			vips_error("VipsImage",
-				_("unable to open \"%s\", file too short"),
-				image->filename);
+				_("unable to open \"%s\", file too short"), image->filename);
 			return -1;
 		}
 
@@ -967,8 +961,7 @@ vips_image_build(VipsObject *object)
 		 * still be able to process it without coredumps.
 		 */
 		if (image->file_length > sizeof_image)
-			g_warning("%s is longer than expected",
-				image->filename);
+			g_warning("%s is longer than expected", image->filename);
 		break;
 
 	case 'm':
@@ -986,7 +979,6 @@ vips_image_build(VipsObject *object)
 
 	default:
 		vips_error("VipsImage", _("bad mode \"%s\""), mode);
-
 		return -1;
 	}
 
@@ -1759,8 +1751,8 @@ vips_image_new_mode(const char *filename, const char *mode)
 /**
  * vips_image_new_memory: (skip)
  *
- * [ctor@Image.new_memory] creates a new [class@Image] which, when written to, will
- * create a memory image.
+ * [ctor@Image.new_memory] creates a new [class@Image] which, when written to,
+ * will create a memory image.
  *
  * ::: seealso
  *     [ctor@Image.new].
@@ -3309,8 +3301,7 @@ vips_image_rewind_output(VipsImage *image)
 		NULL);
 	if (vips_object_build(VIPS_OBJECT(image))) {
 		vips_error("VipsImage",
-			_("auto-rewind for %s failed"),
-			image->filename);
+			_("auto-rewind for %s failed"), image->filename);
 		return -1;
 	}
 
@@ -3657,8 +3648,7 @@ vips_image_pio_input(VipsImage *image)
 		/* Should have been written to.
 		 */
 		if (!image->data) {
-			vips_error("vips_image_pio_input",
-				"%s", _("no image data"));
+			vips_error("vips_image_pio_input", "%s", _("no image data"));
 			return -1;
 		}
 
@@ -3683,7 +3673,6 @@ vips_image_pio_input(VipsImage *image)
 		break;
 
 	case VIPS_IMAGE_OPENOUT:
-
 		/* Free any resources the image holds and reset to a base
 		 * state.
 		 */
@@ -3693,8 +3682,7 @@ vips_image_pio_input(VipsImage *image)
 		break;
 
 	default:
-		vips_error("vips_image_pio_input",
-			"%s", _("image not readable"));
+		vips_error("vips_image_pio_input", "%s", _("image not readable"));
 		return -1;
 	}
 

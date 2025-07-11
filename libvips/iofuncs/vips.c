@@ -1022,8 +1022,7 @@ vips_image_open_input(VipsImage *image)
 			VIPS_SIZEOF_HEADER ||
 		vips__read_header_bytes(image, header)) {
 		vips_error_system(errno, "VipsImage",
-			_("unable to read header for \"%s\""),
-			image->filename);
+			_("unable to read header for \"%s\""), image->filename);
 		return -1;
 	}
 
@@ -1048,8 +1047,7 @@ vips_image_open_input(VipsImage *image)
 	 * harmless.
 	 */
 	if (readhist(image)) {
-		g_warning("error reading vips image metadata: %s",
-			vips_error_buffer());
+		g_warning("error reading vips image metadata: %s", vips_error_buffer());
 		vips_error_clear();
 	}
 

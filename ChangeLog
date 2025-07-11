@@ -4,8 +4,10 @@ master
   using libraw [lxsameer]
 - add magickload_source: load from a source with imagemagick
 - add vips__worker_exit(): enables fast threadpool shutdown
+- larger mmap windows on 64-bit machines improve random access mode for many
+  file formats
 
-8.17.1
+7/7/25 8.17.1
 
 - fix API docs build with meson < 0.60 [lovell]
 - improve function checks in meson [kleisauke]
@@ -14,6 +16,8 @@ master
 - text: prevent use of rgba subpixel anti-aliasing [lovell]
 - tiffsave: always apply resolution unit conversion [kleisauke]
 - cache: suppress invalidation errors in release builds [kleisauke]
+- dzsave: IIIF: use named region of 'full' when no crop takes place [lovell]
+- pdfload: fix potential crash with pdfium < 6633 [zhifengzhuang]
 
 5/6/25 8.17.0
 

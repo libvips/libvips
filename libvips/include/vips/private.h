@@ -44,16 +44,6 @@ extern "C" {
 
 #define VIPS_SPARE (8)
 
-/* Private to iofuncs: the minimum number of scanlines we add above and below
- * the window as a margin for slop.
- */
-#define VIPS__WINDOW_MARGIN_PIXELS (128)
-
-/* Private to iofuncs: add at least this many bytes above and below the window.
- * There's no point mapping just a few KB of a small image.
- */
-#define VIPS__WINDOW_MARGIN_BYTES (1024 * 1024 * 10)
-
 /* sizeof() a VIPS header on disc.
  */
 #define VIPS_SIZEOF_HEADER (64)
