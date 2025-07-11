@@ -166,6 +166,7 @@ void vips_threadset_free(VipsThreadset *set);
 
 VIPS_API void vips__worker_lock(GMutex *mutex);
 VIPS_API void vips__worker_cond_wait(GCond *cond, GMutex *mutex);
+gboolean vips__worker_exit(void);
 
 void vips__cache_init(void);
 

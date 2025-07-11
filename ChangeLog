@@ -3,6 +3,7 @@ master
 - add dcrawload, dcrawload_source, dcrawload_buffer: load raw camera files
   using libraw [lxsameer]
 - add magickload_source: load from a source with imagemagick
+- add vips__worker_exit(): enables fast threadpool shutdown
 - larger mmap windows on 64-bit machines improve random access mode for many
   file formats
 

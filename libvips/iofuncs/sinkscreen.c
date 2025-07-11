@@ -115,10 +115,10 @@ typedef struct _Render {
 
 	/* Parameters.
 	 */
-	VipsImage *in;	 /* Image we render */
-	VipsImage *out;	 /* Write tiles here on demand */
-	VipsImage *mask; /* Set valid pixels here */
-	int tile_width;	 /* Tile size */
+	VipsImage *in;			/* Image we render */
+	VipsImage *out;			/* Write tiles here on demand */
+	VipsImage *mask;		/* Set valid pixels here */
+	int tile_width;			/* Tile size */
 	int tile_height;
 	int max_tiles;		   /* Maximum number of tiles */
 	int priority;		   /* Larger numbers done sooner */
@@ -139,9 +139,9 @@ typedef struct _Render {
 
 	/* Tile cache.
 	 */
-	GSList *all; /* All our tiles */
-	int ntiles;	 /* Number of tiles */
-	int ticks;	 /* Inc. on each access ... used for LRU */
+	GSList *all;			/* All our tiles */
+	int ntiles;				/* Number of tiles */
+	int ticks;				/* Inc. on each access ... used for LRU */
 
 	/* List of dirty tiles. Most recent at the front.
 	 */
@@ -193,6 +193,18 @@ static VipsSemaphore n_render_dirty_sem;
 /* Set this to make the bg thread stop and reschedule.
  */
 static gboolean render_reschedule = FALSE;
+
+/* Set this GPrivate to link a thread back to its Render struct.
+ */
+static GPrivate render_worker_key;
+
+gboolean
+vips__worker_exit(void)
+{
+	Render *render = (Render *) g_private_get(&render_worker_key);
+
+	return render && render->shutdown;
+}
 
 static void
 render_thread_state_class_init(RenderThreadStateClass *class)
@@ -269,6 +281,7 @@ render_free(Render *render)
 
 #ifdef VIPS_DEBUG_AMBER
 	render_num_renders -= 1;
+	printf("%d active renders\n", render_num_renders);
 #endif /*VIPS_DEBUG_AMBER*/
 
 	return 0;
@@ -295,7 +308,7 @@ render_ref(Render *render)
 static int
 render_unref(Render *render)
 {
-	int kill;
+	gboolean kill;
 
 #if GLIB_CHECK_VERSION(2, 58, 0)
 	g_assert(!g_atomic_ref_count_compare(&render->ref_count, 0));
@@ -426,10 +439,16 @@ render_work(VipsThreadState *state, void *a)
 	VIPS_DEBUG_MSG("calculating tile %p %dx%d\n",
 		tile, tile->area.left, tile->area.top);
 
+	/* vips__worker_exit() uses this to find the render to check for
+	 * shutdown.
+	 */
+	g_private_set(&render_worker_key, render);
+
 	if (vips_region_prepare_to(state->reg, tile->region,
 			&tile->area, tile->area.left, tile->area.top)) {
 		VIPS_DEBUG_MSG_RED("render_work: vips_region_prepare_to() failed: %s\n",
 			vips_error_buffer());
+		g_private_set(&render_worker_key, NULL);
 		return -1;
 	}
 	tile->painted = TRUE;
@@ -437,6 +456,8 @@ render_work(VipsThreadState *state, void *a)
 	if (!render->shutdown &&
 		render->notify)
 		render->notify(render->out, &tile->area, render->a);
+
+	g_private_set(&render_worker_key, NULL);
 
 	return 0;
 }
@@ -620,6 +641,7 @@ render_new(VipsImage *in, VipsImage *out, VipsImage *mask,
 
 #ifdef VIPS_DEBUG_AMBER
 	render_num_renders += 1;
+	printf("%d active renders\n", render_num_renders);
 #endif /*VIPS_DEBUG_AMBER*/
 
 	return render;
@@ -1094,6 +1116,11 @@ render_work_private(void *data, void *null)
 
 	Render *render = (Render *) data;
 
+	/* vips__worker_exit() uses this to find the render to check for
+	 * shutdown.
+	 */
+	g_private_set(&render_worker_key, render);
+
 	// this will quit on ->shutdown == TRUE
 	if (vips_threadpool_run(render->in,
 			render_thread_state_new,
@@ -1102,6 +1129,8 @@ render_work_private(void *data, void *null)
 			NULL,
 			render))
 		VIPS_DEBUG_MSG_RED("render_work_private: threadpool_run failed\n");
+
+	g_private_set(&render_worker_key, NULL);
 
 	render_unref(render);
 
@@ -1144,11 +1173,11 @@ vips__sink_screen_once(void *data)
  * uchar image and has 255 for pixels which are currently in cache and 0
  * for uncalculated pixels.
  *
- * Renders with a positive priority are assumed to be large, gh-priority,
+ * Renders with a positive priority are assumed to be large, high-priority,
  * foreground images. Although there can be many of these, only one is ever
  * active, to avoid overcommitting threads.
  *
- * Renders with a negative priority are assumed to be small, thumbnail images
+ * Renders with a negative priority are assumed to be small, thumbnail images,
  * consisting of a single tile. Single tile images are effectively
  * single-threaded, so all these renders are evaluated together.
  *

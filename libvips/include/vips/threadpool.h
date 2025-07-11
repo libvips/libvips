@@ -96,7 +96,6 @@ typedef struct _VipsThreadState {
 	 * debugging race conditions.
 	 */
 	gboolean stall;
-
 } VipsThreadState;
 
 typedef struct _VipsThreadStateClass {
