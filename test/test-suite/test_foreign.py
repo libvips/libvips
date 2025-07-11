@@ -1100,6 +1100,46 @@ class TestForeign:
         assert abs(im.width * 2 - x.width) < 2
         assert abs(im.height * 2 - x.height) < 2
 
+        im = pyvips.Image.new_from_file(PDF_PAGE_BOX_FILE)
+        assert im.width == 709
+        assert im.height == 955
+        assert im.get("pdf-creator") == "Adobe InDesign 20.4 (Windows)"
+        assert im.get("pdf-producer") == "Adobe PDF Library 17.0"
+
+        pdfloadOp = pyvips.Operation.new_from_name("pdfload").get_description()
+
+        if "poppler" in pdfloadOp:
+            # only crop is implemented, ignore requested page box
+            im = pyvips.Image.new_from_file(PDF_FILE, page_box="art")
+            assert im.width == 1134
+            assert im.height == 680
+            im = pyvips.Image.new_from_file(PDF_PAGE_BOX_FILE, page_box="art")
+            assert im.width == 709
+            assert im.height == 955
+
+        if "pdfium" in pdfloadOp:
+            im = pyvips.Image.new_from_file(PDF_FILE, page_box="art")
+            assert im.width == 1121
+            assert im.height == 680
+            im = pyvips.Image.new_from_file(PDF_FILE, page_box="trim") # missing, will fallback to crop
+            assert im.width == 1134
+            assert im.height == 680
+            im = pyvips.Image.new_from_file(PDF_PAGE_BOX_FILE, page_box="media")
+            assert im.width == 822
+            assert im.height == 1069
+            im = pyvips.Image.new_from_file(PDF_PAGE_BOX_FILE, page_box="crop")
+            assert im.width == 709
+            assert im.height == 955
+            im = pyvips.Image.new_from_file(PDF_PAGE_BOX_FILE, page_box="bleed")
+            assert im.width == 652
+            assert im.height == 899
+            im = pyvips.Image.new_from_file(PDF_PAGE_BOX_FILE, page_box="trim")
+            assert im.width == 595
+            assert im.height == 842
+            im = pyvips.Image.new_from_file(PDF_PAGE_BOX_FILE, page_box="art")
+            assert im.width == 539
+            assert im.height == 785
+
     @skip_if_no("gifload")
     def test_gifload(self):
         def gif_valid(im):

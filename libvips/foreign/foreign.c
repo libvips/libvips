@@ -2721,6 +2721,9 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  *
  * Use @password to supply a decryption password.
  *
+ * When using pdfium, the region of a page to render can be selected with
+ * @page_box, defaulting to the crop box.
+ *
  * The operation fills a number of header fields with metadata, for example
  * "pdf-author". They may be useful.
  *
@@ -2733,6 +2736,7 @@ vips_jxlsave_target(VipsImage *in, VipsTarget *target, ...)
  *     * @dpi: `gdouble`, render at this DPI
  *     * @scale: `gdouble`, scale render by this factor
  *     * @background: [struct@ArrayDouble], background colour
+ *     * @page_box: [enum@ForeignPdfPageBox], use this page box (pdfium only)
  *
  * ::: seealso
  *     [ctor@Image.new_from_file], [ctor@Image.magickload].
@@ -2771,6 +2775,7 @@ vips_pdfload(const char *filename, VipsImage **out, ...)
  *     * @dpi: `gdouble`, render at this DPI
  *     * @scale: `gdouble`, scale render by this factor
  *     * @background: [struct@ArrayDouble], background colour
+ *     * @page_box: [enum@ForeignPdfPageBox], use this page box (pdfium only)
  *
  * ::: seealso
  *     [ctor@Image.pdfload].
@@ -2811,6 +2816,7 @@ vips_pdfload_buffer(void *buf, size_t len, VipsImage **out, ...)
  *     * @dpi: `gdouble`, render at this DPI
  *     * @scale: `gdouble`, scale render by this factor
  *     * @background: [struct@ArrayDouble], background colour
+ *     * @page_box: [enum@ForeignPdfPageBox], use this page box (pdfium only)
  *
  * ::: seealso
  *     [ctor@Image.pdfload]

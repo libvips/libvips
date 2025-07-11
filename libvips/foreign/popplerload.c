@@ -158,6 +158,10 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	VipsPel *ink;
 
+	/* Render this page box, currently only crop is supported.
+	 */
+	VipsForeignPdfPageBox page_box;
+
 } VipsForeignLoadPdf;
 
 typedef struct _VipsForeignLoadPdfClass {
@@ -336,6 +340,9 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	 */
 	if (!(pdf->pages = VIPS_ARRAY(pdf, pdf->n, VipsRect)))
 		return -1;
+
+	if (pdf->page_box != VIPS_FOREIGN_PDF_PAGE_BOX_CROP)
+		g_warning("only crop page box is supported");
 
 	top = 0;
 	pdf->image.left = 0;
@@ -580,6 +587,14 @@ vips_foreign_load_pdf_class_init(VipsForeignLoadPdfClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadPdf, password),
 		NULL);
+
+	VIPS_ARG_ENUM(class, "page_box", 26,
+		_("Page box"),
+		_("The region of the page to render, only crop is supported"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadPdf, page_box),
+		VIPS_TYPE_FOREIGN_PDF_PAGE_BOX,
+		VIPS_FOREIGN_PDF_PAGE_BOX_CROP);
 }
 
 static void
@@ -590,6 +605,7 @@ vips_foreign_load_pdf_init(VipsForeignLoadPdf *pdf)
 	pdf->n = 1;
 	pdf->current_page = -1;
 	pdf->background = vips_array_double_newv(1, 255.0);
+	pdf->page_box = VIPS_FOREIGN_PDF_PAGE_BOX_CROP;
 }
 
 typedef struct _VipsForeignLoadPdfFile {
@@ -675,7 +691,7 @@ vips_foreign_load_pdf_file_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload";
-	object_class->description = _("load PDF from file");
+	object_class->description = _("load PDF from file (poppler)");
 	object_class->build = vips_foreign_load_pdf_file_build;
 
 	foreign_class->suffs = vips__pdf_suffs;
@@ -738,7 +754,7 @@ vips_foreign_load_pdf_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_buffer";
-	object_class->description = _("load PDF from buffer");
+	object_class->description = _("load PDF from buffer (poppler)");
 	object_class->build = vips_foreign_load_pdf_buffer_build;
 
 	load_class->is_a_buffer = vips__pdf_is_a_buffer;
@@ -796,7 +812,7 @@ vips_foreign_load_pdf_source_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_source";
-	object_class->description = _("load PDF from source");
+	object_class->description = _("load PDF from source (poppler)");
 	object_class->build = vips_foreign_load_pdf_source_build;
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;

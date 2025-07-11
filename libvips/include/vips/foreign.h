@@ -835,6 +835,29 @@ VIPS_API
 int vips_radsave_target(VipsImage *in, VipsTarget *target, ...)
 	G_GNUC_NULL_TERMINATED;
 
+/**
+ * VipsForeignPdfPageBox:
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_MEDIA
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_CROP
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_TRIM
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_BLEED
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_ART
+ *
+ * Each page of a PDF document can contain multiple page boxes,
+ * also known as boundary boxes or print marks.
+ *
+ * Each page box defines a region of the complete page that
+ * should be rendered. The default region is the crop box.
+ */
+typedef enum {
+	VIPS_FOREIGN_PDF_PAGE_BOX_MEDIA,
+	VIPS_FOREIGN_PDF_PAGE_BOX_CROP,
+	VIPS_FOREIGN_PDF_PAGE_BOX_TRIM,
+	VIPS_FOREIGN_PDF_PAGE_BOX_BLEED,
+	VIPS_FOREIGN_PDF_PAGE_BOX_ART,
+	VIPS_FOREIGN_PDF_PAGE_BOX_LAST /*< skip >*/
+} VipsForeignPdfPageBox;
+
 VIPS_API
 int vips_pdfload(const char *filename, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
