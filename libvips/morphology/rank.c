@@ -517,7 +517,7 @@ vips_rank_build(VipsObject *object)
 	 * too many recalculations on overlaps.
 	 */
 	if (vips_image_pipelinev(rank->out,
-			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
+			VIPS_DEMAND_STYLE_FATSTRIP, in, NULL))
 		return -1;
 	rank->out->Xsize -= rank->width - 1;
 	rank->out->Ysize -= rank->height - 1;
