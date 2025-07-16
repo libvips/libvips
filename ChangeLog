@@ -1,3 +1,7 @@
+8.17.2
+
+- rank: fix an off-by-one error [larsmaxfield]
+
 7/7/25 8.17.1
 
 - fix API docs build with meson < 0.60 [lovell]
@@ -9,7 +13,6 @@
 - cache: suppress invalidation errors in release builds [kleisauke]
 - dzsave: IIIF: use named region of 'full' when no crop takes place [lovell]
 - pdfload: fix potential crash with pdfium < 6633 [zhifengzhuang]
-- rank: fix an off-by-one error [larsmaxfield]
 
 5/6/25 8.17.0
 
