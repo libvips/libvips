@@ -8,6 +8,10 @@ master
   file formats
 - pdfload: control region to be rendered via `page_box` [lovell]
 
+8.17.2
+
+- rank: fix an off-by-one error [larsmaxfield]
+
 7/7/25 8.17.1
 
 - fix API docs build with meson < 0.60 [lovell]

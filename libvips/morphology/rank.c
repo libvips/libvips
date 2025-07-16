@@ -115,12 +115,9 @@ vips_rank_stop(void *vseq, void *a, void *b)
 	VIPS_FREE(seq->sort);
 
 	if (seq->hist &&
-		in) {
-		int i;
-
-		for (i = 0; i < in->Bands; i++)
+		in)
+		for (int i = 0; i < in->Bands; i++)
 			VIPS_FREE(seq->hist[i]);
-	}
 	VIPS_FREE(seq->hist);
 
 	return 0;
@@ -147,17 +144,13 @@ vips_rank_start(VipsImage *out, void *a, void *b)
 	}
 
 	if (rank->hist_path) {
-		int i;
-
-		if (!(seq->hist =
-					VIPS_ARRAY(NULL, in->Bands, unsigned int *))) {
+		if (!(seq->hist = VIPS_ARRAY(NULL, in->Bands, unsigned int *))) {
 			vips_rank_stop(seq, in, rank);
 			return NULL;
 		}
 
-		for (i = 0; i < in->Bands; i++)
-			if (!(seq->hist[i] =
-						VIPS_ARRAY(NULL, 256, unsigned int))) {
+		for (int i = 0; i < in->Bands; i++)
+			if (!(seq->hist[i] = VIPS_ARRAY(NULL, 256, unsigned int))) {
 				vips_rank_stop(seq, in, rank);
 				return NULL;
 			}
@@ -175,29 +168,26 @@ vips_rank_generate_uchar(VipsRegion *out_region,
 	VipsImage *in = seq->ir->im;
 	VipsRect *r = &out_region->valid;
 	const int bands = in->Bands;
-	const int last = bands * (rank->width - 1);
+	const int lsk = VIPS_REGION_LSKIP(seq->ir);
 
 	/* Get input and output pointers for this line.
 	 */
-	VipsPel *restrict p =
-		VIPS_REGION_ADDR(seq->ir, r->left, r->top + y);
-	VipsPel *restrict q =
-		VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+	VipsPel *restrict p = VIPS_REGION_ADDR(seq->ir, r->left, r->top + y);
+	VipsPel *restrict q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 	VipsPel *restrict p1;
-	int lsk;
-	int x, i, j, b;
-
-	lsk = VIPS_REGION_LSKIP(seq->ir);
 
 	/* Find histogram for the first output pixel.
 	 */
-	for (b = 0; b < bands; b++)
+	for (int b = 0; b < bands; b++)
 		memset(seq->hist[b], 0, 256 * sizeof(unsigned int));
 	p1 = p;
-	for (j = 0; j < rank->height; j++) {
-		for (i = 0, x = 0; x < rank->width; x++)
-			for (b = 0; b < bands; b++, i++)
+	for (int j = 0; j < rank->height; j++) {
+		int i;
+
+		i = 0;
+		for (int x = 0; x < rank->width; x++)
+			for (int b = 0; b < bands; b++, i++)
 				seq->hist[b][p1[i]] += 1;
 
 		p1 += lsk;
@@ -205,32 +195,31 @@ vips_rank_generate_uchar(VipsRegion *out_region,
 
 	/* Loop for output pels.
 	 */
-	for (x = 0; x < r->width; x++) {
-		for (b = 0; b < bands; b++) {
+	for (int x = 0; x < r->width; x++) {
+		for (int b = 0; b < bands; b++) {
 			/* Calculate cumulative histogram -- the value is the
 			 * index at which we pass the rank.
 			 */
 			unsigned int *restrict hist = seq->hist[b];
 
 			int sum;
-			int i;
-
+			int value;
 			sum = 0;
-			for (i = 0; i < 256; i++) {
-				sum += hist[i];
+			for (value = 0; value < 256; value++) {
+				sum += hist[value];
 				if (sum > rank->index)
 					break;
 			}
-			q[b] = i;
+			q[b] = value;
 
-			/* Adapt histogram -- remove the pels from
-			 * the left hand column, add in pels for a
-			 * new right-hand column.
+			/* Adapt histogram -- remove the pels from the left hand column,
+			 * add in pels for a new right-hand column.
 			 */
+			const int next = bands * rank->width;
 			p1 = p + b;
-			for (j = 0; j < rank->height; j++) {
+			for (int j = 0; j < rank->height; j++) {
 				hist[p1[0]] -= 1;
-				hist[p1[last]] += 1;
+				hist[p1[next]] += 1;
 
 				p1 += lsk;
 			}
@@ -437,7 +426,7 @@ vips_rank_generate(VipsRegion *out_region,
 	VipsRect s;
 	int ls;
 
-	int x, y;
+	int x;
 	int i, j, k;
 	int upper, lower, mid;
 
@@ -451,7 +440,7 @@ vips_rank_generate(VipsRegion *out_region,
 		return -1;
 	ls = VIPS_REGION_LSKIP(ir) / VIPS_IMAGE_SIZEOF_ELEMENT(in);
 
-	for (y = 0; y < r->height; y++) {
+	for (int y = 0; y < r->height; y++) {
 		if (rank->hist_path)
 			vips_rank_generate_uchar(out_region, seq, rank, y);
 		else if (rank->index == 0)
@@ -492,7 +481,8 @@ vips_rank_build(VipsObject *object)
 		return -1;
 	}
 	rank->n = rank->width * rank->height;
-	if (rank->index < 0 || rank->index > rank->n - 1) {
+	if (rank->index < 0 ||
+		rank->index > rank->n - 1) {
 		vips_error(class->nickname, "%s", _("index out of range"));
 		return -1;
 	}
