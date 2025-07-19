@@ -138,6 +138,15 @@ magick_sniff(const unsigned char *bytes, size_t length)
 		(bytes[4] != 0 || bytes[5] != 0))
 		return "ICO";
 
+	if (length >= 8 &&
+		bytes[1] == 0 &&
+		bytes[2] == 0 &&
+		bytes[5] == 0 &&
+		bytes[6] == 0 &&
+		(bytes[4] == 7 ||
+		 bytes[7] == 7))
+		return "XWD";
+
 	if (length >= 18 &&
 		(bytes[1] == 0 ||
 			bytes[1] == 1) &&
