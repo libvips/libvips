@@ -1070,6 +1070,7 @@ static const char *vips_foreign_openslide_suffs[] = {
 	".svslide",				 /* Sakura */
 	".tif",					 /* Trestle */
 	".bif",					 /* Ventana */
+	".dcm",					 /* DICOM */
 	NULL
 };
 
