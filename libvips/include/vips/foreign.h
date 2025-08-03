@@ -1018,7 +1018,7 @@ typedef enum {
  * @VIPS_FOREIGN_DZ_CONTAINER_ZIP: write tiles to a zip file
  * @VIPS_FOREIGN_DZ_CONTAINER_SZI: write to a szi file
  *
- * How many pyramid layers to create.
+ * What container format to use.
  */
 typedef enum {
 	VIPS_FOREIGN_DZ_CONTAINER_FS,

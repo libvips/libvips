@@ -503,7 +503,6 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) load;
 
 	int top;
-	int i;
 
 #ifdef DEBUG
 	printf("vips_foreign_load_pdf_header: %p\n", pdf);
@@ -535,7 +534,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	pdf->image.top = 0;
 	pdf->image.width = 0;
 	pdf->image.height = 0;
-	for (i = 0; i < pdf->n; i++) {
+	for (int i = 0; i < pdf->n; i++) {
 		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
 			return -1;
 		pdf->pages[i].left = 0;
@@ -576,7 +575,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	/* If all pages are the same height, we can tag this as a toilet roll
 	 * image.
 	 */
-	for (i = 1; i < pdf->n; i++)
+	for (int i = 1; i < pdf->n; i++)
 		if (pdf->pages[i].height != pdf->pages[0].height)
 			break;
 
