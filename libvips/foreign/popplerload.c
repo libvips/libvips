@@ -348,9 +348,6 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
 			return -1;
 
-		/* Poppler can set width and height to less than 1, see page size test
-		 * below.
-		 */
 		poppler_page_get_size(pdf->page, &width, &height);
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
@@ -361,6 +358,11 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		 */
 		pdf->pages[i].width = rint(width * pdf->total_scale);
 		pdf->pages[i].height = rint(height * pdf->total_scale);
+		if (pdf->pages[i].width <= 0 ||
+			pdf->pages[i].height <= 0) {
+			vips_error(class->nickname, "%s", _("zero-sized image"));
+			return -1;
+		}
 
 		if (pdf->pages[i].width > pdf->image.width)
 			pdf->image.width = pdf->pages[i].width;
@@ -375,15 +377,6 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	for (int i = 1; i < pdf->n; i++)
 		if (pdf->pages[i].height != pdf->pages[0].height)
 			break;
-
-	/* Bad PDFs can have empty pages.
-	 */
-	for (int i = 0; i < pdf->n; i++)
-		if (pdf->pages[i].width <= 0 ||
-			pdf->pages[i].height <= 0) {
-			vips_error(class->nickname, "%s", _("empty page"));
-			return -1;
-		}
 
 	/* Only set page-height if we have more than one page, or this could
 	 * accidentally turn into an animated image later.

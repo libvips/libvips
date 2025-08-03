@@ -1,7 +1,7 @@
 8.17.2
 
 - rank: fix an off-by-one error [larsmaxfield]
-- popplerload: check page size [Yang Luo]
+- popplerload, svgload: check page size [Yang Luo]
 
 7/7/25 8.17.1
 
