@@ -297,8 +297,8 @@ vips__demand_hint_array(VipsImage *image,
 	 */
 	set_hint = hint;
 	for (i = 0; i < len; i++)
-		set_hint = (VipsDemandStyle) VIPS_MIN(
-			(int) set_hint, (int) in[i]->dhint);
+		set_hint = (VipsDemandStyle)
+			VIPS_MIN((int) set_hint, (int) in[i]->dhint);
 
 	image->dhint = set_hint;
 
@@ -365,6 +365,9 @@ int
 vips_image_pipeline_array(VipsImage *image,
 	VipsDemandStyle hint, VipsImage **in)
 {
+	if (!vips_object_sanity(VIPS_OBJECT(image)))
+		return -1;
+
 	/* This function can be called more than once per output image. For
 	 * example, jpeg header load will call this once on ->out to set the
 	 * default hint, then later call it again to connect the output image
@@ -688,11 +691,12 @@ vips_image_generate(VipsImage *image,
 	VIPS_DEBUG_MSG("vips_image_generate: %p\n", image);
 
 	g_assert(generate_fn);
-	g_assert(vips_object_sanity(VIPS_OBJECT(image)));
+
+	if (!vips_object_sanity(VIPS_OBJECT(image)))
+		return -1;
 
 	if (!image->hint_set) {
-		vips_error("vips_image_generate",
-			"%s", _("demand hint not set"));
+		vips_error("vips_image_generate", "%s", _("demand hint not set"));
 		return -1;
 	}
 
