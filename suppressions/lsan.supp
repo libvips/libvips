@@ -14,6 +14,7 @@ leak:FcValueSave
 
 # Freed on exit, see:
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=36298#c1
+leak:GOMP_parallel
 leak:___kmp_allocate
 
 # Fixed in libheif >= v1.18.0, see:
