@@ -1,6 +1,7 @@
 8.17.2
 
 - rank: fix an off-by-one error [larsmaxfield]
+- pdfiumload: allow both dpi and scale to be set [kleisauke]
 
 7/7/25 8.17.1
 
