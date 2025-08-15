@@ -1,4 +1,7 @@
 /* load RAW camera files with libraw
+ *
+ * 15/8/25 dvdkon
+ *	- handle image rotation
  */
 
 /*
@@ -167,6 +170,33 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 			raw->raw_processor->color.profile,
 			raw->raw_processor->color.profile_length);
 
+	int orientation;
+	switch (raw->raw_processor->sizes.flip) {
+	case 0:
+		orientation = 1;
+		break;
+
+	case 3:
+		orientation = 3;
+		break;
+
+	case 5:
+		orientation = 8;
+		break;
+
+	case 6:
+		orientation = 6;
+		break;
+
+	default:
+		/* dcrawload allows other values, but they are not well documented.
+		 */
+		g_warning("dcrawload: unimplemented dcraw flip value\n");
+		orientation = 0;
+		break;
+	}
+	vips_image_set_int(image, VIPS_META_ORIENTATION, orientation);
+
 	/* Search the available thumbnails for the largest that's smaller than
 	 * the main image and has a known type.
 	 */
@@ -249,6 +279,12 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 	/* Apply camera white balance.
 	 */
 	raw->raw_processor->params.use_camera_wb = 1;
+
+	/* Don't autorotate, we set EXIF rotation later instead. If we enable
+	 * autorotate, then the image size reported during libraw_open_buffer()
+	 * may not match the decoded size.
+	 */
+	raw->raw_processor->params.user_flip = 0;
 
 	/* We can use the libraw file interface for filename sources. This
 	 * interface can often read more metadata, since it can open secondary
@@ -369,7 +405,7 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	/* We need to be ahead of JPEG and TIFF, since many cameras use those
-	 * formats as containers. We are very slow to open, but we only test the
+	 * formats as containers. We are slow to open, but we only test the
 	 * filename suffix, so that's fine.
 	 */
 	foreign_class->priority = 100;

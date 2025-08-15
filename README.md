@@ -143,6 +143,11 @@ If available, libvips adds support for EXIF metadata in JPEG files.
 The usual SVG loader. If this is not present, vips will try to load SVGs
 via imagemagick instead.
 
+### libraw
+
+The usual camera RAW loader. If this is not present, vips will try to load raw
+camera images via imagemagick instead.
+
 ### PDFium
 
 If present, libvips will attempt to load PDFs with PDFium. Download the
