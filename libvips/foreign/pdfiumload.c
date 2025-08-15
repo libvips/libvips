@@ -133,9 +133,13 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	double dpi;
 
-	/* Calculate this from DPI. At 72 DPI, we render 1:1.
+	/* Scale by this factor.
 	 */
 	double scale;
+
+	/* The total scale factor we render with.
+	 */
+	double total_scale;
 
 	/* Background colour.
 	 */
@@ -281,8 +285,7 @@ vips_foreign_load_pdf_build(VipsObject *object)
 
 	VIPS_ONCE(&once, vips_pdfium_init_cb, NULL);
 
-	if (!vips_object_argument_isset(object, "scale"))
-		pdf->scale = pdf->dpi / 72.0; // FIXME: Invalidates operation cache
+	pdf->total_scale = pdf->scale * pdf->dpi / 72.0;
 
 	pdf->form_callbacks.version = 2;
 
@@ -550,9 +553,9 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		 * shrink-on-load will break.
 		 */
 		pdf->pages[i].width = rint(
-			FPDF_GetPageWidth(pdf->page) * pdf->scale);
+			FPDF_GetPageWidth(pdf->page) * pdf->total_scale);
 		pdf->pages[i].height = rint(
-			FPDF_GetPageHeight(pdf->page) * pdf->scale);
+			FPDF_GetPageHeight(pdf->page) * pdf->total_scale);
 
 		/* PDFium allows page width or height to be less than 1 (!!).
 		 */
