@@ -1040,6 +1040,7 @@ vips_foreign_load_start(VipsImage *out, void *a, void *b)
 		 * If the load fails, we need to stop.
 		 */
 		if (class->load(load) ||
+			!vips_object_sanity(VIPS_OBJECT(load->real)) ||
 			vips_image_pio_input(load->real) ||
 			!vips_foreign_load_iscompat(load->real, out)) {
 			vips_operation_invalidate(VIPS_OPERATION(load));
@@ -1133,8 +1134,7 @@ vips_foreign_load_build(VipsObject *object)
 
 	g_object_set(object, "out", vips_image_new(), NULL);
 
-	vips_image_set_string(load->out,
-		VIPS_META_LOADER, class->nickname);
+	vips_image_set_string(load->out, VIPS_META_LOADER, class->nickname);
 
 #ifdef DEBUG
 	printf("vips_foreign_load_build: triggering ->header\n");
@@ -1142,9 +1142,11 @@ vips_foreign_load_build(VipsObject *object)
 
 	/* Read the header into @out.
 	 */
-	if (fclass->header &&
-		fclass->header(load))
-		return -1;
+	if (fclass->header) {
+		if (fclass->header(load) ||
+			!vips_object_sanity(VIPS_OBJECT(load->out)))
+			return -1;
+	}
 
 	/* If there's no ->load() method then the header read has done
 	 * everything. Otherwise, it's just set fields and we must also

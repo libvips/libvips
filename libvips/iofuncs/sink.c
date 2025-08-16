@@ -474,7 +474,8 @@ vips_sink_tile(VipsImage *im,
 	Sink sink;
 	int result;
 
-	g_assert(vips_object_sanity(VIPS_OBJECT(im)));
+	if (!vips_object_sanity(VIPS_OBJECT(im)))
+		return -1;
 
 	/* We don't use this, but make sure it's set in case any old binaries
 	 * are expecting it.
