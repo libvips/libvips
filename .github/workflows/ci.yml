@@ -79,10 +79,8 @@ jobs:
       - name: Prepare sanitizers environment
         if: matrix.build.sanitize
         run: |
-          ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "CPPFLAGS=-g -fno-omit-frame-pointer -fno-sanitize=function -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
           echo "LDFLAGS=-g -shared-libsan" >> $GITHUB_ENV
-          echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
           # to disable the fast unwinder to get full stacktraces.
           echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1" >> $GITHUB_ENV
@@ -90,8 +88,14 @@ jobs:
           echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
           # Ensure UBSan issues causes the program to abort.
           echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1:print_stacktrace=1" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$(dirname $ASAN_DSO)" >> $GITHUB_ENV
           echo "$(dirname $($CC -print-prog-name=llvm-symbolizer))" >> $GITHUB_PATH
+
+      - name: Prepare ASan/UBSan
+        if: matrix.build.sanitize == 'address,undefined'
+        run: |
+          ASAN_DSO=$($CC -print-file-name=libclang_rt.asan-x86_64.so)
+          echo "SANITIZE_DSO=$ASAN_DSO" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$(dirname $ASAN_DSO)" >> $GITHUB_ENV
 
       - name: Configure libvips
         run:
@@ -126,5 +130,5 @@ jobs:
       - name: Run test suite
         env:
           VIPS_LEAK: 1
-          LD_PRELOAD: ${{ env.ASAN_DSO }}
+          LD_PRELOAD: ${{ env.SANITIZE_DSO }}
         run: python3 -m pytest -sv --log-cli-level=WARNING test/test-suite
