@@ -69,7 +69,7 @@ jobs:
 
       - name: Install Clang 19
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-19'
-        run: sudo apt-get install clang-19 libomp-19-dev lld-19 llvm-19
+        run: sudo apt-get install clang-19 libclang-rt-19-dev lld-19 llvm-19
 
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
@@ -82,8 +82,8 @@ jobs:
           LLVM_PREFIX: /usr/lib/llvm-19
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
-          echo "CPPFLAGS=-g -fno-omit-frame-pointer -fno-sanitize=function -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
-          echo "LDFLAGS=-g -shared-libasan -fopenmp=libomp" >> $GITHUB_ENV
+          echo "CPPFLAGS=-g -fno-omit-frame-pointer -fno-sanitize=function -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
+          echo "LDFLAGS=-g -shared-libasan" >> $GITHUB_ENV
           echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
           # to disable the fast unwinder to get full stacktraces.
