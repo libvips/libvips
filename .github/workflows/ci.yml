@@ -82,7 +82,6 @@ jobs:
           LLVM_PREFIX: /usr/lib/llvm-19
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
-          echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
           echo "CPPFLAGS=-g -fno-omit-frame-pointer -fno-sanitize=function -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
           echo "LDFLAGS=-g -shared-libasan -fopenmp=libomp" >> $GITHUB_ENV
           echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
