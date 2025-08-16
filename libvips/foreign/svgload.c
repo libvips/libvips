@@ -568,12 +568,19 @@ vips_foreign_load_svg_get_scaled_size(VipsForeignLoadSvg *svg,
 static int
 vips_foreign_load_svg_parse(VipsForeignLoadSvg *svg, VipsImage *out)
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(svg);
+
 	int width;
 	int height;
 	double res;
 
 	if (vips_foreign_load_svg_get_scaled_size(svg, &width, &height))
 		return -1;
+	if (width <= 0 ||
+		height <= 0) {
+		vips_error(class->nickname, "%s", _("zero-sized image"));
+		return -1;
+	}
 
 	/* We need pixels/mm for vips.
 	 */
@@ -583,7 +590,8 @@ vips_foreign_load_svg_parse(VipsForeignLoadSvg *svg, VipsImage *out)
 		width, height, 4,
 		svg->high_bitdepth ? VIPS_FORMAT_FLOAT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
-		svg->high_bitdepth ? VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
+		svg->high_bitdepth ?
+			VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
 		res, res);
 
 	/* We use a tilecache, so it's smalltile.
