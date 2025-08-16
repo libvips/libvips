@@ -18,7 +18,7 @@ jobs:
 
           - name: "Linux x64 (Ubuntu 24.04) - Clang 19 with ASan and UBSan"
             os: ubuntu-24.04
-            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: true }
+            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'address,undefined' }
 
           - name: "macOS arm64 (14) - Xcode 15"
             os: macos-14
@@ -76,15 +76,15 @@ jobs:
         run: |
           echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$(brew --prefix libarchive)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
-      - name: Prepare sanitizers
+      - name: Prepare sanitizers environment
         if: matrix.build.sanitize
         env:
           LLVM_PREFIX: /usr/lib/llvm-19
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
-          echo "CPPFLAGS=-g -fsanitize=address,undefined -fno-sanitize=function -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
-          echo "LDFLAGS=-g -fsanitize=address,undefined -shared-libasan -fopenmp=libomp" >> $GITHUB_ENV
+          echo "CPPFLAGS=-g -fno-omit-frame-pointer -fno-sanitize=function -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
+          echo "LDFLAGS=-g -shared-libasan -fopenmp=libomp" >> $GITHUB_ENV
           echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
           # to disable the fast unwinder to get full stacktraces.
@@ -104,6 +104,8 @@ jobs:
             -Dmagick=disabled
             -Ddocs=${{ matrix.build.docs || 'false' }}
             -Dintrospection=${{ matrix.build.docs && 'enabled' || 'disabled' }}
+            -Db_sanitize=${{ matrix.build.sanitize || 'none' }}
+            -Db_lundef=${{ matrix.build.sanitize && 'false' || 'true' }}
           || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
