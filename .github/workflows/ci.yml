@@ -78,8 +78,6 @@ jobs:
 
       - name: Prepare sanitizers environment
         if: matrix.build.sanitize
-        env:
-          LLVM_PREFIX: /usr/lib/llvm-19
         run: |
           ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
           echo "CPPFLAGS=-g -fno-omit-frame-pointer -fno-sanitize=function -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
@@ -92,8 +90,8 @@ jobs:
           echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
           # Ensure UBSan issues causes the program to abort.
           echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1:print_stacktrace=1" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$LLVM_PREFIX/lib:`dirname $ASAN_DSO`" >> $GITHUB_ENV
-          echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
+          echo "LD_LIBRARY_PATH=$(dirname $ASAN_DSO)" >> $GITHUB_ENV
+          echo "$(dirname $($CC -print-prog-name=llvm-symbolizer))" >> $GITHUB_PATH
 
       - name: Configure libvips
         run:
