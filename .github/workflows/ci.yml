@@ -18,7 +18,11 @@ jobs:
 
           - name: "Linux x64 (Ubuntu 24.04) - Clang 19 with ASan and UBSan"
             os: ubuntu-24.04
-            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: true }
+            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'asan' }
+
+          - name: "Linux x64 (Ubuntu 24.04) - Clang 19 with TSan"
+            os: ubuntu-24.04
+            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'tsan' }
 
           - name: "macOS arm64 (14) - Xcode 15"
             os: macos-14
@@ -69,15 +73,15 @@ jobs:
 
       - name: Install Clang 19
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-19'
-        run: sudo apt-get install clang-19 libomp-19-dev lld-19 llvm-19
+        run: sudo apt-get install clang-19 libomp-19-dev lld-19 llvm-19 libclang-rt-19-dev
 
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
         run: |
           echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$(brew --prefix libarchive)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
-      - name: Prepare sanitizers
-        if: matrix.build.sanitize
+      - name: Prepare ASan and UBSan
+        if: matrix.build.sanitize == 'asan'
         env:
           LLVM_PREFIX: /usr/lib/llvm-19
         run: |
@@ -90,10 +94,27 @@ jobs:
           # to disable the fast unwinder to get full stacktraces.
           echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp:fast_unwind_on_malloc=0" >> $GITHUB_ENV
-          echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
           # Ensure UBSan issues causes the program to abort.
           echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1:print_stacktrace=1" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=$LLVM_PREFIX/lib:`dirname $ASAN_DSO`" >> $GITHUB_ENV
+          echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
+
+      - name: Prepare TSan
+        if: matrix.build.sanitize == 'tsan'
+        env:
+          LLVM_PREFIX: /usr/lib/llvm-19
+        run: |
+          TSAN_DSO=`$CC -print-file-name=libclang_rt.tsan-x86_64.so`
+          echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
+          echo "CPPFLAGS=-g -fsanitize=thread -fno-sanitize=function -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
+          echo "LDFLAGS=-g -fsanitize=thread -shared-libasan -fopenmp=libomp" >> $GITHUB_ENV
+          echo "TSAN_DSO=$TSAN_DSO" >> $GITHUB_ENV
+          echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1" >> $GITHUB_ENV
+          echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp:fast_unwind_on_malloc=0" >> $GITHUB_ENV
+          echo "TSAN_OPTIONS=ignore_noninstrumented_modules=1:suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
+          # Ensure UBSan issues causes the program to abort.
+          echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1:print_stacktrace=1" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$LLVM_PREFIX/lib:`dirname $TSAN_DSO`" >> $GITHUB_ENV
           echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
 
       - name: Configure libvips
@@ -126,5 +147,5 @@ jobs:
       - name: Run test suite
         env:
           VIPS_LEAK: 1
-          LD_PRELOAD: ${{ env.ASAN_DSO }}
+          LD_PRELOAD: ${{ env.ASAN_DSO }}${{ env.TSAN_DSO }}
         run: python3 -m pytest -sv --log-cli-level=WARNING test/test-suite
