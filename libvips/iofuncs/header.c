@@ -1045,10 +1045,8 @@ vips_image_get_data(VipsImage *image)
  *     [method.Image.pipelinev].
  */
 void
-vips_image_init_fields(VipsImage *image,
-	int xsize, int ysize, int bands,
-	VipsBandFormat format, VipsCoding coding,
-	VipsInterpretation interpretation,
+vips_image_init_fields(VipsImage *image, int xsize, int ysize, int bands,
+	VipsBandFormat format, VipsCoding coding, VipsInterpretation interpretation,
 	double xres, double yres)
 {
 	g_object_set(image,
@@ -1432,11 +1430,9 @@ static const char *vips_image_header_deprecated[] = {
 static void *
 vips_image_map_fn(VipsMeta *meta, VipsImageMapFn fn, void *a)
 {
-	int i;
-
 	/* Hide deprecated fields.
 	 */
-	for (i = 0; i < VIPS_NUMBER(vips_image_header_deprecated); i++)
+	for (int i = 0; i < VIPS_NUMBER(vips_image_header_deprecated); i++)
 		if (strcmp(meta->name, vips_image_header_deprecated[i]) == 0)
 			return NULL;
 
@@ -1464,12 +1460,11 @@ vips_image_map_fn(VipsMeta *meta, VipsImageMapFn fn, void *a)
 void *
 vips_image_map(VipsImage *image, VipsImageMapFn fn, void *a)
 {
-	int i;
-	GValue value = G_VALUE_INIT;
 	void *result;
 
-	for (i = 0; i < VIPS_NUMBER(vips_header_fields); i++) {
+	for (int i = 0; i < VIPS_NUMBER(vips_header_fields); i++) {
 		HeaderField *field = &vips_header_fields[i];
+		GValue value = G_VALUE_INIT;
 
 		(void) vips_image_get(image, field->name, &value);
 		result = fn(image, field->name, &value, a);
@@ -1571,11 +1566,8 @@ meta_get_value(const VipsImage *image,
 		return -1;
 	g_value_init(value_copy, type);
 	if (!g_value_transform(&value, value_copy)) {
-		vips_error("VipsImage",
-			_("field \"%s\" is of type %s, not %s"),
-			name,
-			g_type_name(G_VALUE_TYPE(&value)),
-			g_type_name(type));
+		vips_error("VipsImage", _("field \"%s\" is of type %s, not %s"),
+			name, g_type_name(G_VALUE_TYPE(&value)), g_type_name(type));
 		g_value_unset(&value);
 
 		return -1;
