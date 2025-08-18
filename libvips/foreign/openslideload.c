@@ -496,11 +496,15 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		 * feature.
 		 */
 		g_snprintf(buf, 256, "openslide.level[%d].tile-width", rslide->level);
-		if ((value = openslide_get_property_value(rslide->osr, buf)))
+		if ((value = openslide_get_property_value(rslide->osr, buf))) {
 			rslide->tile_width = atoi(value);
+			vips_image_set_int(image, VIPS_META_TILE_WIDTH, rslide->tile_width);
+		}
 		g_snprintf(buf, 256, "openslide.level[%d].tile-height", rslide->level);
-		if ((value = openslide_get_property_value(rslide->osr, buf)))
+		if ((value = openslide_get_property_value(rslide->osr, buf))) {
 			rslide->tile_height = atoi(value);
+			vips_image_set_int(image, VIPS_META_TILE_HEIGHT, rslide->tile_height);
+		}
 		if (value)
 			VIPS_DEBUG_MSG("readslide_new: found tile-size\n");
 
