@@ -1911,12 +1911,6 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 	 */
 	vips_image_set_int(out, VIPS_META_ORIENTATION, rtiff->header.orientation);
 
-	/* Set the tile dimensions tags. */
-	if (rtiff->header.tiled) {
-		vips_image_set_int(out, VIPS_META_TILE_WIDTH, rtiff->header.tile_width);
-		vips_image_set_int(out, VIPS_META_TILE_HEIGHT, rtiff->header.tile_height);
-	}
-
 	/* Hint smalltile for tiled images, since we may be decompressing
 	 * outside the lock and THINSTRIP would prevent parallel tile decode.
 	 */

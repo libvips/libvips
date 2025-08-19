@@ -588,12 +588,6 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 
 	vips_image_set_int(out,
 		VIPS_META_BITS_PER_SAMPLE, jp2k->image->comps[0].prec);
-	if (jp2k->info->tdx > 1)
-		vips_image_set_int(out,
-			VIPS_META_TILE_WIDTH, jp2k->info->tdx);
-	if (jp2k->info->tdy > 1)
-		vips_image_set_int(out,
-			VIPS_META_TILE_HEIGHT, jp2k->info->tdy);
 
 	return 0;
 }
