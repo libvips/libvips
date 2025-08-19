@@ -4,6 +4,7 @@
 - popplerload, svgload: validate page size [Yang Luo]
 - pdfiumload: allow both dpi and scale to be set [kleisauke]
 - svgload: honor DPI when scaling elements with non-pixel units [kleisauke]
+- disable redundant Highway AVX512 targets [kleisauke]
 
 7/7/25 8.17.1
 
