@@ -10,6 +10,7 @@
 - tiffload: ensure processing halts for memory-related errors [lovell]
 - tiffload: increase memory limit from 20MB to 50MB [lovell]
 - fix vapi build [stydxm]
+- tiffsave: include sample format when copying tiff data [manthey]
 
 7/7/25 8.17.1
 
