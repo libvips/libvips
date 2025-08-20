@@ -2370,6 +2370,7 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 	CopyField(TIFFTAG_ROWSPERSTRIP, ui32);
 	CopyField(TIFFTAG_SUBFILETYPE, ui32);
 	CopyField(TIFFTAG_PREDICTOR, ui16);
+	CopyField(TIFFTAG_SAMPLEFORMAT, ui16);
 
 	if (TIFFGetField(in, TIFFTAG_EXTRASAMPLES, &ui16, &a))
 		TIFFSetField(out, TIFFTAG_EXTRASAMPLES, ui16, a);
