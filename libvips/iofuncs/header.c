@@ -998,6 +998,54 @@ vips_image_get_orientation_swap(VipsImage *image)
 }
 
 /**
+ * vips_image_get_tile_width:
+ * @image: image to get from
+ *
+ * Fetch and sanity-check [const@META_TILE_WIDTH]. Default to -1 (no tiling)
+ * if not present or crazy.
+ *
+ * Returns: the width of the tiles encoded in the image.
+ */
+int
+vips_image_get_tile_width(VipsImage *image)
+{
+	int tile_width;
+
+	if (vips_image_get_typeof(image, VIPS_META_TILE_WIDTH) &&
+		!vips_image_get_int(image, VIPS_META_TILE_WIDTH,
+			&tile_width) &&
+		tile_width > 0 &&
+		tile_width <= vips_image_get_width(image))
+		return tile_width;
+
+	return -1;
+}
+
+/**
+ * vips_image_get_tile_height:
+ * @image: image to get from
+ *
+ * Fetch and sanity-check [const@META_TILE_HEIGHT]. Default to -1 (no tiling)
+ * if not present or crazy.
+ *
+ * Returns: the height of the tiles encoded in the image.
+ */
+int
+vips_image_get_tile_height(VipsImage *image)
+{
+	int tile_height;
+
+	if (vips_image_get_typeof(image, VIPS_META_TILE_HEIGHT) &&
+		!vips_image_get_int(image, VIPS_META_TILE_HEIGHT,
+			&tile_height) &&
+		tile_height > 0 &&
+		tile_height <= vips_image_get_height(image))
+		return tile_height;
+
+	return -1;
+}
+
+/**
  * vips_image_get_data:
  * @image: image to get data for
  *
