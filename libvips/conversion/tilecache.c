@@ -783,6 +783,11 @@ vips_tile_cache_build(VipsObject *object)
 			VIPS_DEMAND_STYLE_SMALLTILE, block_cache->in, NULL))
 		return -1;
 
+	vips_image_set_int(conversion->out,
+		VIPS_META_TILE_WIDTH, block_cache->tile_width);
+	vips_image_set_int(conversion->out,
+		VIPS_META_TILE_HEIGHT, block_cache->tile_height);
+
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_tile_cache_gen, vips_stop_one,
 			block_cache->in, cache))

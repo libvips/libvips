@@ -8,6 +8,8 @@ master
   file formats
 - pdfload: control region to be rendered via `page_box` [lovell]
 - system: cache operations
+- add vips_image_get_tile_width(), vips_image_get_tile_height(): get tile
+  cache geometry hints [jbaiter]
 
 8.17.2
 

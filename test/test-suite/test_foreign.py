@@ -769,6 +769,8 @@ class TestForeign:
             assert im.height == 213
             assert im.bands == 4
             assert im.get("bits-per-sample") == 8
+            assert im.get("tile-width") == 240
+            assert im.get("tile-height") == 224
 
         self.file_loader("tiffload", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
         self.buffer_loader("tiffload_buffer", TIF_OJPEG_TILE_FILE, tiff_ojpeg_tile_valid)
@@ -1071,6 +1073,8 @@ class TestForeign:
             assert im.width == 2220
             assert im.height == 2967
             assert im.bands == 4
+            assert im.get("tile-width") == 240
+            assert im.get("tile-height") == 240
 
         self.file_loader("openslideload", OPENSLIDE_FILE, openslide_valid)
 
@@ -1664,6 +1668,8 @@ class TestForeign:
             assert im.height == 400
             assert im.bands == 3
             assert im.get("bits-per-sample") == 8
+            assert im.get("tile-width") == 800
+            assert im.get("tile-height") == 400
 
         self.file_loader("jp2kload", JP2K_FILE, jp2k_valid)
         self.buffer_loader("jp2kload_buffer", JP2K_FILE, jp2k_valid)
