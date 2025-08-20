@@ -22,6 +22,8 @@
  * 	  stray command-windows on Windows
  * 27/3/16
  * 	- allow [options] in out_format
+ * 20/8/25
+ *	- enabling caching of system calls
  */
 
 /*
@@ -49,6 +51,10 @@
 
 	These files are distributed with VIPS - http://www.vips.ecs.soton.ac.uk
 
+ */
+
+/*
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -201,9 +207,16 @@ vips_system_build(VipsObject *object)
 			p[1] == '%')
 			memmove(p, p + 1, strlen(p));
 
+#ifdef DEBUG
+	printf("vips_system_build: spawn <<%s>> ...\n", cmd);
+#endif /*DEBUG*/
 	if (!g_spawn_command_line_sync(cmd,
 			&std_output, &std_error, &result, &error) ||
 		result) {
+#ifdef DEBUG
+		printf("\t... failed\n");
+#endif /*DEBUG*/
+
 		if (error) {
 			vips_error(class->nickname, "%s", error->message);
 			g_error_free(error);
@@ -227,6 +240,10 @@ vips_system_build(VipsObject *object)
 
 		return -1;
 	}
+
+#ifdef DEBUG
+	printf("\t... success\n");
+#endif /*DEBUG*/
 
 	if (std_error) {
 		g_strchomp(std_error);
@@ -259,7 +276,6 @@ vips_system_class_init(VipsSystemClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
-	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 
 	gobject_class->dispose = vips_system_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -268,10 +284,6 @@ vips_system_class_init(VipsSystemClass *class)
 	vobject_class->nickname = "system";
 	vobject_class->description = _("run an external command");
 	vobject_class->build = vips_system_build;
-
-	/* Commands can have side-effects, so don't cache them.
-	 */
-	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_BOXED(class, "in", 0,
 		_("Input"),
@@ -342,7 +354,8 @@ vips_system_init(VipsSystem *system)
  * You can put a number between the `%` and the `s` to change the order
  * in which the substitution occurs.
  *
- * The command is executed with [`popen()`](man:popen(3)) and the output captured in @log.
+ * The command is executed with [`popen()`](man:popen(3)) and the output
+ * captured in @log.
  *
  * After the command finishes, if @out_format is set, the output image is
  * opened and returned in @out. You can append `[options]` to @out_format to

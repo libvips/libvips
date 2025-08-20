@@ -7,6 +7,7 @@ master
 - larger mmap windows on 64-bit machines improve random access mode for many
   file formats
 - pdfload: control region to be rendered via `page_box` [lovell]
+- system: cache operations
 
 8.17.2
 

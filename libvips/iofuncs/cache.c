@@ -185,7 +185,44 @@ vips_value_hash(GParamSpec *pspec, const GValue *value)
 	else if (generic == G_TYPE_PARAM_BOXED) {
 		void *p = g_value_get_boxed(value);
 
-		return p ? g_direct_hash(p) : 0;
+		// array_object is an internal type, don't have a case for this
+		if (!p)
+			return 0;
+		else if (G_VALUE_TYPE(value) == VIPS_TYPE_ARRAY_INT) {
+			int n;
+			int *array = (int *)
+				vips_area_get_data(VIPS_AREA(p), NULL, &n, NULL, NULL);
+
+			guint hash = 0;
+			for (int i = 0; i < n; i++)
+				hash = (hash << 1) ^ g_int_hash(&array[i]);
+
+			return hash;
+		}
+		else if (G_VALUE_TYPE(value) == VIPS_TYPE_ARRAY_DOUBLE) {
+			int n;
+			double *array = (double *)
+				vips_area_get_data(VIPS_AREA(p), NULL, &n, NULL, NULL);
+
+			guint hash = 0;
+			for (int i = 0; i < n; i++)
+				hash = (hash << 1) ^ g_double_hash(&array[i]);
+
+			return hash;
+		}
+		else if (G_VALUE_TYPE(value) == VIPS_TYPE_ARRAY_IMAGE) {
+			int n;
+			void **array = (void **)
+				vips_area_get_data(VIPS_AREA(p), NULL, &n, NULL, NULL);
+
+			guint hash = 0;
+			for (int i = 0; i < n; i++)
+				hash = (hash << 1) ^ g_direct_hash(array[i]);
+
+			return hash;
+		}
+		else
+			return g_direct_hash(p);
 	}
 	else if (generic == G_TYPE_PARAM_POINTER) {
 		void *p = g_value_get_pointer(value);
@@ -275,8 +312,77 @@ vips_value_equal(GParamSpec *pspec, const GValue *v1, const GValue *v2)
 		else
 			return s1 && s2 && strcmp(s1, s2) == 0;
 	}
-	if (generic == G_TYPE_PARAM_BOXED)
-		return g_value_get_boxed(v1) == g_value_get_boxed(v2);
+	if (generic == G_TYPE_PARAM_BOXED) {
+		void *p1 = g_value_get_boxed(v1);
+		void *p2 = g_value_get_boxed(v2);
+
+		if (p1 == p2)
+			return TRUE;
+		else if (!p1 || !p2)
+			return FALSE;
+		else if (t1 == VIPS_TYPE_ARRAY_INT) {
+			int n1;
+			int *array1 = (int *)
+				vips_area_get_data(VIPS_AREA(p1), NULL, &n1, NULL, NULL);
+			int n2;
+			int *array2 = (int *)
+				vips_area_get_data(VIPS_AREA(p2), NULL, &n2, NULL, NULL);
+
+			if (n1 != n2)
+				return FALSE;
+			else if (array1 == array2)
+				return TRUE;
+			else {
+				for (int i = 0; i < n1; i++)
+					if (array1[i] != array2[i])
+						return FALSE;
+
+				return TRUE;
+			}
+		}
+		else if (t1 == VIPS_TYPE_ARRAY_DOUBLE) {
+			int n1;
+			double *array1 = (double *)
+				vips_area_get_data(VIPS_AREA(p1), NULL, &n1, NULL, NULL);
+			int n2;
+			double *array2 = (double *)
+				vips_area_get_data(VIPS_AREA(p2), NULL, &n2, NULL, NULL);
+
+			if (n1 != n2)
+				return FALSE;
+			else if (array1 == array2)
+				return TRUE;
+			else {
+				for (int i = 0; i < n1; i++)
+					if (array1[i] != array2[i])
+						return FALSE;
+
+				return TRUE;
+			}
+		}
+		else if (t1 == VIPS_TYPE_ARRAY_IMAGE) {
+			int n1;
+			void **array1 = (void **)
+				vips_area_get_data(VIPS_AREA(p1), NULL, &n1, NULL, NULL);
+			int n2;
+			void **array2 = (void **)
+				vips_area_get_data(VIPS_AREA(p2), NULL, &n2, NULL, NULL);
+
+			if (n1 != n2)
+				return FALSE;
+			else if (array1 == array2)
+				return TRUE;
+			else {
+				for (int i = 0; i < n1; i++)
+					if (array1[i] != array2[i])
+						return FALSE;
+
+				return TRUE;
+			}
+		}
+		else
+			return p1 == p2;
+	}
 	if (generic == G_TYPE_PARAM_POINTER)
 		return g_value_get_pointer(v1) == g_value_get_pointer(v2);
 	if (generic == G_TYPE_PARAM_OBJECT)

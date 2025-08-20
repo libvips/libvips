@@ -179,21 +179,21 @@
  * Input gobjects are automatically reffed, output gobjects automatically ref
  * us. We also automatically watch for "destroy" and unlink.
  *
- * [flags@Vips.ArgumentFlags.SET_ALWAYS] is handy for arguments which are set from C. For
- * example, [property@Image:width] is a property that gives access to the Xsize
- * member of struct _VipsImage. We default its 'assigned' to `TRUE`
- * since the field is always set directly by C.
+ * [flags@Vips.ArgumentFlags.SET_ALWAYS] is handy for arguments which are set
+ * from C. For example, [property@Image:width] is a property that gives
+ * access to the Xsize member of struct _VipsImage. We default its
+ * 'assigned' to `TRUE` since the field is always set directly by C.
  *
- * [flags@Vips.ArgumentFlags.DEPRECATED] arguments are not shown in help text, are not
- * looked for if required, are not checked for "have-been-set". You can
+ * [flags@Vips.ArgumentFlags.DEPRECATED] arguments are not shown in help text,
+ * are not looked for if required, are not checked for "have-been-set". You can
  * deprecate a required argument, but you must obviously add a new required
  * argument if you do.
  *
- * Input args with [flags@Vips.ArgumentFlags.MODIFY] will be modified by the operation.
- * This is used for things like the in-place drawing operations.
+ * Input args with [flags@Vips.ArgumentFlags.MODIFY] will be modified by the
+ * operation. This is used for things like the in-place drawing operations.
  *
- * [flags@Vips.ArgumentFlags.NON_HASHABLE] stops the argument being used in hash and
- * equality tests. It's useful for arguments like `revalidate` which
+ * [flags@Vips.ArgumentFlags.NON_HASHABLE] stops the argument being used in
+ * hash and equality tests. It's useful for arguments like `revalidate` which
  * control the behaviour of the operator cache.
  */
 
