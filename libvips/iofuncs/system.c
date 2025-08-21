@@ -23,7 +23,7 @@
  * 27/3/16
  * 	- allow [options] in out_format
  * 20/8/25
- *	- enabling caching of system calls
+ *	- add "cache" argument
  */
 
 /*
@@ -54,8 +54,8 @@
  */
 
 /*
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -84,7 +84,7 @@ typedef struct _VipsSystem {
 	char *in_format;
 	char *out_format;
 	char *log;
-	gboolean nocache;
+	gboolean cache;
 
 	/* Array of names we wrote the input images to.
 	 */
@@ -279,8 +279,8 @@ vips_system_get_flags(VipsOperation *operation)
 		VIPS_OPERATION_CLASS(vips_system_parent_class)->get_flags(operation);
 	VipsSystem *system = (VipsSystem *) operation;
 
-	if (system->nocache)
-		flags |= VIPS_OPERATION_NOCACHE;
+	if (system->cache)
+		flags &= ~VIPS_OPERATION_NOCACHE;
 
 	return flags;
 }
@@ -301,6 +301,7 @@ vips_system_class_init(VipsSystemClass *class)
 	vobject_class->build = vips_system_build;
 
 	voperation_class->get_flags = vips_system_get_flags;
+	voperation_class->flags = VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_BOXED(class, "in", 0,
 		_("Input"),
@@ -336,19 +337,20 @@ vips_system_class_init(VipsSystemClass *class)
 		G_STRUCT_OFFSET(VipsSystem, out_format),
 		NULL);
 
-	VIPS_ARG_STRING(class, "log", 5,
+	VIPS_ARG_BOOL(class, "cache", 5,
+		_("Cache"),
+		_("Cache this call"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsSystem, cache),
+		FALSE);
+
+	VIPS_ARG_STRING(class, "log", 6,
 		_("Log"),
 		_("Command log"),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET(VipsSystem, log),
 		NULL);
 
-	VIPS_ARG_BOOL(class, "nocache", 6,
-		_("Nocache"),
-		_("Don't cache this call"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsSystem, nocache),
-		FALSE);
 }
 
 static void
@@ -389,6 +391,9 @@ vips_system_init(VipsSystem *system)
  *
  * Finally the input images are deleted.
  *
+ * If @cache is set, this call will be added to the libvips operation cache
+ * and reused if possible.
+ *
  * For example, this call will run the ImageMagick convert program on an
  * image, using JPEG files to pass images into and out of the convert command.
  *
@@ -402,6 +407,7 @@ vips_system_init(VipsSystem *system)
  *         "out", &out,
  *         "in_format", "%s.jpg",
  *         "out_format", "%s.jpg",
+ *         "cache", TRUE,
  *         "log", &log,
  *         NULL))
  *     error ...
@@ -412,6 +418,7 @@ vips_system_init(VipsSystem *system)
  *     * @out: [class@Image], output, image
  *     * @in_format: `gchararray`, write input files like this
  *     * @out_format: `gchararray`, write output filename like this
+ *     * @cache: `gboolean`, cache this call
  *     * @log: `gchararray`, output, stdout of command is returned here
  *
  * Returns: 0 on success, -1 on failure.
