@@ -336,8 +336,9 @@ vips_area_free_array_object(GObject **array, VipsArea *area)
  * vips_area_new_array_object: (constructor)
  * @n: number of elements in the array
  *
- * An area which holds an array of [class@GObject.Object] s. See [ctor@Area.new_array]. When
- * the area is freed, each [class@GObject.Object] will be unreffed.
+ * An area which holds an array of [class@GObject.Object] s. See
+ * [ctor@Area.new_array]. When the area is freed, each [class@GObject.Object]
+ * will be unreffed.
  *
  * Add an extra `NULL` element at the end, handy for eg.
  * [func@Image.pipeline_array] etc.
@@ -1932,7 +1933,8 @@ vips_value_get_array_object(const GValue *value, int *n)
  * @value: (out): [struct@GObject.Value] to set
  * @n: the number of elements
  *
- * Set @value to hold an array of [class@GObject.Object]. Pass in the array length in @n.
+ * Set @value to hold an array of [class@GObject.Object]. Pass in the array
+ * length in @n.
  *
  * ::: seealso
  *     [func@value_get_array_object].

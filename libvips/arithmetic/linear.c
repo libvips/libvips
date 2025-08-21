@@ -125,14 +125,36 @@ vips_linear_build(VipsObject *object)
 
 	int i;
 
-	/* If we have a three-element vector, we need to bandup the image to
+	/* If all elements of the constants are equal, we can treat them as
+	 * a single element.
+	 */
+	int a_n = 1;
+	if (linear->a) {
+		double *ary = (double *) linear->a->data;
+
+		for (i = 1; i < linear->a->n; i++)
+			if (ary[i] != ary[0]) {
+				a_n = linear->a->n;
+				break;
+			}
+	}
+	int b_n = 1;
+	if (linear->b) {
+		double *ary = (double *) linear->b->data;
+
+		for (i = 1; i < linear->b->n; i++)
+			if (ary[i] != ary[0]) {
+				b_n = linear->b->n;
+				break;
+			}
+	}
+
+	/* If we have a $n element vector, we need to bandup the image to
 	 * match.
 	 */
 	linear->n = 1;
-	if (linear->a)
-		linear->n = VIPS_MAX(linear->n, linear->a->n);
-	if (linear->b)
-		linear->n = VIPS_MAX(linear->n, linear->b->n);
+	linear->n = VIPS_MAX(linear->n, a_n);
+	linear->n = VIPS_MAX(linear->n, b_n);
 	if (unary->in) {
 		int bands;
 
@@ -141,46 +163,10 @@ vips_linear_build(VipsObject *object)
 	}
 	arithmetic->base_bands = linear->n;
 
-	if (unary->in &&
-		linear->a &&
-		linear->b) {
-		if (vips_check_vector(class->nickname,
-				linear->a->n, unary->in) ||
-			vips_check_vector(class->nickname,
-				linear->b->n, unary->in))
+	if (unary->in) {
+		if (vips_check_vector(class->nickname, a_n, unary->in) ||
+			vips_check_vector(class->nickname, b_n, unary->in))
 			return -1;
-	}
-
-	/* If all elements of the constants are equal, we can shrink them down
-	 * to a single element.
-	 */
-	if (linear->a) {
-		double *ary = (double *) linear->a->data;
-		gboolean all_equal;
-
-		all_equal = TRUE;
-		for (i = 1; i < linear->a->n; i++)
-			if (ary[i] != ary[0]) {
-				all_equal = FALSE;
-				break;
-			}
-
-		if (all_equal)
-			linear->a->n = 1;
-	}
-	if (linear->b) {
-		double *ary = (double *) linear->b->data;
-		gboolean all_equal;
-
-		all_equal = TRUE;
-		for (i = 1; i < linear->b->n; i++)
-			if (ary[i] != ary[0]) {
-				all_equal = FALSE;
-				break;
-			}
-
-		if (all_equal)
-			linear->b->n = 1;
 	}
 
 	/* Make up-banded versions of our constants.
@@ -191,14 +177,14 @@ vips_linear_build(VipsObject *object)
 	for (i = 0; i < linear->n; i++) {
 		if (linear->a) {
 			double *ary = (double *) linear->a->data;
-			int j = VIPS_MIN(i, linear->a->n - 1);
+			int j = VIPS_MIN(i, a_n - 1);
 
 			linear->a_ready[i] = ary[j];
 		}
 
 		if (linear->b) {
 			double *ary = (double *) linear->b->data;
-			int j = VIPS_MIN(i, linear->b->n - 1);
+			int j = VIPS_MIN(i, b_n - 1);
 
 			linear->b_ready[i] = ary[j];
 		}
