@@ -54,8 +54,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -84,6 +84,7 @@ typedef struct _VipsSystem {
 	char *in_format;
 	char *out_format;
 	char *log;
+	gboolean nocache;
 
 	/* Array of names we wrote the input images to.
 	 */
@@ -271,11 +272,25 @@ vips_system_build(VipsObject *object)
 	return 0;
 }
 
+static VipsOperationFlags
+vips_system_get_flags(VipsOperation *operation)
+{
+	VipsOperationFlags flags =
+		VIPS_OPERATION_CLASS(vips_system_parent_class)->get_flags(operation);
+	VipsSystem *system = (VipsSystem *) operation;
+
+	if (system->nocache)
+		flags |= VIPS_OPERATION_NOCACHE;
+
+	return flags;
+}
+
 static void
 vips_system_class_init(VipsSystemClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
+	VipsOperationClass *voperation_class = VIPS_OPERATION_CLASS(class);
 
 	gobject_class->dispose = vips_system_dispose;
 	gobject_class->set_property = vips_object_set_property;
@@ -284,6 +299,8 @@ vips_system_class_init(VipsSystemClass *class)
 	vobject_class->nickname = "system";
 	vobject_class->description = _("run an external command");
 	vobject_class->build = vips_system_build;
+
+	voperation_class->get_flags = vips_system_get_flags;
 
 	VIPS_ARG_BOXED(class, "in", 0,
 		_("Input"),
@@ -305,26 +322,33 @@ vips_system_class_init(VipsSystemClass *class)
 		G_STRUCT_OFFSET(VipsSystem, cmd_format),
 		NULL);
 
-	VIPS_ARG_STRING(class, "in_format", 2,
+	VIPS_ARG_STRING(class, "in_format", 3,
 		_("Input format"),
 		_("Format for input filename"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsSystem, in_format),
 		NULL);
 
-	VIPS_ARG_STRING(class, "out_format", 2,
+	VIPS_ARG_STRING(class, "out_format", 4,
 		_("Output format"),
 		_("Format for output filename"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsSystem, out_format),
 		NULL);
 
-	VIPS_ARG_STRING(class, "log", 2,
+	VIPS_ARG_STRING(class, "log", 5,
 		_("Log"),
 		_("Command log"),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET(VipsSystem, log),
 		NULL);
+
+	VIPS_ARG_BOOL(class, "nocache", 6,
+		_("Nocache"),
+		_("Don't cache this call"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsSystem, nocache),
+		FALSE);
 }
 
 static void
