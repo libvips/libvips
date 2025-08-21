@@ -921,6 +921,49 @@ vips_cache_trim(void)
 	g_mutex_unlock(&vips_cache_lock);
 }
 
+#ifdef DEBUG_LEAK
+static void *
+vips_cache_find_differences(VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b)
+{
+	VipsOperation *operation_before = VIPS_OPERATION(a);
+
+	if ((argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_INPUT) &&
+		argument_instance->assigned) {
+		const char *name = g_param_spec_get_name(pspec);
+
+		GValue value_before = G_VALUE_INIT;
+		g_object_get_property(G_OBJECT(operation_before), name, &value_before);
+		unsigned int hash_before = vips_value_hash(pspec, &value_before);
+
+		GValue value_after = G_VALUE_INIT;
+		g_object_get_property(G_OBJECT(object), name, &value_after);
+		unsigned int hash_after = vips_value_hash(pspec, &value_after);
+
+		if (hash_before != hash_after) {
+			g_warning("arg \"%s\" has changed value during build", name);
+
+			char *str_before = g_strdup_value_contents(&value_before);
+			g_warning("\tvalue before: %s", str_before);
+			g_free(str_before);
+
+			char *str_after = g_strdup_value_contents(&value_after);
+			g_warning("\tvalue after: %s", str_after);
+			g_free(str_after);
+		}
+
+		g_value_unset(&value_before);
+		g_value_unset(&value_after);
+	}
+
+	return NULL;
+}
+#endif /*DEBUG_LEAK*/
+
 /**
  * vips_cache_operation_buildp: (skip)
  * @operation: pointer to operation to lookup
@@ -1007,6 +1050,11 @@ vips_cache_operation_buildp(VipsOperation **operation)
 		 */
 		if (vips__leak) {
 			hash_before = vips_operation_hash(*operation);
+
+			/* This isn't a deep copy, so it won't detect eg.
+			 * operations modifying compound objects like VipsArrayInt. The
+			 * has will work though.
+			 */
 			operation_before = vips_operation_copy(*operation);
 		}
 #endif /*DEBUG_LEAK*/
@@ -1018,25 +1066,14 @@ vips_cache_operation_buildp(VipsOperation **operation)
 		if (vips__leak &&
 			!(flags & VIPS_OPERATION_NOCACHE) &&
 			hash_before != vips_operation_hash(*operation)) {
-			const char *name = (const char *)
-				vips_argument_map(VIPS_OBJECT(*operation),
-					vips_object_equal_arg, operation_before, NULL);
-			VipsObject *object = VIPS_OBJECT(*operation);
-			VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
-
 			char txt[256];
 			VipsBuf buf = VIPS_BUF_STATIC(txt);
+			vips_object_summary(VIPS_OBJECT(operation_before), &buf);
+			g_warning("vips_cache_operation_buildp: "
+				"arg mismatch on build of: %s", vips_buf_all(&buf));
 
-			VIPS_UNREF(operation_before);
-
-			vips_object_summary_class(class, &buf);
-			vips_buf_appends(&buf, ", ");
-			vips_object_summary(object, &buf);
-			vips_buf_appends(&buf, ", ");
-			vips_error(class->nickname, "arg \"%s\" changed during build, %s",
-				name, vips_buf_all(&buf));
-
-			return -1;
+			vips_argument_map(VIPS_OBJECT(*operation),
+				vips_cache_find_differences, operation_before, NULL);
 		}
 
 		VIPS_UNREF(operation_before);
