@@ -1052,8 +1052,8 @@ vips_cache_operation_buildp(VipsOperation **operation)
 			hash_before = vips_operation_hash(*operation);
 
 			/* This isn't a deep copy, so it won't detect eg.
-			 * operations modifying compound objects like VipsArrayInt. The
-			 * has will work though.
+			 * operations modifying compound objects like VipsArrayInt.
+			 * However, the hash_before value we save will.
 			 */
 			operation_before = vips_operation_copy(*operation);
 		}
