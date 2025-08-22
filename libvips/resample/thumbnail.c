@@ -42,7 +42,7 @@
  * 27/1/24
  *	- make icc profile transforms always write 8 bits
  * 22/8/25 kleisauke
- *	- remove seq line cache from thumbnail_image
+ *	- remove seq line cache from thumbnail_image, use hint instead
  */
 
 /*
@@ -1850,6 +1850,7 @@ vips_thumbnail_image_class_init(VipsThumbnailClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 	VipsThumbnailClass *thumbnail_class = VIPS_THUMBNAIL_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
@@ -1857,6 +1858,8 @@ vips_thumbnail_image_class_init(VipsThumbnailClass *class)
 
 	vobject_class->nickname = "thumbnail_image";
 	vobject_class->description = _("generate thumbnail from image");
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	thumbnail_class->get_info = vips_thumbnail_image_get_info;
 	thumbnail_class->open = vips_thumbnail_image_open;
