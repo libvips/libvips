@@ -92,6 +92,11 @@ option('jpeg',
   value: 'auto',
   description: 'Build with jpeg')
 
+option('uhdr',
+  type: 'feature',
+  value: 'auto',
+  description: 'Build with libuhdr')
+
 option('jpeg-xl',
   type: 'feature',
   value: 'auto',
