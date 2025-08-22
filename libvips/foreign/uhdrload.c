@@ -32,8 +32,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -57,7 +57,7 @@ const char *vips__uhdr_suffs[] = {
 	NULL
 };
 
-#include <libuhdr/uhdr.h>
+#include <ultrahdr_api.h>
 
 #define VIPS_TYPE_FOREIGN_LOAD_UHDR (vips_foreign_load_uhdr_get_type())
 #define VIPS_FOREIGN_LOAD_UHDR(obj) \
@@ -77,24 +77,17 @@ const char *vips__uhdr_suffs[] = {
 typedef struct _VipsForeignLoadUhdr {
 	VipsForeignLoad parent_object;
 
-	/* Context for this image.
-	 */
-	struct uhdr_context *ctx;
-
 	/* Set from subclasses.
 	 */
 	VipsSource *source;
 
-} VipsForeignLoadUhdr;
+	// decoder
+	uhdr_codec_private_t *dec;
 
-void
-vips__uhdr_error(struct uhdr_error *error)
-{
-	if (error->code)
-		vips_error("uhdr", "%s (%d.%d)",
-			error->message ? error->message : "(null)",
-			error->code, error->subcode);
-}
+	uhdr_raw_image_t *raw_image;
+	uhdr_raw_image_t *gainmap_image;
+
+} VipsForeignLoadUhdr;
 
 typedef struct _VipsForeignLoadUhdrClass {
 	VipsForeignLoadClass parent_class;
@@ -104,11 +97,106 @@ typedef struct _VipsForeignLoadUhdrClass {
 G_DEFINE_ABSTRACT_TYPE(VipsForeignLoadUhdr, vips_foreign_load_uhdr,
 	VIPS_TYPE_FOREIGN_LOAD);
 
+static const char *
+vips__uhdr_error_str(uhdr_codec_err_t err)
+{
+	switch (err) {
+	case UHDR_CODEC_OK:
+		return "UHDR_CODEC_OK";
+
+	case UHDR_CODEC_ERROR:
+		return "UHDR_CODEC_ERROR";
+
+	case UHDR_CODEC_UNKNOWN_ERROR:
+		return "UHDR_CODEC_UNKNOWN_ERROR";
+
+	case UHDR_CODEC_INVALID_PARAM:
+		return "UHDR_CODEC_INVALID_PARAM";
+
+	case UHDR_CODEC_MEM_ERROR:
+		return "UHDR_CODEC_MEM_ERROR";
+
+	case UHDR_CODEC_INVALID_OPERATION:
+		return "UHDR_CODEC_INVALID_OPERATION";
+
+	case UHDR_CODEC_UNSUPPORTED_FEATURE:
+		return "UHDR_CODEC_UNSUPPORTED_FEATURE";
+
+	default:
+		return "<unknown error code>";
+	}
+}
+
+void
+vips__uhdr_error(uhdr_error_info_t *error)
+{
+	if (error &&
+		error->has_detail)
+		vips_error("uhdr", "%s (%s, %d)",
+			error->detail,
+			vips__uhdr_error_str(error->error_code),
+			error->error_code);
+	else if (error)
+		vips_error("uhdr", "%s, %d",
+			vips__uhdr_error_str(error->error_code),
+			error->error_code);
+	else
+		vips_error("uhdr", "error");
+}
+
+typedef unsigned short half;
+
+/* From ILM's halfToFloat().
+ */
+float
+vips__half_to_float(half y)
+{
+    int s = (y >> 15) & 0x00000001;
+    int e = (y >> 10) & 0x0000001f;
+    int m =  y        & 0x000003ff;
+
+    if (e == 0) {
+		if (m == 0) {
+			// Plus or minus zero
+			return (float) (s << 31);
+		}
+		else {
+			// Denormalized number -- renormalize it
+			while (!(m & 0x00000400)) {
+				m <<= 1;
+				e -=  1;
+			}
+
+			e += 1;
+			m &= ~0x00000400;
+		}
+    }
+    else if (e == 31) {
+		if (m == 0) {
+			// Positive or negative infinity
+			return (float) ((s << 31) | 0x7f800000);
+		}
+		else {
+			// Nan -- preserve sign and significand bits
+			return (float) ((s << 31) | 0x7f800000 | (m << 13));
+		}
+    }
+
+    // Normalized number
+    e = e + (127 - 15);
+    m = m << 13;
+
+    // Assemble s, e and m.
+    return (float) ((s << 31) | (e << 23) | m);
+}
+
 static void
 vips_foreign_load_uhdr_dispose(GObject *gobject)
 {
 	VipsForeignLoadUhdr *uhdr = (VipsForeignLoadUhdr *) gobject;
 
+	VIPS_FREEF(uhdr_release_decoder, uhdr->dec);
+	VIPS_UNREF(uhdr->source);
 
 	G_OBJECT_CLASS(vips_foreign_load_uhdr_parent_class)->dispose(gobject);
 }
@@ -126,74 +214,47 @@ vips_foreign_load_uhdr_build(VipsObject *object)
 		vips_source_rewind(uhdr->source))
 		return -1;
 
-	if (!uhdr->ctx) {
-		struct uhdr_error error;
-
-		uhdr->ctx = uhdr_context_alloc();
-		/* uhdrsave is limited to a maximum image size of 16384x16384,
-		 * so align the uhdrload defaults accordingly.
-		 */
-		uhdr_context_set_maximum_image_size_limit(uhdr->ctx,
-			uhdr->unlimited ? USHRT_MAX : 0x4000);
-#ifdef HAVE_UHDR_MAX_TOTAL_MEMORY
-		if (!uhdr->unlimited)
-			uhdr_context_get_security_limits(uhdr->ctx)
-				->max_total_memory = 2UL * 1024 * 1024 * 1024;
-#endif /* HAVE_UHDR_MAX_TOTAL_MEMORY */
-#ifdef HAVE_UHDR_GET_DISABLED_SECURITY_LIMITS
-		if (uhdr->unlimited)
-			uhdr_context_set_security_limits(uhdr->ctx,
-				uhdr_get_disabled_security_limits());
-#endif /* HAVE_UHDR_GET_DISABLED_SECURITY_LIMITS */
-		error = uhdr_context_read_from_reader(uhdr->ctx,
-			uhdr->reader, uhdr, NULL);
-		if (error.code) {
-			vips__uhdr_error(&error);
-			return -1;
-		}
+	if (!uhdr->dec &&
+		!(uhdr->dec = uhdr_create_decoder())) {
+		vips__uhdr_error(NULL);
+		return -1;
 	}
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_uhdr_parent_class)
 		->build(object);
 }
 
-static int
-vips_foreign_load_uhdr_is_a(const char *buf, int len)
-{
-	if (len >= 12) {
-		unsigned char *p = (unsigned char *) buf;
-		guint32 chunk_len =
-			VIPS_LSHIFT_INT(p[0], 24) |
-			VIPS_LSHIFT_INT(p[1], 16) |
-			VIPS_LSHIFT_INT(p[2], 8) |
-			VIPS_LSHIFT_INT(p[3], 0);
-
-		int i;
-
-		/* chunk_len can be pretty big for eg. animated AVIF.
-		 */
-		if (chunk_len > 2048 ||
-			chunk_len % 4 != 0)
-			return 0;
-
-		for (i = 0; i < VIPS_NUMBER(uhdr_magic); i++)
-			if (strncmp(buf + 4, uhdr_magic[i], 8) == 0)
-				return 1;
-	}
-
-	return 0;
-}
-
 static VipsForeignFlags
 vips_foreign_load_uhdr_get_flags(VipsForeignLoad *load)
 {
-	return VIPS_FOREIGN_RANDOM;
+	// since we always decode the whole thing to memory
+	return VIPS_FOREIGN_PARTIAL;
 }
 
 static int
-vips_foreign_load_uhdr_set_header(VipsForeignLoadUhdr *uhdr, VipsImage *out)
+vips_foreign_load_uhdr_generate(VipsRegion *out_region,
+	void *seq, void *a, void *b, gboolean *stop)
 {
-	VipsForeignLoad *load = (VipsForeignLoad *) uhdr;
+	VipsRect *r = &out_region->valid;
+	VipsForeignLoadUhdr *uhdr = VIPS_FOREIGN_LOAD_UHDR(a);
+	half *base = (half *) uhdr->raw_image->planes[0];
+
+	for (int y = 0; y < r->height; y++) {
+		half *p = base +
+			4 * uhdr->raw_image->stride[0] * (r->top + y) +
+			4 * r->left;
+		float *q = (float *) VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+
+		for (int x = 0; x < r->width; x++) {
+			q[0] = vips__half_to_float(p[0]);
+			q[1] = vips__half_to_float(p[1]);
+			q[2] = vips__half_to_float(p[2]);
+			q[3] = vips__half_to_float(p[3]);
+
+			p += 4;
+			q += 4;
+		}
+	}
 
 	return 0;
 }
@@ -204,28 +265,82 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(load);
 	VipsForeignLoadUhdr *uhdr = (VipsForeignLoadUhdr *) load;
 
+	uhdr_error_info_t error_info;
+
+	printf("vips_foreign_load_uhdr_header:\n");
+
+	const void *data;
+	size_t size;
+	if (!(data = vips_source_map(uhdr->source, &size)))
+		return -1;
+
+	if (!is_uhdr_image((void *) data, size)) {
+		vips_error(class->nickname, "%s", _("not an UltraHDR image"));
+		return -1;
+	}
+
+	uhdr_compressed_image_t compressed_image = {
+		(void *) data,
+		size,
+		.capacity = size,
+		.cg = UHDR_CG_UNSPECIFIED,
+		.ct = UHDR_CT_UNSPECIFIED,
+		.range = UHDR_CR_UNSPECIFIED,
+	};
+	error_info = uhdr_dec_set_image(uhdr->dec, &compressed_image);
+	if (error_info.error_code) {
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
+
+	error_info = uhdr_dec_set_out_img_format(uhdr->dec,
+		UHDR_IMG_FMT_64bppRGBAHalfFloat);
+	if (error_info.error_code) {
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
+
+	error_info = uhdr_dec_set_out_color_transfer(uhdr->dec, UHDR_CT_LINEAR);
+	if (error_info.error_code) {
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
+
+	error_info = uhdr_decode(uhdr->dec);
+	if (error_info.error_code) {
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
+
 	vips_source_minimise(uhdr->source);
 
-	return 0;
-}
+	uhdr->raw_image = uhdr_get_decoded_image(uhdr->dec);
+	if (!uhdr->raw_image) {
+		vips__uhdr_error(NULL);
+		return -1;
+	}
 
-static void
-vips_foreign_load_uhdr_minimise(VipsObject *object, VipsForeignLoadUhdr *uhdr)
-{
-	vips_source_minimise(uhdr->source);
-}
+	uhdr->gainmap_image = uhdr_get_decoded_gainmap_image(uhdr->dec);
+	if (!uhdr->gainmap_image) {
+		vips__uhdr_error(NULL);
+		return -1;
+	}
 
-static int
-vips_foreign_load_uhdr_load(VipsForeignLoad *load)
-{
-	VipsForeignLoadUhdr *uhdr = (VipsForeignLoadUhdr *) load;
+	vips_image_init_fields(load->out,
+		uhdr->raw_image->w, uhdr->raw_image->h, 4,
+		VIPS_FORMAT_FLOAT,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0);
 
-	VipsImage **t = (VipsImage **)
-		vips_object_local_array(VIPS_OBJECT(load), 3);
+	VIPS_SETSTR(load->out->filename,
+		vips_connection_filename(VIPS_CONNECTION(uhdr->source)));
 
-#ifdef DEBUG
-	printf("vips_foreign_load_uhdr_load: loading image\n");
-#endif /*DEBUG*/
+	if (vips_image_pipelinev(load->out, VIPS_DEMAND_STYLE_FATSTRIP, NULL))
+		return -1;
+
+	if (vips_image_generate(load->out,
+			NULL, vips_foreign_load_uhdr_generate, NULL,
+			uhdr, NULL))
+		return -1;
 
 	return 0;
 }
@@ -247,15 +362,12 @@ vips_foreign_load_uhdr_class_init(VipsForeignLoadUhdrClass *class)
 
 	load_class->get_flags = vips_foreign_load_uhdr_get_flags;
 	load_class->header = vips_foreign_load_uhdr_header;
-	load_class->load = vips_foreign_load_uhdr_load;
 
 }
 
 static void
 vips_foreign_load_uhdr_init(VipsForeignLoadUhdr *uhdr)
 {
-	uhdr->n = 1;
-
 }
 
 typedef struct _VipsForeignLoadUhdrFile {
@@ -286,24 +398,12 @@ vips_foreign_load_uhdr_file_build(VipsObject *object)
 		->build(object);
 }
 
-static int
-vips_foreign_load_uhdr_file_is_a(const char *filename)
-{
-	char buf[12];
-
-	if (vips__get_bytes(filename, (unsigned char *) buf, 12) != 12)
-		return 0;
-
-	return vips_foreign_load_uhdr_is_a(buf, 12);
-}
-
 static void
 vips_foreign_load_uhdr_file_class_init(VipsForeignLoadUhdrFileClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -312,8 +412,6 @@ vips_foreign_load_uhdr_file_class_init(VipsForeignLoadUhdrFileClass *class)
 	object_class->build = vips_foreign_load_uhdr_file_build;
 
 	foreign_class->suffs = vips__uhdr_suffs;
-
-	load_class->is_a = vips_foreign_load_uhdr_file_is_a;
 
 	VIPS_ARG_STRING(class, "filename", 1,
 		_("Filename"),
@@ -359,27 +457,18 @@ vips_foreign_load_uhdr_buffer_build(VipsObject *object)
 		->build(object);
 }
 
-static gboolean
-vips_foreign_load_uhdr_buffer_is_a(const void *buf, size_t len)
-{
-	return vips_foreign_load_uhdr_is_a(buf, len);
-}
-
 static void
 vips_foreign_load_uhdr_buffer_class_init(
 	VipsForeignLoadUhdrBufferClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "uhdrload_buffer";
 	object_class->build = vips_foreign_load_uhdr_buffer_build;
-
-	load_class->is_a_buffer = vips_foreign_load_uhdr_buffer_is_a;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,
 		_("Buffer"),
@@ -424,15 +513,6 @@ vips_foreign_load_uhdr_source_build(VipsObject *object)
 		->build(object);
 }
 
-static gboolean
-vips_foreign_load_uhdr_source_is_a_source(VipsSource *source)
-{
-	const char *p;
-
-	return (p = (const char *) vips_source_sniff(source, 12)) &&
-		vips_foreign_load_uhdr_is_a(p, 12);
-}
-
 static void
 vips_foreign_load_uhdr_source_class_init(
 	VipsForeignLoadUhdrSourceClass *class)
@@ -440,7 +520,6 @@ vips_foreign_load_uhdr_source_class_init(
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
-	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -449,8 +528,6 @@ vips_foreign_load_uhdr_source_class_init(
 	object_class->build = vips_foreign_load_uhdr_source_build;
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
-
-	load_class->is_a_source = vips_foreign_load_uhdr_source_is_a_source;
 
 	VIPS_ARG_OBJECT(class, "source", 1,
 		_("Source"),
@@ -467,5 +544,82 @@ vips_foreign_load_uhdr_source_init(VipsForeignLoadUhdrSource *source)
 
 #endif /*HAVE_UHDR*/
 
-/* The C API wrappers are defined in foreign.c.
+/**
+ * vips_uhdrload:
+ * @filename: file to load
+ * @out: (out): decompressed image
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Read an UltraHDR image.
+ *
+ * ::: seealso
+ *     [ctor@Image.new_from_file].
+ *
+ * Returns: 0 on success, -1 on error.
  */
+int
+vips_uhdrload(const char *filename, VipsImage **out, ...)
+{
+	va_list ap;
+	int result;
+
+	va_start(ap, out);
+	result = vips_call_split("uhdrload", ap, filename, out);
+	va_end(ap);
+
+	return result;
+}
+
+/**
+ * vips_uhdrload_buffer:
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Exactly as [ctor@Image.uhdrload], but read from a buffer.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_uhdrload_buffer(void *buf, size_t len, VipsImage **out, ...)
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new(NULL, buf, len);
+
+	va_start(ap, out);
+	result = vips_call_split("uhdrload_buffer", ap, blob, out);
+	va_end(ap);
+
+	vips_area_unref(VIPS_AREA(blob));
+
+	return result;
+}
+
+/**
+ * vips_uhdrload_source:
+ * @source: source to load from
+ * @out: (out): decompressed image
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Exactly as [ctor@Image.uhdrload], but read from a source.
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_uhdrload_source(VipsSource *source, VipsImage **out, ...)
+{
+	va_list ap;
+	int result;
+
+	va_start(ap, out);
+	result = vips_call_split("uhdrload_source", ap, source, out);
+	va_end(ap);
+
+	return result;
+}
