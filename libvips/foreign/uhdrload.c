@@ -260,6 +260,139 @@ vips_foreign_load_uhdr_generate(VipsRegion *out_region,
 	return 0;
 }
 
+#ifdef DEBUG
+const char *
+img_fmt_str(uhdr_img_fmt_t fmt)
+{
+	switch (fmt) {
+	case UHDR_IMG_FMT_UNSPECIFIED:
+		return "UHDR_IMG_FMT_UNSPECIFIED";
+
+	case UHDR_IMG_FMT_24bppYCbCrP010:
+		return "UHDR_IMG_FMT_24bppYCbCrP010";
+
+	case UHDR_IMG_FMT_12bppYCbCr420:
+		return "UHDR_IMG_FMT_12bppYCbCr420";
+
+	case UHDR_IMG_FMT_8bppYCbCr400:
+		return "UHDR_IMG_FMT_8bppYCbCr400";
+
+	case UHDR_IMG_FMT_32bppRGBA8888:
+		return "UHDR_IMG_FMT_32bppRGBA8888";
+
+	case UHDR_IMG_FMT_64bppRGBAHalfFloat:
+		return "UHDR_IMG_FMT_64bppRGBAHalfFloat";
+
+	case UHDR_IMG_FMT_32bppRGBA1010102:
+		return "UHDR_IMG_FMT_32bppRGBA1010102";
+
+	case UHDR_IMG_FMT_24bppYCbCr444:
+		return "UHDR_IMG_FMT_24bppYCbCr444";
+
+	case UHDR_IMG_FMT_16bppYCbCr422:
+		return "UHDR_IMG_FMT_16bppYCbCr422";
+
+	case UHDR_IMG_FMT_16bppYCbCr440:
+		return "UHDR_IMG_FMT_16bppYCbCr440";
+
+	case UHDR_IMG_FMT_12bppYCbCr411:
+		return "UHDR_IMG_FMT_12bppYCbCr411";
+
+	case UHDR_IMG_FMT_10bppYCbCr410:
+		return "UHDR_IMG_FMT_10bppYCbCr410";
+
+	case UHDR_IMG_FMT_24bppRGB888:
+		return "UHDR_IMG_FMT_24bppRGB888";
+
+	case UHDR_IMG_FMT_30bppYCbCr444:
+		return "UHDR_IMG_FMT_30bppYCbCr444";
+
+	default:
+		return "<unknown format>";
+	}
+}
+
+const char *
+color_gamut_str(uhdr_color_gamut_t cg)
+{
+	switch (cg) {
+	case UHDR_CG_UNSPECIFIED:
+		return "UHDR_CG_UNSPECIFIED";
+
+	case UHDR_CG_BT_709:
+		return "UHDR_CG_BT_709";
+
+	case UHDR_CG_DISPLAY_P3:
+		return "UHDR_CG_DISPLAY_P3";
+
+	case UHDR_CG_BT_2100:
+		return "UHDR_CG_BT_2100";
+
+	default:
+		return "<unknown gamut>";
+	}
+}
+
+const char *
+color_transfer_str(uhdr_color_transfer_t ct)
+{
+	switch (ct) {
+	case UHDR_CT_UNSPECIFIED:
+		return "UHDR_CT_UNSPECIFIED";
+
+	case UHDR_CT_LINEAR:
+		return "UHDR_CT_LINEAR";
+
+	case UHDR_CT_HLG:
+		return "UHDR_CT_HLG";
+
+	case UHDR_CT_PQ:
+		return "UHDR_CT_PQ";
+
+	case UHDR_CT_SRGB:
+		return "UHDR_CT_SRGB";
+
+	default:
+		return "<unknown transfer>";
+	}
+}
+
+const char *
+color_range_str(uhdr_color_range_t range)
+{
+	switch (range) {
+	case UHDR_CR_UNSPECIFIED:
+		return "UHDR_CR_UNSPECIFIED";
+
+	case UHDR_CR_LIMITED_RANGE:
+		return "UHDR_CR_LIMITED_RANGE";
+
+	case UHDR_CR_FULL_RANGE:
+		return "UHDR_CR_FULL_RANGE";
+
+	default:
+		return "<unknown range>";
+	}
+}
+
+static void
+print_raw(uhdr_raw_image_t *raw)
+{
+	printf("\traw->fmt = %s\n", img_fmt_str(raw->fmt));
+	printf("\traw->cg = %s\n", color_gamut_str(raw->cg));
+	printf("\traw->ct = %s\n", color_transfer_str(raw->ct));
+	printf("\traw->range = %s\n", color_range_str(raw->range));
+	printf("\traw->w = %d\n", raw->w);
+	printf("\traw->h = %d\n", raw->h);
+	printf("\traw->planes[0] = %p\n", raw->planes[0]);
+	printf("\traw->planes[1] = %p\n", raw->planes[1]);
+	printf("\traw->planes[2] = %p\n", raw->planes[2]);
+	printf("\traw->stride[0] = %d\n", raw->stride[0]);
+	printf("\traw->stride[1] = %d\n", raw->stride[1]);
+	printf("\traw->stride[2] = %d\n", raw->stride[2]);
+}
+#endif /*DEBUG*/
+
 static int
 vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 {
@@ -268,7 +401,9 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 
 	uhdr_error_info_t error_info;
 
+#ifdef DEBUG
 	printf("vips_foreign_load_uhdr_header:\n");
+#endif /*DEBUG*/
 
 	const void *data;
 	size_t size;
@@ -320,12 +455,20 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 		vips__uhdr_error(NULL);
 		return -1;
 	}
+#ifdef DEBUG
+	printf("vips_foreign_load_uhdr_header: decoded image\n");
+	print_raw(uhdr->raw_image);
+#endif /*DEBUG*/
 
 	uhdr->gainmap_image = uhdr_get_decoded_gainmap_image(uhdr->dec);
 	if (!uhdr->gainmap_image) {
 		vips__uhdr_error(NULL);
 		return -1;
 	}
+#ifdef DEBUG
+	printf("vips_foreign_load_uhdr_header: gainmap image\n");
+	print_raw(uhdr->gainmap_image);
+#endif /*DEBUG*/
 
 	vips_image_init_fields(load->out,
 		uhdr->raw_image->w, uhdr->raw_image->h, 4,
