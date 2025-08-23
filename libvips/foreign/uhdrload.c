@@ -402,19 +402,38 @@ print_raw(uhdr_raw_image_t *raw)
 static int
 vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 {
-	VIPS_SETSTR(out->filename,
-		vips_connection_filename(VIPS_CONNECTION(uhdr->source)));
+	uhdr_mem_block_t *mem_block;
 
-	/*
-	uhdr_mem_block_t* uhdr_dec_get_exif()
-	uhdr_mem_block_t* uhdr_dec_get_icc()
-	 */
+	if ((mem_block = uhdr_dec_get_exif(uhdr->dec)))
+		vips_image_set_blob_copy(out,
+			VIPS_META_EXIF_NAME, mem_block->data, mem_block->data_sz);
 
-	// attach the gainmap as a compressed JPG
-	uhdr_mem_block_t *mem_block = uhdr_dec_get_gainmap_image(uhdr->dec);
-	if (mem_block)
+	if ((mem_block = uhdr_dec_get_icc(uhdr->dec))) {
+		const char *prefix = "ICC_PROFILE";
+
+		void *data;
+		size_t length;
+
+		// libuhdr profiles sometimes start with "ICC_PROFILE" and three bytes
+		if (vips_isprefix(prefix, mem_block->data)) {
+			data = (void *) ((char *) mem_block->data + strlen(prefix) + 3);
+			length = mem_block->data_sz - strlen(prefix) - 3;
+		}
+		else {
+			data = mem_block->data;
+			length = mem_block->data_sz;
+		}
+
+		vips_image_set_blob_copy(out, VIPS_META_ICC_NAME, data, length);
+	}
+
+	if ((mem_block = uhdr_dec_get_gainmap_image(uhdr->dec)))
+		// attach as a compressed JPG
 		vips_image_set_blob_copy(out,
 			"gainmap", mem_block->data, mem_block->data_sz);
+
+	VIPS_SETSTR(out->filename,
+		vips_connection_filename(VIPS_CONNECTION(uhdr->source)));
 
 	uhdr_gainmap_metadata_t *gainmap_metadata =
 		uhdr_dec_get_gainmap_metadata(uhdr->dec);
@@ -856,6 +875,10 @@ vips_foreign_load_uhdr_source_init(VipsForeignLoadUhdrSource *source)
  *
  * Read an UltraHDR image.
  *
+ * ::: tip "Optional arguments"
+ *     * @hdr: `gboolean`, load as an scRGB image
+ *     * @shrink: `gint`, shrink by this factor on load
+ *
  * ::: seealso
  *     [ctor@Image.new_from_file].
  *
@@ -882,6 +905,10 @@ vips_uhdrload(const char *filename, VipsImage **out, ...)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.uhdrload], but read from a buffer.
+ *
+ * ::: tip "Optional arguments"
+ *     * @hdr: `gboolean`, load as an scRGB image
+ *     * @shrink: `gint`, shrink by this factor on load
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -912,6 +939,10 @@ vips_uhdrload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * Exactly as [ctor@Image.uhdrload], but read from a source.
+ *
+ * ::: tip "Optional arguments"
+ *     * @hdr: `gboolean`, load as an scRGB image
+ *     * @shrink: `gint`, shrink by this factor on load
  *
  * Returns: 0 on success, -1 on error.
  */
