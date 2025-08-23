@@ -148,7 +148,7 @@ typedef unsigned short half;
 
 /* From ILM's halfToFloat().
  */
-float
+unsigned int
 vips__half_to_float(half y)
 {
     int s = (y >> 15) & 0x00000001;
@@ -158,7 +158,7 @@ vips__half_to_float(half y)
     if (e == 0) {
 		if (m == 0) {
 			// Plus or minus zero
-			return (float) (s << 31);
+			return s << 31;
 		}
 		else {
 			// Denormalized number -- renormalize it
@@ -174,11 +174,11 @@ vips__half_to_float(half y)
     else if (e == 31) {
 		if (m == 0) {
 			// Positive or negative infinity
-			return (float) ((s << 31) | 0x7f800000);
+			return (s << 31) | 0x7f800000;
 		}
 		else {
 			// Nan -- preserve sign and significand bits
-			return (float) ((s << 31) | 0x7f800000 | (m << 13));
+			return (s << 31) | 0x7f800000 | (m << 13);
 		}
     }
 
@@ -187,7 +187,7 @@ vips__half_to_float(half y)
     m = m << 13;
 
     // Assemble s, e and m.
-    return (float) ((s << 31) | (e << 23) | m);
+    return (s << 31) | (e << 23) | m;
 }
 
 static void
@@ -243,7 +243,8 @@ vips_foreign_load_uhdr_generate(VipsRegion *out_region,
 		half *p = base +
 			4 * uhdr->raw_image->stride[0] * (r->top + y) +
 			4 * r->left;
-		float *q = (float *) VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+		unsigned int *q =
+			(unsigned int *) VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		for (int x = 0; x < r->width; x++) {
 			q[0] = vips__half_to_float(p[0]);
