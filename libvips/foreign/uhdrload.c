@@ -85,6 +85,8 @@ typedef struct _VipsForeignLoadUhdr {
 	 */
 	gboolean hdr;
 
+	int shrink;
+
 	// decoder
 	uhdr_codec_private_t *dec;
 
@@ -398,6 +400,59 @@ print_raw(uhdr_raw_image_t *raw)
 #endif /*DEBUG*/
 
 static int
+vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
+{
+	VIPS_SETSTR(out->filename,
+		vips_connection_filename(VIPS_CONNECTION(uhdr->source)));
+
+	/*
+	uhdr_mem_block_t* uhdr_dec_get_exif()
+	uhdr_mem_block_t* uhdr_dec_get_icc()
+	 */
+
+	// attach the gainmap as a compressed JPG
+	uhdr_mem_block_t *mem_block = uhdr_dec_get_gainmap_image(uhdr->dec);
+	if (mem_block)
+		vips_image_set_blob_copy(out,
+			"gainmap", mem_block->data, mem_block->data_sz);
+
+	uhdr_gainmap_metadata_t *gainmap_metadata =
+		uhdr_dec_get_gainmap_metadata(uhdr->dec);
+	if (gainmap_metadata) {
+		double arr[3];
+
+		for (int i = 0; i < 3; i++)
+			arr[i] = gainmap_metadata->max_content_boost[i];
+		vips_image_set_array_double(out, "gainmap-max-content-boost", arr, 3);
+
+		for (int i = 0; i < 3; i++)
+			arr[i] = gainmap_metadata->min_content_boost[i];
+		vips_image_set_array_double(out, "gainmap-min-content-boost", arr, 3);
+
+		for (int i = 0; i < 3; i++)
+			arr[i] = gainmap_metadata->gamma[i];
+		vips_image_set_array_double(out, "gainmap-gamma", arr, 3);
+
+		for (int i = 0; i < 3; i++)
+			arr[i] = gainmap_metadata->offset_sdr[i];
+		vips_image_set_array_double(out, "gainmap-offset-sdr", arr, 3);
+
+		for (int i = 0; i < 3; i++)
+			arr[i] = gainmap_metadata->offset_hdr[i];
+		vips_image_set_array_double(out, "gainmap-offset-hdr", arr, 3);
+
+		vips_image_set_double(out,
+			"gainmap-hdr-capacity-min", gainmap_metadata->hdr_capacity_min);
+		vips_image_set_double(out,
+			"gainmap-hdr-capacity-max", gainmap_metadata->hdr_capacity_max);
+		vips_image_set_int(out,
+			"gainmap-use-base-cg", gainmap_metadata->use_base_cg);
+	}
+
+	return 0;
+}
+
+static int
 vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(load);
@@ -433,24 +488,58 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 		return -1;
 	}
 
-	uhdr_img_fmt_t fmt;
-	uhdr_color_transfer_t ct;
-
-	if (uhdr->hdr) {
-		fmt = UHDR_IMG_FMT_64bppRGBAHalfFloat;
-		ct = UHDR_CT_LINEAR;
-	}
-	else {
-		fmt = UHDR_IMG_FMT_32bppRGBA8888;
-		ct = UHDR_CT_SRGB;
-	}
-
-	error_info = uhdr_dec_set_out_img_format(uhdr->dec, fmt);
+	// only used if we use libuhdr to decode ... ignored if we docode to SDR
+	// ourselves
+	error_info = uhdr_dec_set_out_img_format(uhdr->dec,
+		UHDR_IMG_FMT_64bppRGBAHalfFloat);
 	if (error_info.error_code) {
 		vips__uhdr_error(&error_info);
 		return -1;
 	}
-	error_info = uhdr_dec_set_out_color_transfer(uhdr->dec, ct);
+	error_info = uhdr_dec_set_out_color_transfer(uhdr->dec, UHDR_CT_LINEAR);
+	if (error_info.error_code) {
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
+
+	error_info = uhdr_dec_probe(uhdr->dec);
+	if (error_info.error_code) {
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
+
+	int image_width = uhdr_dec_get_image_width(uhdr->dec);
+	int image_height = uhdr_dec_get_image_height(uhdr->dec);
+	int width = image_width / uhdr->shrink;
+	int height = image_height / uhdr->shrink;
+
+	vips_image_init_fields(load->out,
+		width, height,
+		uhdr->hdr ? 4 : 3,
+		uhdr->hdr ? VIPS_FORMAT_FLOAT : VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE,
+		uhdr->hdr ? VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
+		1.0, 1.0);
+
+	if (vips_foreign_load_uhdr_set_metadata(uhdr, load->out))
+		return -1;
+
+	return 0;
+}
+
+/* Decode to scRGB with libuhdr. This will be slow and use a load of
+ * memory.
+ */
+static int
+vips_foreign_load_uhdr_load_hdr(VipsForeignLoadUhdr *uhdr, VipsImage *out)
+{
+	VipsForeignLoad *load = VIPS_FOREIGN_LOAD(uhdr);
+
+	uhdr_error_info_t error_info;
+
+	// we are decoding with libuhdr, so we use their shrink-on-load
+	error_info = uhdr_add_effect_resize(uhdr->dec,
+		load->out->Xsize, load->out->Ysize);
 	if (error_info.error_code) {
 		vips__uhdr_error(&error_info);
 		return -1;
@@ -484,68 +573,61 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 	print_raw(uhdr->raw_image);
 #endif /*DEBUG*/
 
-	uhdr->gainmap_image = uhdr_get_decoded_gainmap_image(uhdr->dec);
-	if (!uhdr->gainmap_image) {
-		vips__uhdr_error(NULL);
+	VipsImage *image = vips_image_new();
+	vips_image_init_fields(image,
+		uhdr->raw_image->w, uhdr->raw_image->h, 4,
+		VIPS_FORMAT_FLOAT,
+		VIPS_CODING_NONE,
+		VIPS_INTERPRETATION_scRGB,
+		1.0, 1.0);
+
+	if (vips_foreign_load_uhdr_set_metadata(uhdr, image) ||
+		vips_image_pipelinev(image, VIPS_DEMAND_STYLE_FATSTRIP, NULL) ||
+		vips_image_generate(image,
+			NULL, vips_foreign_load_uhdr_generate, NULL,
+			uhdr, NULL) ||
+		vips_image_write(image, out)) {
+		VIPS_UNREF(image);
 		return -1;
 	}
+	VIPS_UNREF(image);
+
+	return 0;
+}
+
+static int
+vips_foreign_load_uhdr_load(VipsForeignLoad *load)
+{
+	VipsForeignLoadUhdr *uhdr = (VipsForeignLoadUhdr *) load;
+
 #ifdef DEBUG
-	printf("vips_foreign_load_uhdr_header: gainmap image\n");
-	print_raw(uhdr->gainmap_image);
+	printf("vips_foreign_load_uhdr_load:\n");
 #endif /*DEBUG*/
 
-	VIPS_SETSTR(load->out->filename,
-		vips_connection_filename(VIPS_CONNECTION(uhdr->source)));
-
-	// can we assume this?
-	g_assert(uhdr->gainmap_image->fmt == UHDR_IMG_FMT_8bppYCbCr400);
-	g_assert(uhdr->gainmap_image->stride[0] == uhdr->gainmap_image->w);
-
-	VipsImage *gainmap;
-	if (!(gainmap = vips_image_new_from_memory(uhdr->gainmap_image->planes[0],
-		uhdr->gainmap_image->w * uhdr->gainmap_image->h,
-		uhdr->gainmap_image->w,
-		uhdr->gainmap_image->h,
-		1, VIPS_FORMAT_UCHAR)))
-		return -1;
-
-	vips_image_set_image(load->out, "gainmap", gainmap);
-
-	VIPS_UNREF(gainmap);
-
 	if (uhdr->hdr) {
-		vips_image_init_fields(load->out,
-			uhdr->raw_image->w, uhdr->raw_image->h, 4,
-			VIPS_FORMAT_FLOAT,
-			VIPS_CODING_NONE,
-			VIPS_INTERPRETATION_scRGB,
-			1.0, 1.0);
-
-		if (vips_image_pipelinev(load->out, VIPS_DEMAND_STYLE_FATSTRIP, NULL))
-			return -1;
-
-		if (vips_image_generate(load->out,
-				NULL, vips_foreign_load_uhdr_generate, NULL,
-				uhdr, NULL))
+		// decode to scRGB with libuhdr
+		if (vips_foreign_load_uhdr_load_hdr(uhdr, load->real))
 			return -1;
 	}
 	else {
-		g_assert(uhdr->raw_image->stride[0] == uhdr->raw_image->w);
-
-		VipsImage *image;
-		if (!(image = vips_image_new_from_memory(uhdr->raw_image->planes[0],
-			uhdr->raw_image->w * uhdr->raw_image->h * 4,
-			uhdr->raw_image->w,
-			uhdr->raw_image->h,
-			4, VIPS_FORMAT_UCHAR)))
-			return -1;
-
-		if (vips_image_write(image, load->out)) {
-			VIPS_UNREF(image);
+		// decode as SDR with our libjpeg decoder ... downstream can
+		// reconstruct HDR from the gainmap
+		uhdr_mem_block_t *base_image = uhdr_dec_get_base_image(uhdr->dec);
+		if (!base_image) {
+			vips__uhdr_error(NULL);
 			return -1;
 		}
 
-		VIPS_UNREF(image);
+		VipsImage *out;
+		if (vips_jpegload_buffer(base_image->data, base_image->data_sz, &out,
+			"shrink", uhdr->shrink,
+			NULL))
+			return -1;
+		if (vips_image_write(out, load->real)) {
+			VIPS_UNREF(out);
+			return -1;
+		}
+		VIPS_UNREF(out);
 	}
 
 	return 0;
@@ -568,6 +650,7 @@ vips_foreign_load_uhdr_class_init(VipsForeignLoadUhdrClass *class)
 
 	load_class->get_flags = vips_foreign_load_uhdr_get_flags;
 	load_class->header = vips_foreign_load_uhdr_header;
+	load_class->load = vips_foreign_load_uhdr_load;
 
 	VIPS_ARG_BOOL(class, "hdr", 10,
 		_("HDR"),
@@ -576,11 +659,19 @@ vips_foreign_load_uhdr_class_init(VipsForeignLoadUhdrClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadUhdr, hdr),
 		FALSE);
 
+	VIPS_ARG_INT(class, "shrink", 11,
+		_("Shrink"),
+		_("Shrink factor on load"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadUhdr, shrink),
+		1, 8, 1);
+
 }
 
 static void
 vips_foreign_load_uhdr_init(VipsForeignLoadUhdr *uhdr)
 {
+	uhdr->shrink = 1;
 }
 
 typedef struct _VipsForeignLoadUhdrFile {
