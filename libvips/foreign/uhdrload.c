@@ -81,6 +81,10 @@ typedef struct _VipsForeignLoadUhdr {
 	 */
 	VipsSource *source;
 
+	/* Set to decode to scRGB.
+	 */
+	gboolean hdr;
+
 	// decoder
 	uhdr_codec_private_t *dec;
 
@@ -429,14 +433,24 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 		return -1;
 	}
 
-	error_info = uhdr_dec_set_out_img_format(uhdr->dec,
-		UHDR_IMG_FMT_64bppRGBAHalfFloat);
+	uhdr_img_fmt_t fmt;
+	uhdr_color_transfer_t ct;
+
+	if (uhdr->hdr) {
+		fmt = UHDR_IMG_FMT_64bppRGBAHalfFloat;
+		ct = UHDR_CT_LINEAR;
+	}
+	else {
+		fmt = UHDR_IMG_FMT_32bppRGBA8888;
+		ct = UHDR_CT_SRGB;
+	}
+
+	error_info = uhdr_dec_set_out_img_format(uhdr->dec, fmt);
 	if (error_info.error_code) {
 		vips__uhdr_error(&error_info);
 		return -1;
 	}
-
-	error_info = uhdr_dec_set_out_color_transfer(uhdr->dec, UHDR_CT_LINEAR);
+	error_info = uhdr_dec_set_out_color_transfer(uhdr->dec, ct);
 	if (error_info.error_code) {
 		vips__uhdr_error(&error_info);
 		return -1;
@@ -470,21 +484,59 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 	print_raw(uhdr->gainmap_image);
 #endif /*DEBUG*/
 
-	vips_image_init_fields(load->out,
-		uhdr->raw_image->w, uhdr->raw_image->h, 4,
-		VIPS_FORMAT_FLOAT,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0);
-
 	VIPS_SETSTR(load->out->filename,
 		vips_connection_filename(VIPS_CONNECTION(uhdr->source)));
 
-	if (vips_image_pipelinev(load->out, VIPS_DEMAND_STYLE_FATSTRIP, NULL))
+	// can we assume this?
+	g_assert(uhdr->gainmap_image->fmt == UHDR_IMG_FMT_8bppYCbCr400);
+	g_assert(uhdr->gainmap_image->stride[0] == uhdr->gainmap_image->w);
+
+	VipsImage *gainmap;
+	if (!(gainmap = vips_image_new_from_memory(uhdr->gainmap_image->planes[0],
+		uhdr->gainmap_image->w * uhdr->gainmap_image->h,
+		uhdr->gainmap_image->w,
+		uhdr->gainmap_image->h,
+		1, VIPS_FORMAT_UCHAR)))
 		return -1;
 
-	if (vips_image_generate(load->out,
-			NULL, vips_foreign_load_uhdr_generate, NULL,
-			uhdr, NULL))
-		return -1;
+	vips_image_set_image(load->out, "gainmap", gainmap);
+
+	VIPS_UNREF(gainmap);
+
+	if (uhdr->hdr) {
+		vips_image_init_fields(load->out,
+			uhdr->raw_image->w, uhdr->raw_image->h, 4,
+			VIPS_FORMAT_FLOAT,
+			VIPS_CODING_NONE,
+			VIPS_INTERPRETATION_scRGB,
+			1.0, 1.0);
+
+		if (vips_image_pipelinev(load->out, VIPS_DEMAND_STYLE_FATSTRIP, NULL))
+			return -1;
+
+		if (vips_image_generate(load->out,
+				NULL, vips_foreign_load_uhdr_generate, NULL,
+				uhdr, NULL))
+			return -1;
+	}
+	else {
+		g_assert(uhdr->raw_image->stride[0] == uhdr->raw_image->w);
+
+		VipsImage *image;
+		if (!(image = vips_image_new_from_memory(uhdr->raw_image->planes[0],
+			uhdr->raw_image->w * uhdr->raw_image->h * 4,
+			uhdr->raw_image->w,
+			uhdr->raw_image->h,
+			4, VIPS_FORMAT_UCHAR)))
+			return -1;
+
+		if (vips_image_write(image, load->out)) {
+			VIPS_UNREF(image);
+			return -1;
+		}
+
+		VIPS_UNREF(image);
+	}
 
 	return 0;
 }
@@ -506,6 +558,13 @@ vips_foreign_load_uhdr_class_init(VipsForeignLoadUhdrClass *class)
 
 	load_class->get_flags = vips_foreign_load_uhdr_get_flags;
 	load_class->header = vips_foreign_load_uhdr_header;
+
+	VIPS_ARG_BOOL(class, "hdr", 10,
+		_("HDR"),
+		_("decode to scRGB"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadUhdr, hdr),
+		FALSE);
 
 }
 
