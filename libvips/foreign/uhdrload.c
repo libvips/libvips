@@ -456,11 +456,21 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 		return -1;
 	}
 
+#ifdef DEBUG
+	GTimer *timer = g_timer_new();
+	printf("decode start ...\n");
+#endif /*DEBUG*/
+
 	error_info = uhdr_decode(uhdr->dec);
 	if (error_info.error_code) {
 		vips__uhdr_error(&error_info);
 		return -1;
 	}
+
+#ifdef DEBUG
+	printf("... decode took %.2g s\n", g_timer_elapsed(timer, NULL));
+	g_timer_destroy(timer);
+#endif /*DEBUG*/
 
 	vips_source_minimise(uhdr->source);
 
