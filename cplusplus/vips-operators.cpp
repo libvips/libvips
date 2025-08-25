@@ -845,6 +845,42 @@ VImage::dECMC(VImage right, VOption *options) const
 	return out;
 }
 
+VImage
+VImage::dcrawload(const char *filename, VOption *options)
+{
+	VImage out;
+
+	call("dcrawload", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("filename", filename));
+
+	return out;
+}
+
+VImage
+VImage::dcrawload_buffer(VipsBlob *buffer, VOption *options)
+{
+	VImage out;
+
+	call("dcrawload_buffer", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("buffer", buffer));
+
+	return out;
+}
+
+VImage
+VImage::dcrawload_source(VSource source, VOption *options)
+{
+	VImage out;
+
+	call("dcrawload_source", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("source", source));
+
+	return out;
+}
+
 double
 VImage::deviate(VOption *options) const
 {
@@ -1998,6 +2034,18 @@ VImage::magickload_buffer(VipsBlob *buffer, VOption *options)
 	call("magickload_buffer", (options ? options : VImage::option())
 			->set("out", &out)
 			->set("buffer", buffer));
+
+	return out;
+}
+
+VImage
+VImage::magickload_source(VSource source, VOption *options)
+{
+	VImage out;
+
+	call("magickload_source", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("source", source));
 
 	return out;
 }

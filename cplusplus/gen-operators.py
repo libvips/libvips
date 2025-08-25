@@ -60,6 +60,7 @@ _DEPRECATED = 64
 _MODIFY = 128
 
 # for VipsOperationFlags
+_OPERATION_NOCACHE = 4
 _OPERATION_DEPRECATED = 8
 
 
@@ -89,12 +90,16 @@ def cppize(name):
 def generate_operation(operation_name, declaration_only=False, indent=''):
     intro = Introspect.get(operation_name)
 
-    required_output = [name
-        for name in intro.required_output if name != intro.member_x]
+    required_output = [name for name in intro.required_output if
+                       name != intro.member_x]
 
     # We are only interested in non-deprecated arguments
-    optional_input = [name
-        for name in intro.optional_input if intro.details[name]['flags'] & _DEPRECATED == 0]
+    optional_input = [name for name in intro.optional_input if
+                      intro.details[name]['flags'] & _DEPRECATED == 0]
+
+    # Drop "revalidate" flag from operations marked "nocache"
+    optional_input = [name for name in optional_input if
+                      name != 'revalidate' or (intro.flags & _OPERATION_NOCACHE) == 0]
 
     has_output = len(required_output) >= 1
 
