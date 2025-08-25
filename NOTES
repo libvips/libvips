@@ -1,0 +1,73 @@
+# libultrahdr build
+
+Clone with:
+
+	git clone https://github.com/google/libultrahdr.git
+
+Then:
+
+	cd libultrahdr
+	mkdir build
+	cd build
+	cmake ../ \
+		-G Ninja \
+		-DCMAKE_INSTALL_PREFIX=/home/john/vips \
+		-DCMAKE_BUILD_TYPE=Debug \
+		-DUHDR_MAX_DIMENSION=65500
+	ninja
+	ninja install
+
+# Docs
+
+https://github.com/google/libultrahdr/blob/main/ultrahdr_api.h
+
+# Encode
+
+https://github.com/google/libultrahdr/blob/main/ultrahdr_api.h#L494-L579
+
+Source is SDR + HDR
+
+	- uhdr_create_encoder()
+	- uhdr_enc_set_compressed_image(ctxt, img, UHDR_HDR_IMG)
+	- uhdr_enc_set_compressed_image(ctxt, img, UHDR_SDR_IMG)
+	- uhdr_encode()
+	- uhdr_get_encoded_stream()
+	- uhdr_release_encoder()
+
+Source is HDR
+
+	- uhdr_create_encoder()
+	- uhdr_enc_set_raw_image(ctxt, img, UHDR_HDR_IMG)
+	- uhdr_enc_set_quality() // optional
+	- uhdr_enc_set_exif_data() // optional
+	- uhdr_enc_set_output_format() // optional
+	- uhdr_enc_set_gainmap_scale_factor() // optional
+	- uhdr_enc_set_using_multi_channel_gainmap() // optional
+	- uhdr_enc_set_gainmap_gamma() // optional
+	- uhdr_enc_set_min_max_content_boost() // optional
+	- uhdr_enc_set_target_display_peak_brightness() // optional
+	- uhdr_encode()
+	- uhdr_get_encoded_stream()
+	- uhdr_release_encoder()
+
+Source is HDR + gainmap (see decode)
+
+	- uhdr_enc_set_gainmap_image() // maybe??
+
+# Decode
+
+https://github.com/google/libultrahdr/blob/main/ultrahdr_api.h#L769-L798
+
+To HDR + gainmap
+
+	- uhdr_create_decoder()
+	- uhdr_dec_set_image(ctxt, img)
+	- uhdr_dec_set_out_img_format() // optional
+	- uhdr_dec_set_out_color_transfer() // optional
+	- uhdr_dec_set_out_max_display_boost() // optional
+	- uhdr_enable_gpu_acceleration() // optional
+	- uhdr_add_effect_resize() // optional
+	- uhdr_decode()
+	- uhdr_get_decoded_image()
+	- uhdr_get_decoded_gainmap_image() // optional
+	- uhdr_release_decoder()
