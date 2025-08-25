@@ -106,6 +106,9 @@ API docs each function links to for more details.
 | `dE00` | Calculate de00 | [method@Image.dE00] |
 | `dE76` | Calculate de76 | [method@Image.dE76] |
 | `dECMC` | Calculate decmc | [method@Image.dECMC] |
+| `dcrawload` | Load raw camera files | [ctor@Image.dcrawload] |
+| `dcrawload_buffer` | Load raw camera files | [ctor@Image.dcrawload_buffer] |
+| `dcrawload_source` | Load raw camera files | [ctor@Image.dcrawload_source] |
 | `deviate` | Find image standard deviation | [method@Image.deviate] |
 | `divide` | Divide two images | [method@Image.divide] |
 | `draw_circle` | Draw a circle on an image | [method@Image.draw_circle], [method@Image.draw_circle1] |
@@ -204,6 +207,7 @@ API docs each function links to for more details.
 | `logmat` | Make a laplacian of gaussian image | [ctor@Image.logmat] |
 | `magickload` | Load file with imagemagick | [ctor@Image.magickload] |
 | `magickload_buffer` | Load buffer with imagemagick | [ctor@Image.magickload_buffer] |
+| `magickload_source` | Load source with imagemagick | [ctor@Image.magickload_source] |
 | `magicksave` | Save file with imagemagick | [method@Image.magicksave] |
 | `magicksave_buffer` | Save image to magick buffer | [method@Image.magicksave_buffer] |
 | `mapim` | Resample with a map image | [method@Image.mapim] |

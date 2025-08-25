@@ -2714,7 +2714,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -2775,6 +2774,53 @@ public:
 	 * @return Output image.
 	 */
 	VImage dECMC(VImage right, VOption *options = nullptr) const;
+
+	/**
+	 * Load raw camera files.
+	 *
+	 * **Optional parameters**
+	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param filename Filename to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage dcrawload(const char *filename, VOption *options = nullptr);
+
+	/**
+	 * Load raw camera files.
+	 *
+	 * **Optional parameters**
+	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param buffer Buffer to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage dcrawload_buffer(VipsBlob *buffer, VOption *options = nullptr);
+
+	/**
+	 * Load raw camera files.
+	 *
+	 * **Optional parameters**
+	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *
+	 * @param source Source to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage dcrawload_source(VSource source, VOption *options = nullptr);
 
 	/**
 	 * Find image standard deviation.
@@ -3075,7 +3121,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -3258,7 +3303,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -3431,7 +3475,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -3804,7 +3847,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -3915,7 +3957,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4057,7 +4098,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4180,7 +4220,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param filename Filename to load from.
 	 * @param options Set of options.
@@ -4198,13 +4237,29 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param buffer Buffer to load from.
 	 * @param options Set of options.
 	 * @return Output image.
 	 */
 	static VImage magickload_buffer(VipsBlob *buffer, VOption *options = nullptr);
+
+	/**
+	 * Load source with imagemagick.
+	 *
+	 * **Optional parameters**
+	 *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
+	 *   - **page** -- First page to load, int.
+	 *   - **n** -- Number of pages to load, -1 for all, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *
+	 * @param source Source to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage magickload_source(VSource source, VOption *options = nullptr);
 
 	/**
 	 * Save file with imagemagick.
@@ -4552,7 +4607,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4773,7 +4827,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4842,7 +4895,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4908,7 +4960,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4987,7 +5038,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -5098,7 +5148,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -5238,7 +5287,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -5842,7 +5890,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -5863,8 +5910,9 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **in** -- Array of input images, std::vector<VImage>.
-	 *   - **out_format** -- Format for output filename, const char *.
 	 *   - **in_format** -- Format for input filename, const char *.
+	 *   - **out_format** -- Format for output filename, const char *.
+	 *   - **cache** -- Cache this call, bool.
 	 *
 	 * @param cmd_format Command to run.
 	 * @param options Set of options.
@@ -6029,7 +6077,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -6220,7 +6267,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -6302,7 +6348,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
