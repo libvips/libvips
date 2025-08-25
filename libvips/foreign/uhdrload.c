@@ -1,7 +1,7 @@
 /* load UltraHDR images with libuhdr
  *
- * 19/1/19
- * 	- from uhdrload.c
+ * 23/8/25
+ * 	- from heifload.c
  */
 
 /*
@@ -103,7 +103,7 @@ typedef struct _VipsForeignLoadUhdrClass {
 G_DEFINE_ABSTRACT_TYPE(VipsForeignLoadUhdr, vips_foreign_load_uhdr,
 	VIPS_TYPE_FOREIGN_LOAD);
 
-static const char *
+const char *
 vips__uhdr_error_str(uhdr_codec_err_t err)
 {
 	switch (err) {
@@ -268,7 +268,7 @@ vips_foreign_load_uhdr_generate(VipsRegion *out_region,
 
 #ifdef DEBUG
 const char *
-img_fmt_str(uhdr_img_fmt_t fmt)
+vips__img_fmt_str(uhdr_img_fmt_t fmt)
 {
 	switch (fmt) {
 	case UHDR_IMG_FMT_UNSPECIFIED:
@@ -319,7 +319,7 @@ img_fmt_str(uhdr_img_fmt_t fmt)
 }
 
 const char *
-color_gamut_str(uhdr_color_gamut_t cg)
+vips__color_gamut_str(uhdr_color_gamut_t cg)
 {
 	switch (cg) {
 	case UHDR_CG_UNSPECIFIED:
@@ -340,7 +340,7 @@ color_gamut_str(uhdr_color_gamut_t cg)
 }
 
 const char *
-color_transfer_str(uhdr_color_transfer_t ct)
+vips__color_transfer_str(uhdr_color_transfer_t ct)
 {
 	switch (ct) {
 	case UHDR_CT_UNSPECIFIED:
@@ -364,7 +364,7 @@ color_transfer_str(uhdr_color_transfer_t ct)
 }
 
 const char *
-color_range_str(uhdr_color_range_t range)
+vips__color_range_str(uhdr_color_range_t range)
 {
 	switch (range) {
 	case UHDR_CR_UNSPECIFIED:
@@ -381,13 +381,13 @@ color_range_str(uhdr_color_range_t range)
 	}
 }
 
-static void
-print_raw(uhdr_raw_image_t *raw)
+void
+vips__print_raw(uhdr_raw_image_t *raw)
 {
-	printf("\traw->fmt = %s\n", img_fmt_str(raw->fmt));
-	printf("\traw->cg = %s\n", color_gamut_str(raw->cg));
-	printf("\traw->ct = %s\n", color_transfer_str(raw->ct));
-	printf("\traw->range = %s\n", color_range_str(raw->range));
+	printf("\traw->fmt = %s\n", vips__img_fmt_str(raw->fmt));
+	printf("\traw->cg = %s\n", vips__color_gamut_str(raw->cg));
+	printf("\traw->ct = %s\n", vips__color_transfer_str(raw->ct));
+	printf("\traw->range = %s\n", vips__color_range_str(raw->range));
 	printf("\traw->w = %d\n", raw->w);
 	printf("\traw->h = %d\n", raw->h);
 	printf("\traw->planes[0] = %p\n", raw->planes[0]);
@@ -589,7 +589,7 @@ vips_foreign_load_uhdr_load_hdr(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 	}
 #ifdef DEBUG
 	printf("vips_foreign_load_uhdr_header: decoded image\n");
-	print_raw(uhdr->raw_image);
+	vips__print_raw(uhdr->raw_image);
 #endif /*DEBUG*/
 
 	VipsImage *image = vips_image_new();

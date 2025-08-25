@@ -3080,6 +3080,10 @@ vips_foreign_operation_init(void)
 	extern GType vips_foreign_load_uhdr_buffer_get_type(void);
 	extern GType vips_foreign_load_uhdr_source_get_type(void);
 
+	extern GType vips_foreign_save_uhdr_file_get_type(void);
+	extern GType vips_foreign_save_uhdr_buffer_get_type(void);
+	extern GType vips_foreign_save_uhdr_target_get_type(void);
+
 	vips_foreign_load_csv_file_get_type();
 	vips_foreign_load_csv_source_get_type();
 	vips_foreign_save_csv_file_get_type();
@@ -3178,6 +3182,10 @@ vips_foreign_operation_init(void)
 	vips_foreign_load_uhdr_file_get_type();
 	vips_foreign_load_uhdr_buffer_get_type();
 	vips_foreign_load_uhdr_source_get_type();
+
+	vips_foreign_save_uhdr_file_get_type();
+	vips_foreign_save_uhdr_buffer_get_type();
+	vips_foreign_save_uhdr_target_get_type();
 #endif /*HAVE_UHDR*/
 
 #ifdef HAVE_CGIF

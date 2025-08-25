@@ -922,6 +922,16 @@ int vips_uhdrload_source(VipsSource *source, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
+int vips_uhdrsave(VipsImage *in, const char *filename, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_uhdrsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_uhdrsave_target(VipsImage *in, VipsTarget *target, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
 int vips_heifload(const char *filename, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API

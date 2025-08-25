@@ -12,6 +12,8 @@ master
   cache geometry hints [jbaiter]
 - add vips_uhdrload(), vips_uhdrload_buffer(), vips_uhdrload_source(): read an
   UltraHDR image
+- add vips_uhdrsave(), vips_uhdrsave_buffer(), vips_uhdrsave_target(): save an
+  UltraHDR image
 
 8.17.2
 
