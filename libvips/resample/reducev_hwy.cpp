@@ -66,8 +66,9 @@ using DI32 = ScalableTag<int32_t>;
 using DI16 = ScalableTag<int16_t>;
 using DU8 = ScalableTag<uint8_t>;
 constexpr DU8 du8;
-constexpr Rebind<uint8_t, DI16> du8x16;
+#if HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE)
 constexpr Rebind<uint8_t, DI32> du8x32;
+#endif
 constexpr DI16 di16;
 constexpr DI32 di32;
 
@@ -233,59 +234,14 @@ vips_reducev_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		auto *HWY_RESTRICT p = (uint8_t *) pin + x;
 		auto *HWY_RESTRICT q = (uint8_t *) pout + x;
 
-#if HWY_ARCH_X86 || HWY_ARCH_WASM || HWY_TARGET == HWY_EMU128
-		/* Initialize the sum with the addition on x86 and Wasm,
-		 * avoids an extra add instruction. Should be safe given
-		 * that only one accumulator is used.
-		 */
-		auto sum0 = initial;
-#else
-		auto sum0 = Zero(di32);
-#endif
-		auto sum1 = Zero(di32); /* unused on x86 and Wasm */
+		int32_t sum = VIPS_INTERPOLATE_SCALE >> 1;
 
-		int32_t i = 0;
-		for (; i + 2 <= n; i += 2) {
-			/* Load two coefficients at once.
-			 */
-			auto mmk = BitCast(di16, Set(di32, *(int32_t *) &k[i]));
-
-			auto top = LoadU(du8x16, p); /* top line */
+		for (int32_t i = 0; i < n; ++i) {
+			sum += *p * k[i];
 			p += l1;
-			auto bottom = LoadU(du8x16, p); /* bottom line */
-			p += l1;
-
-			auto source = InterleaveLower(top, bottom);
-			auto pix = PromoteTo(di16, source);
-
-			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
-				/* byref */ sum1);
-		}
-		for (; i < n; ++i) {
-			auto mmk = Set(di16, k[i]);
-
-			auto top = LoadU(du8x32, p);
-			p += l1;
-
-			auto source = PromoteTo(di32, top);
-			auto pix = BitCast(di16, source);
-
-			sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
-				/* byref */ sum1);
 		}
 
-		sum0 = RearrangeToOddPlusEven(sum0, sum1);
-
-#if !(HWY_ARCH_X86 || HWY_ARCH_WASM || HWY_TARGET == HWY_EMU128)
-		sum0 = Add(sum0, initial);
-#endif
-
-		/* The final 32->8 conversion.
-		 */
-		sum0 = ShiftRight<VIPS_INTERPOLATE_SHIFT>(sum0);
-
-		auto demoted = DemoteTo(du8x32, sum0);
-		*q = GetLane(demoted);
+		*q = VIPS_CLIP(0, sum >> VIPS_INTERPOLATE_SHIFT, UCHAR_MAX);
 	}
 #endif
 }
