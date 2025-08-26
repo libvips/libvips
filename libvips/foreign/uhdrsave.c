@@ -108,7 +108,7 @@ image_get_float(VipsImage *image, const char *name, float *f)
 // pass in the array to fill, size must match
 static int
 image_get_array_float(VipsImage *image, const char *name,
-	float **out, int n_out)
+	float *out, int n_out)
 {
 	double *d;
 	int n;
@@ -120,76 +120,50 @@ image_get_array_float(VipsImage *image, const char *name,
 	}
 
 	for (int i = 0; i < n; i++)
-		(*out)[i] = d[i];
+		out[i] = d[i];
 
 	return 0;
 }
 
 // save hdr, no gain map
 static int
-vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr)
+vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 {
 	return 0;
 }
 
 // save sdr + gainmap
 static int
-vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr)
+vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 {
-	VipsForeignSave *save = VIPS_FOREIGN_SAVE(uhdr);
-
 	uhdr_error_info_t error_info;
-
-	// libuhdr will only save RGBA, annoyingly
-
-	if (vips_image_wio_input(save->ready))
-		return -1;
-
-
-	uhdr_raw_image_t raw_image = {
-		.fmt = UHDR_IMG_FMT_32bppRGBA8888,
-		.cg = UHDR_CG_BT_709,
-		.ct = UHDR_CT_SRGB,
-		.range = UHDR_CR_FULL_RANGE,	// correct?
-		.w = save->ready->Xsize,
-		.h = save->ready->Ysize,
-		.planes[0] = (void *) VIPS_IMAGE_ADDR(save->ready, 0, 0),
-		.stride[0] = save->ready->Xsize,
-	};
-	error_info =
-		uhdr_enc_set_raw_image(uhdr->enc, &raw_image, UHDR_SDR_IMG);
-	if (error_info.error_code) {
-		vips__uhdr_error(&error_info);
-		return -1;
-	}
-
 	const void *data;
 	size_t length;
-	if (vips_image_get_blob(save->ready, "gainmap", &data, &length))
+
+	if (vips_image_get_blob(image, "gainmap", &data, &length))
 		return -1;
 	uhdr_compressed_image_t gainmap_image = {
 		.data = (void *) data,
 		.data_sz = length,
+		.capacity = length,
 	};
 
 	uhdr_gainmap_metadata_t metadata;
-	if (image_get_array_float(save->ready,
-			"gainmap-max-content-boost",
-			(float **) &metadata.max_content_boost, 3) ||
-	    image_get_array_float(save->ready,
-			"gainmap-min-content-boost",
-			(float **) &metadata.min_content_boost, 3) ||
-	    image_get_array_float(save->ready,
-			"gainmap-gamma", (float **) &metadata.gamma, 3) ||
-	    image_get_array_float(save->ready,
-			"gainmap-offset-sdr", (float **) &metadata.offset_sdr, 3) ||
-	    image_get_array_float(save->ready,
-			"gainmap-offset-hdr", (float **) &metadata.offset_hdr, 3) ||
-	    image_get_float(save->ready,
+	if (image_get_array_float(image,
+			"gainmap-max-content-boost", &metadata.max_content_boost[0], 3) ||
+	    image_get_array_float(image,
+			"gainmap-min-content-boost", &metadata.min_content_boost[0], 3) ||
+	    image_get_array_float(image,
+			"gainmap-gamma", &metadata.gamma[0], 3) ||
+	    image_get_array_float(image,
+			"gainmap-offset-sdr", &metadata.offset_sdr[0], 3) ||
+	    image_get_array_float(image,
+			"gainmap-offset-hdr", &metadata.offset_hdr[0], 3) ||
+	    image_get_float(image,
 			"gainmap-hdr-capacity-min", &metadata.hdr_capacity_min) ||
-	    image_get_float(save->ready,
+	    image_get_float(image,
 			"gainmap-hdr-capacity-max", &metadata.hdr_capacity_max) ||
-	    vips_image_get_int(save->ready,
+	    vips_image_get_int(image,
 			"gainmap-use-base-cg", &metadata.use_base_cg))
 		return -1;
 
@@ -200,11 +174,50 @@ vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr)
 		return -1;
 	}
 
-	error_info = uhdr_encode(uhdr->enc);
+	VipsTarget *temp;
+	VipsSource *sdr;
+
+	if (!(temp = vips_target_new_temp(uhdr->target)))
+		return -1;
+
+	if (vips_jpegsave_target(image, temp, NULL)) {
+		VIPS_UNREF(temp);
+		return -1;
+	}
+
+	if (!(sdr = vips_source_new_from_target(temp))) {
+		VIPS_UNREF(temp);
+		return -1;
+	}
+
+	VIPS_UNREF(temp);
+
+	if (!(data = vips_source_map(sdr, &length))) {
+		VIPS_UNREF(sdr);
+		return -1;
+	}
+
+	uhdr_compressed_image_t sdr_image = {
+		.data = (void *) data,
+		.data_sz = length,
+		.capacity = length,
+	};
+	error_info =
+		uhdr_enc_set_compressed_image(uhdr->enc, &sdr_image, UHDR_SDR_IMG);
 	if (error_info.error_code) {
+		VIPS_UNREF(sdr);
 		vips__uhdr_error(&error_info);
 		return -1;
 	}
+
+	error_info = uhdr_encode(uhdr->enc);
+	if (error_info.error_code) {
+		VIPS_UNREF(sdr);
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
+
+	VIPS_UNREF(sdr);
 
 	uhdr_compressed_image_t *output = uhdr_get_encoded_stream(uhdr->enc);
 	if (!output) {
@@ -231,11 +244,11 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 
 	if (save->ready->Type == VIPS_INTERPRETATION_scRGB &&
 		save->ready->BandFmt == VIPS_FORMAT_FLOAT) {
-		if (vips_foreign_save_uhdr_hdr(uhdr))
+		if (vips_foreign_save_uhdr_hdr(uhdr, save->ready))
 			return -1;
 	}
 	else {
-		if (vips_foreign_save_uhdr_sdr(uhdr))
+		if (vips_foreign_save_uhdr_sdr(uhdr, save->ready))
 			return -1;
 	}
 
