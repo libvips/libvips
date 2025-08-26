@@ -175,7 +175,7 @@ vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 	}
 
 	VipsTarget *temp;
-	VipsSource *sdr;
+	VipsSource *base;
 
 	if (!(temp = vips_target_new_temp(uhdr->target)))
 		return -1;
@@ -185,39 +185,39 @@ vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 		return -1;
 	}
 
-	if (!(sdr = vips_source_new_from_target(temp))) {
+	if (!(base = vips_source_new_from_target(temp))) {
 		VIPS_UNREF(temp);
 		return -1;
 	}
 
 	VIPS_UNREF(temp);
 
-	if (!(data = vips_source_map(sdr, &length))) {
-		VIPS_UNREF(sdr);
+	if (!(data = vips_source_map(base, &length))) {
+		VIPS_UNREF(base);
 		return -1;
 	}
 
-	uhdr_compressed_image_t sdr_image = {
+	uhdr_compressed_image_t base_image = {
 		.data = (void *) data,
 		.data_sz = length,
 		.capacity = length,
 	};
 	error_info =
-		uhdr_enc_set_compressed_image(uhdr->enc, &sdr_image, UHDR_SDR_IMG);
+		uhdr_enc_set_compressed_image(uhdr->enc, &base_image, UHDR_BASE_IMG);
 	if (error_info.error_code) {
-		VIPS_UNREF(sdr);
+		VIPS_UNREF(base);
 		vips__uhdr_error(&error_info);
 		return -1;
 	}
 
 	error_info = uhdr_encode(uhdr->enc);
 	if (error_info.error_code) {
-		VIPS_UNREF(sdr);
+		VIPS_UNREF(base);
 		vips__uhdr_error(&error_info);
 		return -1;
 	}
 
-	VIPS_UNREF(sdr);
+	VIPS_UNREF(base);
 
 	uhdr_compressed_image_t *output = uhdr_get_encoded_stream(uhdr->enc);
 	if (!output) {
