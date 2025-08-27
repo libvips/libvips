@@ -390,17 +390,43 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 
 	uhdr->enc = uhdr_create_encoder();
 
-	// FIXME ... transform for save
+	VipsImage *image = save->ready;
+	g_object_ref(image);
 
-	if (save->ready->Type == VIPS_INTERPRETATION_scRGB &&
-		save->ready->BandFmt == VIPS_FORMAT_FLOAT) {
-		if (vips_foreign_save_uhdr_hdr(uhdr, save->ready))
+	if (image->Type == VIPS_INTERPRETATION_scRGB) {
+		VipsImage *x;
+
+		// fix bands, format, etc.
+		if (vips_colourspace(image, &x, VIPS_INTERPRETATION_scRGB, NULL)) {
+			VIPS_UNREF(image);
 			return -1;
+		}
+		VIPS_UNREF(image);
+		image = x;
+
+		// libuhdr needs RGBA
+		if (!vips_image_hasalpha(image) &&
+			vips_addalpha(image, &x, NULL)) {
+			VIPS_UNREF(image);
+			return -1;
+		}
+		VIPS_UNREF(image);
+		image = x;
+
+		if (vips_foreign_save_uhdr_hdr(uhdr, image)) {
+			VIPS_UNREF(image);
+			return -1;
+		}
 	}
 	else {
-		if (vips_foreign_save_uhdr_sdr(uhdr, save->ready))
+		// we can rely on jpegsave to transform for save for us
+		if (vips_foreign_save_uhdr_sdr(uhdr, image)) {
+			VIPS_UNREF(image);
 			return -1;
+		}
 	}
+
+	VIPS_UNREF(image);
 
 	uhdr_compressed_image_t *output = uhdr_get_encoded_stream(uhdr->enc);
 	if (!output) {

@@ -403,9 +403,11 @@ vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 {
 	uhdr_mem_block_t *mem_block;
 
-	if ((mem_block = uhdr_dec_get_exif(uhdr->dec)))
+	if ((mem_block = uhdr_dec_get_exif(uhdr->dec))) {
+		g_info("attaching libuhdr exif");
 		vips_image_set_blob_copy(out,
 			VIPS_META_EXIF_NAME, mem_block->data, mem_block->data_sz);
+	}
 
 	if ((mem_block = uhdr_dec_get_icc(uhdr->dec))) {
 		const char *prefix = "ICC_PROFILE";
@@ -423,13 +425,16 @@ vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 			length = mem_block->data_sz;
 		}
 
+		g_info("attaching libuhdr profile");
 		vips_image_set_blob_copy(out, VIPS_META_ICC_NAME, data, length);
 	}
 
-	if ((mem_block = uhdr_dec_get_gainmap_image(uhdr->dec)))
+	if ((mem_block = uhdr_dec_get_gainmap_image(uhdr->dec))) {
 		// attach as a compressed JPG
+		g_info("attaching gainmap");
 		vips_image_set_blob_copy(out,
 			"gainmap", mem_block->data, mem_block->data_sz);
+	}
 
 	VIPS_SETSTR(out->filename,
 		vips_connection_filename(VIPS_CONNECTION(uhdr->source)));
@@ -438,6 +443,8 @@ vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 		uhdr_dec_get_gainmap_metadata(uhdr->dec);
 	if (gainmap_metadata) {
 		double arr[3];
+
+		g_info("attaching gainmap metadata");
 
 		for (int i = 0; i < 3; i++)
 			arr[i] = gainmap_metadata->max_content_boost[i];
@@ -506,7 +513,7 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 		return -1;
 	}
 
-	// only used if we use libuhdr to decode ... ignored if we docode to SDR
+	// only used if we use libuhdr to decode ... ignored if we decode to SDR
 	// ourselves
 	error_info = uhdr_dec_set_out_img_format(uhdr->dec,
 		UHDR_IMG_FMT_64bppRGBAHalfFloat);
@@ -545,17 +552,12 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 	return 0;
 }
 
-/* Decode to scRGB with libuhdr. This will be slow and use a load of
- * memory.
- */
 static int
 vips_foreign_load_uhdr_load_hdr(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 {
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD(uhdr);
 
 	uhdr_error_info_t error_info;
-
-	g_info("decoding uhdr to scRGB");
 
 	// we are decoding with libuhdr, so we use their shrink-on-load
 	error_info = uhdr_add_effect_resize(uhdr->dec,
@@ -625,11 +627,12 @@ vips_foreign_load_uhdr_load(VipsForeignLoad *load)
 #endif /*DEBUG*/
 
 	if (uhdr->hdr) {
-		// decode to scRGB with libuhdr
+		g_info("decoding UltraHDR to scRGB");
 		if (vips_foreign_load_uhdr_load_hdr(uhdr, load->real))
 			return -1;
 	}
 	else {
+		g_info("decoding UltraHDR to sRGB");
 		// decode as SDR with our libjpeg decoder ... downstream can
 		// reconstruct HDR from the gainmap
 		uhdr_mem_block_t *base_image = uhdr_dec_get_base_image(uhdr->dec);
