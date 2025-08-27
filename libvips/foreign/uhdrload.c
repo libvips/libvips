@@ -555,6 +555,8 @@ vips_foreign_load_uhdr_load_hdr(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 
 	uhdr_error_info_t error_info;
 
+	g_info("decoding uhdr to scRGB");
+
 	// we are decoding with libuhdr, so we use their shrink-on-load
 	error_info = uhdr_add_effect_resize(uhdr->dec,
 		load->out->Xsize, load->out->Ysize);
@@ -873,6 +875,14 @@ vips_foreign_load_uhdr_source_init(VipsForeignLoadUhdrSource *source)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * Read an UltraHDR image.
+ *
+ * By default, the UltraHDR image is decoded as a tone-mapped SDR base image
+ * plus a gainmap attached as image metadata.
+ *
+ * If @hdr is set, the UltraHDR image is decoded as an HDR scRGB image. This
+ * will usually be slow and require a lot of memory.
+ *
+ * Set @shrink to shrink the returned image by an integer factor during load.
  *
  * ::: tip "Optional arguments"
  *     * @hdr: `gboolean`, load as an scRGB image

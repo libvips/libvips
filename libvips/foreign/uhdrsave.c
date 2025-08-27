@@ -164,6 +164,49 @@ vips_foreign_save_uhdr_generate(VipsRegion *region,
 	return 0;
 }
 
+// set the raw HDR image
+static int
+vips_foreign_save_uhdr_set_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
+{
+	uhdr_error_info_t error_info;
+
+	g_assert(image->Bands == 4);
+	g_assert(image->BandFmt == VIPS_FORMAT_FLOAT);
+	g_assert(image->Coding == VIPS_CODING_NONE);
+
+	uhdr_raw_image_t hdr_image = {
+		.fmt = UHDR_IMG_FMT_64bppRGBAHalfFloat,
+		.cg = UHDR_CG_BT_709,
+		.ct = UHDR_CT_LINEAR,
+		.range = UHDR_CR_FULL_RANGE,
+		.w = image->Xsize,
+		.h = image->Ysize,
+		.planes[0] = (void *)
+			VIPS_ARRAY(NULL, image->Xsize * image->Ysize * 8, VipsPel),
+		.stride[0] = image->Xsize,
+	};
+	if (!hdr_image.planes[0])
+		return -1;
+
+	if (vips_image_pio_input(image))
+		return -1;
+
+	if (vips_sink(image,
+		NULL, vips_foreign_save_uhdr_generate, NULL, &hdr_image, NULL)) {
+		VIPS_FREE(hdr_image.planes[0]);
+		return -1;
+	}
+
+	error_info = uhdr_enc_set_raw_image(uhdr->enc, &hdr_image, UHDR_HDR_IMG);
+	if (error_info.error_code) {
+		VIPS_FREE(hdr_image.planes[0]);
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
+
+	return 0;
+}
+
 static int
 image_get_float(VipsImage *image, const char *name, float *f)
 {
@@ -195,80 +238,14 @@ image_get_array_float(VipsImage *image, const char *name,
 	return 0;
 }
 
-// save hdr
 static int
-vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
+vips_foreign_save_uhdr_set_gainmap(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 {
-	uhdr_error_info_t error_info;
-
-	g_info("vips_foreign_save_uhdr_hdr: HDR save, regenerating gainmap");
-
-	// uhdr_enc_set_exif_data()
-
-	uhdr_enc_set_output_format(uhdr->enc, UHDR_CODEC_JPG);
-	uhdr_enc_set_gainmap_scale_factor(uhdr->enc, 2);
-	uhdr_enc_set_using_multi_channel_gainmap(uhdr->enc, 0);
-	uhdr_enc_set_gainmap_gamma(uhdr->enc, 1.0);
-
-	// uhdr_enc_set_min_max_content_boost()
-	// uhdr_enc_set_target_display_peak_brightness()
-
-	// make the uncompressed RGBA half image
-	uhdr_raw_image_t hdr_image = {
-		.fmt = UHDR_IMG_FMT_64bppRGBAHalfFloat,
-		.cg = UHDR_CG_BT_709,
-		.ct = UHDR_CT_LINEAR,
-		.range = UHDR_CR_FULL_RANGE,
-		.w = image->Xsize,
-		.h = image->Ysize,
-		.planes[0] = (void *)
-			VIPS_ARRAY(NULL, image->Xsize * image->Ysize * 8, VipsPel),
-		.stride[0] = image->Xsize,
-	};
-	if (!hdr_image.planes[0])
-		return -1;
-
-	if (vips_image_pio_input(image))
-		return -1;
-
-	g_assert(image->Bands == 4);
-	g_assert(image->BandFmt == VIPS_FORMAT_FLOAT);
-	g_assert(image->Coding == VIPS_CODING_NONE);
-
-	if (vips_sink(image,
-		NULL, vips_foreign_save_uhdr_generate, NULL, &hdr_image, NULL)) {
-		VIPS_FREE(hdr_image.planes[0]);
-		return -1;
-	}
-
-	error_info = uhdr_enc_set_raw_image(uhdr->enc, &hdr_image, UHDR_HDR_IMG);
-	if (error_info.error_code) {
-		VIPS_FREE(hdr_image.planes[0]);
-		vips__uhdr_error(&error_info);
-		return -1;
-	}
-
-	error_info = uhdr_encode(uhdr->enc);
-	if (error_info.error_code) {
-		VIPS_FREE(hdr_image.planes[0]);
-		vips__uhdr_error(&error_info);
-		return -1;
-	}
-
-	VIPS_FREE(hdr_image.planes[0]);
-
-	return 0;
-}
-
-// save sdr + gainmap
-static int
-vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
-{
-	uhdr_error_info_t error_info;
 	const void *data;
 	size_t length;
+	uhdr_error_info_t error_info;
 
-	g_info("vips_foreign_save_uhdr_hdr: SDR + gainmap save");
+	g_info("attaching gainmap");
 
 	if (vips_image_get_blob(image, "gainmap", &data, &length))
 		return -1;
@@ -303,6 +280,17 @@ vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 		vips__uhdr_error(&error_info);
 		return -1;
 	}
+
+	return 0;
+}
+
+static int
+vips_foreign_save_uhdr_set_compressed_sdr(VipsForeignSaveUhdr *uhdr,
+	VipsImage *image)
+{
+	const void *data;
+	size_t length;
+	uhdr_error_info_t error_info;
 
 	VipsTarget *temp;
 	VipsSource *base;
@@ -339,6 +327,61 @@ vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 		vips__uhdr_error(&error_info);
 		return -1;
 	}
+
+	return 0;
+}
+
+// save hdr
+static int
+vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
+{
+	uhdr_error_info_t error_info;
+
+	g_info("saving scRGB as UltraHDR");
+
+	// uhdr_enc_set_exif_data()
+
+	uhdr_enc_set_output_format(uhdr->enc, UHDR_CODEC_JPG);
+	uhdr_enc_set_gainmap_scale_factor(uhdr->enc, 2);
+	uhdr_enc_set_using_multi_channel_gainmap(uhdr->enc, 0);
+	uhdr_enc_set_gainmap_gamma(uhdr->enc, 1.0);
+
+	// uhdr_enc_set_min_max_content_boost()
+	// uhdr_enc_set_target_display_peak_brightness()
+
+	// attach the gainmap, if any
+	if (vips_image_get_typeof(image, "gainmap") &&
+		vips_foreign_save_uhdr_set_compressed_gainmap(uhdr, image))
+		return -1;
+
+	if (vips_foreign_save_uhdr_set_raw_hdr(uhdr, image))
+		return -1;
+
+	error_info = uhdr_encode(uhdr->enc);
+	if (error_info.error_code) {
+		VIPS_FREE(hdr_image.planes[0]);
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
+
+	// FIXME .. this doesn't seem to generate a gainmap, how odd
+
+	VIPS_FREE(hdr_image.planes[0]);
+
+	return 0;
+}
+
+// save sdr + gainmap
+static int
+vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
+{
+	uhdr_error_info_t error_info;
+
+	g_info("vips_foreign_save_uhdr_hdr: SDR + gainmap save");
+
+	if (vips_foreign_save_uhdr_set_compressed_gainmap(uhdr, image) ||
+		vips_foreign_save_uhdr_set_compressed_base(uhdr, image))
+		return -1;
 
 	error_info = uhdr_encode(uhdr->enc);
 	if (error_info.error_code) {
@@ -598,6 +641,13 @@ vips_foreign_save_uhdr_target_init(VipsForeignSaveUhdrTarget *target)
  * @in: image to save
  * @filename: file to write to
  * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Save an image as UltraHDR.
+ *
+ * If a gainmap is attached,
+ *
+ * If the image is scRGBA (four bands, float pixels, tagged as scRGB), a gain
+ * map will be computed. This can need a lot of time and memory.
  *
  * ::: seealso
  *     [method@Image.write_to_file], [ctor@Image.uhdrload].
