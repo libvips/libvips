@@ -69,6 +69,7 @@ MOSAIC_VERTICAL_MARKS = [[388, 44], [364, 346],
                          [384, 17], [385, 629],
                          [527, 42], [503, 959]]
 JP2K_FILE = os.path.join(IMAGES, "world.jp2")
+UHDR_FILE = os.path.join(IMAGES, "ultra-hdr.jpg")
 
 unsigned_formats = ["uchar", "ushort", "uint"]
 signed_formats = ["char", "short", "int"]

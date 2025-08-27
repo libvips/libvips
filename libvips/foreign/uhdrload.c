@@ -53,7 +53,6 @@
 #include "pforeign.h"
 
 const char *vips__uhdr_suffs[] = {
-	".jpg",
 	NULL
 };
 

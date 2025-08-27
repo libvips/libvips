@@ -416,6 +416,47 @@ class TestForeign:
         # and this should fail with a warning once more
         x = im.avg()
 
+    @skip_if_no("uhdrload")
+    def test_uhdrload(self):
+        # decode as sRGB + gainmap
+        im = pyvips.Image.uhdrload(UHDR_FILE)
+
+        assert im.width == 3840
+        assert im.height == 2160
+        assert im.bands == 3
+        assert im.interpretation == "srgb"
+
+        for name in ["gainmap-max-content-boost",
+                     "gainmap-min-content-boost",
+                     "gainmap-gamma",
+                     "gainmap-offset-sdr",
+                     "gainmap-offset-hdr"]:
+            value = im.get(name)
+            assert isinstance(value, list)
+            assert len(value) == 3
+
+        for name in ["gainmap-hdr-capacity-min",
+                     "gainmap-hdr-capacity-max",
+                     "gainmap-use-base-cg"]:
+            value = im.get(name)
+            assert isinstance(value, (int, float))
+
+        value = im.get("gainmap")
+        assert len(value) > 10000
+
+        value = im.get("icc-profile-data")
+        assert len(value) > 100
+
+    @skip_if_no("uhdrload")
+    def test_uhdrload_hdr(self):
+        # decode as scRGB + gainmap
+        im = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
+
+        assert im.width == 3840
+        assert im.height == 2160
+        assert im.bands == 4
+        assert im.interpretation == "scrgb"
+
     @skip_if_no("pngload")
     def test_png(self):
         def png_valid(im):
