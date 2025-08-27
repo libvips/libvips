@@ -150,11 +150,11 @@ vips__uhdr_error(uhdr_error_info_t *error)
 		vips_error("uhdr", "error");
 }
 
-typedef unsigned short half;
+typedef guint16 half;
 
 /* From ILM's halfToFloat().
  */
-unsigned int
+static guint32
 vips__half_to_float(half y)
 {
     int s = (y >> 15) & 0x00000001;
@@ -244,11 +244,10 @@ vips_foreign_load_uhdr_generate(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	VipsForeignLoadUhdr *uhdr = VIPS_FOREIGN_LOAD_UHDR(a);
 	half *base = (half *) uhdr->raw_image->planes[0];
+	int stride = uhdr->raw_image->stride[0];
 
 	for (int y = 0; y < r->height; y++) {
-		half *p = base +
-			4 * uhdr->raw_image->stride[0] * (r->top + y) +
-			4 * r->left;
+		half *p = base + 4 * stride * (r->top + y) + 4 * r->left;
 		unsigned int *q =
 			(unsigned int *) VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
