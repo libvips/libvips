@@ -424,6 +424,7 @@ class TestForeign:
         assert im.width == 3840
         assert im.height == 2160
         assert im.bands == 3
+        assert im.format == "uchar"
         assert im.interpretation == "srgb"
 
         for name in ["gainmap-max-content-boost",
@@ -454,8 +455,55 @@ class TestForeign:
 
         assert im.width == 3840
         assert im.height == 2160
-        assert im.bands == 4
+        assert im.bands == 3
+        assert im.format == "float"
         assert im.interpretation == "scrgb"
+
+        value = im.get("gainmap")
+        assert len(value) > 10000
+
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE)
+        data = im.uhdrsave_buffer()
+        im2 = pyvips.Image.uhdrload_buffer(data)
+
+        assert im2.width == 3840
+        assert im2.height == 2160
+        assert im2.bands == 3
+        assert im2.format == "uchar"
+        assert im2.interpretation == "srgb"
+        value = im2.get("gainmap")
+        assert len(value) > 10000
+
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave_hdr(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
+        data = im.uhdrsave_buffer()
+        im2 = pyvips.Image.uhdrload_buffer(data)
+
+        assert im2.width == 3840
+        assert im2.height == 2160
+        assert im2.bands == 3
+        assert im2.format == "uchar"
+        assert im2.interpretation == "srgb"
+        value = im2.get("gainmap")
+        assert len(value) > 10000
+
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave_hdr_no_gainmap(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
+        im.remove("gainmap")
+        data = im.uhdrsave_buffer()
+        im2 = pyvips.Image.uhdrload_buffer(data)
+
+        assert im2.width == 3840
+        assert im2.height == 2160
+        assert im2.bands == 3
+        assert im2.format == "uchar"
+        assert im2.interpretation == "srgb"
+        value = im2.get("gainmap")
+        assert len(value) > 10000
 
     @skip_if_no("pngload")
     def test_png(self):

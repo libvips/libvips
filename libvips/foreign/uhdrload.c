@@ -254,10 +254,9 @@ vips_foreign_load_uhdr_generate(VipsRegion *out_region,
 			q[0] = vips__half_to_float(p[0]);
 			q[1] = vips__half_to_float(p[1]);
 			q[2] = vips__half_to_float(p[2]);
-			q[3] = vips__half_to_float(p[3]);
 
 			p += 4;
-			q += 4;
+			q += 3;
 		}
 	}
 
@@ -538,8 +537,7 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 	int height = image_height / uhdr->shrink;
 
 	vips_image_init_fields(load->out,
-		width, height,
-		uhdr->hdr ? 4 : 3,
+		width, height, 3,
 		uhdr->hdr ? VIPS_FORMAT_FLOAT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
 		uhdr->hdr ? VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
@@ -594,9 +592,10 @@ vips_foreign_load_uhdr_load_hdr(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 	vips__print_raw(uhdr->raw_image);
 #endif /*DEBUG*/
 
+	// drop the pointless alpha
 	VipsImage *image = vips_image_new();
 	vips_image_init_fields(image,
-		uhdr->raw_image->w, uhdr->raw_image->h, 4,
+		uhdr->raw_image->w, uhdr->raw_image->h, 3,
 		VIPS_FORMAT_FLOAT,
 		VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_scRGB,
