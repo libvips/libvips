@@ -505,6 +505,23 @@ class TestForeign:
         value = im2.get("gainmap")
         assert len(value) > 10000
 
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave_roundtrip(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE)
+        data = im.uhdrsave_buffer()
+        im2_hdr = pyvips.Image.uhdrload_buffer(data, hdr=True)
+        im_hdr = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
+
+        assert (im2_hdr - im_hdr).abs().avg() < 0.02
+
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave_roundtrip_hdr(self):
+        im_hdr = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
+        data = im_hdr.uhdrsave_buffer()
+        im_hdr2 = pyvips.Image.uhdrload_buffer(data, hdr=True)
+
+        assert (im_hdr - im_hdr2).abs().avg() < 0.03
+
     @skip_if_no("pngload")
     def test_png(self):
         def png_valid(im):
