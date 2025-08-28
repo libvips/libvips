@@ -125,6 +125,30 @@ vips_linear_build(VipsObject *object)
 
 	int i;
 
+	/* If we have a $n element vector, we need to bandup the image to
+	 * match.
+	 */
+	linear->n = 1;
+	if (linear->a)
+		linear->n = VIPS_MAX(linear->n, linear->a->n);
+	if (linear->b)
+		linear->n = VIPS_MAX(linear->n, linear->b->n);
+	if (unary->in) {
+		int bands;
+
+		vips_image_decode_predict(unary->in, &bands, NULL);
+		linear->n = VIPS_MAX(linear->n, bands);
+	}
+	arithmetic->base_bands = linear->n;
+
+	if (unary->in &&
+		linear->a &&
+		linear->b) {
+		if (vips_check_vector(class->nickname, linear->a->n, unary->in) ||
+			vips_check_vector(class->nickname, linear->b->n, unary->in))
+			return -1;
+	}
+
 	/* If all elements of the constants are equal, we can treat them as
 	 * a single element.
 	 */
@@ -147,26 +171,6 @@ vips_linear_build(VipsObject *object)
 				b_n = linear->b->n;
 				break;
 			}
-	}
-
-	/* If we have a $n element vector, we need to bandup the image to
-	 * match.
-	 */
-	linear->n = 1;
-	linear->n = VIPS_MAX(linear->n, a_n);
-	linear->n = VIPS_MAX(linear->n, b_n);
-	if (unary->in) {
-		int bands;
-
-		vips_image_decode_predict(unary->in, &bands, NULL);
-		linear->n = VIPS_MAX(linear->n, bands);
-	}
-	arithmetic->base_bands = linear->n;
-
-	if (unary->in) {
-		if (vips_check_vector(class->nickname, a_n, unary->in) ||
-			vips_check_vector(class->nickname, b_n, unary->in))
-			return -1;
 	}
 
 	/* Make up-banded versions of our constants.
