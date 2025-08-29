@@ -7,6 +7,7 @@
 - disable redundant Highway AVX512 targets [kleisauke]
 - openslideload_source: flag operation as "nocache" [kleisauke]
 - remove `vipsprofile.1` man page from install [kleisauke]
+- tiffload: ensure processing halts for memory-related errors [lovell]
 
 7/7/25 8.17.1
 
