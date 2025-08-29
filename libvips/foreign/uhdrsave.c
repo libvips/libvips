@@ -72,6 +72,8 @@ typedef struct _VipsForeignSaveUhdr {
 	 */
 	VipsTarget *target;
 
+	int Q;
+
 	uhdr_codec_private_t *enc;
 
 } VipsForeignSaveUhdr;
@@ -296,7 +298,7 @@ vips_foreign_save_uhdr_set_compressed_base(VipsForeignSaveUhdr *uhdr,
 		return -1;
 	t[0] = VIPS_OBJECT(temp);
 
-	if (vips_jpegsave_target(image, temp, NULL))
+	if (vips_jpegsave_target(image, temp, "Q", uhdr->Q, NULL))
 		return -1;
 
 	if (!(base = vips_source_new_from_target(temp)))
@@ -331,17 +333,11 @@ vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 
 	g_info("saving scRGB as UltraHDR");
 
-	// uhdr_enc_set_exif_data()
-
 	uhdr_enc_set_output_format(uhdr->enc, UHDR_CODEC_JPG);
 	uhdr_enc_set_gainmap_scale_factor(uhdr->enc, 2);
 	uhdr_enc_set_using_multi_channel_gainmap(uhdr->enc, 0);
-	uhdr_enc_set_gainmap_gamma(uhdr->enc, 1.0);
 
-	// uhdr_enc_set_min_max_content_boost()
-	// uhdr_enc_set_target_display_peak_brightness()
-
-	// attach the gainmap, if any
+	// attach the gainmap, if we have one
 	if (vips_image_get_typeof(image, "gainmap") &&
 		vips_foreign_save_uhdr_set_compressed_gainmap(uhdr, image))
 		return -1;
@@ -385,13 +381,51 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE(object);
 	VipsForeignSaveUhdr *uhdr = (VipsForeignSaveUhdr *) object;
 
+	uhdr_error_info_t error_info;
+
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_uhdr_parent_class)->build(object))
 		return -1;
 
-	uhdr->enc = uhdr_create_encoder();
-
 	VipsImage *image = save->ready;
 	g_object_ref(image);
+
+	uhdr->enc = uhdr_create_encoder();
+
+	if (vips_image_get_typeof(image, VIPS_META_EXIF_NAME)) {
+		const void *data;
+		size_t length;
+
+		if (vips_image_get_blob(image, VIPS_META_EXIF_NAME, &data, &length)) {
+			VIPS_UNREF(image);
+			return -1;
+		}
+		uhdr_mem_block_t exif = {
+			.data = (void *) data,
+			.data_sz = length,
+			.capacity = length,
+		};
+		error_info = uhdr_enc_set_exif_data(uhdr->enc, &exif);
+		if (error_info.error_code) {
+			vips__uhdr_error(&error_info);
+			VIPS_UNREF(image);
+			return -1;
+		}
+	}
+
+	// libuhdr has no set_icc API, that's done for us from the gainmap metadata
+
+	error_info = uhdr_enc_set_quality(uhdr->enc, uhdr->Q, UHDR_BASE_IMG);
+	if (error_info.error_code) {
+		vips__uhdr_error(&error_info);
+		VIPS_UNREF(image);
+		return -1;
+	}
+	error_info = uhdr_enc_set_quality(uhdr->enc, uhdr->Q, UHDR_GAIN_MAP_IMG);
+	if (error_info.error_code) {
+		vips__uhdr_error(&error_info);
+		VIPS_UNREF(image);
+		return -1;
+	}
 
 	if (image->Type == VIPS_INTERPRETATION_scRGB) {
 		VipsImage *x;
@@ -462,12 +496,19 @@ vips_foreign_save_uhdr_class_init(VipsForeignSaveUhdrClass *class)
 
 	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 
+	VIPS_ARG_INT(class, "Q", 10,
+		_("Q"),
+		_("Q factor"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, Q),
+		1, 100, 75);
+
 }
 
 static void
 vips_foreign_save_uhdr_init(VipsForeignSaveUhdr *uhdr)
 {
-
+	uhdr->Q = 75;
 }
 
 typedef struct _VipsForeignSaveUhdrFile {
