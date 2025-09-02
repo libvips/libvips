@@ -690,7 +690,7 @@ build_features = {
     },
   'External image format libraries':
     {'JPEG load/save': ['libjpeg', libjpeg_dep],
-     'UHDR load': ['libuhdr', libuhdr_dep],
+     'UHDR load/save': ['libuhdr', libuhdr_dep],
      'JXL load/save': ['libjxl', libjxl_found ? libjxl_dep : disabler(), libjxl_module],
      'JPEG2000 load/save': ['OpenJPEG', libopenjp2_dep],
      'PNG load/save': ['libspng or libpng', png_package],
