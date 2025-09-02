@@ -10,7 +10,7 @@ master
 - system: add "cache" argument
 - add vips_image_get_tile_width(), vips_image_get_tile_height(): get tile
   cache geometry hints [jbaiter]
-- add vips_uhdrload(), vips_uhdrload_buffer(), vips_uhdrload_source(): read an
+- add vips_uhdrload(), vips_uhdrload_buffer(), vips_uhdrload_source(): load an
   UltraHDR image
 - add vips_uhdrsave(), vips_uhdrsave_buffer(), vips_uhdrsave_target(): save an
   UltraHDR image

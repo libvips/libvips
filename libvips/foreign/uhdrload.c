@@ -782,18 +782,28 @@ vips_foreign_load_uhdr_buffer_build(VipsObject *object)
 		->build(object);
 }
 
+static gboolean
+vips_foreign_load_uhdr_buffer_is_a_buffer(const void *buf, size_t len)
+{
+	// we detect these things in jpegload_buffer
+	return FALSE;
+}
+
 static void
 vips_foreign_load_uhdr_buffer_class_init(
 	VipsForeignLoadUhdrBufferClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "uhdrload_buffer";
 	object_class->build = vips_foreign_load_uhdr_buffer_build;
+
+	load_class->is_a_buffer = vips_foreign_load_uhdr_buffer_is_a_buffer;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,
 		_("Buffer"),
@@ -838,6 +848,13 @@ vips_foreign_load_uhdr_source_build(VipsObject *object)
 		->build(object);
 }
 
+static gboolean
+vips_foreign_load_uhdr_source_is_a_source(VipsSource *source)
+{
+	// detect these in jpegload_source
+	return FALSE;
+}
+
 static void
 vips_foreign_load_uhdr_source_class_init(
 	VipsForeignLoadUhdrSourceClass *class)
@@ -845,6 +862,7 @@ vips_foreign_load_uhdr_source_class_init(
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -853,6 +871,8 @@ vips_foreign_load_uhdr_source_class_init(
 	object_class->build = vips_foreign_load_uhdr_source_build;
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
+
+	load_class->is_a_source = vips_foreign_load_uhdr_source_is_a_source;
 
 	VIPS_ARG_OBJECT(class, "source", 1,
 		_("Source"),
