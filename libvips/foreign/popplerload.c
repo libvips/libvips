@@ -590,7 +590,7 @@ vips_foreign_load_pdf_class_init(VipsForeignLoadPdfClass *class)
 
 	VIPS_ARG_ENUM(class, "page_box", 26,
 		_("Page box"),
-		_("The region of the page to render, only crop is supported"),
+		_("The region of the page to render"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadPdf, page_box),
 		VIPS_TYPE_FOREIGN_PDF_PAGE_BOX,
