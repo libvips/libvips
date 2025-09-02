@@ -139,17 +139,6 @@ can. Another option is `libjpeg-turbo`.
 If present, libvips will load UltraHDR images with Google's libultrahdr
 library. The `pkg-config` name is libuhdr.
 
-libultrahdr is not yet widely available on
-the various distros.  [![libultrahdr packaging
-status](https://repology.org/badge/vertical-allrepos/libultrahdr.svg?minversion=1.4.0&exclude_unsupported=1&columns=3&exclude_sources=modules,site&header=libultrahdr%20packaging%20status)](https://repology.org/project/libultrahdr/versions)
-
-If you are building with `-Dauto_features=enabled` (see e.g. rule 3 from
-https://blogs.gnome.org/mcatanzaro/2022/07/15/best-practices-for-build-options/),
-you must either:
-
-- explicitly disable the feature by passing `-Duhdr=disabled`, or
-- ensure that libultrahdr is properly packaged.
-
 ### libexif
 
 If available, libvips adds support for EXIF metadata in JPEG files.
