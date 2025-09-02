@@ -153,28 +153,33 @@ camera images via imagemagick instead.
 If present, libvips will attempt to load PDFs with PDFium. Download the
 prebuilt pdfium binary from:
 
-    https://github.com/bblanchon/pdfium-binaries
+https://github.com/bblanchon/pdfium-binaries/releases/latest
 
 Untar to the libvips install prefix, for example:
 
-    cd ~/vips
-    tar xf ~/pdfium-linux.tgz
+```
+cd ~/vips
+tar xf ~/pdfium-linux.tgz
+```
 
 Create a `pdfium.pc` like this (update the version number):
 
-    VIPSHOME=/home/john/vips
-    cat > $VIPSHOME/lib/pkgconfig/pdfium.pc << EOF
-         prefix=$VIPSHOME
-         exec_prefix=\${prefix}
-         libdir=\${exec_prefix}/lib
-         includedir=\${prefix}/include
-         Name: pdfium
-         Description: pdfium
-         Version: 4290
-         Requires:
-         Libs: -L\${libdir} -lpdfium
-         Cflags: -I\${includedir}
-    EOF
+```
+VIPSHOME=$HOME/vips
+mkdir -p $VIPSHOME/lib/pkgconfig
+cat > $VIPSHOME/lib/pkgconfig/pdfium.pc << EOF
+prefix=$VIPSHOME
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+
+Name: pdfium
+Description: PDFium
+Version: 4290
+Libs: -L\${libdir} -lpdfium
+Cflags: -I\${includedir}
+EOF
+```
 
 If PDFium is not detected, libvips will look for `poppler-glib` instead.
 
