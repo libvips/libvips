@@ -312,6 +312,12 @@ if libjpeg_dep.found()
     cfg_var.set('HAVE_JPEG_EXT_PARAMS', cc.has_function('jpeg_c_bool_param_supported', prefix: '#include <stdio.h>\n#include <jpeglib.h>', dependencies: libjpeg_dep))
 endif
 
+libuhdr_dep = dependency('libuhdr', required: get_option('uhdr'))
+if libuhdr_dep.found()
+    external_deps += libuhdr_dep
+    cfg_var.set('HAVE_UHDR', true)
+endif
+
 # png package we use
 png_package = disabler()
 
@@ -684,6 +690,7 @@ build_features = {
     },
   'External image format libraries':
     {'JPEG load/save': ['libjpeg', libjpeg_dep],
+     'UHDR load/save': ['libuhdr', libuhdr_dep],
      'JXL load/save': ['libjxl', libjxl_found ? libjxl_dep : disabler(), libjxl_module],
      'JPEG2000 load/save': ['OpenJPEG', libopenjp2_dep],
      'PNG load/save': ['libspng or libpng', png_package],

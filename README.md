@@ -134,6 +134,11 @@ so make sure that is working.
 Anything that is compatible with the IJG JPEG library. Use `mozjpeg` if you
 can. Another option is `libjpeg-turbo`.
 
+### libultrahdr (libuhdr)
+
+If present, libvips will load UltraHDR images with Google's libultrahdr
+library. The `pkg-config` name is libuhdr.
+
 ### libexif
 
 If available, libvips adds support for EXIF metadata in JPEG files.
