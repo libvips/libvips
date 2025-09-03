@@ -52,8 +52,6 @@
 #include <vips/internal.h>
 #include <vips/debug.h>
 
-#include "vipsmarshal.h"
-
 G_DEFINE_TYPE(VipsSourceGInputStream, vips_source_g_input_stream,
 	VIPS_TYPE_SOURCE);
 
@@ -240,10 +238,10 @@ vips_source_g_input_stream_init(VipsSourceGInputStream *source)
  * vips_source_g_input_stream_new:
  * @stream: read from this stream
  *
- * Create a [struct@SourceGInputStream] which wraps @stream.
+ * Create a [class@SourceGInputStream] which wraps @stream.
  *
  * ::: seealso
- *     [func@g_input_stream_new_from_source]
+ *     [ctor@GInputStream.new_from_source]
  *
  * Returns: (transfer full): the new source.
  */

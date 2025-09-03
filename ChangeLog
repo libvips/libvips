@@ -9,6 +9,7 @@
 - remove `vipsprofile.1` man page from install [kleisauke]
 - tiffload: ensure processing halts for memory-related errors [lovell]
 - tiffload: increase memory limit from 20MB to 50MB [lovell]
+- fix vapi build [stydxm]
 
 7/7/25 8.17.1
 
