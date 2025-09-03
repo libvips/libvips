@@ -317,6 +317,7 @@ typedef struct _VipsGInputStream {
 } VipsGInputStream;
 
 typedef struct _VipsGInputStreamClass {
+	/*< private >*/
 	GInputStreamClass parent_class;
 
 } VipsGInputStreamClass;
@@ -362,6 +363,7 @@ typedef struct _VipsSourceGInputStream {
 } VipsSourceGInputStream;
 
 typedef struct _VipsSourceGInputStreamClass {
+	/*< private >*/
 	VipsSourceClass parent_class;
 
 } VipsSourceGInputStreamClass;
