@@ -18,7 +18,16 @@ master
 8.17.2
 
 - rank: fix an off-by-one error [larsmaxfield]
+- popplerload, svgload: validate page size [Yang Luo]
 - pdfiumload: allow both dpi and scale to be set [kleisauke]
+- svgload: honor DPI when scaling elements with non-pixel units [kleisauke]
+- disable redundant Highway AVX512 targets [kleisauke]
+- openslideload_source: flag operation as "nocache" [kleisauke]
+- remove `vipsprofile.1` man page from install [kleisauke]
+- tiffload: ensure processing halts for memory-related errors [lovell]
+- tiffload: increase memory limit from 20MB to 50MB [lovell]
+- fix vapi build [stydxm]
+- tiffsave: include sample format when copying tiff data [manthey]
 
 7/7/25 8.17.1
 

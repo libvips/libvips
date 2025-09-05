@@ -470,23 +470,18 @@ vips_object_print_name(VipsObject *object)
 gboolean
 vips_object_sanity(VipsObject *object)
 {
-	VipsObjectClass *class;
-	char str[1000];
-	VipsBuf buf = VIPS_BUF_STATIC(str);
-
 	if (!object) {
-		printf("vips_object_sanity: null object\n");
-
+		vips_error("vips_object_sanity", _("null object"));
 		return FALSE;
 	}
 
-	class = VIPS_OBJECT_GET_CLASS(object);
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
+
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC(str);
 	class->sanity(object, &buf);
 	if (!vips_buf_is_empty(&buf)) {
-		printf("sanity failure: ");
-		vips_object_print_name(object);
-		printf(" %s\n", vips_buf_all(&buf));
-
+		vips_error(class->nickname, "%s", vips_buf_all(&buf));
 		return FALSE;
 	}
 

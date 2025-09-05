@@ -459,10 +459,15 @@ if libhwy_dep.found()
     cfg_var.set('HAVE_HWY_1_1_0', libhwy_dep.version().version_compare('>=1.1.0'))
     # Always disable SSSE3 since it is rare to have SSSE3 but not SSE4
     disabled_targets = ['HWY_SSSE3']
+    # Avoid disabling the AVX3_DL target, see: https://github.com/google/highway/pull/1356
+    #disabled_targets += ['HWY_AVX3_DL']
+    # Always disable special AVX512 targets since the FP16/BF16 ops they introduce are unused.
+    disabled_targets += ['HWY_AVX3_ZEN4', 'HWY_AVX3_SPR']
+    if libhwy_dep.version().version_compare('>=1.3.0')
+        disabled_targets += ['HWY_AVX10_2']
+    endif
     # Optionally, build without AVX512 support (helps to reduce binary size at the cost of performance)
     #disabled_targets += ['HWY_AVX3']
-    #disabled_targets += ['HWY_AVX3_ZEN4']
-    #disabled_targets += ['HWY_AVX3_SPR']
     add_project_arguments('-DHWY_DISABLED_TARGETS=@0@'.format('|'.join(disabled_targets)), language: ['cpp'])
     simd_package = libhwy_dep
 endif
@@ -536,9 +541,7 @@ if libjxl_found
     endif
     cfg_var.set('HAVE_LIBJXL', true)
     # need v0.9+ for chunked write
-    if libjxl_dep.version().version_compare('>=0.9')
-        cfg_var.set('HAVE_LIBJXL_0_9', '1')
-    endif
+    cfg_var.set('HAVE_LIBJXL_0_9', libjxl_dep.version().version_compare('>=0.9'))
 endif
 
 # only if pdfium not found

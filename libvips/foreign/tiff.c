@@ -206,7 +206,7 @@ vips__tiff_openin_source(VipsSource *source, VipsTiffErrorHandler error_fn,
 	TIFFOpenOptionsSetWarningHandlerExtR(opts, warning_fn, user_data);
 #ifdef HAVE_TIFF_OPEN_OPTIONS_SET_MAX_CUMULATED_MEM_ALLOC
 	if (!unlimited) {
-		TIFFOpenOptionsSetMaxCumulatedMemAlloc(opts, 20 * 1024 * 1024);
+		TIFFOpenOptionsSetMaxCumulatedMemAlloc(opts, 50 * 1024 * 1024);
 	}
 #endif /*HAVE_TIFF_OPEN_OPTIONS_SET_MAX_CUMULATED_MEM_ALLOC*/
 	if (!(tiff = TIFFClientOpenExt("source input", "rmC",

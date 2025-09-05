@@ -615,8 +615,7 @@ vips_image_summary(VipsObject *object, VipsBuf *buf)
 	if (vips_image_get_coding(image) == VIPS_CODING_NONE) {
 		vips_buf_appendf(buf,
 			g_dngettext(GETTEXT_PACKAGE,
-				" %s, %d band, %s",
-				" %s, %d bands, %s",
+				" %s, %d band, %s", " %s, %d bands, %s",
 				vips_image_get_bands(image)),
 			vips_enum_nick(VIPS_TYPE_BAND_FORMAT, vips_image_get_format(image)),
 			vips_image_get_bands(image),
@@ -625,8 +624,7 @@ vips_image_summary(VipsObject *object, VipsBuf *buf)
 	}
 	else {
 		vips_buf_appendf(buf, ", %s",
-			vips_enum_nick(VIPS_TYPE_CODING,
-				vips_image_get_coding(image)));
+			vips_enum_nick(VIPS_TYPE_CODING, vips_image_get_coding(image)));
 	}
 
 	if (vips_image_get_typeof(image, VIPS_META_LOADER) &&
@@ -657,42 +655,40 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 {
 	VipsImage *image = VIPS_IMAGE(object);
 
-	/* All 0 means im has been inited but never used.
+	if (image->Xsize <= 0 ||
+		image->Ysize <= 0 ||
+		image->Bands <= 0)
+		vips_buf_appends(buf, "bad dimensions\n");
+	if (image->BandFmt < -1 ||
+		image->BandFmt > VIPS_FORMAT_DPCOMPLEX ||
+		(image->Coding != -1 &&
+			image->Coding != VIPS_CODING_NONE &&
+			image->Coding != VIPS_CODING_LABQ &&
+			image->Coding != VIPS_CODING_RAD) ||
+		image->Type >= VIPS_INTERPRETATION_LAST ||
+		image->dtype > VIPS_IMAGE_PARTIAL ||
+		image->dhint > VIPS_DEMAND_STYLE_ANY)
+		vips_buf_appends(buf, "bad enum\n");
+	if (image->Xres < 0 ||
+		image->Yres < 0)
+		vips_buf_appends(buf, "bad resolution\n");
+
+	/* These checks are expensive -- only do in leakcheck mode.
 	 */
-	if (image->Xsize != 0 ||
-		image->Ysize != 0 ||
-		image->Bands != 0) {
-		if (image->Xsize <= 0 ||
-			image->Ysize <= 0 ||
-			image->Bands <= 0)
-			vips_buf_appends(buf, "bad dimensions\n");
-		if (image->BandFmt < -1 ||
-			image->BandFmt > VIPS_FORMAT_DPCOMPLEX ||
-			(image->Coding != -1 &&
-				image->Coding != VIPS_CODING_NONE &&
-				image->Coding != VIPS_CODING_LABQ &&
-				image->Coding != VIPS_CODING_RAD) ||
-			image->Type >= VIPS_INTERPRETATION_LAST ||
-			image->dtype > VIPS_IMAGE_PARTIAL ||
-			image->dhint > VIPS_DEMAND_STYLE_ANY)
-			vips_buf_appends(buf, "bad enum\n");
-		if (image->Xres < 0 ||
-			image->Yres < 0)
-			vips_buf_appends(buf, "bad resolution\n");
+	if (vips__leak) {
+		/* Must lock around inter-image links.
+		 */
+		g_mutex_lock(&vips__global_lock);
+
+		if (vips_slist_map2(image->upstream,
+				(VipsSListMap2Fn) vips_image_sanity_upstream, image, NULL))
+			vips_buf_appends(buf, "upstream broken\n");
+		if (vips_slist_map2(image->downstream,
+				(VipsSListMap2Fn) vips_image_sanity_downstream, image, NULL))
+			vips_buf_appends(buf, "downstream broken\n");
+
+		g_mutex_unlock(&vips__global_lock);
 	}
-
-	/* Must lock around inter-image links.
-	 */
-	g_mutex_lock(&vips__global_lock);
-
-	if (vips_slist_map2(image->upstream,
-			(VipsSListMap2Fn) vips_image_sanity_upstream, image, NULL))
-		vips_buf_appends(buf, "upstream broken\n");
-	if (vips_slist_map2(image->downstream,
-			(VipsSListMap2Fn) vips_image_sanity_downstream, image, NULL))
-		vips_buf_appends(buf, "downstream broken\n");
-
-	g_mutex_unlock(&vips__global_lock);
 
 	VIPS_OBJECT_CLASS(vips_image_parent_class)->sanity(object, buf);
 }
@@ -3140,7 +3136,8 @@ vips_image_hasalpha(VipsImage *image)
 int
 vips_image_write_prepare(VipsImage *image)
 {
-	g_assert(vips_object_sanity(VIPS_OBJECT(image)));
+	if (!vips_object_sanity(VIPS_OBJECT(image)))
+		return -1;
 
 	if (image->Xsize <= 0 ||
 		image->Ysize <= 0 ||
@@ -3407,7 +3404,8 @@ vips_image_wio_input(VipsImage *image)
 {
 	VipsImage *t1;
 
-	g_assert(vips_object_sanity(VIPS_OBJECT(image)));
+	if (!vips_object_sanity(VIPS_OBJECT(image)))
+		return -1;
 
 #ifdef DEBUG_IO
 	printf("vips_image_wio_input: wio input for %s\n",
@@ -3635,7 +3633,8 @@ vips_image_inplace(VipsImage *image)
 int
 vips_image_pio_input(VipsImage *image)
 {
-	g_assert(vips_object_sanity(VIPS_OBJECT(image)));
+	if (!vips_object_sanity(VIPS_OBJECT(image)))
+		return -1;
 
 #ifdef DEBUG_IO
 	printf("vips_image_pio_input: enabling partial input for %s\n",

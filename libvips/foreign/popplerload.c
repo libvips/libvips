@@ -316,7 +316,6 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF(load);
 
 	int top;
-	int i;
 
 #ifdef DEBUG
 	printf("vips_foreign_load_pdf_header: %p\n", pdf);
@@ -349,21 +348,28 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	pdf->image.top = 0;
 	pdf->image.width = 0;
 	pdf->image.height = 0;
-	for (i = 0; i < pdf->n; i++) {
+	for (int i = 0; i < pdf->n; i++) {
 		double width;
 		double height;
 
 		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
 			return -1;
+
 		poppler_page_get_size(pdf->page, &width, &height);
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
+
 		/* We do round to nearest, in the same way that vips_resize()
 		 * does round to nearest. Without this, things like
 		 * shrink-on-load will break.
 		 */
 		pdf->pages[i].width = rint(width * pdf->total_scale);
 		pdf->pages[i].height = rint(height * pdf->total_scale);
+		if (pdf->pages[i].width <= 0 ||
+			pdf->pages[i].height <= 0) {
+			vips_error(class->nickname, "%s", _("zero-sized image"));
+			return -1;
+		}
 
 		if (pdf->pages[i].width > pdf->image.width)
 			pdf->image.width = pdf->pages[i].width;
@@ -375,7 +381,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	/* If all pages are the same height, we can tag this as a toilet roll
 	 * image.
 	 */
-	for (i = 1; i < pdf->n; i++)
+	for (int i = 1; i < pdf->n; i++)
 		if (pdf->pages[i].height != pdf->pages[0].height)
 			break;
 

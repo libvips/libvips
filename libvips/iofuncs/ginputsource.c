@@ -292,7 +292,7 @@ vips_g_input_stream_init(VipsGInputStream *gstream)
  * methods.
  *
  * ::: seealso
- *     [func@Source.g_input_stream_new]
+ *     [ctor@SourceGInputStream.new]
  *
  * Returns: (transfer full): a new [class@Gio.InputStream]
  */

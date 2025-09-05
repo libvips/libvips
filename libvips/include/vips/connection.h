@@ -322,6 +322,8 @@ typedef struct _VipsGInputStreamClass {
 } VipsGInputStreamClass;
 
 VIPS_API
+GType vips_g_input_stream_get_type(void);
+VIPS_API
 GInputStream *vips_g_input_stream_new_from_source(VipsSource *source);
 
 /* A VipsSource that wraps a GInputStream. This lets us eg. load PNGs from
@@ -343,10 +345,6 @@ GInputStream *vips_g_input_stream_new_from_source(VipsSource *source);
 	(G_TYPE_INSTANCE_GET_CLASS((obj), \
 		VIPS_TYPE_SOURCE_G_INPUT_STREAM, VipsSourceGInputStreamClass))
 
-/**
- * VipsSourceGInputStream: (copy-func g_object_ref)
- *   (free-func g_object_unref)
- */
 typedef struct _VipsSourceGInputStream {
 	VipsSource parent_instance;
 
@@ -366,6 +364,8 @@ typedef struct _VipsSourceGInputStreamClass {
 
 } VipsSourceGInputStreamClass;
 
+VIPS_API
+GType vips_source_g_input_stream_get_type(void);
 VIPS_API
 VipsSourceGInputStream *vips_source_g_input_stream_new(GInputStream *stream);
 

@@ -109,13 +109,13 @@ typedef struct _VipsForeignLoadSvg {
 	 */
 	double dpi;
 
-	/* Calculate this from DPI. At 72 DPI, we render 1:1 with cairo.
+	/* Scale by this factor.
 	 */
 	double scale;
 
-	/* Scale using cairo when SVG has no width and height attributes.
+	/* The total scale factor we render with.
 	 */
-	double cairo_scale;
+	double total_scale;
 
 	/* Allow SVGs of any size.
 	 */
@@ -351,6 +351,8 @@ vips_foreign_load_svg_build(VipsObject *object)
 	}
 #endif /*HAVE_CAIRO_FORMAT_RGBA128F*/
 
+	svg->total_scale = svg->scale * svg->dpi / 72.0;
+
 	return VIPS_OBJECT_CLASS(vips_foreign_load_svg_parent_class)
 		->build(object);
 }
@@ -371,7 +373,7 @@ vips_foreign_load_svg_get_flags(VipsForeignLoad *load)
 
 #if LIBRSVG_CHECK_VERSION(2, 52, 0)
 /* Derived from `CssLength::to_user` in librsvg.
- * https://gitlab.gnome.org/GNOME/librsvg/-/blob/e6607c9ae8d8409d4efff6b12993717400b3356e/src/length.rs#L368
+ * https://gitlab.gnome.org/GNOME/librsvg/-/blob/2.60.0/rsvg/src/length.rs#L403
  */
 static double
 svg_css_length_to_pixels(RsvgLength length, double dpi)
@@ -546,18 +548,14 @@ vips_foreign_load_svg_get_scaled_size(VipsForeignLoadSvg *svg,
 	double width;
 	double height;
 
-	/* Get dimensions with the default dpi.
+	/* Set target DPI to scale non-pixel units correctly.
 	 */
-	rsvg_handle_set_dpi(svg->page, 72.0);
+	rsvg_handle_set_dpi(svg->page, svg->dpi);
 	if (vips_foreign_load_svg_get_natural_size(svg, &width, &height))
 		return -1;
 
-	/* We scale up with cairo -- scaling with rsvg_handle_set_dpi() will
-	 * fail for SVGs with absolute sizes.
-	 */
-	svg->cairo_scale = svg->scale * svg->dpi / 72.0;
-	width *= svg->cairo_scale;
-	height *= svg->cairo_scale;
+	width *= svg->total_scale;
+	height *= svg->total_scale;
 
 	*out_width = VIPS_ROUND_UINT(width);
 	*out_height = VIPS_ROUND_UINT(height);
@@ -568,12 +566,19 @@ vips_foreign_load_svg_get_scaled_size(VipsForeignLoadSvg *svg,
 static int
 vips_foreign_load_svg_parse(VipsForeignLoadSvg *svg, VipsImage *out)
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(svg);
+
 	int width;
 	int height;
 	double res;
 
 	if (vips_foreign_load_svg_get_scaled_size(svg, &width, &height))
 		return -1;
+	if (width <= 0 ||
+		height <= 0) {
+		vips_error(class->nickname, "%s", _("zero-sized image"));
+		return -1;
+	}
 
 	/* We need pixels/mm for vips.
 	 */
@@ -583,7 +588,8 @@ vips_foreign_load_svg_parse(VipsForeignLoadSvg *svg, VipsImage *out)
 		width, height, 4,
 		svg->high_bitdepth ? VIPS_FORMAT_FLOAT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
-		svg->high_bitdepth ? VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
+		svg->high_bitdepth ?
+			VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
 		res, res);
 
 	/* We use a tilecache, so it's smalltile.
@@ -665,14 +671,15 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 		RsvgRectangle viewport;
 		GError *error = NULL;
 
-		/* No need to scale -- we always set the viewport to the
-		 * whole image, and set the region to draw on the surface.
-		 */
-		cairo_translate(cr, -r->left, -r->top);
 		viewport.x = 0;
 		viewport.y = 0;
 		viewport.width = out_region->im->Xsize;
 		viewport.height = out_region->im->Ysize;
+
+		/* No need to scale -- we always set the viewport to the
+		 * whole image, and set the region to draw on the surface.
+		 */
+		cairo_translate(cr, -r->left, -r->top);
 
 		if (!rsvg_handle_render_document(svg->page, cr, &viewport, &error)) {
 			cairo_destroy(cr);
@@ -688,9 +695,9 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 
 #else /*!LIBRSVG_CHECK_VERSION(2, 46, 0)*/
 
-	cairo_scale(cr, svg->cairo_scale, svg->cairo_scale);
-	cairo_translate(cr, -r->left / svg->cairo_scale,
-		-r->top / svg->cairo_scale);
+	cairo_scale(cr, svg->total_scale, svg->total_scale);
+	cairo_translate(cr, -r->left / svg->total_scale,
+		-r->top / svg->total_scale);
 
 	if (!rsvg_handle_render_cairo(svg->page, cr)) {
 		cairo_destroy(cr);
@@ -822,7 +829,6 @@ vips_foreign_load_svg_init(VipsForeignLoadSvg *svg)
 {
 	svg->dpi = 72.0;
 	svg->scale = 1.0;
-	svg->cairo_scale = 1.0;
 }
 
 typedef struct _VipsForeignLoadSvgSource {
@@ -1098,8 +1104,8 @@ vips_foreign_load_svg_buffer_init(VipsForeignLoadSvgBuffer *buffer)
  *
  * Rendering uses the librsvg library and should be fast.
  *
- * Use @dpi to set the rendering resolution. The default is 72. You can also
- * scale the rendering by @scale.
+ * Use @dpi to set the rendering resolution. The default is 72. Additionally,
+ * you can scale by setting @scale. If you set both, they combine.
  *
  * This function only reads the image header and does not render any pixel
  * data. Rendering occurs when pixels are accessed.
