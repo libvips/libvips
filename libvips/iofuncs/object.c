@@ -1880,8 +1880,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 		if (VIPS_IS_OPERATION(object))
 			flags = vips_operation_get_flags(VIPS_OPERATION(object));
 
-		if (flags &
-			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | VIPS_OPERATION_SEQUENTIAL))
+		if (flags & VIPS_OPERATION_SEQUENTIAL)
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM;
@@ -1959,9 +1958,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 			flags = vips_operation_get_flags(
 				VIPS_OPERATION(object));
 
-		if (flags &
-			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
-				VIPS_OPERATION_SEQUENTIAL))
+		if (flags & VIPS_OPERATION_SEQUENTIAL)
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM;
