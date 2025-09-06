@@ -837,11 +837,11 @@ int vips_radsave_target(VipsImage *in, VipsTarget *target, ...)
 
 /**
  * VipsForeignPdfPageBox:
- * @VIPS_FOREIGN_PDF_PAGE_BOX_MEDIA
- * @VIPS_FOREIGN_PDF_PAGE_BOX_CROP
- * @VIPS_FOREIGN_PDF_PAGE_BOX_TRIM
- * @VIPS_FOREIGN_PDF_PAGE_BOX_BLEED
- * @VIPS_FOREIGN_PDF_PAGE_BOX_ART
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_MEDIA: media box
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_CROP: crop box
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_TRIM: trim box
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_BLEED: bleed box
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_ART: art box
  *
  * Each page of a PDF document can contain multiple page boxes,
  * also known as boundary boxes or print marks.
