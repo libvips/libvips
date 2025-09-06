@@ -4,6 +4,7 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
+#define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 /*** END file-header ***/
 

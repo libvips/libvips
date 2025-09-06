@@ -49,6 +49,9 @@
 #include <string.h>
 #include <stdarg.h>
 
+/* For VIPS_OPERATION_SEQUENTIAL_UNBUFFERED
+ */
+#define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
@@ -1960,8 +1963,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 				VIPS_OPERATION(object));
 
 		if (flags &
-			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
-				VIPS_OPERATION_SEQUENTIAL))
+			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | VIPS_OPERATION_SEQUENTIAL))
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM;

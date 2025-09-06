@@ -164,6 +164,7 @@
  * VipsOperationFlags:
  * @VIPS_OPERATION_NONE: no flags
  * @VIPS_OPERATION_SEQUENTIAL: can work sequentially with a small buffer
+ * @VIPS_OPERATION_SEQUENTIAL_UNBUFFERED: deprecated, use [flags@Vips.OperationFlags.SEQUENTIAL] instead
  * @VIPS_OPERATION_NOCACHE: must not be cached
  * @VIPS_OPERATION_DEPRECATED: a compatibility thing
  * @VIPS_OPERATION_UNTRUSTED: not hardened for untrusted input

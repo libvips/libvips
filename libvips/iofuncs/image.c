@@ -149,6 +149,7 @@
  * VipsAccess:
  * @VIPS_ACCESS_RANDOM: can read anywhere
  * @VIPS_ACCESS_SEQUENTIAL: top-to-bottom reading only, but with a small buffer
+ * @VIPS_ACCESS_SEQUENTIAL_UNBUFFERED: deprecated, use [enum@Vips.Access.SEQUENTIAL] instead
  *
  * The type of access an operation has to supply. See [method@Image.tilecache]
  * and [class@Foreign].
