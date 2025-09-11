@@ -7,6 +7,9 @@ and it seems to work OK on Linux, Windows and macOS. I thought I'd write a few
 notes for users of nip2 outlining the big changes and the bits of it that are
 still missing. 
 
+If you've not used nip2, there's another post with a [general introduction
+to nip4](/2025/03/20/introduction-to-nip4.html).
+
 ## Background
 
 nip2 was mostly finished around 2000, with the final big feature going
