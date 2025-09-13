@@ -329,15 +329,15 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/svgload.c#L1090">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/svgload.c#L1097">[src]</a>
         
       </h4>
 
       <div class="docblock">
         <p>Render a <span class="caps">SVG</span> file into a <span class="caps">VIPS</span>&nbsp;image.</p>
 <p>Rendering uses the librsvg library and should be&nbsp;fast.</p>
-<p>Use <code>dpi</code> to set the rendering resolution. The default is 72. You can also
-scale the rendering by <code>scale</code>.</p>
+<p>Use <code>dpi</code> to set the rendering resolution. The default is 72. Additionally,
+you can scale by setting <code>scale</code>. If you set both, they&nbsp;combine.</p>
 <p>This function only reads the image header and does not render any pixel
 data. Rendering occurs when pixels are&nbsp;accessed.</p>
 <p>SVGs larger than <span class="caps">10MB</span> are normally blocked for security. Set <code>unlimited</code> to

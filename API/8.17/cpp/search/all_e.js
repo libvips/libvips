@@ -13,7 +13,7 @@ var searchData=
   ['pngsave_5fbuffer_10',['pngsave_buffer',['../classVImage.html#a0eb74446e9107f3e16cc1d1373f36a50',1,'VImage']]],
   ['pngsave_5ftarget_11',['pngsave_target',['../classVImage.html#ac8610f294776252a2dcdb803e5a013d1',1,'VImage']]],
   ['polar_12',['polar',['../classVImage.html#a626a15a7ba609a08a3b68b1724cbfa77',1,'VImage']]],
-  ['pow_13',['pow',['../classVImage.html#a8a7be16ac3a3465fdcd183e7da4cc92f',1,'VImage::pow(VImage other, VOption *options=nullptr) const'],['../classVImage.html#a568e954792d46c9b33de81c25e53fcb0',1,'VImage::pow(double other, VOption *options=nullptr) const'],['../classVImage.html#a70ac5fb9fa085b932371eb17fe6414d6',1,'VImage::pow(std::vector&lt; double &gt; other, VOption *options=nullptr) const']]],
+  ['pow_13',['pow',['../classVImage.html#a568e954792d46c9b33de81c25e53fcb0',1,'VImage::pow(double other, VOption *options=nullptr) const'],['../classVImage.html#a70ac5fb9fa085b932371eb17fe6414d6',1,'VImage::pow(std::vector&lt; double &gt; other, VOption *options=nullptr) const'],['../classVImage.html#a8a7be16ac3a3465fdcd183e7da4cc92f',1,'VImage::pow(VImage other, VOption *options=nullptr) const']]],
   ['ppmload_14',['ppmload',['../classVImage.html#a868369b3b155f7471946ed5d166b303e',1,'VImage']]],
   ['ppmload_5fbuffer_15',['ppmload_buffer',['../classVImage.html#a22d5ab56077d9e3061777c5e94401fe1',1,'VImage']]],
   ['ppmload_5fsource_16',['ppmload_source',['../classVImage.html#ae7eb4d3e4bf6e09101681ec735097366',1,'VImage']]],

@@ -361,7 +361,7 @@ bioformats-style image&nbsp;pyramids.</p>
 <p>Use <code>fail_on</code> to set the type of error that will cause load to fail. By
 default, loaders are permissive, that is, <a href="enum.FailOn.html#none"><code>VIPS_FAIL_ON_NONE</code></a>.</p>
 <p>When using libtiff 4.7.0+, the <span class="caps">TIFF</span> loader will limit memory allocation
-for tag processing to <span class="caps">20MB</span> to prevent denial of service attacks.
+for decoding each input file to <span class="caps">50MB</span> to prevent denial of service attacks.
 Set <code>unlimited</code> to remove this&nbsp;limit.</p>
 <p>Any <span class="caps">ICC</span> profile is read and attached to the <span class="caps">VIPS</span> image as
 <a href="const.META_ICC_NAME.html"><code>VIPS_META_ICC_NAME</code></a>. Any <span class="caps">XMP</span> metadata is read and attached to the image
