@@ -505,7 +505,7 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
  * When using libtiff 4.7.0+, the TIFF loader will limit memory allocation
- * for tag processing to 20MB to prevent denial of service attacks.
+ * for decoding each input file to 50MB to prevent denial of service attacks.
  * Set @unlimited to remove this limit.
  *
  * Any ICC profile is read and attached to the VIPS image as
