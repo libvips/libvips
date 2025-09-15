@@ -14,6 +14,7 @@ master
   UltraHDR image
 - add vips_uhdrsave(), vips_uhdrsave_buffer(), vips_uhdrsave_target(): save an
   UltraHDR image
+- fix cpp binding leak [VivitionDeveloper]
 
 8.17.2
 
