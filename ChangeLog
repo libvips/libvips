@@ -16,6 +16,11 @@ master
   UltraHDR image
 - fix cpp binding leak [VivitionDeveloper]
 
+8.17.3
+
+- tiffsave: fix saved resolution with a non-default resolution-unit metadata
+  item [machur]
+
 8.17.2
 
 - rank: fix an off-by-one error [larsmaxfield]
