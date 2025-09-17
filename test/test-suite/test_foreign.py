@@ -687,6 +687,16 @@ class TestForeign:
         assert x1.xres == 100
         assert x1.yres == 200
 
+        filename = temp_filename(self.tempdir, '.tif')
+        x = pyvips.Image.new_from_file(TIF_FILE)
+        x = x.copy(xres=100, yres=200)
+        x.remove("resolution-unit")
+        x.write_to_file(filename)
+        x1 = pyvips.Image.new_from_file(filename)
+        assert x1.get("resolution-unit") == "in"
+        assert x1.xres == 100
+        assert x1.yres == 200
+
         if sys.platform == "darwin":
             with open(TIF2_FILE, 'rb') as f:
                 buf = bytearray(f.read())
