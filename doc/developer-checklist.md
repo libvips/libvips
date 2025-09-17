@@ -111,20 +111,19 @@ libvips image open is always fast and safe, as long as you have disabled
 load via imagemagick. This means you can open an image and sanity-check it
 before further processing.
 
-There are two main checks that are very worthwhile:
+First, it is well worth checking image dimensions to protect
+yourself from decompression bombs, like those described at
+<https://www.bamsoftware.com/hacks/deflate.html>.
 
-1. Sanity check image dimensions to protect you from decompression
-   bombs like those described at
-   <https://www.bamsoftware.com/hacks/deflate.html>
+Secondly, I would check for interlaced (also called progressive) images.
+These are images that appear in low detail first, then progressively sharpen
+as they are downloaded.
 
-2. Check for interlaced (also called progressive) images.
+Although they can be convenient for presentation, the downside is that you
+don't get the final pixels until the whole image is in memory, which prevents
+any streaming processing and hugely increases memory use.
 
-   These are the ones that appear in low detail first, then progressively
-   sharpen as they are downloaded.
-
-   The downside is that you don't get the final pixels until the whole image
-   is in memory, which prevents any streaming processing and hugely increases
-   memory use. For example:
+For example:
 
 ```bash
 $ /usr/bin/time -f %M:%e vipsthumbnail big-progressive.jpg
@@ -134,13 +133,13 @@ $ /usr/bin/time -f %M:%e vipsthumbnail x.jpg
 72448:0.26
 ```
 
-   So this progressive jpeg takes 4gb of memory and 4.3s to thumbnail, but
-   exactly the same image as a regular jpeg takes 72mb and 0.26s.
+So this progressive jpeg takes 4gb of memory and 4.3s to thumbnail, but
+exactly the same image as a regular jpeg takes 72mb and 0.26s.
 
-   I would detect these horrors before processing by looking for the
-   `interlaced` metadata item and either ban them, or if your users insist
-   on uploading in this terrible format, push them to a separate low-priority
-   queue on a special container. Keep them away from your main image path.
+I would detect these horrors before processing by looking for the
+`interlaced` metadata item and either ban them, or if your users insist
+on uploading in this terrible format, push them to a separate low-priority
+queue on a special container. Keep them away from your main image path.
 
 ## Linux memory allocator
 
