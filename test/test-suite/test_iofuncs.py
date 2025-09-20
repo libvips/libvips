@@ -35,6 +35,10 @@ class TestIofuncs:
         assert im2.bands == 3
         assert im2.avg() == 2
 
+        im2 = im.new_from_image([0, 0, 0, 0])
+
+        assert im2.bands == 4
+
     def test_new_from_memory(self):
         s = bytearray(200)
         im = pyvips.Image.new_from_memory(s, 20, 10, 1, 'uchar')
