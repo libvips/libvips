@@ -1419,8 +1419,7 @@ vips_icc_present(void)
 int
 vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 {
-	vips_error("VipsIcc", "%s",
-		_("libvips configured without lcms support"));
+	vips_error("VipsIcc", "%s", _("libvips configured without lcms support"));
 
 	return -1;
 }

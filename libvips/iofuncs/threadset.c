@@ -98,7 +98,7 @@ static const gint64 max_idle_time = 15 * G_TIME_SPAN_SECOND;
 
 /* The maximum number of idle threads.
  */
-static const int max_idle_threads = 2;
+static const int max_idle_threads = 8;
 
 static gboolean
 vips_threadset_reuse_wait(VipsThreadset *set)

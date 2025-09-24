@@ -1505,8 +1505,7 @@ vips_image_preeval(VipsImage *image)
 	if (image->progress_signal) {
 		VIPS_DEBUG_MSG("vips_image_preeval: %p\n", image);
 
-		g_assert(vips_object_sanity(
-			VIPS_OBJECT(image->progress_signal)));
+		g_assert(vips_object_sanity(VIPS_OBJECT(image->progress_signal)));
 
 		(void) vips_progress_add(image);
 
@@ -1532,8 +1531,7 @@ vips_image_eval(VipsImage *image, guint64 processed)
 		image->time) {
 		VIPS_DEBUG_MSG("vips_image_eval: %p\n", image);
 
-		g_assert(vips_object_sanity(
-			VIPS_OBJECT(image->progress_signal)));
+		g_assert(vips_object_sanity(VIPS_OBJECT(image->progress_signal)));
 
 		vips_progress_update(image->time, processed);
 
@@ -1546,8 +1544,7 @@ vips_image_eval(VipsImage *image, guint64 processed)
 
 		if (!vips_image_get_typeof(image, "hide-progress"))
 			g_signal_emit(image->progress_signal,
-				vips_image_signals[SIG_EVAL], 0,
-				image->time);
+				vips_image_signals[SIG_EVAL], 0, image->time);
 	}
 }
 
