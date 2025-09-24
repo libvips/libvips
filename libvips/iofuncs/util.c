@@ -32,6 +32,10 @@
 #define DEBUG
  */
 
+/* Enable linux extensions like O_TMPFILE, if available.
+ */
+#define _GNU_SOURCE
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -45,13 +49,13 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fcntl.h>
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
 #ifdef HAVE_IO_H
 #include <io.h>
 #endif /*HAVE_IO_H*/
-#include <fcntl.h>
 
 #include <vips/vips.h>
 
@@ -599,8 +603,14 @@ vips__open(const char *filename, int flags, int mode)
 
 	/* Various bad things happen if you accidentally open a directory as a
 	 * file.
+	 *
+	 * Except in O_TMPFILE mode, when you have to.
 	 */
-	if (g_file_test(filename, G_FILE_TEST_IS_DIR)) {
+	if (
+#ifdef O_TMPFILE
+		!(flags & O_TMPFILE) &&
+#endif /*O_TMPFILE*/
+		g_file_test(filename, G_FILE_TEST_IS_DIR)) {
 		errno = EISDIR;
 		return -1;
 	}

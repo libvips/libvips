@@ -178,10 +178,9 @@ vips__open_image_write(const char *filename, gboolean temp)
 		g_info("vips__open_image_write: opening with O_TMPFILE");
 		dirname = g_path_get_dirname(filename);
 		fd = vips_tracked_open(dirname, O_TMPFILE | O_RDWR, 0644);
-		g_free(dirname);
-
 		if (fd < 0)
 			g_info("vips__open_image_write: O_TMPFILE failed!");
+		g_free(dirname);
 	}
 #endif /*O_TMPFILE*/
 
