@@ -32,8 +32,8 @@ It comes with bindings for
 [C](https://www.libvips.org/API/current/using-from-c.html),
 [C++](https://www.libvips.org/API/current/using-from-cplusplus.html),
 and the
-[command-line](https://www.libvips.org/API/current/function-list.html).
-Full bindings are available for :
+[command-line](https://www.libvips.org/API/current/using-the-cli.html).
+Full bindings are available for:
 
 | Language | Binding |
 |---|---|
@@ -45,22 +45,21 @@ Full bindings are available for :
 | Lua | [lua-vips](https://github.com/libvips/lua-vips) |
 | Crystal | [crystal-vips](https://github.com/naqvis/crystal-vips) |
 | Elixir | [vix](https://github.com/akash-akya/vix) |
-| JVM | [vips-ffm](https://github.com/lopcode/vips-ffm) |
+| Java | [vips-ffm](https://github.com/lopcode/vips-ffm) |
 | Nim | [libvips-nim](https://github.com/openpeeps/libvips-nim) |
 
 libvips is used as an image processing engine by:
 
 | |
 |---|
-| [sharp (on node.js)](https://www.npmjs.org/package/sharp) |
+| [Mastodon](https://github.com/mastodon/mastodon) |
+| [sharp (on Node.js)](https://www.npmjs.org/package/sharp) |
 | [imgproxy](https://github.com/imgproxy/imgproxy) |
+| [wsrv.nl](https://github.com/weserv/images) |
 | [bimg](https://github.com/h2non/bimg) |
-| [sharp for Go](https://github.com/DAddYE/vips) |
 | [Ruby on Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html) |
 | [CarrierWave](https://github.com/carrierwaveuploader/carrierwave#using-vips) |
-| [mediawiki](https://www.mediawiki.org/wiki/Extension:VipsScaler) |
-| [PhotoFlow](https://github.com/aferrero2707/PhotoFlow) |
-| [JVips](https://github.com/criteo/JVips) |
+| [MediaWiki](https://www.mediawiki.org/wiki/Extension:Thumbro) |
 
 and others. The official libvips GUI is
 [nip2](https://github.com/libvips/nip2), a strange combination of a
