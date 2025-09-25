@@ -1607,8 +1607,9 @@ vips_image_set_progress(VipsImage *image, gboolean progress)
  * vips_image_iskilled:
  * @image: image to test
  *
- * If @image has been killed (see [method@Image.set_kill]), set an error message,
- * clear the [class@Image].kill flag and return `TRUE`. Otherwise return `FALSE`.
+ * If @image has been killed (see [method@Image.set_kill]), set an error
+ * message, clear the [class@Image].kill flag and return `TRUE`. Otherwise
+ * return `FALSE`.
  *
  * Handy for loops which need to run sets of threads which can fail.
  *
@@ -1631,10 +1632,10 @@ vips_image_iskilled(VipsImage *image)
 	/* Has kill been set for this image? If yes, abort evaluation.
 	 */
 	if (kill) {
-		VIPS_DEBUG_MSG("vips_image_iskilled: %s (%p) killed\n",
-			image->filename, image);
-		vips_error("VipsImage",
-			_("killed for image \"%s\""), image->filename);
+#ifdef VIPS_DEBUG
+		printf("vips_image_iskilled: %s (%p) killed\n", image->filename, image);
+#endif /*VIPS_DEBUG*/
+		vips_error("VipsImage", _("killed for image \"%s\""), image->filename);
 
 		/* We've picked up the kill message, it's now our caller's
 		 * responsibility to pass the message up the chain.

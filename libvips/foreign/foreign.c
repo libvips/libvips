@@ -975,15 +975,17 @@ vips_foreign_load_temp(VipsForeignLoad *load)
 /* Check two images for compatibility: their geometries need to match.
  */
 static gboolean
-vips_foreign_load_iscompat(VipsImage *a, VipsImage *b)
+vips_foreign_load_iscompat(VipsForeignLoad *load, VipsImage *image)
 {
-	if (a->Xsize != b->Xsize ||
-		a->Ysize != b->Ysize ||
-		a->Bands != b->Bands ||
-		a->Coding != b->Coding ||
-		a->BandFmt != b->BandFmt) {
-		vips_error("VipsForeignLoad", "%s",
+	if (load->real->Xsize != image->Xsize ||
+		load->real->Ysize != image->Ysize ||
+		load->real->Bands != image->Bands ||
+		load->real->Coding != image->Coding ||
+		load->real->BandFmt != image->BandFmt) {
+		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(load);
+		vips_error(class->nickname, "%s",
 			_("images do not match between header and load"));
+
 		return FALSE;
 	}
 
@@ -997,12 +999,19 @@ static void *
 vips_foreign_load_start(VipsImage *out, void *a, void *b)
 {
 	VipsForeignLoad *load = VIPS_FOREIGN_LOAD(b);
-	VipsForeignLoadClass *class = VIPS_FOREIGN_LOAD_GET_CLASS(load);
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(load);
+	VipsForeignLoadClass *load_class = VIPS_FOREIGN_LOAD_CLASS(class);
 
-	/* If this start has failed before in another thread, we can fail now.
+	/* If this start has failed before, either in another thread or in an
+	 * earlier load, we can fail now.
 	 */
-	if (load->error)
+	if (load->error) {
+		/* We must set an error, since failing without an error message could
+		 * confuse our caller.
+		 */
+		vips_error(class->nickname, "%s", _("load error"));
 		return NULL;
+	}
 
 	if (!load->real) {
 		if (!(load->real = vips_foreign_load_temp(load)))
@@ -1038,10 +1047,10 @@ vips_foreign_load_start(VipsImage *out, void *a, void *b)
 		 *
 		 * If the load fails, we need to stop.
 		 */
-		if (class->load(load) ||
+		if (load_class->load(load) ||
 			!vips_object_sanity(VIPS_OBJECT(load->real)) ||
 			vips_image_pio_input(load->real) ||
-			!vips_foreign_load_iscompat(load->real, out)) {
+			!vips_foreign_load_iscompat(load, out)) {
 			vips_operation_invalidate(VIPS_OPERATION(load));
 			load->error = TRUE;
 
