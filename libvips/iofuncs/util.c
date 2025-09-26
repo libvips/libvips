@@ -1649,7 +1649,7 @@ vips__temp_name(const char *format)
 	 * mixed / and \ directory separators seems to confuse g_spawn_*().
 	 */
 	char *tmpd = vips__temp_dir();
-	name = g_strdup_printf("%s/%s", tmpd, file2);
+	name = g_build_path("/", tmpd, file2, NULL);
 	g_free(tmpd);
 
 	/* We could use something like g_mkstemp() to guarantee uniqueness
