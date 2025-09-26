@@ -1626,13 +1626,14 @@ vips__temp_dir(void)
 #endif /*!G_OS_WIN32*/
 	}
 
+#ifdef G_OS_WIN32
 	/* g_spawn_*() on windows seems to hate backslash in filenames, so we use
 	 * '/' everywhere.
 	 */
-	char *result = g_strdup(tmpd);
-	vips__swap_chars(result, '\\', '/');
-
-	return result;
+	return g_strdelimit(g_strdup(tmpd), "\\", '/');
+#else
+	return g_strdup(tmpd);
+#endif
 }
 
 /* Make a temporary file name. The format parameter is something like "%s.jpg"
