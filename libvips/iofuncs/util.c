@@ -1593,16 +1593,6 @@ vips_amiMSBfirst(void)
 #endif
 }
 
-static void
-vips__swap_chars(char *buf, char from, char to)
-{
-    int i;
-
-    for (i = 0; buf[i]; i++)
-        if (buf[i] == from)
-            buf[i] = to;
-}
-
 /* Return the tmp dir. On Windows, GetTempPath() will also check the values of
  * TMP, TEMP and USERPROFILE.
  */
