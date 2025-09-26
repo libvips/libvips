@@ -1593,10 +1593,20 @@ vips_amiMSBfirst(void)
 #endif
 }
 
+static void
+vips__swap_chars(char *buf, char from, char to)
+{
+    int i;
+
+    for (i = 0; buf[i]; i++)
+        if (buf[i] == from)
+            buf[i] = to;
+}
+
 /* Return the tmp dir. On Windows, GetTempPath() will also check the values of
  * TMP, TEMP and USERPROFILE.
  */
-static const char *
+static char *
 vips__temp_dir(void)
 {
 	const char *tmpd;
@@ -1608,7 +1618,7 @@ vips__temp_dir(void)
 
 		if (!done) {
 			if (!GetTempPath(256, buf))
-				strcpy(buf, "C:\\temp");
+				strcpy(buf, "C:/temp");
 		}
 		tmpd = buf;
 #else  /*!G_OS_WIN32*/
@@ -1616,7 +1626,13 @@ vips__temp_dir(void)
 #endif /*!G_OS_WIN32*/
 	}
 
-	return tmpd;
+	/* g_spawn_*() on windows seems to hate backslash in filenames, so we use
+	 * '/' everywhere.
+	 */
+	char *result = g_strdup(tmpd);
+	vips__swap_chars(result, '\\', '/');
+
+	return result;
 }
 
 /* Make a temporary file name. The format parameter is something like "%s.jpg"
@@ -1637,7 +1653,13 @@ vips__temp_name(const char *format)
 
 	g_snprintf(file, FILENAME_MAX, "vips-%d-%u", serial, g_random_int());
 	g_snprintf(file2, FILENAME_MAX, format, file);
-	name = g_build_filename(vips__temp_dir(), file2, NULL);
+
+	/* We can't use g_build_filename() since that will use `\` on win, and
+	 * mixed / and \ directory separators seems to confuse g_spawn_*().
+	 */
+	char *tmpd = vips__temp_dir();
+	name = g_strdup_printf("%s/%s", tmpd, file2);
+	g_free(tmpd);
 
 	/* We could use something like g_mkstemp() to guarantee uniqueness
 	 * across processes, but the extra FS calls can be difficult for
