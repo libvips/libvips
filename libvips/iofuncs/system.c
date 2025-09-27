@@ -150,9 +150,7 @@ vips_system_build(VipsObject *object)
 	 * command needs a different format.
 	 */
 	if (system->in) {
-		char *in_format = system->in_format
-			? system->in_format
-			: "%s.tif";
+		char *in_format = system->in_format ? system->in_format : "%s.tif";
 		int n;
 		VipsImage **in = vips_array_image_get(system->in, &n);
 
@@ -160,11 +158,9 @@ vips_system_build(VipsObject *object)
 			return -1;
 		memset(system->in_name, 0, n * sizeof(char *));
 		for (i = 0; i < n; i++) {
-			if (!(system->in_name[i] =
-						vips__temp_name(in_format)))
+			if (!(system->in_name[i] = vips__temp_name(in_format)))
 				return -1;
-			if (vips_image_write_to_file(in[i],
-					system->in_name[i], NULL))
+			if (vips_image_write_to_file(in[i], system->in_name[i], NULL))
 				return -1;
 		}
 	}
@@ -175,8 +171,7 @@ vips_system_build(VipsObject *object)
 		char filename[VIPS_PATH_MAX];
 		char option_string[VIPS_PATH_MAX];
 
-		vips__filename_split8(system->out_format,
-			filename, option_string);
+		vips__filename_split8(system->out_format, filename, option_string);
 		if (!(system->out_name = vips__temp_name(filename)))
 			return -1;
 		system->out_name_options =
@@ -186,8 +181,7 @@ vips_system_build(VipsObject *object)
 	g_strlcpy(cmd, system->cmd_format, VIPS_PATH_MAX);
 	if (system->in)
 		for (i = 0; i < VIPS_AREA(system->in)->n; i++)
-			if (vips__substitute(cmd, VIPS_PATH_MAX,
-					system->in_name[i])) {
+			if (vips__substitute(cmd, VIPS_PATH_MAX, system->in_name[i])) {
 				vips_error(class->nickname, "%s",
 					_("unable to substitute input filename"));
 				return -1;
@@ -225,15 +219,13 @@ vips_system_build(VipsObject *object)
 		if (std_error) {
 			g_strchomp(std_error);
 			if (strcmp(std_error, "") != 0)
-				vips_error(class->nickname,
-					"error output: %s", std_error);
+				vips_error(class->nickname, "error output: %s", std_error);
 			VIPS_FREE(std_error);
 		}
 		if (std_output) {
 			g_strchomp(std_output);
 			if (strcmp(std_output, "") != 0)
-				vips_error(class->nickname,
-					"output: %s", std_output);
+				vips_error(class->nickname, "output: %s", std_output);
 			VIPS_FREE(std_output);
 		}
 		vips_error_system(result, class->nickname,
@@ -262,8 +254,7 @@ vips_system_build(VipsObject *object)
 	if (system->out_name_options) {
 		VipsImage *out;
 
-		if (!(out = vips_image_new_from_file(system->out_name_options,
-				  NULL)))
+		if (!(out = vips_image_new_from_file(system->out_name_options, NULL)))
 			return -1;
 		vips_image_set_delete_on_close(out, TRUE);
 		g_object_set(system, "out", out, NULL);
