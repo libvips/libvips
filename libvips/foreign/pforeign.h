@@ -220,8 +220,6 @@ gboolean vips__pdf_is_a_buffer(const void *buf, size_t len);
 gboolean vips__pdf_is_a_file(const char *filename);
 gboolean vips__pdf_is_a_source(VipsSource *source);
 
-extern const char *vips__uhdr_suffs[];
-
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

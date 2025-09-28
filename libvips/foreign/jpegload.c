@@ -313,14 +313,13 @@ static gboolean
 vips_foreign_load_jpeg_file_is_a(const char *filename)
 {
 	VipsSource *source;
-	gboolean result;
 
 	if (!(source = vips_source_new_from_file(filename)))
 		return FALSE;
-	result = vips_foreign_load_jpeg_source_is_a_source(source);
+	gboolean is_a = vips_foreign_load_jpeg_source_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return result;
+	return is_a;
 }
 
 static void

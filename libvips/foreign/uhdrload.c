@@ -51,10 +51,7 @@
 #ifdef HAVE_UHDR
 
 #include "pforeign.h"
-
-const char *vips__uhdr_suffs[] = {
-	NULL
-};
+#include "jpeg.h"
 
 #include <ultrahdr_api.h>
 
@@ -101,6 +98,64 @@ typedef struct _VipsForeignLoadUhdrClass {
 
 G_DEFINE_ABSTRACT_TYPE(VipsForeignLoadUhdr, vips_foreign_load_uhdr,
 	VIPS_TYPE_FOREIGN_LOAD);
+
+/* We need a fast uhdr detector that only looks at the header. We don't want
+ * to pull the whole image in!
+ *
+ * Use vanilla libjpeg only, and just check for an MPF block in an APP2
+ * marker.
+ */
+static int
+vips_foreign_load_uhdr_is_a(VipsSource *source)
+{
+	VipsImage *context = vips_image_new();
+
+	ReadJpeg *jpeg;
+	if (!(jpeg = vips__readjpeg_new(source, context, 1, VIPS_FAIL_ON_NONE,
+			  FALSE, FALSE))) {
+		VIPS_UNREF(context);
+		return 0;
+	}
+
+	/* Here for longjmp() from vips__new_error_exit() during
+	 * cinfo->mem->alloc_small() or jpeg_read_header().
+	 */
+	if (setjmp(jpeg->eman.jmp)) {
+		VIPS_UNREF(context);
+		return 0;
+	}
+
+	if (vips__readjpeg_open_input(jpeg)) {
+		VIPS_UNREF(context);
+		return 0;
+	}
+
+	struct jpeg_decompress_struct *cinfo = &jpeg->cinfo;
+
+	/* Read JPEG header.
+	 */
+	jpeg_save_markers(cinfo, JPEG_APP0 + 2, 0xffff);
+	jpeg_read_header(cinfo, TRUE);
+
+	gboolean found;
+
+	found = FALSE;
+	for (jpeg_saved_marker_ptr p = cinfo->marker_list; p; p = p->next)
+		switch (p->marker) {
+		case JPEG_APP0 + 2:
+			if (p->data_length > 4 &&
+				vips_isprefix("MPF", (char *) p->data))
+				found = TRUE;
+			break;
+
+		default:
+			break;
+		}
+
+	VIPS_UNREF(context);
+
+	return found;
+}
 
 const char *
 vips__uhdr_error_str(uhdr_codec_err_t err)
@@ -659,6 +714,7 @@ vips_foreign_load_uhdr_class_init(VipsForeignLoadUhdrClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->dispose = vips_foreign_load_uhdr_dispose;
@@ -668,6 +724,10 @@ vips_foreign_load_uhdr_class_init(VipsForeignLoadUhdrClass *class)
 	object_class->nickname = "uhdrload_base";
 	object_class->description = _("load a UHDR image");
 	object_class->build = vips_foreign_load_uhdr_build;
+
+	/* We need to be higher poriority than jpegload.
+	 */
+	foreign_class->priority = 100;
 
 	load_class->get_flags = vips_foreign_load_uhdr_get_flags;
 	load_class->header = vips_foreign_load_uhdr_header;
@@ -723,12 +783,26 @@ vips_foreign_load_uhdr_file_build(VipsObject *object)
 		->build(object);
 }
 
+static gboolean
+vips_foreign_load_uhdr_file_is_a(const char *filename)
+{
+	VipsSource *source;
+
+	if (!(source = vips_source_new_from_file(filename)))
+		return FALSE;
+	gboolean is_a = vips_foreign_load_uhdr_is_a(source);
+	VIPS_UNREF(source);
+
+	return is_a;
+}
+
 static void
 vips_foreign_load_uhdr_file_class_init(VipsForeignLoadUhdrFileClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -736,7 +810,9 @@ vips_foreign_load_uhdr_file_class_init(VipsForeignLoadUhdrFileClass *class)
 	object_class->nickname = "uhdrload";
 	object_class->build = vips_foreign_load_uhdr_file_build;
 
-	foreign_class->suffs = vips__uhdr_suffs;
+	foreign_class->suffs = vips__jpeg_suffs;
+
+	load_class->is_a = vips_foreign_load_uhdr_file_is_a;
 
 	VIPS_ARG_STRING(class, "filename", 1,
 		_("Filename"),
@@ -785,8 +861,14 @@ vips_foreign_load_uhdr_buffer_build(VipsObject *object)
 static gboolean
 vips_foreign_load_uhdr_buffer_is_a_buffer(const void *buf, size_t len)
 {
-	// we detect these things in jpegload_buffer
-	return FALSE;
+	VipsSource *source;
+
+	if (!(source = vips_source_new_from_memory(buf, len)))
+		return FALSE;
+	gboolean is_a = vips_foreign_load_uhdr_is_a(source);
+	VIPS_UNREF(source);
+
+	return is_a;
 }
 
 static void
@@ -851,8 +933,7 @@ vips_foreign_load_uhdr_source_build(VipsObject *object)
 static gboolean
 vips_foreign_load_uhdr_source_is_a_source(VipsSource *source)
 {
-	// detect these in jpegload_source
-	return FALSE;
+	return vips_foreign_load_uhdr_is_a(source);
 }
 
 static void

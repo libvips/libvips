@@ -167,45 +167,6 @@
 
 #include "jpeg.h"
 
-/* Stuff we track during a read.
- */
-typedef struct _ReadJpeg {
-	VipsImage *out;
-
-	/* Shrink by this much during load. 1, 2, 4, 8.
-	 */
-	int shrink;
-
-	/* Types of error to cause failure.
-	 */
-	VipsFailOn fail_on;
-
-	struct jpeg_decompress_struct cinfo;
-	ErrorManager eman;
-	gboolean invert_pels;
-
-	/* Use orientation tag to automatically rotate and flip image
-	 * during load.
-	 */
-	gboolean autorotate;
-
-	/* Remove DoS limits.
-	 */
-	gboolean unlimited;
-
-	/* cinfo->output_width and height can be larger than we want since
-	 * libjpeg rounds up on shrink-on-load. This is the real size we will
-	 * output, as opposed to the size we decompress to.
-	 */
-	int output_width;
-	int output_height;
-
-	/* The source we read from.
-	 */
-	VipsSource *source;
-
-} ReadJpeg;
-
 #define SOURCE_BUFFER_SIZE (4096)
 
 /* Private struct for source input.
@@ -239,8 +200,8 @@ source_fill_input_buffer(j_decompress_ptr cinfo)
 
 	gint64 n_bytes;
 
-	if ((n_bytes = vips_source_read(src->source,
-			 src->buf, SOURCE_BUFFER_SIZE)) <= 0) {
+	if ((n_bytes =
+		vips_source_read(src->source, src->buf, SOURCE_BUFFER_SIZE)) <= 0) {
 		if (src->jpeg->fail_on >= VIPS_FAIL_ON_TRUNCATED) {
 			/* Knock the output out of cache.
 			 */
@@ -323,8 +284,8 @@ skip_input_data_mappable(j_decompress_ptr cinfo, long num_bytes)
 	}
 }
 
-static int
-readjpeg_open_input(ReadJpeg *jpeg)
+int
+vips__readjpeg_open_input(ReadJpeg *jpeg)
 {
 	j_decompress_ptr cinfo = &jpeg->cinfo;
 
@@ -335,11 +296,8 @@ readjpeg_open_input(ReadJpeg *jpeg)
 		if (vips_source_rewind(jpeg->source))
 			return -1;
 
-		cinfo->src =
-			(struct jpeg_source_mgr *) (*cinfo->mem->alloc_small)(
-				(j_common_ptr) cinfo,
-				JPOOL_PERMANENT,
-				sizeof(Source));
+		cinfo->src = (struct jpeg_source_mgr *) (*cinfo->mem->alloc_small)(
+				(j_common_ptr) cinfo, JPOOL_PERMANENT, sizeof(Source));
 
 		src = (Source *) cinfo->src;
 		src->jpeg = jpeg;
@@ -352,11 +310,10 @@ readjpeg_open_input(ReadJpeg *jpeg)
 
 		if (vips_source_is_mappable(jpeg->source)) {
 			size_t src_len;
-			const unsigned char *src_data = vips_source_map(
-				jpeg->source, &src_len);
+			const unsigned char *src_data =
+				vips_source_map(jpeg->source, &src_len);
 
-			src->pub.fill_input_buffer =
-				source_fill_input_buffer_mappable;
+			src->pub.fill_input_buffer = source_fill_input_buffer_mappable;
 			src->pub.skip_input_data = skip_input_data_mappable;
 			src->pub.bytes_in_buffer = src_len;
 			src->pub.next_input_byte = src_data;
@@ -412,8 +369,7 @@ static int
 readjpeg_free(ReadJpeg *jpeg)
 {
 	if (jpeg->eman.pub.num_warnings != 0) {
-		g_warning("read gave %ld warnings",
-			jpeg->eman.pub.num_warnings);
+		g_warning("read gave %ld warnings", jpeg->eman.pub.num_warnings);
 		g_warning("%s", vips_error_buffer());
 
 		/* Make the message only appear once.
@@ -447,8 +403,10 @@ readjpeg_minimise_cb(VipsImage *image, ReadJpeg *jpeg)
 	vips_source_minimise(jpeg->source);
 }
 
-static ReadJpeg *
-readjpeg_new(VipsSource *source, VipsImage *out,
+/* Shared with uhdr load (for fast uhdr detect).
+ */
+ReadJpeg *
+vips__readjpeg_new(VipsSource *source, VipsImage *out,
 	int shrink, VipsFailOn fail_on, gboolean autorotate,
 	gboolean unlimited)
 {
@@ -482,10 +440,8 @@ readjpeg_new(VipsSource *source, VipsImage *out,
 
 	jpeg_create_decompress(&jpeg->cinfo);
 
-	g_signal_connect(out, "close",
-		G_CALLBACK(readjpeg_close_cb), jpeg);
-	g_signal_connect(out, "minimise",
-		G_CALLBACK(readjpeg_minimise_cb), jpeg);
+	g_signal_connect(out, "close", G_CALLBACK(readjpeg_close_cb), jpeg);
+	g_signal_connect(out, "minimise", G_CALLBACK(readjpeg_minimise_cb), jpeg);
 
 	return jpeg;
 }
@@ -998,7 +954,7 @@ read_jpeg_image(ReadJpeg *jpeg, VipsImage *out)
 }
 
 static int
-vips__jpeg_read(ReadJpeg *jpeg, VipsImage *out, gboolean header_only)
+jpeg_read(ReadJpeg *jpeg, VipsImage *out, gboolean header_only)
 {
 	/* Need to read in APP1 (EXIF metadata), APP2 (ICC profile), APP13
 	 * (photoshop IPTC) and APP14 (Adobe flags).
@@ -1054,7 +1010,7 @@ vips__jpeg_read_source(VipsSource *source, VipsImage *out,
 {
 	ReadJpeg *jpeg;
 
-	if (!(jpeg = readjpeg_new(source, out, shrink, fail_on,
+	if (!(jpeg = vips__readjpeg_new(source, out, shrink, fail_on,
 			  autorotate, unlimited)))
 		return -1;
 
@@ -1064,8 +1020,8 @@ vips__jpeg_read_source(VipsSource *source, VipsImage *out,
 	if (setjmp(jpeg->eman.jmp))
 		return -1;
 
-	if (readjpeg_open_input(jpeg) ||
-		vips__jpeg_read(jpeg, out, header_only))
+	if (vips__readjpeg_open_input(jpeg) ||
+		jpeg_read(jpeg, out, header_only))
 		return -1;
 
 	if (header_only)
