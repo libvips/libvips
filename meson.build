@@ -312,10 +312,13 @@ if libjpeg_dep.found()
     cfg_var.set('HAVE_JPEG_EXT_PARAMS', cc.has_function('jpeg_c_bool_param_supported', prefix: '#include <stdio.h>\n#include <jpeglib.h>', dependencies: libjpeg_dep))
 endif
 
-libuhdr_dep = dependency('libuhdr', required: get_option('uhdr'))
-if libuhdr_dep.found()
-    external_deps += libuhdr_dep
-    cfg_var.set('HAVE_UHDR', true)
+# we need libjpeg for uhdrload and save
+if libjpeg_dep.found()
+  libuhdr_dep = dependency('libuhdr', required: get_option('uhdr'))
+  if libuhdr_dep.found()
+      external_deps += libuhdr_dep
+      cfg_var.set('HAVE_UHDR', true)
+  endif
 endif
 
 # png package we use

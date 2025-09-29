@@ -48,11 +48,14 @@
 #include <vips/vips.h>
 #include <vips/internal.h>
 
-#include "pforeign.h"
-
 #ifdef HAVE_UHDR
 
+#include "pforeign.h"
+
 #include <ultrahdr_api.h>
+
+// no suffs, we don't want to trigger directly for jpeg save
+const char *vips__uhdr_suffs[] = { NULL };
 
 const char *vips__uhdr_error_str(uhdr_codec_err_t err);
 void vips__uhdr_error(uhdr_error_info_t *error);
