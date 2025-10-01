@@ -252,35 +252,35 @@ source_fill_input_buffer_mappable(j_decompress_ptr cinfo)
 static void
 skip_input_data(j_decompress_ptr cinfo, long num_bytes)
 {
-	Source *src = (Source *) cinfo->src;
+	struct jpeg_source_mgr *src = cinfo->src;
 
 	if (num_bytes > 0) {
-		while (num_bytes > (long) src->pub.bytes_in_buffer) {
-			num_bytes -= (long) src->pub.bytes_in_buffer;
-			(void) (*src->pub.fill_input_buffer)(cinfo);
+		while (num_bytes > (long) src->bytes_in_buffer) {
+			num_bytes -= (long) src->bytes_in_buffer;
+			(void) (*src->fill_input_buffer)(cinfo);
 
 			/* note we assume that fill_input_buffer will never
 			 * return FALSE, so suspension need not be handled.
 			 */
 		}
 
-		src->pub.next_input_byte += (size_t) num_bytes;
-		src->pub.bytes_in_buffer -= (size_t) num_bytes;
+		src->next_input_byte += (size_t) num_bytes;
+		src->bytes_in_buffer -= (size_t) num_bytes;
 	}
 }
 
 static void
 skip_input_data_mappable(j_decompress_ptr cinfo, long num_bytes)
 {
-	Source *src = (Source *) cinfo->src;
+	struct jpeg_source_mgr *src = cinfo->src;
 
-	if (num_bytes > (long) src->pub.bytes_in_buffer) {
-		src->pub.next_input_byte += src->pub.bytes_in_buffer;
-		src->pub.bytes_in_buffer = 0;
+	if (num_bytes > (long) src->bytes_in_buffer) {
+		src->next_input_byte += src->bytes_in_buffer;
+		src->bytes_in_buffer = 0;
 	}
 	else {
-		src->pub.next_input_byte += (size_t) num_bytes;
-		src->pub.bytes_in_buffer -= (size_t) num_bytes;
+		src->next_input_byte += (size_t) num_bytes;
+		src->bytes_in_buffer -= (size_t) num_bytes;
 	}
 }
 
@@ -462,7 +462,7 @@ find_chroma_subsample(struct jpeg_decompress_struct *cinfo)
 		: (has_subsample ? "4:2:0" : "4:4:4");
 }
 
-static int
+static void
 attach_blob(VipsImage *im, const char *field, void *data, size_t data_length)
 {
 	/* Only use the first one.
@@ -472,7 +472,7 @@ attach_blob(VipsImage *im, const char *field, void *data, size_t data_length)
 		printf("attach_blob: second %s block, ignoring\n", field);
 #endif /*DEBUG*/
 
-		return 0;
+		return;
 	}
 
 #ifdef DEBUG
@@ -481,37 +481,29 @@ attach_blob(VipsImage *im, const char *field, void *data, size_t data_length)
 #endif /*DEBUG*/
 
 	vips_image_set_blob_copy(im, field, data, data_length);
-
-	return 0;
 }
 
 /* data is the XMP string ... it'll have something like
  * "http://ns.adobe.com/xap/1.0/" at the front, then a null character, then
  * the real XMP.
  */
-static int
-attach_xmp_blob(VipsImage *im, void *data, size_t data_length)
+static void
+attach_xmp_blob(VipsImage *im, char *data, size_t data_length)
 {
-	char *p = (char *) data;
-	int i;
-
-	if (data_length < 4 ||
-		!vips_isprefix("http", p))
-		return 0;
-
 	/* Search for a null char within the first few characters. 80
 	 * should be plenty for a basic URL.
 	 *
 	 * -2 for the extra null.
 	 */
-	for (i = 0; i < VIPS_MIN(80, data_length - 2); i++)
-		if (!p[i])
-			break;
-	if (p[i])
-		return 0;
+	char *p = memchr(data, '\0', VIPS_MIN(80, data_length - 2));
+	if (!p)
+		return;
 
-	return attach_blob(im, VIPS_META_XMP_NAME,
-		p + i + 1, data_length - i - 1);
+	size_t i = p - data;
+	data_length -= i + 1;
+
+	attach_blob(im, VIPS_META_XMP_NAME,
+		data + i + 1, data_length);
 }
 
 /* Number of app2 sections we can capture. Each one can be 64k, so 6400k should
@@ -681,16 +673,14 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 			/* Possible EXIF or XMP data.
 			 */
 			if (p->data_length > 4 &&
-				vips_isprefix("Exif", (char *) p->data) &&
+				vips_isprefix("Exif", (char *) p->data))
 				attach_blob(out, VIPS_META_EXIF_NAME,
-					p->data, p->data_length))
-				return -1;
+					p->data, p->data_length);
 
 			if (p->data_length > 4 &&
-				vips_isprefix("http", (char *) p->data) &&
+				vips_isprefix("http", (char *) p->data))
 				attach_xmp_blob(out,
-					p->data, p->data_length))
-				return -1;
+					(char *) p->data, p->data_length);
 
 			break;
 
@@ -719,17 +709,15 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 			 */
 			if (p->data_length > 5 &&
 				vips_isprefix("Photo", (char *) p->data)) {
-				if (attach_blob(out, VIPS_META_IPTC_NAME,
-						p->data, p->data_length))
-					return -1;
+				attach_blob(out, VIPS_META_IPTC_NAME,
+					p->data, p->data_length);
 
 				/* Older versions of libvips used this misspelt
 				 * name :-( attach under this name too for
 				 * compatibility.
 				 */
-				if (attach_blob(out, "ipct-data",
-						p->data, p->data_length))
-					return -1;
+				attach_blob(out, "ipct-data",
+					p->data, p->data_length);
 			}
 			break;
 
@@ -747,7 +735,8 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 			 * data[11] == 2 - YCCK
 			 *
 			 * Leave this code here in case we come up with a
-			 * better rule.
+			 * better rule. Make sure to also uncomment
+			 * jpeg_save_markers() for the APP14 marker.
 			 */
 			if (p->data_length >= 12 &&
 				vips_isprefix("Adobe", (char *) p->data)) {
@@ -956,13 +945,16 @@ read_jpeg_image(ReadJpeg *jpeg, VipsImage *out)
 static int
 jpeg_read(ReadJpeg *jpeg, VipsImage *out, gboolean header_only)
 {
-	/* Need to read in APP1 (EXIF metadata), APP2 (ICC profile), APP13
-	 * (photoshop IPTC) and APP14 (Adobe flags).
+	/* Need to read in APP1 (EXIF/XMP metadata), APP2 (ICC profile) and APP13
+	 * (photoshop IPTC).
 	 */
 	jpeg_save_markers(&jpeg->cinfo, JPEG_APP0 + 1, 0xffff);
 	jpeg_save_markers(&jpeg->cinfo, JPEG_APP0 + 2, 0xffff);
 	jpeg_save_markers(&jpeg->cinfo, JPEG_APP0 + 13, 0xffff);
-	jpeg_save_markers(&jpeg->cinfo, JPEG_APP0 + 14, 0xffff);
+
+	/* APP14 (Adobe flags), deliberately ignored, see above.
+	 */
+	// jpeg_save_markers(&jpeg->cinfo, JPEG_APP0 + 14, 0xffff);
 
 #ifdef DEBUG
 	{
