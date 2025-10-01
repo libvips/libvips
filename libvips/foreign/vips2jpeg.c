@@ -809,7 +809,7 @@ typedef struct {
 /* Buffer full method. This is only called when the output area is exactly
  * full.
  */
-static jboolean
+static boolean
 empty_output_buffer(j_compress_ptr cinfo)
 {
 	Dest *dest = (Dest *) cinfo->dest;
