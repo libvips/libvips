@@ -1060,8 +1060,6 @@ vips_foreign_save_webp_buffer_build(VipsObject *object)
 	VipsForeignSaveWebp *webp = (VipsForeignSaveWebp *) object;
 	VipsForeignSaveWebpBuffer *buffer = (VipsForeignSaveWebpBuffer *) object;
 
-	VipsBlob *blob;
-
 	if (!(webp->target = vips_target_new_to_memory()))
 		return -1;
 
@@ -1069,6 +1067,7 @@ vips_foreign_save_webp_buffer_build(VipsObject *object)
 			->build(object))
 		return -1;
 
+	VipsBlob *blob;
 	g_object_get(webp->target, "blob", &blob, NULL);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));

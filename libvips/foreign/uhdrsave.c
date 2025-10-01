@@ -301,12 +301,19 @@ vips_foreign_save_uhdr_set_compressed_base(VipsForeignSaveUhdr *uhdr,
 		return -1;
 	t[0] = VIPS_OBJECT(temp);
 
+	// we don't want jpegsave to think this is a uhdr image it should pass
+	// back to us: remove any gainmap to stop confusion
+	if (vips_copy(image, (VipsImage **) &t[1], NULL))
+		return -1;
+	image = VIPS_IMAGE(t[1]);
+	vips_image_remove(image, "gainmap");
+
 	if (vips_jpegsave_target(image, temp, "Q", uhdr->Q, NULL))
 		return -1;
 
 	if (!(base = vips_source_new_from_target(temp)))
 		return -1;
-	t[1] = VIPS_OBJECT(base);
+	t[2] = VIPS_OBJECT(base);
 
 	const void *data;
 	size_t length;
