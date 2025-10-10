@@ -1425,6 +1425,9 @@ class TestForeign:
         im = pyvips.Image.new_from_file(SVG_FILE, stylesheet=b'path{stroke:#f00;stroke-width:1em;}')
         assert im.avg() > 5
 
+        with pytest.raises(pyvips.error.Error):
+            im = pyvips.Image.new_from_file(TRUNCATED_SVGZ_FILE)
+
     def test_csv(self):
         self.save_load("%s.csv", self.mono)
 
