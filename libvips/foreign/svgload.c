@@ -272,6 +272,7 @@ vips_foreign_load_svg_is_a(const void *buf, size_t len)
 		str[1] == '\213') {
 		z_stream zs;
 		size_t opos;
+		int err;
 
 		zs.zalloc = (alloc_func) vips_foreign_load_svg_zalloc;
 		zs.zfree = (free_func) vips_foreign_load_svg_zfree;
@@ -288,11 +289,18 @@ vips_foreign_load_svg_is_a(const void *buf, size_t len)
 		do {
 			zs.avail_out = sizeof(obuf) - opos;
 			zs.next_out = (unsigned char *) obuf + opos;
-			if (inflate(&zs, Z_NO_FLUSH) < Z_OK) {
+			err = inflate(&zs, Z_NO_FLUSH);
+
+			/* Always update opos after inflate(), even if stream ended.
+			 */
+			opos = sizeof(obuf) - zs.avail_out;
+
+			if (err == Z_STREAM_END)
+				break;
+			if (err != Z_OK) {
 				inflateEnd(&zs);
 				return FALSE;
 			}
-			opos = sizeof(obuf) - zs.avail_out;
 		} while (opos < sizeof(obuf) &&
 			zs.avail_in > 0);
 
