@@ -172,7 +172,8 @@ if meson.can_run_host_binaries()
 else
     have_target_clones = cc.links(target_clones_check, args: '-Werror', name: 'Has target_clones attribute')
 endif
-# ThreadSanitizer is incompatible with the target_clones attribute (segfaults in __tsan_func_entry)
+# ThreadSanitizer is incompatible with the target_clones attribute
+# See: https://github.com/llvm/llvm-project/issues/163369
 if have_target_clones and get_option('b_sanitize') == 'thread'
     have_target_clones = false
 endif
