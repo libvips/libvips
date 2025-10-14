@@ -89,7 +89,7 @@ jobs:
           # to disable the fast unwinder to get full stacktraces.
           echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp:fast_unwind_on_malloc=0" >> $GITHUB_ENV
-          echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
+          echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp:print_suppressions=1:ignore_noninstrumented_modules=1" >> $GITHUB_ENV
           # Ensure UBSan issues causes the program to abort.
           echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1:print_stacktrace=1" >> $GITHUB_ENV
           echo "$(dirname $($CC -print-prog-name=llvm-symbolizer))" >> $GITHUB_PATH
@@ -125,7 +125,8 @@ jobs:
 
       - name: Check libvips
         run:
-          meson test -C build
+          # TSan is slow, so disable timeout in test cases
+          meson test -C build --timeout-multiplier=${{ matrix.build.sanitize == 'thread' && '0' || '1' }}
           || (cat build/meson-logs/testlog.txt && exit 1)
 
       - name: Install libvips
