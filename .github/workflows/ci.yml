@@ -101,7 +101,7 @@ jobs:
           echo "SANITIZE_DSO=$ASAN_DSO" >> $GITHUB_ENV
           echo "LD_LIBRARY_PATH=$(dirname $ASAN_DSO)" >> $GITHUB_ENV
 
-      - name: Prepare TSan/UBSan
+      - name: Prepare TSan
         if: matrix.build.sanitize == 'thread'
         run: |
           TSAN_DSO=$($CC -print-file-name=libclang_rt.tsan-x86_64.so)
