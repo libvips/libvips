@@ -1928,9 +1928,8 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 	 * outside the lock and THINSTRIP would prevent parallel tile decode.
 	 */
 	vips_image_pipelinev(out,
-		rtiff->header.tiled
-			? VIPS_DEMAND_STYLE_SMALLTILE
-			: VIPS_DEMAND_STYLE_THINSTRIP,
+		rtiff->header.tiled ?
+			VIPS_DEMAND_STYLE_SMALLTILE : VIPS_DEMAND_STYLE_THINSTRIP,
 		NULL);
 
 	return 0;
