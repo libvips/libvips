@@ -881,6 +881,13 @@ class TestForeign:
             z = y.hist_find(band=0)
             assert z(0, 0)[0] + z(255, 0)[0] == y.width * y.height
 
+        # metadata tile-width and tile-height should be correct
+        x = pyvips.Image.new_from_file(TIF_FILE)
+        buf = x.tiffsave_buffer(tile=True, tile_width=192, tile_height=224)
+        y = pyvips.Image.new_from_buffer(buf, "")
+        assert y.get("tile-width") == 192
+        assert y.get("tile-height") == 224
+
     @skip_if_no("tiffload")
     @pytest.mark.xfail(raises=AssertionError, reason="fails when libtiff was configured with --disable-old-jpeg")
     def test_tiff_ojpeg(self):
