@@ -378,19 +378,18 @@ vips_buf_change(VipsBuf *buf, const char *old, const char *new)
  *
  * Remove the last character, if it's @ch.
  *
- * Returns: `FALSE` on failure, `TRUE` otherwise.
+ * Returns: `TRUE` if a character was removed, `FALSE` otherwise.
  */
 gboolean
 vips_buf_removec(VipsBuf *buf, char ch)
 {
-	if (buf->full)
-		return FALSE;
-	if (buf->i <= 0)
-		return FALSE;
-	if (buf->base[buf->i - 1] == ch)
+	if (buf->i > 0 &&
+		buf->base[buf->i - 1] == ch) {
 		buf->i -= 1;
-
-	return TRUE;
+		return TRUE;
+	}
+	else
+		return FALSE;
 }
 
 /**
