@@ -15,15 +15,17 @@ race_top:vips_rect_includesrect
 race_top:vips_rect_intersectrect
 race_top:vips_reduceh_uchar_hwy
 race_top:vips_reducev_uchar_hwy
+race_top:vips__transform_invert_point
 
 # unlocked access to image/region fields, which is fine
 race_top:buffer_move
+race_top:vips_buffer_unref_ref
+race_top:vips_image_decode_predict
 race_top:vips_image_iskilled
 race_top:vips_region_buffer
 race_top:vips_region_copy
 race_top:vips_region_image
 race_top:vips_region_prepare
-race_top:vips_buffer_unref_ref
 race_top:vips__image_copy_fields_array
 race_top:vips__region_check_ownership
 
@@ -43,6 +45,9 @@ race_top:vips__demand_hint_array
 race_top:vips_image_pio_input
 race_top:vips_image_wio_input
 
+# an unlocked singleton init of ->argument_table, which is fine
+race_top:vips_argument_init
+
 # an unlocked increment of ->local_memory, which is fine
 race_top:vips_malloc
 
@@ -52,10 +57,20 @@ race_top:vips_buffer_undone
 
 # local static variables ought to be non-racy
 race_top:vips_getpagesize
+race_top:vips_get_disc_threshold
+
+# callers are expected to call this once during startup, so non-racy
+race_top:vips_cache_set_max
+race_top:vips_cache_set_max_files
+race_top:vips_cache_set_max_mem
+race_top:vips_concurrency_set
+race_top:vips_vector_set_enabled
 
 # guarded with vips_tracked_mutex, so it should be fine
 race_top:vips_tracked_aligned_alloc
 race_top:vips_tracked_aligned_free
+race_top:vips_tracked_close
+race_top:vips_tracked_get_files
 race_top:vips_tracked_get_mem
 race_top:vips_tracked_malloc
 race_top:vips_tracked_open
@@ -74,7 +89,10 @@ race_top:vips_threadset_work
 
 # guarded with vips__global_lock, so it should be fine
 race_top:vips_area_new
+race_top:vips_buf_all
+race_top:vips_buf_rewind
 race_top:vips_buf_vappendf
+race_top:vips_error_freeze
 race_top:vips_image_sanity
 race_top:vips__link_make
 race_top:vips__link_map
@@ -83,8 +101,12 @@ race_top:vips__region_count_pixels
 # guarded with vips_cache_lock, so it should be fine
 race_top:vips_cache_drop_all
 race_top:vips_cache_get_lru
+race_top:vips_cache_insert
+race_top:vips_cache_trim
 race_top:vips_entry_ref
 race_top:vips_entry_touch
+race_top:vips_object_ref_arg
+race_top:vips_operation_equal
 race_top:vips_operation_hash
 
 # use of pool->stop is unlocked, but fine
@@ -118,6 +140,7 @@ race_top:vips_tile_find
 race_top:vips_tile_new
 race_top:vips_tile_ref
 race_top:vips_tile_search
+race_top:vips_tile_unref
 
 # guarded with pool->allocate_lock, so it should be fine
 race_top:direct_strip_allocate
@@ -141,6 +164,7 @@ race_top:rtiff_seq_start
 race_top:vips_arithmetic_start
 race_top:vips_bandary_start
 race_top:vips_composite_start
+race_top:vips_convasep_start
 race_top:vips_convf_start
 race_top:vips_convi_start
 race_top:vips_foreign_load_start
@@ -192,15 +216,23 @@ race:vips__openexr_generate
 race:vips__openslide_generate
 race:wtiff_layer_row_work
 
-# use of client data in callback functions is unlocked, but fine
+# TSan may produce false positives for callbacks invoked from
+# non-instrumented code. Such callbacks should be listed below.
 race:readjpeg_emit_message
 race:source_fill_input_buffer
 race:source_fill_input_buffer_mappable
 race:vips_foreign_load_heif_read
 race:vips_foreign_load_heif_wait_for_file_size
+race:vips_foreign_load_jp2k_read_source
 race:vips_foreign_load_jp2k_seek_source
+race:vips_foreign_load_jp2k_skip_source
 race:vips_foreign_load_png_stream
 race:vips_png_read_source
+
+# g_object_get*() is uninstrumented, but likely non-racy
+race:g_object_get
+race:g_object_get_property
+race:g_object_get_valist
 
 # using thread-local regions in generate functions is fine
 # this also catches all ->correlation, ->point, ->process_line and
@@ -227,6 +259,7 @@ race:vips_shutdown
 
 # dispose() may run multiple times, but always serially, so non-racy
 race:vips_image_dispose
+race:vips_operation_dispose
 
 # thread-local state allocate/dispose functions ought to be non-racy
 race:sink_memory_thread_state_new
