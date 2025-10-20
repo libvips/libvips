@@ -1416,6 +1416,11 @@ class TestForeign:
 
         # 256x256 tiles, no overlap
         assert os.path.exists(filename + "/ImageProperties.xml")
+        with open(filename + "/ImageProperties.xml", 'rb') as f:
+            buf = f.read()
+        assert buf == (b'<IMAGE_PROPERTIES WIDTH="290" HEIGHT="442" '
+                       b'NUMTILES="5" NUMIMAGES="1" VERSION="1.8" '
+                       b'TILESIZE="256" />\n')
         x = pyvips.Image.new_from_file(filename + "/TileGroup0/1-0-0.jpg")
         assert x.width == 256
         assert x.height == 256
