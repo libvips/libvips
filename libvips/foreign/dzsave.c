@@ -303,7 +303,7 @@ struct _VipsForeignSaveDz {
 
 	/* Count zoomify tiles we write.
 	 */
-	int tile_count;
+	int tile_count; // (atomic)
 
 	/* Where we write ... can be the filesystem, or a zip.
 	 */
@@ -623,7 +623,7 @@ write_properties(VipsForeignSaveDz *dz)
 							"TILESIZE=\"%d\" />\n",
 		dz->level->width,
 		dz->level->height,
-		dz->tile_count,
+		g_atomic_int_get(&dz->tile_count),
 		dz->tile_size);
 
 	if ((buf = vips_dbuf_steal(&dbuf, &len))) {
@@ -1183,7 +1183,7 @@ tile_name(Level *level, int x, int y)
 
 		/* Used at the end in ImageProperties.xml
 		 */
-		dz->tile_count += 1;
+		g_atomic_int_inc(&dz->tile_count);
 
 		break;
 
