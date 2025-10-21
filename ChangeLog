@@ -3,6 +3,7 @@
 - tiffsave: fix saved resolution with a non-default resolution-unit metadata
   item [machur]
 - svgload: ensure short/malformed compressed input is ignored [kleisauke,lovell]
+- dzsave: Zoomify: ensure correct tile count in ImageProperties.xml [kleisauke]
 
 8.17.2
 
