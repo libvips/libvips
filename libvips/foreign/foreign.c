@@ -1759,10 +1759,8 @@ vips__foreign_update_metadata(VipsImage *in,
 	/* Remove metadata, if any.
 	 */
 	if (keep != VIPS_FOREIGN_KEEP_ALL &&
-		vips_image_map(in, vips_foreign_save_remove_metadata, &keep)) {
-		printf("strip metadata failed\n");
+		vips_image_map(in, vips_foreign_save_remove_metadata, &keep))
 		return -1;
-	}
 
 	/* Some format libraries, like libpng, will throw a hard error if the
 	 * profile is inappropriate for this image type. With profiles inherited
