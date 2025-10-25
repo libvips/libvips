@@ -1718,26 +1718,30 @@ vips_foreign_save_remove_metadata(VipsImage *image,
 {
 	VipsForeignKeep keep = *((VipsForeignKeep *) user_data);
 
-	// we are only interested in metadata
-	if (!vips_isprefix("png-comment-", field) &&
-		!vips_isprefix("magickprofile-", field) &&
-		strcmp(field, VIPS_META_IMAGEDESCRIPTION) != 0 &&
-		!g_str_has_suffix(field, "-data"))
-		return NULL;
-
-	if ((strcmp(field, VIPS_META_EXIF_NAME) == 0 &&
+	if ((g_str_equal(field, VIPS_META_EXIF_NAME) &&
 			(keep & VIPS_FOREIGN_KEEP_EXIF)) ||
-		(strcmp(field, VIPS_META_XMP_NAME) == 0 &&
+		(g_str_equal(field, VIPS_META_XMP_NAME) &&
 			(keep & VIPS_FOREIGN_KEEP_XMP)) ||
-		(strcmp(field, VIPS_META_IPTC_NAME) == 0 &&
+		(g_str_equal(field, VIPS_META_IPTC_NAME) &&
 			(keep & VIPS_FOREIGN_KEEP_IPTC)) ||
-		(strcmp(field, VIPS_META_ICC_NAME) == 0 &&
+		(g_str_equal(field, VIPS_META_ICC_NAME) &&
 			(keep & VIPS_FOREIGN_KEEP_ICC)) ||
-		(keep & VIPS_FOREIGN_KEEP_OTHER))
+		(vips_isprefix("gainmap", field) &&
+			(keep & VIPS_FOREIGN_KEEP_GAINMAP)))
 		return NULL;
 
-	if (!vips_image_remove(image, field))
-		return image;
+	/* OTHER is everything that doesn't match one of the above tests.
+	 */
+	if ((keep & VIPS_FOREIGN_KEEP_OTHER) &&
+		!g_str_equal(field, VIPS_META_EXIF_NAME) &&
+		!g_str_equal(field, VIPS_META_XMP_NAME) &&
+		!g_str_equal(field, VIPS_META_IPTC_NAME) &&
+		!g_str_equal(field, VIPS_META_ICC_NAME) &&
+		!vips_isprefix("gainmap", field))
+		return NULL;
+
+	// don't care if nothing was removed, eg. "width" will return FALSE
+	vips_image_remove(image, field);
 
 	return NULL;
 }
@@ -1755,8 +1759,10 @@ vips__foreign_update_metadata(VipsImage *in,
 	/* Remove metadata, if any.
 	 */
 	if (keep != VIPS_FOREIGN_KEEP_ALL &&
-		vips_image_map(in, vips_foreign_save_remove_metadata, &keep))
+		vips_image_map(in, vips_foreign_save_remove_metadata, &keep)) {
+		printf("strip metadata failed\n");
 		return -1;
+	}
 
 	/* Some format libraries, like libpng, will throw a hard error if the
 	 * profile is inappropriate for this image type. With profiles inherited

@@ -15,6 +15,7 @@ master
 - add vips_uhdrsave(), vips_uhdrsave_buffer(), vips_uhdrsave_target(): save an
   UltraHDR image
 - fix cpp binding leak [VivitionDeveloper]
+- add "gainmap" to VipsKeep
 
 8.17.3
 
