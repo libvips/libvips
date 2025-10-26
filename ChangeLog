@@ -21,6 +21,8 @@ master
 - tiffsave: fix saved resolution with a non-default resolution-unit metadata
   item [machur]
 - svgload: ensure short/malformed compressed input is ignored [kleisauke,lovell]
+- dzsave: Zoomify: ensure correct tile count in ImageProperties.xml [kleisauke]
+- VipsSaveble: reimplement with macros to help C++ compat [jcupitt]
 
 8.17.2
 
