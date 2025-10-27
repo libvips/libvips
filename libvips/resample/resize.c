@@ -301,6 +301,27 @@ vips_resize_build(VipsObject *object)
 		}
 	}
 
+	/* Recursively also shrink the gainmap, if any.
+	 */
+	VipsImage *gainmap;
+	if ((gainmap = vips_image_get_gainmap(in))) {
+		VipsImage *t;
+
+		if (vips_resize(gainmap, &t, resize->scale,
+			"vscale", resize->vscale,
+			"gap", resize->gap,
+			"kernel", VIPS_KERNEL_LINEAR,
+			NULL)) {
+			VIPS_UNREF(gainmap);
+			return -1;
+		}
+		VIPS_UNREF(gainmap);
+
+		vips_image_set_image(in, "gainmap", t);
+
+		VIPS_UNREF(t);
+	}
+
 	if (vips_image_write(in, resample->out))
 		return -1;
 

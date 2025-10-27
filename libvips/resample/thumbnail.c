@@ -1123,7 +1123,8 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
+		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
 		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
@@ -1358,7 +1359,8 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
+		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
 		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
@@ -1572,7 +1574,8 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailSource *source = (VipsThumbnailSource *) thumbnail;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
+		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
 		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
@@ -1580,8 +1583,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			"shrink", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadOpenslide",
-				 thumbnail->loader)) {
+	else if (vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
 		return vips_image_new_from_source(
 			source->source,
 			source->option_string,

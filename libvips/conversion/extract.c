@@ -169,6 +169,29 @@ vips_extract_area_build(VipsObject *object)
 			extract->in, extract))
 		return -1;
 
+	/* Recursively also crop the gainmap, if any.
+	 */
+	VipsImage *gainmap;
+	if ((gainmap = vips_image_get_gainmap(conversion->out))) {
+		double xscale = (double) extract->in->Xsize / gainmap->Xsize;
+		double yscale = (double) extract->in->Ysize / gainmap->Ysize;
+
+		VipsImage *t;
+
+		if (vips_crop(gainmap, &t,
+			extract->left * xscale, extract->top * yscale,
+			extract->width * xscale, extract->height * yscale,
+			NULL)) {
+			VIPS_UNREF(gainmap);
+			return -1;
+		}
+		VIPS_UNREF(gainmap);
+
+		vips_image_set_image(conversion->out, "gainmap", t);
+
+		VIPS_UNREF(t);
+	}
+
 	return 0;
 }
 

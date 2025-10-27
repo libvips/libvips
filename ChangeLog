@@ -16,6 +16,8 @@ master
   UltraHDR image
 - fix cpp binding leak [VivitionDeveloper]
 - add "gainmap" to VipsKeep
+- add vips_image_get_gainmap()
+- crop and resize gainmaps automatically
 
 8.17.3
 
