@@ -1712,36 +1712,60 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	return 0;
 }
 
+/* What VipsKeep does a metadata item belong to?
+ *
+ * Return 0 (KEEP_NONE) for never remove, ie. an unrecognised field, or
+ * one which is used to control saver behaviour, like "delay" or
+ * "orientation".
+ */
+static VipsForeignKeep
+vips_foreign_get_keep(const char *field)
+{
+	if (g_str_equal(field, VIPS_META_EXIF_NAME) ||
+		// derived from exif
+		vips_isprefix("exif-", field) ||
+		// also comes from exif
+		vips_isprefix("jpeg-thumbnail-data", field))
+		return VIPS_FOREIGN_KEEP_EXIF;
+
+	if (g_str_equal(field, VIPS_META_XMP_NAME))
+		return VIPS_FOREIGN_KEEP_XMP;
+
+	if (g_str_equal(field, VIPS_META_IPTC_NAME))
+		return VIPS_FOREIGN_KEEP_IPTC;
+
+	if (g_str_equal(field, VIPS_META_ICC_NAME))
+		return VIPS_FOREIGN_KEEP_ICC;
+
+	if (vips_isprefix("gainmap", field))
+		return VIPS_FOREIGN_KEEP_GAINMAP;
+
+	/* OTHER is a metadata item that:
+	 *
+	 *	- one or more savers will write to a format
+	 *	- is optional
+	 *	- is not used to control saver behaviour
+	 */
+	if (vips_isprefix("png-comment-", field) ||
+		g_str_equal(field, VIPS_META_IMAGEDESCRIPTION) ||
+		g_str_equal(field, VIPS_META_PHOTOSHOP_NAME) ||
+		vips_isprefix("magickprofile-", field) ||
+		vips_isprefix("magick-", field))
+		return VIPS_FOREIGN_KEEP_OTHER;
+
+	return 0;
+}
+
 static void *
 vips_foreign_save_remove_metadata(VipsImage *image,
 	const char *field, GValue *value, void *user_data)
 {
-	VipsForeignKeep keep = *((VipsForeignKeep *) user_data);
+	VipsForeignKeep keep_mask = *((VipsForeignKeep *) user_data);
+	VipsForeignKeep keep_field = vips_foreign_get_keep(field);
 
-	if ((g_str_equal(field, VIPS_META_EXIF_NAME) &&
-			(keep & VIPS_FOREIGN_KEEP_EXIF)) ||
-		(g_str_equal(field, VIPS_META_XMP_NAME) &&
-			(keep & VIPS_FOREIGN_KEEP_XMP)) ||
-		(g_str_equal(field, VIPS_META_IPTC_NAME) &&
-			(keep & VIPS_FOREIGN_KEEP_IPTC)) ||
-		(g_str_equal(field, VIPS_META_ICC_NAME) &&
-			(keep & VIPS_FOREIGN_KEEP_ICC)) ||
-		(vips_isprefix("gainmap", field) &&
-			(keep & VIPS_FOREIGN_KEEP_GAINMAP)))
-		return NULL;
-
-	/* OTHER is everything that doesn't match one of the above tests.
-	 */
-	if ((keep & VIPS_FOREIGN_KEEP_OTHER) &&
-		!g_str_equal(field, VIPS_META_EXIF_NAME) &&
-		!g_str_equal(field, VIPS_META_XMP_NAME) &&
-		!g_str_equal(field, VIPS_META_IPTC_NAME) &&
-		!g_str_equal(field, VIPS_META_ICC_NAME) &&
-		!vips_isprefix("gainmap", field))
-		return NULL;
-
-	// don't care if nothing was removed, eg. "width" will return FALSE
-	vips_image_remove(image, field);
+	if (keep_field &&
+		!(keep_mask & keep_field))
+		vips_image_remove(image, field);
 
 	return NULL;
 }

@@ -362,7 +362,7 @@ typedef enum /*< flags >*/ {
  * @VIPS_FOREIGN_KEEP_XMP: keep XMP metadata
  * @VIPS_FOREIGN_KEEP_IPTC: keep IPTC metadata
  * @VIPS_FOREIGN_KEEP_ICC: keep ICC metadata
- * @VIPS_FOREIGN_KEEP_OTHER: keep other metadata (e.g. PNG comments and some TIFF tags)
+ * @VIPS_FOREIGN_KEEP_OTHER: keep other metadata (e.g. PNG comments)
  * @VIPS_FOREIGN_KEEP_GAINMAP: keep the gainmap metadata
  * @VIPS_FOREIGN_KEEP_ALL: keep all metadata
  *
