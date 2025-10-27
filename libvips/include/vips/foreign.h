@@ -362,7 +362,8 @@ typedef enum /*< flags >*/ {
  * @VIPS_FOREIGN_KEEP_XMP: keep XMP metadata
  * @VIPS_FOREIGN_KEEP_IPTC: keep IPTC metadata
  * @VIPS_FOREIGN_KEEP_ICC: keep ICC metadata
- * @VIPS_FOREIGN_KEEP_OTHER: keep other metadata (e.g. PNG comments and some TIFF tags)
+ * @VIPS_FOREIGN_KEEP_OTHER: keep other metadata (e.g. PNG comments)
+ * @VIPS_FOREIGN_KEEP_GAINMAP: keep the gainmap metadata
  * @VIPS_FOREIGN_KEEP_ALL: keep all metadata
  *
  * Which metadata to retain.
@@ -374,12 +375,14 @@ typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_KEEP_IPTC = 1 << 2,
 	VIPS_FOREIGN_KEEP_ICC = 1 << 3,
 	VIPS_FOREIGN_KEEP_OTHER = 1 << 4,
+	VIPS_FOREIGN_KEEP_GAINMAP = 1 << 5,
 
 	VIPS_FOREIGN_KEEP_ALL = (VIPS_FOREIGN_KEEP_EXIF |
 		VIPS_FOREIGN_KEEP_XMP |
 		VIPS_FOREIGN_KEEP_IPTC |
 		VIPS_FOREIGN_KEEP_ICC |
-		VIPS_FOREIGN_KEEP_OTHER)
+		VIPS_FOREIGN_KEEP_OTHER |
+		VIPS_FOREIGN_KEEP_GAINMAP)
 } VipsForeignKeep;
 
 typedef struct _VipsForeignSave {
