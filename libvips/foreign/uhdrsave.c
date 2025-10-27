@@ -243,19 +243,7 @@ static int
 vips_foreign_save_uhdr_set_compressed_gainmap(VipsForeignSaveUhdr *uhdr,
 	VipsImage *image)
 {
-	const void *data;
-	size_t length;
-	uhdr_error_info_t error_info;
-
 	g_info("attaching compressed gainmap");
-
-	if (vips_image_get_blob(image, "gainmap", &data, &length))
-		return -1;
-	uhdr_compressed_image_t gainmap_image = {
-		.data = (void *) data,
-		.data_sz = length,
-		.capacity = length,
-	};
 
 	uhdr_gainmap_metadata_t metadata;
 	if (image_get_array_float(image,
@@ -276,12 +264,51 @@ vips_foreign_save_uhdr_set_compressed_gainmap(VipsForeignSaveUhdr *uhdr,
 			"gainmap-use-base-cg", &metadata.use_base_cg))
 		return -1;
 
-	error_info =
-		uhdr_enc_set_gainmap_image(uhdr->enc, &gainmap_image, &metadata);
-	if (error_info.error_code) {
-		vips__uhdr_error(&error_info);
-		return -1;
+	/* If there's a processed gainmap, compress and attach that. Otherwise
+	 * attach the compressed gainmap from the input image.
+	 */
+	const void *data;
+	size_t length;
+	void *to_free;
+
+	to_free = NULL;
+	if (vips_image_get_typeof(image, "gainmap")) {
+		VipsImage *gainmap;
+		if (vips_image_get_image(image, "gainmap", &gainmap))
+			return -1;
+
+		if (vips_jpegsave_buffer(gainmap, &to_free, &length, NULL)) {
+			VIPS_UNREF(gainmap);
+			return -1;
+		}
+
+		VIPS_UNREF(gainmap);
+
+		data = to_free;
 	}
+	else if (vips_image_get_typeof(image, "gainmap-data") &&
+		vips_image_get_blob(image, "gainmap-data", &data, &length))
+		return -1;
+
+	if (data) {
+		uhdr_error_info_t error_info;
+
+		uhdr_compressed_image_t gainmap_image = {
+			.data = (void *) data,
+			.data_sz = length,
+			.capacity = length,
+		};
+
+		error_info =
+			uhdr_enc_set_gainmap_image(uhdr->enc, &gainmap_image, &metadata);
+		if (error_info.error_code) {
+			vips__uhdr_error(&error_info);
+			VIPS_FREE(to_free);
+			return -1;
+		}
+	}
+
+	VIPS_FREE(to_free);
 
 	return 0;
 }
@@ -307,6 +334,7 @@ vips_foreign_save_uhdr_set_compressed_base(VipsForeignSaveUhdr *uhdr,
 		return -1;
 	image = VIPS_IMAGE(t[1]);
 	vips_image_remove(image, "gainmap");
+	vips_image_remove(image, "gainmap-data");
 
 	if (vips_jpegsave_target(image, temp, "Q", uhdr->Q, NULL))
 		return -1;
@@ -348,7 +376,7 @@ vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 	uhdr_enc_set_using_multi_channel_gainmap(uhdr->enc, 0);
 
 	// attach the gainmap, if we have one
-	if (vips_image_get_typeof(image, "gainmap") &&
+	if (vips_image_get_typeof(image, "gainmap-data") &&
 		vips_foreign_save_uhdr_set_compressed_gainmap(uhdr, image))
 		return -1;
 

@@ -148,7 +148,7 @@ vips_foreign_save_jpeg_build(VipsObject *object)
 		jpeg->subsample_mode = jpeg->no_subsample ?
 			VIPS_FOREIGN_SUBSAMPLE_OFF : VIPS_FOREIGN_SUBSAMPLE_AUTO;
 
-	if (vips_image_get_typeof(save->ready, "gainmap") ||
+	if (vips_image_get_typeof(save->ready, "gainmap-data") ||
 		save->ready->Type == VIPS_INTERPRETATION_scRGB) {
 		/* Pass on to uhdrsave.
 		 */
