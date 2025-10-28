@@ -188,6 +188,19 @@ cmake \
 cmake --build . --target install
 popd
 
+# libultrahdr
+pushd $SRC/libultrahdr
+cmake \
+  -GNinja \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_INSTALL_PREFIX=$WORK \
+  -DBUILD_SHARED_LIBS=FALSE \
+  -DUHDR_BUILD_EXAMPLES=FALSE \
+  -DUHDR_MAX_DIMENSION=65500 \
+  .
+cmake --build . --target install
+popd
+
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
