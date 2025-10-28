@@ -3760,6 +3760,70 @@ VImage::transpose3d(VOption *options) const
 }
 
 VImage
+VImage::uhdrload(const char *filename, VOption *options)
+{
+	VImage out;
+
+	call("uhdrload", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("filename", filename));
+
+	return out;
+}
+
+VImage
+VImage::uhdrload_buffer(VipsBlob *buffer, VOption *options)
+{
+	VImage out;
+
+	call("uhdrload_buffer", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("buffer", buffer));
+
+	return out;
+}
+
+VImage
+VImage::uhdrload_source(VSource source, VOption *options)
+{
+	VImage out;
+
+	call("uhdrload_source", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("source", source));
+
+	return out;
+}
+
+void
+VImage::uhdrsave(const char *filename, VOption *options) const
+{
+	call("uhdrsave", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("filename", filename));
+}
+
+VipsBlob *
+VImage::uhdrsave_buffer(VOption *options) const
+{
+	VipsBlob *buffer;
+
+	call("uhdrsave_buffer", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("buffer", &buffer));
+
+	return buffer;
+}
+
+void
+VImage::uhdrsave_target(VTarget target, VOption *options) const
+{
+	call("uhdrsave_target", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("target", target));
+}
+
+VImage
 VImage::unpremultiply(VOption *options) const
 {
 	VImage out;

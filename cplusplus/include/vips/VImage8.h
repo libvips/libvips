@@ -3965,7 +3965,7 @@ public:
 	static VImage jpegload_source(VSource source, VOption *options = nullptr);
 
 	/**
-	 * Save image to jpeg file.
+	 * Save as jpeg.
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
@@ -3988,7 +3988,7 @@ public:
 	void jpegsave(const char *filename, VOption *options = nullptr) const;
 
 	/**
-	 * Save image to jpeg buffer.
+	 * Save as jpeg.
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
@@ -4033,7 +4033,7 @@ public:
 	void jpegsave_mime(VOption *options = nullptr) const;
 
 	/**
-	 * Save image to jpeg target.
+	 * Save as jpeg.
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
@@ -6232,6 +6232,101 @@ public:
 	 * @return Output image.
 	 */
 	VImage transpose3d(VOption *options = nullptr) const;
+
+	/**
+	 * Load a uhdr image.
+	 *
+	 * **Optional parameters**
+	 *   - **hdr** -- decode to scRGB, bool.
+	 *   - **shrink** -- Shrink factor on load, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param filename Filename to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage uhdrload(const char *filename, VOption *options = nullptr);
+
+	/**
+	 * Load a uhdr image.
+	 *
+	 * **Optional parameters**
+	 *   - **hdr** -- decode to scRGB, bool.
+	 *   - **shrink** -- Shrink factor on load, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param buffer Buffer to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage uhdrload_buffer(VipsBlob *buffer, VOption *options = nullptr);
+
+	/**
+	 * Load a uhdr image.
+	 *
+	 * **Optional parameters**
+	 *   - **hdr** -- decode to scRGB, bool.
+	 *   - **shrink** -- Shrink factor on load, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *
+	 * @param source Source to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage uhdrload_source(VSource source, VOption *options = nullptr);
+
+	/**
+	 * Save image in ultrahdr format.
+	 *
+	 * **Optional parameters**
+	 *   - **Q** -- Q factor, int.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param filename Filename to save to.
+	 * @param options Set of options.
+	 */
+	void uhdrsave(const char *filename, VOption *options = nullptr) const;
+
+	/**
+	 * Save image in ultrahdr format.
+	 *
+	 * **Optional parameters**
+	 *   - **Q** -- Q factor, int.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param options Set of options.
+	 * @return Buffer to save to.
+	 */
+	VipsBlob *uhdrsave_buffer(VOption *options = nullptr) const;
+
+	/**
+	 * Save image in ultrahdr format.
+	 *
+	 * **Optional parameters**
+	 *   - **Q** -- Q factor, int.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param target Target to save to.
+	 * @param options Set of options.
+	 */
+	void uhdrsave_target(VTarget target, VOption *options = nullptr) const;
 
 	/**
 	 * Unpremultiply image alpha.
