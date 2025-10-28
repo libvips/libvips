@@ -234,6 +234,7 @@ libvips/foreign/cairo.c
 libvips/foreign/cgifsave.c
 libvips/foreign/csvload.c
 libvips/foreign/csvsave.c
+libvips/foreign/dcrawload.c
 libvips/foreign/dzsave.c
 libvips/foreign/exif.c
 libvips/foreign/fits.c
@@ -285,6 +286,8 @@ libvips/foreign/tiff2vips.c
 libvips/foreign/tiff.c
 libvips/foreign/tiffload.c
 libvips/foreign/tiffsave.c
+libvips/foreign/uhdrload.c
+libvips/foreign/uhdrsave.c
 libvips/foreign/vips2jpeg.c
 libvips/foreign/vips2magick.c
 libvips/foreign/vips2tiff.c

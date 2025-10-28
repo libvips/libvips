@@ -191,10 +191,10 @@ API docs each function links to for more details.
 | `jpegload` | Load jpeg from file | [ctor@Image.jpegload] |
 | `jpegload_buffer` | Load jpeg from buffer | [ctor@Image.jpegload_buffer] |
 | `jpegload_source` | Load image from jpeg source | [ctor@Image.jpegload_source] |
-| `jpegsave` | Save image to jpeg file | [method@Image.jpegsave] |
-| `jpegsave_buffer` | Save image to jpeg buffer | [method@Image.jpegsave_buffer] |
+| `jpegsave` | Save as jpeg | [method@Image.jpegsave] |
+| `jpegsave_buffer` | Save as jpeg | [method@Image.jpegsave_buffer] |
 | `jpegsave_mime` | Save image to jpeg mime | [method@Image.jpegsave_mime] |
-| `jpegsave_target` | Save image to jpeg target | [method@Image.jpegsave_target] |
+| `jpegsave_target` | Save as jpeg | [method@Image.jpegsave_target] |
 | `jxlload` | Load jpeg-xl image | [ctor@Image.jxlload] |
 | `jxlload_buffer` | Load jpeg-xl image | [ctor@Image.jxlload_buffer] |
 | `jxlload_source` | Load jpeg-xl image | [ctor@Image.jxlload_source] |
@@ -345,6 +345,12 @@ API docs each function links to for more details.
 | `tilecache` | Cache an image as a set of tiles | [method@Image.tilecache] |
 | `tonelut` | Build a look-up table | [ctor@Image.tonelut] |
 | `transpose3d` | Transpose3d an image | [method@Image.transpose3d] |
+| `uhdrload` | Load a uhdr image | [ctor@Image.uhdrload] |
+| `uhdrload_buffer` | Load a uhdr image | [ctor@Image.uhdrload_buffer] |
+| `uhdrload_source` | Load a uhdr image | [ctor@Image.uhdrload_source] |
+| `uhdrsave` | Save image in ultrahdr format | [method@Image.uhdrsave] |
+| `uhdrsave_buffer` | Save image in ultrahdr format | [method@Image.uhdrsave_buffer] |
+| `uhdrsave_target` | Save image in ultrahdr format | [method@Image.uhdrsave_target] |
 | `unpremultiply` | Unpremultiply image alpha | [method@Image.unpremultiply] |
 | `vipsload` | Load vips from file | [ctor@Image.vipsload] |
 | `vipsload_source` | Load vips from source | [ctor@Image.vipsload_source] |
