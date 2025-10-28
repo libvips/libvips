@@ -137,7 +137,7 @@ vips_resize_build(VipsObject *object)
 	VipsResample *resample = VIPS_RESAMPLE(object);
 	VipsResize *resize = (VipsResize *) object;
 
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 5);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 6);
 
 	VipsImage *in;
 	double hscale;
@@ -301,25 +301,18 @@ vips_resize_build(VipsObject *object)
 		}
 	}
 
-	/* Recursively also shrink the gainmap, if any.
+	/* Recursively process the gainmap, if any.
 	 */
 	VipsImage *gainmap;
 	if ((gainmap = vips_image_get_gainmap(in))) {
-		VipsImage *t;
-
-		if (vips_resize(gainmap, &t, resize->scale,
+		if (vips_resize(gainmap, &t[5], resize->scale,
 			"vscale", resize->vscale,
 			"gap", resize->gap,
 			"kernel", VIPS_KERNEL_LINEAR,
-			NULL)) {
-			VIPS_UNREF(gainmap);
+			NULL))
 			return -1;
-		}
-		VIPS_UNREF(gainmap);
 
-		vips_image_set_image(in, "gainmap", t);
-
-		VIPS_UNREF(t);
+		vips_image_set_image(in, "gainmap", t[5]);
 	}
 
 	if (vips_image_write(in, resample->out))

@@ -139,24 +139,49 @@ vips_extract_area_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsExtractArea *extract = (VipsExtractArea *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
+
+	VipsImage *in;
 
 	if (VIPS_OBJECT_CLASS(vips_extract_area_parent_class)->build(object))
 		return -1;
 
-	if (extract->left + extract->width > extract->in->Xsize ||
-		extract->top + extract->height > extract->in->Ysize ||
+	in = extract->in;
+
+	if (extract->left + extract->width > in->Xsize ||
+		extract->top + extract->height > in->Ysize ||
 		extract->left < 0 || extract->top < 0 ||
 		extract->width <= 0 || extract->height <= 0) {
 		vips_error(class->nickname, "%s", _("bad extract area"));
 		return -1;
 	}
 
-	if (vips_image_pio_input(extract->in) ||
-		vips_check_coding_known(class->nickname, extract->in))
+	if (vips_image_pio_input(in) ||
+		vips_check_coding_known(class->nickname, in))
 		return -1;
 
+	/* Recursively process the gainmap, if any.
+	 */
+	VipsImage *gainmap;
+	if ((gainmap = vips_image_get_gainmap(in))) {
+		double xscale = (double) in->Xsize / gainmap->Xsize;
+		double yscale = (double) in->Ysize / gainmap->Ysize;
+
+		if (vips_copy(in, &t[0], NULL))
+			return -1;
+		in = t[0];
+
+		if (vips_crop(gainmap, &t[1],
+			extract->left * xscale, extract->top * yscale,
+			extract->width * xscale, extract->height * yscale,
+			NULL))
+			return -1;
+
+		vips_image_set_image(conversion->out, "gainmap", t[1]);
+	}
+
 	if (vips_image_pipelinev(conversion->out,
-			VIPS_DEMAND_STYLE_THINSTRIP, extract->in, NULL))
+			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
 		return -1;
 
 	conversion->out->Xsize = extract->width;
@@ -166,31 +191,8 @@ vips_extract_area_build(VipsObject *object)
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_extract_area_gen, vips_stop_one,
-			extract->in, extract))
+			in, extract))
 		return -1;
-
-	/* Recursively also crop the gainmap, if any.
-	 */
-	VipsImage *gainmap;
-	if ((gainmap = vips_image_get_gainmap(conversion->out))) {
-		double xscale = (double) extract->in->Xsize / gainmap->Xsize;
-		double yscale = (double) extract->in->Ysize / gainmap->Ysize;
-
-		VipsImage *t;
-
-		if (vips_crop(gainmap, &t,
-			extract->left * xscale, extract->top * yscale,
-			extract->width * xscale, extract->height * yscale,
-			NULL)) {
-			VIPS_UNREF(gainmap);
-			return -1;
-		}
-		VIPS_UNREF(gainmap);
-
-		vips_image_set_image(conversion->out, "gainmap", t);
-
-		VIPS_UNREF(t);
-	}
 
 	return 0;
 }

@@ -1053,11 +1053,10 @@ vips_image_get_tile_height(VipsImage *image)
  * compressed `"gainmap-data"`, decompress, attach to the image, and return
  * that.
  *
- * You must unref the result with [method@GObject.Object.unref].
+ * The result is owned by @image and must not be unreffed. Don't call this
+ * function on the same image from two different threads!
  *
- * Don't call this function on the same image from two different threads!
- *
- * Returns: (nullable) (transfer full): the gainmap image, if present, or NULL.
+ * Returns: (nullable) (transfer none): the gainmap image, if present, or NULL.
  */
 VipsImage *
 vips_image_get_gainmap(VipsImage *image)
@@ -1086,6 +1085,9 @@ vips_image_get_gainmap(VipsImage *image)
 
 		vips_image_set_image(image, "gainmap", gainmap);
 	}
+
+	if (gainmap)
+		g_object_unref(gainmap);
 
 	return gainmap;
 }
