@@ -301,20 +301,6 @@ vips_resize_build(VipsObject *object)
 		}
 	}
 
-	/* Recursively process the gainmap, if any.
-	 */
-	VipsImage *gainmap;
-	if ((gainmap = vips_image_get_gainmap(in))) {
-		if (vips_resize(gainmap, &t[5], resize->scale,
-			"vscale", resize->vscale,
-			"gap", resize->gap,
-			"kernel", VIPS_KERNEL_LINEAR,
-			NULL))
-			return -1;
-
-		vips_image_set_image(in, "gainmap", t[5]);
-	}
-
 	if (vips_image_write(in, resample->out))
 		return -1;
 

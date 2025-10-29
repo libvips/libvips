@@ -139,7 +139,6 @@ vips_extract_area_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsExtractArea *extract = (VipsExtractArea *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
 	VipsImage *in;
 
@@ -159,25 +158,6 @@ vips_extract_area_build(VipsObject *object)
 	if (vips_image_pio_input(in) ||
 		vips_check_coding_known(class->nickname, in))
 		return -1;
-
-	/* Recursively process the gainmap, if any.
-	 */
-	VipsImage *gainmap;
-	if ((gainmap = vips_image_get_gainmap(in))) {
-		double xscale = (double) in->Xsize / gainmap->Xsize;
-		double yscale = (double) in->Ysize / gainmap->Ysize;
-
-		if (vips_copy(in, &t[0], NULL) ||
-			vips_crop(gainmap, &t[1],
-				extract->left * xscale, extract->top * yscale,
-				extract->width * xscale, extract->height * yscale,
-				NULL))
-			return -1;
-
-		in = t[0];
-
-		vips_image_set_image(conversion->out, "gainmap", t[1]);
-	}
 
 	if (vips_image_pipelinev(conversion->out,
 			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
