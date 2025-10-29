@@ -189,33 +189,49 @@ vips_flip_build(VipsObject *object)
 {
 	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsFlip *flip = (VipsFlip *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
+	VipsImage *in;
 	VipsGenerateFn generate_fn;
 
 	if (VIPS_OBJECT_CLASS(vips_flip_parent_class)->build(object))
 		return -1;
 
-	if (vips_image_pio_input(flip->in))
+	in = flip->in;
+
+	if (vips_image_pio_input(in))
 		return -1;
 
+	/* Recursively process the gainmap, if any.
+	 */
+	VipsImage *gainmap;
+	if ((gainmap = vips_image_get_gainmap(in))) {
+		if (vips_copy(in, &t[0], NULL) ||
+			vips_flip(gainmap, &t[1], flip->direction, NULL))
+			return -1;
+		in = t[0];
+
+		vips_image_set_image(in, "gainmap", t[1]);
+	}
+
 	if (vips_image_pipelinev(conversion->out,
-			VIPS_DEMAND_STYLE_THINSTRIP, flip->in, NULL))
+			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
 		return -1;
 
 	if (flip->direction == VIPS_DIRECTION_HORIZONTAL) {
 		generate_fn = vips_flip_horizontal_gen;
-		conversion->out->Xoffset = flip->in->Xsize;
+		conversion->out->Xoffset = in->Xsize;
 		conversion->out->Yoffset = 0;
 	}
 	else {
 		generate_fn = vips_flip_vertical_gen;
 		conversion->out->Xoffset = 0;
-		conversion->out->Yoffset = flip->in->Ysize;
+		conversion->out->Yoffset = in->Ysize;
 	}
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, generate_fn, vips_stop_one,
-			flip->in, flip))
+			in, flip))
 		return -1;
 
 	return 0;

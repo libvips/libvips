@@ -287,7 +287,6 @@ vips_rot_build(VipsObject *object)
 {
 	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsRot *rot = (VipsRot *) object;
-
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
 	VipsImage *in;
@@ -312,12 +311,11 @@ vips_rot_build(VipsObject *object)
 	 */
 	VipsImage *gainmap;
 	if ((gainmap = vips_image_get_gainmap(in))) {
-		if (vips_copy(in, &t[0], NULL))
+		if (vips_copy(in, &t[0], NULL) ||
+			vips_rot(gainmap, &t[1], rot->angle, NULL))
 			return -1;
-		in = t[0];
 
-		if (vips_rot(gainmap, &t[1], rot->angle, NULL))
-			return -1;
+		in = t[0];
 
 		vips_image_set_image(in, "gainmap", t[1]);
 	}

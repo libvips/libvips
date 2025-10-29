@@ -167,15 +167,14 @@ vips_extract_area_build(VipsObject *object)
 		double xscale = (double) in->Xsize / gainmap->Xsize;
 		double yscale = (double) in->Ysize / gainmap->Ysize;
 
-		if (vips_copy(in, &t[0], NULL))
+		if (vips_copy(in, &t[0], NULL) ||
+			vips_crop(gainmap, &t[1],
+				extract->left * xscale, extract->top * yscale,
+				extract->width * xscale, extract->height * yscale,
+				NULL))
 			return -1;
-		in = t[0];
 
-		if (vips_crop(gainmap, &t[1],
-			extract->left * xscale, extract->top * yscale,
-			extract->width * xscale, extract->height * yscale,
-			NULL))
-			return -1;
+		in = t[0];
 
 		vips_image_set_image(conversion->out, "gainmap", t[1]);
 	}
