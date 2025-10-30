@@ -645,7 +645,7 @@ static int
 vips_thumbnail_build(VipsObject *object)
 {
 	VipsThumbnail *thumbnail = VIPS_THUMBNAIL(object);
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 15);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 20);
 
 	VipsImage *in;
 	int preshrunk_page_height;
@@ -961,8 +961,8 @@ vips_thumbnail_build(VipsObject *object)
 			return -1;
 		in = t[14];
 
-		int crop_left = vips_image_get_xoffset(in);
-		int crop_top = vips_image_get_yoffset(in);
+		int crop_left = -vips_image_get_xoffset(in);
+		int crop_top = -vips_image_get_yoffset(in);
 
 		/* Also crop the gainmap, if any.
 		 */
