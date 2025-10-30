@@ -528,6 +528,17 @@ class TestForeign:
 
         assert (im_hdr2 - im_hdr).abs().avg() < 0.03
 
+    @skip_if_no("uhdrload")
+    def test_uhdr_thumbnail(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE)
+        thumb = pyvips.Image.thumbnail(UHDR_FILE, 128)
+        buf = thumb.uhdrsave_buffer()
+        im2 = pyvips.Image.uhdrload_buffer(buf)
+
+        gainmap_before = im.get("gainmap-data")
+        gainmap_after = im2.get("gainmap-data")
+        assert len(gainmap_after) < len(gainmap_before)
+
     @skip_if_no("pngload")
     def test_png(self):
         def png_valid(im):
