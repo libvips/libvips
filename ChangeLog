@@ -17,15 +17,15 @@ master
 - fix cpp binding leak [VivitionDeveloper]
 - add "gainmap" to VipsKeep
 
-8.17.3
+30/10/25 8.17.3
 
 - tiffsave: fix saved resolution with a non-default resolution-unit metadata
   item [machur]
 - svgload: ensure short/malformed compressed input is ignored [kleisauke,lovell]
 - dzsave: Zoomify: ensure correct tile count in ImageProperties.xml [kleisauke]
-- VipsSaveble: reimplement with macros to help C++ compat [jcupitt]
+- VipsSaveable: reimplement with macros to help C++ compat [jcupitt]
 
-8.17.2
+13/9/25 8.17.2
 
 - rank: fix an off-by-one error [larsmaxfield]
 - popplerload, svgload: validate page size [Yang Luo]
