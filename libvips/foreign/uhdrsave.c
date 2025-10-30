@@ -273,8 +273,6 @@ vips_foreign_save_uhdr_set_compressed_gainmap(VipsForeignSaveUhdr *uhdr,
 
 	to_free = NULL;
 	if (vips_image_get_typeof(image, "gainmap")) {
-		printf("gainmap image present, recompressing\n");
-
 		VipsImage *gainmap;
 		if (vips_image_get_image(image, "gainmap", &gainmap))
 			return -1;
@@ -288,12 +286,9 @@ vips_foreign_save_uhdr_set_compressed_gainmap(VipsForeignSaveUhdr *uhdr,
 
 		data = to_free;
 	}
-	else if (vips_image_get_typeof(image, "gainmap-data")) {
-		printf("no gainmap image, using pre-compressed gainmap\n");
-
-		if (vips_image_get_blob(image, "gainmap-data", &data, &length))
-			return -1;
-	}
+	else if (vips_image_get_typeof(image, "gainmap-data") &&
+		vips_image_get_blob(image, "gainmap-data", &data, &length))
+		return -1;
 
 	if (data) {
 		uhdr_error_info_t error_info;

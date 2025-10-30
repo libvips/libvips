@@ -1065,22 +1065,15 @@ vips_image_get_gainmap(VipsImage *image)
 
 	gainmap = NULL;
 
-	if (vips_image_get_typeof(image, "gainmap")) {
-		printf("vips_image_get_gainmap: returning existing gainmap image\n");
-
-		if (vips_image_get_image(image, "gainmap", &gainmap))
-			return NULL;
-	}
+	if (vips_image_get_typeof(image, "gainmap") &&
+		vips_image_get_image(image, "gainmap", &gainmap))
+		return NULL;
 	else if (vips_image_get_typeof(image, "gainmap-data")) {
-		printf("vips_image_get_gainmap: decompressing and attaching gainmap\n");
-
 		const void *data;
 		size_t length;
 
-		if (vips_image_get_blob(image, "gainmap-data", &data, &length))
-			return NULL;
-
-		if (vips_jpegload_buffer((void *) data, length, &gainmap, NULL))
+		if (vips_image_get_blob(image, "gainmap-data", &data, &length) &&
+			vips_jpegload_buffer((void *) data, length, &gainmap, NULL))
 			return NULL;
 
 		vips_image_set_image(image, "gainmap", gainmap);
