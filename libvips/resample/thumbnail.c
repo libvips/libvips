@@ -945,6 +945,8 @@ vips_thumbnail_build(VipsObject *object)
 		 */
 		int crop_width = VIPS_MIN(thumbnail->width, in->Xsize);
 		int crop_height = VIPS_MIN(thumbnail->height, in->Ysize);
+		int original_width = in->Xsize;
+		int original_height = in->Ysize;
 
 		g_info("cropping to %dx%d", crop_width, crop_height);
 
@@ -965,8 +967,8 @@ vips_thumbnail_build(VipsObject *object)
 		/* Also crop the gainmap, if any.
 		 */
 		if ((gainmap = vips_image_get_gainmap(in))) {
-			double xscale = (double) in->Xsize / gainmap->Xsize;
-			double yscale = (double) in->Ysize / gainmap->Ysize;
+			double xscale = (double) gainmap->Xsize / original_width;
+			double yscale = (double) gainmap->Ysize / original_height;
 
 			if (vips_crop(gainmap, &t[16],
 					crop_left * xscale, crop_top * yscale,
