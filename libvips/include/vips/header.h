@@ -251,6 +251,8 @@ int vips_image_get_tile_width(VipsImage *image);
 VIPS_API
 int vips_image_get_tile_height(VipsImage *image);
 VIPS_API
+VipsImage *vips_image_get_gainmap(VipsImage *image);
+VIPS_API
 const void *vips_image_get_data(VipsImage *image);
 
 VIPS_API

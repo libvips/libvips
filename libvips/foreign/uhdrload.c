@@ -484,9 +484,22 @@ vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 
 	if ((mem_block = uhdr_dec_get_gainmap_image(uhdr->dec))) {
 		// attach as a compressed JPG
-		g_info("attaching gainmap");
 		vips_image_set_blob_copy(out,
-			"gainmap", mem_block->data, mem_block->data_sz);
+			"gainmap-data", mem_block->data, mem_block->data_sz);
+
+		// if the shrink is not 1, load and attach the gainmap with the same
+		// shrink
+		if (uhdr->shrink != 1) {
+			VipsImage *gainmap;
+
+			if (vips_jpegload_buffer(mem_block->data, mem_block->data_sz,
+					&gainmap,
+					"shrink", uhdr->shrink,
+					NULL))
+				return -1;
+			vips_image_set_image(out, "gainmap", gainmap);
+			VIPS_UNREF(gainmap);
+		}
 	}
 
 	VIPS_SETSTR(out->filename,

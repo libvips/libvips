@@ -137,7 +137,7 @@ vips_resize_build(VipsObject *object)
 	VipsResample *resample = VIPS_RESAMPLE(object);
 	VipsResize *resize = (VipsResize *) object;
 
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 5);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 6);
 
 	VipsImage *in;
 	double hscale;

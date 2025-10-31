@@ -16,6 +16,8 @@ master
   UltraHDR image
 - fix cpp binding leak [VivitionDeveloper]
 - add "gainmap" to VipsKeep
+- add vips_image_get_gainmap()
+- thumbnail updates gainmaps
 
 30/10/25 8.17.3
 
