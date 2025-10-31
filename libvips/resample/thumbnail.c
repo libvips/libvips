@@ -308,6 +308,9 @@ vips_thumbnail_get_pyramid_page(VipsThumbnail *thumbnail)
 #ifdef DEBUG
 	printf("vips_thumbnail_get_pyramid_page: %d layer pyramid detected\n",
 		thumbnail->n_pages);
+	for (int i = 0; i < thumbnail->n_pages; i++)
+		printf("  %d - %d x %d\n",
+			i, thumbnail->level_width[i], thumbnail->level_height[i]);
 #endif /*DEBUG*/
 	thumbnail->level_count = thumbnail->n_pages;
 }
@@ -512,11 +515,15 @@ vips_thumbnail_find_pyrlevel(VipsThumbnail *thumbnail,
 	g_assert(thumbnail->level_count > 0);
 	g_assert(thumbnail->level_count <= MAX_LEVELS);
 
-	for (level = thumbnail->level_count - 1; level >= 0; level--)
-		if (vips_thumbnail_calculate_common_shrink(thumbnail,
+	for (level = thumbnail->level_count - 1; level >= 0; level--) {
+		double shrink = vips_thumbnail_calculate_common_shrink(thumbnail,
 				thumbnail->level_width[level],
-				thumbnail->level_height[level]) >= 1.0)
+				thumbnail->level_height[level]);
+
+		// not >=, shrink can clip to 1.0
+		if (shrink > 1.0)
 			return level;
+	}
 
 	return 0;
 }
@@ -587,16 +594,22 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 
 	factor = 1.0;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader))
+	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
 		factor = vips_thumbnail_find_jpegshrink(thumbnail,
 			thumbnail->input_width, thumbnail->input_height);
+		g_info("loading with factor %g pre-shrink", factor);
+	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
-		if (thumbnail->level_count > 0)
+		if (thumbnail->level_count > 0) {
 			factor = vips_thumbnail_find_pyrlevel(thumbnail,
 				thumbnail->input_width,
 				thumbnail->input_height);
+			g_info("loading pyramid page %g", factor);
+		}
+		else
+			g_info("loading with factor %g pre-shrink", factor);
 	}
 	else if (vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
 		factor = vips_thumbnail_calculate_common_shrink(thumbnail,
@@ -606,12 +619,17 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 		/* Avoid upsizing via libwebp.
 		 */
 		factor = VIPS_MAX(1.0, factor);
+
+		g_info("loading with factor %g pre-shrink", factor);
 	}
 	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader))
+		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader)) {
 		factor = vips_thumbnail_calculate_common_shrink(thumbnail,
 			thumbnail->input_width,
 			thumbnail->page_height);
+
+		g_info("loading with factor %g pre-shrink", factor);
+	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
 		/* 'factor' is a gboolean which enables thumbnail load instead
 		 * of image load.
@@ -628,9 +646,12 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 			thumbnail->heif_thumbnail_height);
 
 		factor = shrink_factor > 1.0 ? 1 : 0;
-	}
 
-	g_info("loading with factor %g pre-shrink", factor);
+		if (factor == 1)
+			g_info("selected HEIF thumbnail for shrinking");
+		else
+			g_info("selected main HEIF image for shrinking");
+	}
 
 	if (!(im = class->open(thumbnail, factor)))
 		return NULL;

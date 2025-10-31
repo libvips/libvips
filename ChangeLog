@@ -1,3 +1,7 @@
+8.17.4
+
+- vipsthumbnail: fix pyramidal image layer selection [esiqveland]
+
 30/10/25 8.17.3
 
 - tiffsave: fix saved resolution with a non-default resolution-unit metadata
