@@ -314,8 +314,6 @@ thumbnail_output_format(void)
 
 /* Given (eg.) "/poop/somefile.png", write @im to the thumbnail name,
  * (eg.) "/poop/tn_somefile.jpg".
- *
- * If
  */
 static int
 thumbnail_write_file(VipsObject *process, VipsImage *im, const char *filename)
