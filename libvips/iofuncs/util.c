@@ -1840,9 +1840,11 @@ vips_flags_from_nick(const char *domain, GType type, const char *nick)
  * lowest-numbered one for @sub. @buf is @len bytes in size.
  *
  * If there are no %ns, use the first %s.
+ *
+ * Set @c to the %s char we search for.
  */
 int
-vips__substitute(char *buf, size_t len, char *sub)
+vips__substitute(char *buf, size_t len, char c, char *sub)
 {
 	size_t buflen = strlen(buf);
 	size_t sublen = strlen(sub);
@@ -1864,7 +1866,7 @@ vips__substitute(char *buf, size_t len, char *sub)
 
 			for (q = p + 1; g_ascii_isdigit(*q); q++)
 				;
-			if (q[0] == 's') {
+			if (q[0] == c) {
 				int n;
 
 				n = atoi(p + 1);
@@ -1879,7 +1881,7 @@ vips__substitute(char *buf, size_t len, char *sub)
 
 	if (!sub_start)
 		for (p = buf; (p = strchr(p, '%')); p++)
-			if (p[1] == 's') {
+			if (p[1] == c) {
 				sub_start = p;
 				sub_end = p + 2;
 				break;
