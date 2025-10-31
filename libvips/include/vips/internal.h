@@ -311,7 +311,9 @@ guint64 vips__parse_size(const char *size_string);
 /* TODO(kleisauke): VIPS_API is required by vipsthumbnail.
  */
 VIPS_API
-int vips__substitute(char *buf, size_t len, char c, char *sub);
+int vips__substitutec(char *buf, size_t len, char c, char *sub);
+VIPS_API
+int vips__substitute(char *buf, size_t len, char *sub);
 
 int vips_check_coding_labq(const char *domain, VipsImage *im);
 int vips_check_coding_rad(const char *domain, VipsImage *im);

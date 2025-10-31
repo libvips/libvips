@@ -1844,7 +1844,7 @@ vips_flags_from_nick(const char *domain, GType type, const char *nick)
  * Set @c to the %s char we search for.
  */
 int
-vips__substitute(char *buf, size_t len, char c, char *sub)
+vips__substitutec(char *buf, size_t len, char c, char *sub)
 {
 	size_t buflen = strlen(buf);
 	size_t sublen = strlen(sub);
@@ -1902,6 +1902,12 @@ vips__substitute(char *buf, size_t len, char c, char *sub)
 	memmove(buf + before_len, sub, sublen);
 
 	return 0;
+}
+
+int
+vips__substitute(char *buf, size_t len, char *sub)
+{
+	return vips__substitutec(buf, len, 's', sub);
 }
 
 /* Absoluteize a path. Free the result with g_free().

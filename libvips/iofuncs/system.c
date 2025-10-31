@@ -181,13 +181,13 @@ vips_system_build(VipsObject *object)
 	g_strlcpy(cmd, system->cmd_format, VIPS_PATH_MAX);
 	if (system->in)
 		for (i = 0; i < VIPS_AREA(system->in)->n; i++)
-			if (vips__substitute(cmd, VIPS_PATH_MAX, 's', system->in_name[i])) {
+			if (vips__substitute(cmd, VIPS_PATH_MAX, system->in_name[i])) {
 				vips_error(class->nickname, "%s",
 					_("unable to substitute input filename"));
 				return -1;
 			}
 	if (system->out_name &&
-		vips__substitute(cmd, VIPS_PATH_MAX, 's', system->out_name)) {
+		vips__substitute(cmd, VIPS_PATH_MAX, system->out_name)) {
 		vips_error(class->nickname, "%s",
 			_("unable to substitute output filename"));
 		return -1;

@@ -271,9 +271,9 @@ thumbnail_output_filename(const char *filename)
 		vips_buf_appends(&buf, output_path);
 		(void) vips_buf_all(&buf);
 
-		vips__substitute(path, FILENAME_MAX, 's', basename);
-		vips__substitute(path, FILENAME_MAX, 'd', dirname);
-		vips__substitute(path, FILENAME_MAX, 'c', cwd);
+		vips__substitutec(path, FILENAME_MAX, 's', basename);
+		vips__substitutec(path, FILENAME_MAX, 'd', dirname);
+		vips__substitutec(path, FILENAME_MAX, 'c', cwd);
 	}
 	else {
 		/* output_format can be a relative path, in which case we prefix with
@@ -286,7 +286,7 @@ thumbnail_output_filename(const char *filename)
 		vips_buf_appends(&buf, output_format);
 		(void) vips_buf_all(&buf);
 
-		vips__substitute(path, FILENAME_MAX, 's', basename);
+		vips__substitute(path, FILENAME_MAX, basename);
 	}
 
 	g_free(basename);
