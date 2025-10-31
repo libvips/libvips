@@ -535,9 +535,27 @@ class TestForeign:
         buf = thumb.uhdrsave_buffer()
         im2 = pyvips.Image.uhdrload_buffer(buf)
 
-        gainmap_before = im.get("gainmap-data")
-        gainmap_after = im2.get("gainmap-data")
-        assert len(gainmap_after) < len(gainmap_before)
+        gainmap_data_before = im.get("gainmap-data")
+        gainmap_data_after = im2.get("gainmap-data")
+        assert len(gainmap_data_after) < len(gainmap_data_before)
+
+        hscale = thumb.width / im.width
+        vscale = thumb.height / im.height
+        gainmap_before = pyvips.Image.jpegload_buffer(gainmap_data_before)
+        gainmap_after = pyvips.Image.jpegload_buffer(gainmap_data_after)
+        assert abs(hscale * gainmap_before.width - gainmap_after.width) < 3
+        assert abs(vscale * gainmap_before.height - gainmap_after.height) < 3
+
+    @skip_if_no("uhdrload")
+    def test_uhdr_thumbnail_crop(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE)
+        thumb = pyvips.Image.thumbnail(UHDR_FILE, 128, crop="centre")
+        buf = thumb.uhdrsave_buffer()
+        im2 = pyvips.Image.uhdrload_buffer(buf)
+
+        gainmap_data_after = im2.get("gainmap-data")
+        gainmap_after = pyvips.Image.jpegload_buffer(gainmap_data_after)
+        assert gainmap_after.width == gainmap_after.height
 
     @skip_if_no("pngload")
     def test_png(self):
