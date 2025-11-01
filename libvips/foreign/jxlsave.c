@@ -83,6 +83,7 @@ typedef struct _VipsForeignSaveJxl {
 	int effort;
 	gboolean lossless;
 	int Q;
+	int bitdepth;
 
 #ifdef HAVE_LIBJXL_0_9
 	gboolean error;
@@ -711,6 +712,13 @@ vips_foreign_save_jxl_save_page(VipsForeignSaveJxl *jxl,
 	JxlEncoderSetFrameLossless(frame_settings,
 		jxl->lossless);
 
+	JxlBitDepth bit_depth = {
+		.type = JXL_BIT_DEPTH_FROM_CODESTREAM,
+		.bits_per_sample = jxl->info.bits_per_sample,
+		.exponent_bits_per_sample = jxl->info.exponent_bits_per_sample
+	};
+	JxlEncoderSetFrameBitDepth(frame_settings, &bit_depth);
+
 	if (jxl->info.have_animation) {
 		JxlFrameHeader header = { 0 };
 
@@ -972,17 +980,33 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		in = t[1];
 	}
 
+	/* The user can set bitdepth to size the number of bits down for int
+	 * formats. libjxl expects input image bits to be right-justified, so
+	 * we must shift.
+	 */
+	if (in->BandFmt == VIPS_FORMAT_UCHAR ||
+		in->BandFmt == VIPS_FORMAT_USHORT) {
+		int image_bits_per_sample = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
+		int bits_per_sample = jxl->bitdepth ?
+			VIPS_CLIP(1, jxl->bitdepth, image_bits_per_sample) :
+			image_bits_per_sample;
+
+		if (vips_rshift_const1(in, &t[2], 8 - bits_per_sample, NULL))
+			return -1;
+		in = t[2];
+	}
+
 	/* We need to cache a complete line of jxl 2k x 2k tiles, plus a bit.
 	 * We don't need to allow threaded access -- libjxl will never try to
 	 * encode tiles in parallel (sadly).
 	 */
-	if (vips_tilecache(in, &t[2],
+	if (vips_tilecache(in, &t[3],
 		"tile-width", in->Xsize,
 		"tile-height", 512,
 		"max_tiles", 3500 / 512,
 		NULL))
 		return -1;
-	in = t[2];
+	in = t[3];
 
 	if (vips_foreign_save_jxl_set_header(jxl, in))
 		return -1;
@@ -1122,6 +1146,14 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, Q),
 		0, 100, 75);
+
+	VIPS_ARG_INT(class, "bitdepth", 14,
+		_("Bitdepth"),
+		_("Bit depth"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveJxl, bitdepth),
+		0, 32, 8);
+
 }
 
 static void

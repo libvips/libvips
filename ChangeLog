@@ -16,6 +16,7 @@ master
   UltraHDR image
 - fix cpp binding leak [VivitionDeveloper]
 - add "gainmap" to VipsKeep
+- add "bitdepth" to jxlsave
 
 30/10/25 8.17.3
 
