@@ -990,8 +990,9 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		int bits_per_sample = jxl->bitdepth ?
 			VIPS_CLIP(1, jxl->bitdepth, image_bits_per_sample) :
 			image_bits_per_sample;
+		int shift = image_bits_per_sample - bits_per_sample;
 
-		if (vips_rshift_const1(in, &t[2], 8 - bits_per_sample, NULL))
+		if (vips_rshift_const1(in, &t[2], shift, NULL))
 			return -1;
 		in = t[2];
 	}
