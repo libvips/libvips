@@ -1913,6 +1913,15 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 		vips_image_set_string(out, VIPS_META_IMAGEDESCRIPTION,
 			rtiff->header.image_description);
 
+	/* Hint the tile dimensions to our users.
+	 */
+	if (rtiff->header.tiled) {
+		vips_image_set_int(out,
+			VIPS_META_TILE_WIDTH, rtiff->header.tile_width);
+		vips_image_set_int(out,
+			VIPS_META_TILE_HEIGHT, rtiff->header.tile_height);
+	}
+
 	if (get_resolution(rtiff->tiff, out))
 		return -1;
 

@@ -225,12 +225,16 @@ read_header(Read *read, VipsImage *out)
 		VIPS_FORMAT_FLOAT,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_scRGB, 1.0, 1.0);
 
-	if (read->tiles)
+	if (read->tiles) {
+		vips_image_set_int(out, VIPS_META_TILE_WIDTH, read->tile_width);
+		vips_image_set_int(out, VIPS_META_TILE_HEIGHT, read->tile_height);
+
 		/* Even though this is a tiled reader, we hint thinstrip
 		 * since with the cache we are quite happy serving that if
 		 * anything downstream would like it.
 		 */
 		hint = VIPS_DEMAND_STYLE_THINSTRIP;
+	}
 	else
 		hint = VIPS_DEMAND_STYLE_FATSTRIP;
 	(void) vips_image_pipelinev(out, hint, NULL);

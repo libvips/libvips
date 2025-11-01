@@ -589,6 +589,14 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 	vips_image_set_int(out,
 		VIPS_META_BITS_PER_SAMPLE, jp2k->image->comps[0].prec);
 
+	/* Keep in sync with vips_foreign_load_jp2k_load().
+	 */
+	if (!jp2k->oneshot &&
+		(jp2k->info->tw != 1 || jp2k->info->th != 1)) {
+		vips_image_set_int(out, VIPS_META_TILE_WIDTH, jp2k->info->tdx);
+		vips_image_set_int(out, VIPS_META_TILE_HEIGHT, jp2k->info->tdy);
+	}
+
 	return 0;
 }
 
@@ -1180,6 +1188,8 @@ vips_foreign_load_jp2k_load(VipsForeignLoad *load)
 			return -1;
 	}
 	else {
+		/* Keep in sync with tile size in vips_foreign_load_jp2k_set_header().
+		 */
 		tile_width = jp2k->info->tdx;
 		tile_height = jp2k->info->tdy;
 		tiles_across = jp2k->info->tw;
