@@ -616,8 +616,8 @@ vips_foreign_load_jxl_generate(VipsRegion *out_region,
 	if (vips_foreign_load_jxl_read_frame(jxl, jxl->frame, frame))
 		return -1;
 
-	memcpy(VIPS_IMAGE_ADDR(jxl->frame, 0, line),
-		VIPS_REGION_ADDR(out_region, 0, r->top),
+	memcpy(VIPS_REGION_ADDR(out_region, 0, r->top),
+		VIPS_IMAGE_ADDR(jxl->frame, 0, line),
 		VIPS_IMAGE_SIZEOF_LINE(jxl->frame));
 
 	return 0;
