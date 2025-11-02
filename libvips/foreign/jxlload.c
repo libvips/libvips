@@ -150,7 +150,7 @@ typedef struct _VipsForeignLoadJxl {
 	 */
 	gboolean ycc_to_rgb;
 
-	/* For low-bitdepth iamges, the leftshift we need to apply.
+	/* For low-bitdepth images, the leftshift we need to apply.
 	 */
 	int shift;
 } VipsForeignLoadJxl;
