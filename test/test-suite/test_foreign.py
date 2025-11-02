@@ -1907,11 +1907,10 @@ class TestForeign:
         lossless = self.colour.jxlsave_buffer(lossless=True)
         assert len(lossy) < len(lossless) / 5
 
-        # bitdepth
+        # bitdepth=1 should be smaller
         buf8 = self.colour.jxlsave_buffer()
         buf1 = self.colour.jxlsave_buffer(bitdepth=1)
-        assert len(buf1) != len(buf8)
-
+        assert len(buf1) < len(buf8)
         im = pyvips.Image.jxlload_buffer(buf1)
         assert im.get("bits-per-sample") == 1
 

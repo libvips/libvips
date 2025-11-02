@@ -712,13 +712,6 @@ vips_foreign_save_jxl_save_page(VipsForeignSaveJxl *jxl,
 	JxlEncoderSetFrameLossless(frame_settings,
 		jxl->lossless);
 
-	JxlBitDepth bit_depth = {
-		.type = JXL_BIT_DEPTH_FROM_CODESTREAM,
-		.bits_per_sample = jxl->info.bits_per_sample,
-		.exponent_bits_per_sample = jxl->info.exponent_bits_per_sample
-	};
-	JxlEncoderSetFrameBitDepth(frame_settings, &bit_depth);
-
 	if (jxl->info.have_animation) {
 		JxlFrameHeader header = { 0 };
 
