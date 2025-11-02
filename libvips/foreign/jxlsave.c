@@ -480,13 +480,13 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 
 	switch (in->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
-		jxl->info.bits_per_sample = 8;
+		jxl->info.bits_per_sample = VIPS_CLIP(1, jxl->bitdepth, 8);
 		jxl->info.exponent_bits_per_sample = 0;
 		jxl->format.data_type = JXL_TYPE_UINT8;
 		break;
 
 	case VIPS_FORMAT_USHORT:
-		jxl->info.bits_per_sample = 16;
+		jxl->info.bits_per_sample = VIPS_CLIP(1, jxl->bitdepth, 16);
 		jxl->info.exponent_bits_per_sample = 0;
 		jxl->format.data_type = JXL_TYPE_UINT16;
 		break;
@@ -965,6 +965,12 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	else
 		format = VIPS_FORMAT_UCHAR;
 
+	/* bitdepth defaults to 16 for ushort images.
+	 */
+	if (!vips_object_argument_isset(object, "bitdepth") &&
+		format == VIPS_FORMAT_USHORT)
+		jxl->bitdepth = 16;
+
 	if (vips_cast(in, &t[0], format, NULL))
 		return -1;
 	in = t[0];
@@ -984,12 +990,11 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	 * formats. libjxl expects input image bits to be right-justified, so
 	 * we must shift.
 	 */
-	if (in->BandFmt == VIPS_FORMAT_UCHAR ||
-		in->BandFmt == VIPS_FORMAT_USHORT) {
-		int image_bits_per_sample = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
-		int bits_per_sample = jxl->bitdepth ?
-			VIPS_CLIP(1, jxl->bitdepth, image_bits_per_sample) :
-			image_bits_per_sample;
+	if (format == VIPS_FORMAT_UCHAR ||
+		format == VIPS_FORMAT_USHORT) {
+		int image_bits_per_sample = format == VIPS_FORMAT_UCHAR ? 8 : 16;
+		int bits_per_sample =
+			VIPS_CLIP(1, jxl->bitdepth, image_bits_per_sample);
 		int shift = image_bits_per_sample - bits_per_sample;
 
 		if (vips_rshift_const1(in, &t[2], shift, NULL))
@@ -1148,12 +1153,12 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, Q),
 		0, 100, 75);
 
-	VIPS_ARG_INT(class, "bitdepth", 14,
+	VIPS_ARG_INT(class, "bitdepth", 15,
 		_("Bitdepth"),
 		_("Bit depth"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, bitdepth),
-		0, 32, 8);
+		1, 16, 8);
 
 }
 
@@ -1163,6 +1168,7 @@ vips_foreign_save_jxl_init(VipsForeignSaveJxl *jxl)
 	jxl->distance = 1.0;
 	jxl->effort = 7;
 	jxl->Q = 75;
+	jxl->bitdepth = 8;
 #ifdef HAVE_LIBJXL_0_9
 	g_mutex_init(&jxl->tile_lock);
 #endif

@@ -149,10 +149,6 @@ typedef struct _VipsForeignLoadJxl {
 	/* If we need to do ycc->rgb conversion on load.
 	 */
 	gboolean ycc_to_rgb;
-
-	/* Non-zero for "must shift on load" for low bitdepth images.
-	 */
-	int shift_bits;
 } VipsForeignLoadJxl;
 
 typedef VipsForeignLoadClass VipsForeignLoadJxlClass;
@@ -340,10 +336,6 @@ vips_foreign_load_jxl_print_status(JxlDecoderStatus status)
 
 	case JXL_DEC_BASIC_INFO:
 		printf("JXL_DEC_BASIC_INFO\n");
-		break;
-
-	case JXL_DEC_EXTENSIONS:
-		printf("JXL_DEC_EXTENSIONS\n");
 		break;
 
 	case JXL_DEC_COLOR_ENCODING:
@@ -603,14 +595,6 @@ vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 	return -1;
 }
 
-#define LSHIFT(TYPE) { \
-	TYPE *restrict tp = (TYPE *) p; \
-	TYPE *restrict tq = (TYPE *) q; \
-\
-	for (int x = 0; x < n_elements; x++) \
-		tq[x] = VIPS_LSHIFT_INT(tp[x], shift); \
-}
-
 static int
 vips_foreign_load_jxl_generate(VipsRegion *out_region,
 	void *seq, void *a, void *b, gboolean *stop)
@@ -632,28 +616,9 @@ vips_foreign_load_jxl_generate(VipsRegion *out_region,
 	if (vips_foreign_load_jxl_read_frame(jxl, jxl->frame, frame))
 		return -1;
 
-	VipsPel *p = VIPS_IMAGE_ADDR(jxl->frame, 0, line);
-	VipsPel *q = VIPS_REGION_ADDR(out_region, 0, r->top);
-	int n_elements = VIPS_IMAGE_N_ELEMENTS(jxl->frame);
-	int shift = jxl->shift_bits;
-
-	if (shift) {
-		/* libvips keeps low bitdepth images left justified.
-		 */
-		VipsBandFormat format = out_region->im->BandFmt;
-
-		g_assert(format == VIPS_FORMAT_UCHAR ||
-			format == VIPS_FORMAT_USHORT);
-
-		if (format == VIPS_FORMAT_UCHAR) {
-			LSHIFT(unsigned char);
-		}
-		else {
-			LSHIFT(unsigned short);
-		}
-	}
-	else
-		memcpy(q, p, n_elements * VIPS_IMAGE_SIZEOF_ELEMENT(jxl->frame));
+	memcpy(VIPS_IMAGE_ADDR(jxl->frame, 0, line),
+		VIPS_REGION_ADDR(out_region, 0, r->top),
+		VIPS_IMAGE_SIZEOF_LINE(jxl->frame));
 
 	return 0;
 }
@@ -854,13 +819,6 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 
 	vips_image_set_int(out, VIPS_META_BITS_PER_SAMPLE,
 		jxl->info.bits_per_sample);
-
-	if (format == VIPS_FORMAT_UCHAR ||
-		format == VIPS_FORMAT_USHORT) {
-		int image_bits_per_sample = format == VIPS_FORMAT_UCHAR ? 8 : 16;
-
-		jxl->shift_bits = image_bits_per_sample - jxl->info.bits_per_sample;
-	}
 
 	return 0;
 }
