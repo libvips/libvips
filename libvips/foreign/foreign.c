@@ -2611,10 +2611,9 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  * @filename: file to write to
  * @...: `NULL`-terminated list of optional named arguments
  *
- * Write a VIPS image to a file in JPEG-XL format.
- *
- * The JPEG-XL loader and saver are experimental features and may change
- * in future libvips versions.
+ * Write a VIPS image to a file in JPEG-XL format. The image can be unsigned
+ * 8 or 16-bit integer, or float. Use @bitdepth for fine control of the image
+ * bitdepth.
  *
  * @tier sets the overall decode speed the encoder will target. Minimum is 0
  * (highest quality), and maximum is 4 (lowest quality). Default is 0.
@@ -2626,6 +2625,10 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  * As a convenience, you can also use @Q to set @distance. @Q uses
  * approximately the same scale as regular JPEG.
  *
+ * @bitdepth sets the bitdepth to save at. It defaults to the full range of
+ * the image numeric type, but can be set lower. It has no effect on float
+ * images.
+ *
  * Set @lossless to enable lossless compression.
  *
  * ::: tip "Optional arguments"
@@ -2634,6 +2637,7 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  *     * @effort: `gint`, encoding effort
  *     * @lossless: `gboolean`, enables lossless compression
  *     * @Q: `gint`, quality setting
+ *     * @bitdepth: `gint`, image bitdepth
  *
  * Returns: 0 on success, -1 on error.
  */
