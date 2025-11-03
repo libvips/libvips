@@ -1,6 +1,7 @@
 8.17.4
 
 - vipsthumbnail: fix pyramidal image layer selection [esiqveland]
+- tools: fix possible deadlock during process exit on win32
 
 30/10/25 8.17.3
 
