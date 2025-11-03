@@ -986,8 +986,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	if (format == VIPS_FORMAT_UCHAR ||
 		format == VIPS_FORMAT_USHORT) {
 		int image_bits_per_sample = format == VIPS_FORMAT_UCHAR ? 8 : 16;
-		int bits_per_sample =
-			VIPS_CLIP(1, jxl->bitdepth, image_bits_per_sample);
+		int bits_per_sample = VIPS_MIN(jxl->bitdepth, image_bits_per_sample);
 		int shift = image_bits_per_sample - bits_per_sample;
 
 		if (vips_rshift_const1(in, &t[2], shift, NULL))
