@@ -486,7 +486,7 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 		break;
 
 	case VIPS_FORMAT_USHORT:
-		jxl->info.bits_per_sample = VIPS_CLIP(1, jxl->bitdepth, 16);
+		jxl->info.bits_per_sample = jxl->bitdepth;
 		jxl->info.exponent_bits_per_sample = 0;
 		jxl->format.data_type = JXL_TYPE_UINT16;
 		break;
