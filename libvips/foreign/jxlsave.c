@@ -480,7 +480,7 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 
 	switch (in->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
-		jxl->info.bits_per_sample = VIPS_CLIP(1, jxl->bitdepth, 8);
+		jxl->info.bits_per_sample = VIPS_MIN(jxl->bitdepth, 8);
 		jxl->info.exponent_bits_per_sample = 0;
 		jxl->format.data_type = JXL_TYPE_UINT8;
 		break;
