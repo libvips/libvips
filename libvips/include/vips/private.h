@@ -265,6 +265,11 @@ void vips__filename_split8(const char *name,
 VIPS_API
 char *vips__temp_name(const char *format);
 
+/* Used by libvips tools.
+ */
+VIPS_API
+void vips__win32_terminate(int ret);
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

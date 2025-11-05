@@ -19,6 +19,11 @@ master
 - add "bitdepth" to jxlsave
 - add "path" option to vipsthumbnail, deprecate "output" option [zjturner]
 
+8.17.4
+
+- vipsthumbnail: fix pyramidal image layer selection [esiqveland]
+- tools: fix possible deadlock during process exit on win32
+
 30/10/25 8.17.3
 
 - tiffsave: fix saved resolution with a non-default resolution-unit metadata
