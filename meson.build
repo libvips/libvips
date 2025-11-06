@@ -54,6 +54,10 @@ cpp = meson.get_compiler('cpp')
 # Prevent use of void* pointer arithmetic to support MSVC
 add_project_arguments(cc.get_supported_arguments('-Werror=pointer-arith'), language: ['cpp', 'c'])
 
+if host_os == 'windows'
+    add_project_arguments(['-DUNICODE', '-D_UNICODE'], language: ['cpp', 'c'])
+endif
+
 # libFuzzer related things
 fuzzing_engine = get_option('fuzzing_engine')
 if fuzzing_engine == 'libfuzzer'
