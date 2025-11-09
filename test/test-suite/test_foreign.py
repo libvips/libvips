@@ -548,7 +548,6 @@ class TestForeign:
 
     @skip_if_no("uhdrload")
     def test_uhdr_thumbnail_crop(self):
-        im = pyvips.Image.uhdrload(UHDR_FILE)
         thumb = pyvips.Image.thumbnail(UHDR_FILE, 128, crop="centre")
         buf = thumb.uhdrsave_buffer()
         im2 = pyvips.Image.uhdrload_buffer(buf)
