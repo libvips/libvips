@@ -543,8 +543,8 @@ class TestForeign:
         vscale = thumb.height / im.height
         gainmap_before = pyvips.Image.jpegload_buffer(gainmap_data_before)
         gainmap_after = pyvips.Image.jpegload_buffer(gainmap_data_after)
-        assert abs(hscale * gainmap_before.width - gainmap_after.width) < 3
-        assert abs(vscale * gainmap_before.height - gainmap_after.height) < 3
+        assert hscale * gainmap_before.width == gainmap_after.width
+        assert vscale * gainmap_before.height == gainmap_after.height
 
     @skip_if_no("uhdrload")
     def test_uhdr_thumbnail_crop(self):
