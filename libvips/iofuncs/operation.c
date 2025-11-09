@@ -614,7 +614,7 @@ vips_operation_summary_class(VipsObjectClass *object_class, VipsBuf *buf)
 
 	VIPS_OBJECT_CLASS(vips_operation_parent_class)
 		->summary_class(object_class, buf);
- 
+
 	GType gtype = G_OBJECT_CLASS_TYPE(operation_class);
 	if (!G_TYPE_IS_ABSTRACT(gtype) &&
 		operation_class->flags & VIPS_OPERATION_NOCACHE)

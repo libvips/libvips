@@ -149,6 +149,10 @@ typedef struct _VipsForeignLoadJxl {
 	/* If we need to do ycc->rgb conversion on load.
 	 */
 	gboolean ycc_to_rgb;
+
+	/* For low-bitdepth images, the leftshift we need to apply.
+	 */
+	int shift;
 } VipsForeignLoadJxl;
 
 typedef VipsForeignLoadClass VipsForeignLoadJxlClass;
@@ -338,10 +342,6 @@ vips_foreign_load_jxl_print_status(JxlDecoderStatus status)
 		printf("JXL_DEC_BASIC_INFO\n");
 		break;
 
-	case JXL_DEC_EXTENSIONS:
-		printf("JXL_DEC_EXTENSIONS\n");
-		break;
-
 	case JXL_DEC_COLOR_ENCODING:
 		printf("JXL_DEC_COLOR_ENCODING\n");
 		break;
@@ -527,6 +527,46 @@ vips_foreign_load_jxl_process(VipsForeignLoadJxl *jxl)
 	return status;
 }
 
+#define LSHIFT(TYPE) { \
+	TYPE *tq = (TYPE *) q; \
+\
+	for (int x = 0; x < n_elements; x++) { \
+		int bottom = tq[x] & 1; \
+		tq[x] = (tq[x] << shift) | ((bottom << shift) - bottom); \
+	} \
+}
+
+/* Do any necessary bitshifts to get us left-justified.
+ */
+static void
+vips_foreign_load_jxl_shift_frame(VipsForeignLoadJxl *jxl, VipsImage *frame)
+{
+#ifdef DEBUG
+	printf("vips_foreign_load_jxl_shift_frame:\n");
+#endif /*DEBUG*/
+
+	if (jxl->shift) {
+		for (int y = 0; y < frame->Ysize; y++) {
+			VipsPel *q = VIPS_IMAGE_ADDR(frame, 0, y);
+			int n_elements = VIPS_IMAGE_N_ELEMENTS(frame);
+			int shift = jxl->shift;
+
+			switch (frame->BandFmt) {
+			case VIPS_FORMAT_UCHAR:
+				LSHIFT(unsigned char);
+				break;
+
+			case VIPS_FORMAT_USHORT:
+				LSHIFT(unsigned short);
+				break;
+
+			default:
+				g_assert_not_reached();
+			}
+		}
+	}
+}
+
 static int
 vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 	int frame_no)
@@ -583,8 +623,10 @@ vips_foreign_load_jxl_read_frame(VipsForeignLoadJxl *jxl, VipsImage *frame,
 		case JXL_DEC_FULL_IMAGE:
 			/* We decoded the required frame and can return
 			 */
-			if (jxl->frame_no >= frame_no)
+			if (jxl->frame_no >= frame_no) {
+				vips_foreign_load_jxl_shift_frame(jxl, frame);
 				return 0;
+			}
 
 			break;
 
@@ -606,7 +648,7 @@ vips_foreign_load_jxl_generate(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	VipsForeignLoadJxl *jxl = (VipsForeignLoadJxl *) a;
 
-	/* jxl>frame_no numbers from 1.
+	/* jxl->frame_no numbers from 1.
 	 */
 	int frame = 1 + r->top / jxl->info.ysize + jxl->page;
 	int line = r->top % jxl->info.ysize;
@@ -823,6 +865,11 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 
 	vips_image_set_int(out, VIPS_META_BITS_PER_SAMPLE,
 		jxl->info.bits_per_sample);
+
+	if (format == VIPS_FORMAT_UCHAR ||
+		format == VIPS_FORMAT_USHORT)
+		jxl->shift =
+			(VIPS_IMAGE_SIZEOF_ELEMENT(out) << 3) - jxl->info.bits_per_sample;
 
 	return 0;
 }

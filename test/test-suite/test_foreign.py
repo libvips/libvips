@@ -910,6 +910,13 @@ class TestForeign:
             z = y.hist_find(band=0)
             assert z(0, 0)[0] + z(255, 0)[0] == y.width * y.height
 
+        # metadata tile-width and tile-height should be correct
+        x = pyvips.Image.new_from_file(TIF_FILE)
+        buf = x.tiffsave_buffer(tile=True, tile_width=192, tile_height=224)
+        y = pyvips.Image.new_from_buffer(buf, "")
+        assert y.get("tile-width") == 192
+        assert y.get("tile-height") == 224
+
     @skip_if_no("tiffload")
     @pytest.mark.xfail(raises=AssertionError, reason="fails when libtiff was configured with --disable-old-jpeg")
     def test_tiff_ojpeg(self):
@@ -1935,6 +1942,13 @@ class TestForeign:
         lossy = self.colour.jxlsave_buffer()
         lossless = self.colour.jxlsave_buffer(lossless=True)
         assert len(lossy) < len(lossless) / 5
+
+        # bitdepth=1 should be smaller
+        buf8 = self.colour.jxlsave_buffer()
+        buf1 = self.colour.jxlsave_buffer(bitdepth=1)
+        assert len(buf1) < len(buf8)
+        im = pyvips.Image.jxlload_buffer(buf1)
+        assert im.get("bits-per-sample") == 1
 
     @skip_if_no("gifload")
     @skip_if_no("gifsave")
