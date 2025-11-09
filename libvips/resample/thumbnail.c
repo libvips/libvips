@@ -595,7 +595,7 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	factor = 1.0;
 
 	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader))
+		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
 		factor = vips_thumbnail_find_jpegshrink(thumbnail,
 			thumbnail->input_width, thumbnail->input_height);
 		g_info("loading with factor %g pre-shrink", factor);
