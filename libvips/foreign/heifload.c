@@ -28,6 +28,8 @@
  * 	- add @unlimited
  * 13/03/23 MathemanFlo
  * 	- add bits per sample metadata
+ * 10/11/25 Starbix
+ * - read CICP tag and create ICC profile
  */
 
 /*
@@ -61,7 +63,7 @@
 #define DEBUG_VERBOSE
 #define VIPS_DEBUG
 #define DEBUG
- */
+*/
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -717,7 +719,153 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 			(VipsCallbackFn) vips_area_free_cb, data, length);
 	}
 	else if (profile_type == heif_color_profile_type_nclx) {
-		g_info("heifload: ignoring nclx profile");
+#ifdef HAVE_LCMS2
+
+
+#include <lcms2.h>
+		g_info("heifload: generating synthetic ICC profile from nclx");
+
+		heif_color_profile_nclx* nclx = heif_nclx_color_profile_alloc();
+		if (!nclx) {
+			vips_error("heifload", "%s", _("unable to allocate nclx"));
+			return -1;
+		}
+
+		error = heif_image_handle_get_nclx_color_profile(heif->handle, &nclx);
+		if (error.code) {
+			heif_nclx_color_profile_free(nclx);
+			vips__heif_error(&error);
+			return -1;
+		}
+
+#ifdef DEBUG
+		printf("\tnclx: %p\n", nclx);
+		printf("\tnclx->color_primaries: %d\n", nclx->color_primaries);
+		printf("\tnclx->transfer_characteristics: %d\n", nclx->transfer_characteristics);
+		printf("\tnclx->matrix_coefficients: %d\n", nclx->matrix_coefficients);
+		printf("\tnclx->full_range_flag: %d\n", nclx->full_range_flag);
+#endif
+
+		if (!nclx->color_primaries || !nclx->transfer_characteristics || !nclx->matrix_coefficients) {
+			vips_error("heifload", "%s", _("unable to generate synthetic ICC profile"));
+			heif_nclx_color_profile_free(nclx);
+			return -1;
+		}
+
+		cmsToneCurve* curve;
+		switch (nclx->transfer_characteristics) {
+			case heif_transfer_characteristic_ITU_R_BT_709_5: //1, Rec. ITU-R BT.709-6
+			case heif_transfer_characteristic_ITU_R_BT_601_6: //6, Rec. ITU-R BT.601-7
+			case heif_transfer_characteristic_ITU_R_BT_2020_2_10bit: //14, Rec. ITU-R BT.2020-2 10-bit
+			case heif_transfer_characteristic_ITU_R_BT_2020_2_12bit: //15, Rec. ITU-R BT.2020-2 12-bit
+			// these are not an exact match
+			// the closest match is used, the correct curve is signalled by the cicp tag in the profile
+			case heif_transfer_characteristic_ITU_R_BT_2100_0_PQ: // 16, Rec. ITU-R BT.2100-2 PQ
+			case heif_transfer_characteristic_ITU_R_BT_2100_0_HLG: // 18, Rec. ITU-R BT.2100-2 HLG
+				const cmsFloat64Number params[5] = {
+					2.2,
+					1.0 / 1.099,
+					0.099 / 1.099,
+					1.0 / 4.5,
+					0.081
+				};
+				curve = cmsBuildParametricToneCurve(NULL, 4, params);
+				break;
+			case heif_transfer_characteristic_ITU_R_BT_470_6_System_M: // 4, Rec. ITU-R BT.470-6 System M
+				curve = cmsBuildGamma(NULL, 2.2);
+				break;
+			case heif_transfer_characteristic_ITU_R_BT_470_6_System_B_G: // 5, Rec. ITU-R BT.470-6 System B/G
+				curve = cmsBuildGamma(NULL, 2.8);
+				break;
+			case heif_transfer_characteristic_linear: // 8, Linear
+				curve = cmsBuildGamma(NULL, 1.0);
+				break;
+			default:
+				vips_error("heifload", "%s", _("unsupported transfer characteristic"));
+				heif_nclx_color_profile_free(nclx);
+				return -1;
+		}
+		if (!curve) {
+			vips_error("heifload", "%s", _("unable to generate synthetic ICC profile"));
+			heif_nclx_color_profile_free(nclx);
+			return -1;
+		}
+
+		const cmsCIExyY whitepoint = {nclx->color_primary_white_x, nclx->color_primary_white_y, 1.0};
+		const cmsCIExyYTRIPLE primaries = {
+			{nclx->color_primary_red_x, nclx->color_primary_red_y, 1.0},
+			{nclx->color_primary_green_x, nclx->color_primary_green_y, 1.0},
+			{nclx->color_primary_blue_x, nclx->color_primary_blue_y, 1.0}
+		};
+
+		cmsToneCurve* curves[3] = {curve, curve, curve};
+
+		cmsHPROFILE profile = cmsCreateRGBProfile(&whitepoint, &primaries, curves);
+		if (!profile) {
+			vips_error("heifload", "%s", _("unable to create ICC profile"));
+			heif_nclx_color_profile_free(nclx);
+			return -1;
+		}
+
+		char desc[256];
+		snprintf(desc, sizeof(desc),
+			"Synthetic profile from NCLX (CP:%u TC:%u MC:%u FR:%u)",
+			nclx->color_primaries,
+			nclx->transfer_characteristics,
+			nclx->matrix_coefficients,
+			nclx->full_range_flag);
+		cmsMLU* mlu = cmsMLUalloc(NULL, 1);
+		if (mlu) {
+			cmsMLUsetASCII(mlu, "en", "US", desc);
+			cmsWriteTag(profile, cmsSigProfileDescriptionTag, mlu);
+			cmsMLUfree(mlu);
+		}
+
+		// using cmsWriteRawTag as cmsWriteTag is bugged in 2.17
+		unsigned char cicp_data[12] = {
+		    'c', 'i', 'c', 'p',  // type signature
+		    0x00, 0x00, 0x00, 0x00,  // reserved
+		    (unsigned char)(nclx->color_primaries),
+		    (unsigned char)(nclx->transfer_characteristics),
+		    (unsigned char)(nclx->matrix_coefficients),
+		    (unsigned char)(nclx->full_range_flag)
+		};
+
+		if (!cmsWriteRawTag(profile, cmsSigcicpTag, cicp_data, 12)) {
+			vips_error("heifload", "%s", _("unable to write CICP tag"));
+			cmsCloseProfile(profile);
+			heif_nclx_color_profile_free(nclx);
+			return -1;
+		}
+
+		cmsUInt32Number length;
+		cmsBool err = cmsSaveProfileToMem(profile, NULL, &length);
+		if (!err) {
+			vips_error("heifload", "%s", _("unable to get ICC profile length"));
+			cmsCloseProfile(profile);
+			heif_nclx_color_profile_free(nclx);
+			return -1;
+		}
+
+		unsigned char *data;
+		if (!(data = VIPS_ARRAY(NULL, length, unsigned char)))
+			return -1;
+
+		err = cmsSaveProfileToMem(profile, data, &length);
+		if (!err) {
+			vips_error("heifload", "%s", _("unable to save ICC profile to memory"));
+			VIPS_FREE(data);
+			cmsCloseProfile(profile);
+			heif_nclx_color_profile_free(nclx);
+			return -1;
+		}
+
+		vips_image_set_blob(out, VIPS_META_ICC_NAME,
+			(VipsCallbackFn) vips_area_free_cb, data, length); // vips_area_free_cb correct??
+
+		cmsCloseProfile(profile);
+		heif_nclx_color_profile_free(nclx);
+#endif // HAVE_LCMS2
 	}
 
 	vips_image_set_int(out, "heif-primary", heif->primary_page);
