@@ -594,7 +594,8 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 
 	factor = 1.0;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
+		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
 		factor = vips_thumbnail_find_jpegshrink(thumbnail,
 			thumbnail->input_width, thumbnail->input_height);
 		g_info("loading with factor %g pre-shrink", factor);
@@ -665,12 +666,13 @@ static int
 vips_thumbnail_build(VipsObject *object)
 {
 	VipsThumbnail *thumbnail = VIPS_THUMBNAIL(object);
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 15);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 20);
 
 	VipsImage *in;
 	int preshrunk_page_height;
 	double hshrink;
 	double vshrink;
+	VipsImage *gainmap;
 
 	/* TRUE if we've done the import of an ICC transform and still need to
 	 * export.
@@ -836,6 +838,18 @@ vips_thumbnail_build(VipsObject *object)
 		return -1;
 	in = t[5];
 
+	/* Process the gainmap, if any.
+	 */
+	if ((gainmap = vips_image_get_gainmap(in))) {
+		if (vips_resize(gainmap, &t[15], 1.0 / hshrink,
+			"vscale", 1.0 / vshrink,
+			"kernel", VIPS_KERNEL_LINEAR,
+			NULL))
+			return -1;
+
+		vips_image_set_image(in, "gainmap", t[15]);
+	}
+
 	if (unpremultiplied_format != VIPS_FORMAT_NOTSET) {
 		g_info("unpremultiplying alpha");
 		if (vips_unpremultiply(in, &t[6], NULL) ||
@@ -931,6 +945,17 @@ vips_thumbnail_build(VipsObject *object)
 			vips_autorot(t[11], &t[12], NULL))
 			return -1;
 		in = t[12];
+
+		/* Also rotate the gainmap, if any.
+		 */
+		if ((gainmap = vips_image_get_gainmap(in))) {
+			vips_image_set_int(gainmap,
+				VIPS_META_ORIENTATION, thumbnail->orientation);
+			if (vips_autorot(gainmap, &t[17], NULL))
+				return -1;
+
+			vips_image_set_image(in, "gainmap", t[17]);
+		}
 	}
 
 	/* Crop after rotate so we don't need to rotate the crop box.
@@ -941,6 +966,8 @@ vips_thumbnail_build(VipsObject *object)
 		 */
 		int crop_width = VIPS_MIN(thumbnail->width, in->Xsize);
 		int crop_height = VIPS_MIN(thumbnail->height, in->Ysize);
+		int original_width = in->Xsize;
+		int original_height = in->Ysize;
 
 		g_info("cropping to %dx%d", crop_width, crop_height);
 
@@ -954,6 +981,24 @@ vips_thumbnail_build(VipsObject *object)
 				NULL))
 			return -1;
 		in = t[14];
+
+		int crop_left = -vips_image_get_xoffset(in);
+		int crop_top = -vips_image_get_yoffset(in);
+
+		/* Also crop the gainmap, if any.
+		 */
+		if ((gainmap = vips_image_get_gainmap(in))) {
+			double xscale = (double) gainmap->Xsize / original_width;
+			double yscale = (double) gainmap->Ysize / original_height;
+
+			if (vips_crop(gainmap, &t[16],
+					crop_left * xscale, crop_top * yscale,
+					crop_width * xscale, crop_height * yscale,
+					NULL))
+				return -1;
+
+			vips_image_set_image(in, "gainmap", t[16]);
+		}
 	}
 
 	g_object_set(thumbnail, "out", vips_image_new(), NULL);
@@ -1143,7 +1188,8 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailFile *file = (VipsThumbnailFile *) thumbnail;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
+		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
 		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
@@ -1378,7 +1424,8 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) thumbnail;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
+		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
 		return vips_image_new_from_buffer(
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
@@ -1592,7 +1639,8 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailSource *source = (VipsThumbnailSource *) thumbnail;
 
-	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader)) {
+	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
+		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
 		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
@@ -1600,8 +1648,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			"shrink", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadOpenslide",
-				 thumbnail->loader)) {
+	else if (vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
 		return vips_image_new_from_source(
 			source->source,
 			source->option_string,
