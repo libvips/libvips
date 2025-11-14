@@ -271,6 +271,7 @@ vips_foreign_save_uhdr_set_compressed_gainmap(VipsForeignSaveUhdr *uhdr,
 	size_t length;
 	void *to_free;
 
+	data = NULL;
 	to_free = NULL;
 	if (vips_image_get_typeof(image, "gainmap")) {
 		VipsImage *gainmap;
