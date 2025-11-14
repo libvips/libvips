@@ -318,6 +318,7 @@ if libjpeg_dep.found()
 endif
 
 # we need libjpeg for uhdrload and save
+libuhdr_dep = disabler()
 if libjpeg_dep.found()
   libuhdr_dep = dependency('libuhdr', required: get_option('uhdr'))
   if libuhdr_dep.found()
