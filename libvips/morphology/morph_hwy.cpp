@@ -101,19 +101,12 @@ vips_dilate_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 		 * proceed one by one.
 		 */
 		for (; x < sz; ++x) {
-			auto sum = zero;
+			int32_t sum = 0;
 
-			for (int32_t i = 0; i < nn128; ++i) {
-				/* Load with an offset.
-				 */
-				auto pix = LoadU(du8, p + offsets[i]);
+			for (int32_t i = 0; i < nn128; ++i) 
+				sum |= !coeff[i] ? ~p[offsets[i]] : p[offsets[i]];
 
-				if (!coeff[i])
-					pix = AndNot(pix, one);
-				sum = Or(sum, pix);
-			}
-
-			q[x] = GetLane(sum);
+			q[x] = sum;
 			p += 1;
 		}
 	}
@@ -158,19 +151,12 @@ vips_erode_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 		 * proceed one by one.
 		 */
 		for (; x < sz; ++x) {
-			auto sum = one;
+			int32_t sum = 255;
 
-			for (int32_t i = 0; i < nn128; ++i) {
-				/* Load with an offset.
-				 */
-				auto pix = LoadU(du8, p + offsets[i]);
+			for (int32_t i = 0; i < nn128; ++i)
+				sum &= !coeff[i] ? ~p[offsets[i]] : p[offsets[i]];
 
-				if (!coeff[i])
-					pix = AndNot(pix, one);
-				sum = And(sum, pix);
-			}
-
-			q[x] = GetLane(sum);
+			q[x] = sum;
 			p += 1;
 		}
 	}
