@@ -108,6 +108,9 @@ G_DEFINE_ABSTRACT_TYPE(VipsForeignLoadUhdr, vips_foreign_load_uhdr,
 static int
 vips_foreign_load_uhdr_is_a(VipsSource *source)
 {
+	if (!vips__isjpeg_source(source))
+		return 0;
+
 	VipsImage *context = vips_image_new();
 
 	ReadJpeg *jpeg;
@@ -738,7 +741,7 @@ vips_foreign_load_uhdr_class_init(VipsForeignLoadUhdrClass *class)
 	object_class->description = _("load a UHDR image");
 	object_class->build = vips_foreign_load_uhdr_build;
 
-	/* We need to be higher poriority than jpegload.
+	/* We need to be higher priority than jpegload.
 	 */
 	foreign_class->priority = 100;
 
