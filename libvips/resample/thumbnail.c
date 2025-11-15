@@ -41,6 +41,8 @@
  *	- skip colourspace conversion when needed
  * 27/1/24
  *	- make icc profile transforms always write 8 bits
+ * 22/8/25 kleisauke
+ *	- remove seq line cache from thumbnail_image, use hint instead
  */
 
 /*
@@ -1837,18 +1839,10 @@ static VipsImage *
 vips_thumbnail_image_open(VipsThumbnail *thumbnail, double factor)
 {
 	VipsThumbnailImage *image = (VipsThumbnailImage *) thumbnail;
-	VipsImage **t = (VipsImage **)
-		vips_object_local_array(VIPS_OBJECT(thumbnail), 1);
 
-	/* We want thumbnail to run in sequential mode on this image, or we
-	 * may get horrible cache thrashing.
-	 */
-	if (vips_sequential(image->in, &t[0], "tile-height", 16, NULL))
-		return NULL;
+	g_object_ref(image->in);
 
-	g_object_ref(t[0]);
-
-	return t[0];
+	return image->in;
 }
 
 static void
@@ -1856,6 +1850,7 @@ vips_thumbnail_image_class_init(VipsThumbnailClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 	VipsThumbnailClass *thumbnail_class = VIPS_THUMBNAIL_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
@@ -1863,6 +1858,8 @@ vips_thumbnail_image_class_init(VipsThumbnailClass *class)
 
 	vobject_class->nickname = "thumbnail_image";
 	vobject_class->description = _("generate thumbnail from image");
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	thumbnail_class->get_info = vips_thumbnail_image_get_info;
 	thumbnail_class->open = vips_thumbnail_image_open;
