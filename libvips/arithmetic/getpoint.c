@@ -202,8 +202,11 @@ vips_getpoint_init(VipsGetpoint *getpoint)
  * The result array has an element for each band. If @unpack_complex is set,
  * pixels in complex images are returned as double-length arrays.
  *
+ * This operation is slow. If you want to read many points, use
+ * [method@Image.write_to_memory].
+ *
  * ::: seealso
- *     [method@Image.draw_point].
+ *     [method@Image.draw_point], [method@Image.write_to_memory].
  *
  * Returns: 0 on success, or -1 on error.
  */
