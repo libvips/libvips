@@ -1105,6 +1105,15 @@ class TestForeign:
         b2 = im.webpsave_buffer(Q=90)
         assert len(b2) > len(b1)
 
+        # test exact mode
+        im = pyvips.Image.new_from_file(RGBA_FILE)
+        buf = im.webpsave_buffer(lossless=True, exact=True)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+        assert (im - im2).abs().max() == 0
+        buf = im.webpsave_buffer(lossless=True)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+        assert (im - im2).abs().max() != 0
+
         # try saving an image with an ICC profile and reading it back ... if we
         # can do it, our webp supports metadata load/save
         buf = self.colour.webpsave_buffer()
