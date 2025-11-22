@@ -439,7 +439,8 @@ static VipsColourRoute vips_colour_routes[] = {
  * vips_colourspace_issupported: (method)
  * @image: input image
  *
- * Test if @image is in a colourspace that [method@Image.colourspace] can process.
+ * Test if @image is in a colourspace that [method@Image.colourspace] can
+ * process.
  *
  * Returns: `TRUE` if @image is in a supported colourspace.
  */
@@ -449,12 +450,18 @@ vips_colourspace_issupported(const VipsImage *image)
 	VipsInterpretation interpretation;
 	int i;
 
+	interpretation = vips_image_guess_interpretation(image);
+
 	/* Treat RGB as sRGB. If you want some other treatment,
 	 * you'll need to use the icc funcs.
 	 */
-	interpretation = vips_image_guess_interpretation(image);
 	if (interpretation == VIPS_INTERPRETATION_RGB)
 		interpretation = VIPS_INTERPRETATION_sRGB;
+
+	/* Treat MATRIX as B_W.
+	 */
+	if (interpretation == VIPS_INTERPRETATION_MATRIX)
+		interpretation = VIPS_INTERPRETATION_B_W;
 
 	for (i = 0; i < VIPS_NUMBER(vips_colour_routes); i++)
 		if (vips_colour_routes[i].from == interpretation)
@@ -515,6 +522,11 @@ vips_colourspace_build(VipsObject *object)
 	 */
 	if (interpretation == VIPS_INTERPRETATION_RGB)
 		interpretation = VIPS_INTERPRETATION_sRGB;
+
+	/* Treat MATRIX as B_W.
+	 */
+	if (interpretation == VIPS_INTERPRETATION_MATRIX)
+		interpretation = VIPS_INTERPRETATION_B_W;
 
 	for (i = 0; i < VIPS_NUMBER(vips_colour_routes); i++)
 		if (vips_colour_routes[i].from == interpretation &&
