@@ -34,7 +34,7 @@ Try entering:
 fred = 99;
 ```
 
-And pressing the ▶ (play) button will make nip4 parse and compile your
+Pressing the ▶ (play) button will make nip4 parse and compile your
 definition.  Back in the workspace, try entering `fred` at the bottom of
 column `A`. You should see:
 
@@ -46,7 +46,7 @@ and if you change one, everything that uses it will also update.
 
 If you right-click on the workspace background and select **Edit toolkits**
 you'll get something more like a tiny development environment for the
-language, but Workspace definitions is handier for little experiments.
+language, but **Workspace definitions** is handier for little experiments.
 
 ## Multiple definitions
 
@@ -77,7 +77,7 @@ would be better.
 A parallel new feature is function argument pattern matching and 
 deconstruction. 
 
-Function arguments don't have to be simple variables -- they can be
+Function arguments don't have to be simple variables --- they can be
 complex structure declarations. For example:
 
 ```
@@ -119,9 +119,7 @@ conj (x, y) = (x, -y);
 Finds the complex conjugate, or:
 
 ```
-```
-banana [a, (x, y), c] = "a three element list, " ++
-    "with a complex number as the middle element";
+banana [a, (x, y), c] = "a three element list, with a complex number as the middle element";
 ```
 
 Or:
