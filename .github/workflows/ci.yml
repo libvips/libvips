@@ -67,7 +67,7 @@ jobs:
             cfitsio cgif fftw fontconfig glib \
             highway jpeg-xl libarchive libexif \
             libheif libimagequant libmatio librsvg \
-            libspng libtiff little-cms2 mozjpeg \
+            libpng libtiff little-cms2 mozjpeg \
             openexr openjpeg openslide pango \
             poppler webp
 
