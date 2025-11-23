@@ -3,6 +3,7 @@
 - vipsthumbnail: fix pyramidal image layer selection [esiqveland]
 - tools: fix possible deadlock during process exit on win32
 - fix temp dir handling on win32 with Unicode usernames [kleisauke]
+- pngsave, ppmsave: support for more image interpretations [gcsideal]
 
 30/10/25 8.17.3
 

@@ -125,27 +125,31 @@ vips_foreign_save_png_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "colours"))
 		png->bitdepth = ceil(log2(png->colours));
 
-	/* The bitdepth param can change the interpretation.
-	 */
-	VipsInterpretation interpretation;
-	if (in->Bands > 2) {
-	   if (png->bitdepth > 8)
-		   interpretation = VIPS_INTERPRETATION_RGB16;
-	   else
-		   interpretation = VIPS_INTERPRETATION_sRGB;
-	}
-	else {
-	   if (png->bitdepth > 8)
-		   interpretation = VIPS_INTERPRETATION_GREY16;
-	   else
-		   interpretation = VIPS_INTERPRETATION_B_W;
-	}
-	if (vips_colourspace(in, &x, interpretation, NULL)) {
+	if (vips_colourspace_issupported(in)) {
+		VipsInterpretation interpretation;
+
+		/* The bitdepth param can change the interpretation.
+		 */
+		if (in->Bands > 2) {
+		   if (png->bitdepth > 8)
+			   interpretation = VIPS_INTERPRETATION_RGB16;
+		   else
+			   interpretation = VIPS_INTERPRETATION_sRGB;
+		}
+		else {
+		   if (png->bitdepth > 8)
+			   interpretation = VIPS_INTERPRETATION_GREY16;
+		   else
+			   interpretation = VIPS_INTERPRETATION_B_W;
+		}
+
+		if (vips_colourspace(in, &x, interpretation, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
 		g_object_unref(in);
-		return -1;
+		in = x;
 	}
-	g_object_unref(in);
-	in = x;
 
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettization.
