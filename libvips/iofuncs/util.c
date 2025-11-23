@@ -1593,7 +1593,7 @@ vips_amiMSBfirst(void)
 #endif
 }
 
-/* Return the tmp dir. On Windows, GetTempPath() will also check the values of
+/* Return the tmp dir. On Windows, GetTempPathW() will also check the values of
  * TMP, TEMP and USERPROFILE.
  */
 static const char *
@@ -1603,14 +1603,22 @@ vips__temp_dir(void)
 
 	if (!(tmpd = g_getenv("TMPDIR"))) {
 #ifdef G_OS_WIN32
-		static gboolean done = FALSE;
-		static char buf[256];
+		static char *tmp_dir = NULL;
 
-		if (!done) {
-			if (!GetTempPath(256, buf))
-				strcpy(buf, "C:\\temp");
+		if (tmp_dir == NULL) {
+			char *dir = NULL;
+			wchar_t wdir[MAX_PATH];
+
+			if (GetTempPathW(G_N_ELEMENTS(wdir), wdir))
+				dir = g_utf16_to_utf8(wdir, -1, NULL, NULL, NULL);
+
+			if (dir == NULL)
+				dir = g_strdup("C:\\temp");
+
+			tmp_dir = g_steal_pointer(&dir);
 		}
-		tmpd = buf;
+
+		tmpd = tmp_dir;
 #else  /*!G_OS_WIN32*/
 		tmpd = "/tmp";
 #endif /*!G_OS_WIN32*/

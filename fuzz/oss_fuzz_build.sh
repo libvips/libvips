@@ -100,17 +100,6 @@ cmake \
 cmake --build . --target install
 popd
 
-# libspng
-pushd $SRC/libspng
-# Workaround for https://github.com/llvm/llvm-project/issues/163369
-if [ "$SANITIZER" = "thread" ]; then
-  sed -i "/target_clones.c/,+2d" meson.build
-fi
-meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized \
-  -Dstatic_zlib=true -Dbuild_examples=false
-meson install -C build --tag devel
-popd
-
 # libwebp
 pushd $SRC/libwebp
 autoreconf -fi
