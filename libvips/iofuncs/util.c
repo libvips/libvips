@@ -571,7 +571,7 @@ vips__write(int fd, const void *buf, size_t count)
 /* Set the create date on a file. On Windows, the create date may be copied
  * over from an existing file of the same name, unless you reset it.
  *
- * See https://blogs.msdn.microsoft.com/oldnewthing/20050715-14/?p=34923
+ * See https://devblogs.microsoft.com/oldnewthing/20050715-14/?p=34923
  */
 void
 vips__set_create_time(int fd)
