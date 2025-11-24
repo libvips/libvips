@@ -291,10 +291,11 @@ vips_foreign_save_ppm_build(VipsObject *object)
 		break;
 	}
 
-	if (vips_colourspace_issupported(image) &&
-		vips_colourspace(image, &t[1], target_interpretation, NULL))
-		return -1;
-	image = t[1];
+	if (vips_colourspace_issupported(image)) {
+		if (vips_colourspace(image, &t[1], target_interpretation, NULL))
+			return -1;
+		image = t[1];
+	}
 
 	/* Get bands right.
 	 */
