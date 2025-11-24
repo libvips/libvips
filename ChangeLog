@@ -20,12 +20,14 @@ master
 - thumbnail updates gainmaps
 - add "bitdepth" to jxlsave
 - add "path" option to vipsthumbnail, deprecate "output" option [zjturner]
+- add "exact" to webpsave
 - dzsave has gainmap support
 
 8.17.4
 
 - vipsthumbnail: fix pyramidal image layer selection [esiqveland]
 - tools: fix possible deadlock during process exit on win32
+- fix temp dir handling on win32 with Unicode usernames [kleisauke]
 
 30/10/25 8.17.3
 

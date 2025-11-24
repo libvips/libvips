@@ -100,17 +100,6 @@ cmake \
 cmake --build . --target install
 popd
 
-# libspng
-pushd $SRC/libspng
-# Workaround for https://github.com/llvm/llvm-project/issues/163369
-if [ "$SANITIZER" = "thread" ]; then
-  sed -i "/target_clones.c/,+2d" meson.build
-fi
-meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized \
-  -Dstatic_zlib=true -Dbuild_examples=false
-meson install -C build --tag devel
-popd
-
 # libwebp
 pushd $SRC/libwebp
 autoreconf -fi
@@ -188,6 +177,33 @@ cmake \
   -DHWY_ENABLE_CONTRIB=0 \
   -DHWY_ENABLE_EXAMPLES=0 \
   -DHWY_ENABLE_TESTS=0 \
+  .
+cmake --build . --target install
+popd
+
+# libjxl
+pushd $SRC/libjxl
+# libvips always decodes to pixels, so build with
+# -DJPEGXL_ENABLE_TRANSCODE_JPEG=FALSE
+cmake \
+  -GNinja \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_INSTALL_PREFIX=$WORK \
+  -DCMAKE_FIND_ROOT_PATH=$WORK \
+  -DBUILD_SHARED_LIBS=FALSE \
+  -DBUILD_TESTING=FALSE \
+  -DJPEGXL_ENABLE_BENCHMARK=FALSE \
+  -DJPEGXL_ENABLE_EXAMPLES=FALSE \
+  -DJPEGXL_ENABLE_FUZZERS=FALSE \
+  -DJPEGXL_ENABLE_JPEGLI=FALSE \
+  -DJPEGXL_ENABLE_MANPAGES=FALSE \
+  -DJPEGXL_ENABLE_SJPEG=FALSE \
+  -DJPEGXL_ENABLE_SKCMS=FALSE \
+  -DJPEGXL_ENABLE_TOOLS=FALSE \
+  -DJPEGXL_ENABLE_TRANSCODE_JPEG=FALSE \
+  -DJPEGXL_FORCE_SYSTEM_BROTLI=TRUE \
+  -DJPEGXL_FORCE_SYSTEM_HWY=TRUE \
+  -DJPEGXL_FORCE_SYSTEM_LCMS2=TRUE \
   .
 cmake --build . --target install
 popd

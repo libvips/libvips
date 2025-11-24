@@ -54,6 +54,10 @@ cpp = meson.get_compiler('cpp')
 # Prevent use of void* pointer arithmetic to support MSVC
 add_project_arguments(cc.get_supported_arguments('-Werror=pointer-arith'), language: ['cpp', 'c'])
 
+if host_os == 'windows'
+    add_project_arguments(['-DUNICODE', '-D_UNICODE'], language: ['cpp', 'c'])
+endif
+
 # libFuzzer related things
 fuzzing_engine = get_option('fuzzing_engine')
 if fuzzing_engine == 'libfuzzer'
@@ -318,40 +322,41 @@ if libjpeg_dep.found()
 endif
 
 # we need libjpeg for uhdrload and save
+libuhdr_dep = disabler()
 if libjpeg_dep.found()
-  libuhdr_dep = dependency('libuhdr', required: get_option('uhdr'))
-  if libuhdr_dep.found()
-      external_deps += libuhdr_dep
-      cfg_var.set('HAVE_UHDR', true)
-  endif
+    libuhdr_dep = dependency('libuhdr', required: get_option('uhdr'))
+    if libuhdr_dep.found()
+        external_deps += libuhdr_dep
+        cfg_var.set('HAVE_UHDR', true)
+    endif
 endif
 
 # png package we use
 png_package = disabler()
 
-# Look for libspng first
-# - it's sometimes called "spng.pc", sometimes "libspng.pc", we must search for
-#   both
-# - we need 0.7+ for PNG write support
-# TODO: simplify this when requiring meson>=0.60.0
-spng_dep = dependency('spng', version: '>=0.7', required: false)
-if not spng_dep.found()
-    spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
-endif
-if not get_option('spng').disabled() and spng_dep.found()
-    external_deps += spng_dep
-    cfg_var.set('HAVE_SPNG', true)
-    png_package = spng_dep
+# look for libpng first
+png_dep = dependency('libpng', version: '>=1.2.9', required: get_option('png'))
+if png_dep.found()
+    external_deps += png_dep
+    cfg_var.set('HAVE_PNG', true)
+    cfg_var.set('HAVE_PNG_SET_CHUNK_MALLOC_MAX', cc.has_function('png_set_chunk_malloc_max', prefix: '#include <png.h>', dependencies: png_dep))
+    png_package = png_dep
 endif
 
-# only if libspng not found
+# only if libpng not found
 if not png_package.found()
-    png_dep = dependency('libpng', version: '>=1.2.9', required: get_option('png'))
-    if png_dep.found()
-        external_deps += png_dep
-        cfg_var.set('HAVE_PNG', true)
-        cfg_var.set('HAVE_PNG_SET_CHUNK_MALLOC_MAX', cc.has_function('png_set_chunk_malloc_max', prefix: '#include <png.h>', dependencies: png_dep))
-        png_package = png_dep
+    # - it's sometimes called "spng.pc", sometimes "libspng.pc", we must search for
+    #   both
+    # - we need 0.7+ for PNG write support
+    # TODO: simplify this when requiring meson>=0.60.0
+    spng_dep = dependency('spng', version: '>=0.7', required: false)
+    if not spng_dep.found()
+        spng_dep = dependency('libspng', version: '>=0.7', required: get_option('spng'))
+    endif
+    if not get_option('spng').disabled() and spng_dep.found()
+        external_deps += spng_dep
+        cfg_var.set('HAVE_SPNG', true)
+        png_package = spng_dep
     endif
 endif
 
@@ -704,7 +709,7 @@ build_features = {
      'UHDR load/save': ['libuhdr', libuhdr_dep],
      'JXL load/save': ['libjxl', libjxl_found ? libjxl_dep : disabler(), libjxl_module],
      'JPEG2000 load/save': ['OpenJPEG', libopenjp2_dep],
-     'PNG load/save': ['libspng or libpng', png_package],
+     'PNG load/save': ['libpng or spng', png_package],
      'image quantisation': ['imagequant or quantizr', quantisation_package],
      'TIFF load/save': ['libtiff', libtiff_dep],
      'image pyramid save': ['libarchive', libarchive_dep],

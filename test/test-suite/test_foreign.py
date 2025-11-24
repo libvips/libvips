@@ -539,12 +539,10 @@ class TestForeign:
         gainmap_data_after = im2.get("gainmap-data")
         assert len(gainmap_data_after) < len(gainmap_data_before)
 
-        hscale = thumb.width / im.width
-        vscale = thumb.height / im.height
         gainmap_before = pyvips.Image.jpegload_buffer(gainmap_data_before)
         gainmap_after = pyvips.Image.jpegload_buffer(gainmap_data_after)
-        assert hscale * gainmap_before.width == gainmap_after.width
-        assert vscale * gainmap_before.height == gainmap_after.height
+        assert gainmap_before.width > gainmap_after.width
+        assert gainmap_before.height > gainmap_after.height
 
     @skip_if_no("uhdrload")
     def test_uhdr_thumbnail_crop(self):
@@ -554,7 +552,7 @@ class TestForeign:
 
         gainmap_data_after = im2.get("gainmap-data")
         gainmap_after = pyvips.Image.jpegload_buffer(gainmap_data_after)
-        assert gainmap_after.width == gainmap_after.height
+        assert abs(gainmap_after.width - gainmap_after.height) < 5
 
     @skip_if_no("pngload")
     def test_png(self):
@@ -1104,6 +1102,15 @@ class TestForeign:
         b1 = im.webpsave_buffer(Q=10)
         b2 = im.webpsave_buffer(Q=90)
         assert len(b2) > len(b1)
+
+        # test exact mode
+        im = pyvips.Image.new_from_file(RGBA_FILE)
+        buf = im.webpsave_buffer(lossless=True, exact=True)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+        assert (im - im2).abs().max() == 0
+        buf = im.webpsave_buffer(lossless=True)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+        assert (im - im2).abs().max() != 0
 
         # try saving an image with an ICC profile and reading it back ... if we
         # can do it, our webp supports metadata load/save

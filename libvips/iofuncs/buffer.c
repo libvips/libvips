@@ -482,7 +482,7 @@ buffer_move(VipsBuffer *buffer, VipsRect *area)
 		area->width * area->height;
 
 	/* Need to pad buffer size to be aligned-up to
-	 * 64 bytes for the vips_reduce{h,v} highway path.
+	 * 64 bytes for the highway paths.
 	 */
 #ifdef HAVE_HWY
 	if (im->BandFmt == VIPS_FORMAT_UCHAR) {
