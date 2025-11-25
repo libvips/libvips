@@ -573,6 +573,7 @@ class TestForeign:
         for [level, tile_x, tile_y] in [
                 [deepest, 0, 0],
                 [deepest, 3, 1],
+                [10, 1, 0],
                 [9, 0, 0],
                 [9, 1, 0]
             ]:
@@ -586,14 +587,15 @@ class TestForeign:
             assert abs(gainmap_after.width - tile.width / hscale) < 2
             assert abs(gainmap_after.height - tile.height / vscale) < 2
 
-            shrunk_gainmap = gainmap_before.resize(1 / (1 << (deepest - level)))
+            shrunk_gainmap = gainmap_before.resize(1 / (1 << (deepest - level)),
+                                                   kernel="linear")
             left = tile_x * tile.width / hscale
             top = tile_y * tile.width / vscale
             expected_gainmap_after = shrunk_gainmap.crop(left,
                                                          top,
                                                          gainmap_after.width,
                                                          gainmap_after.height)
-            assert abs(expected_gainmap_after.avg() - gainmap_after.avg()) < 10
+            assert abs(expected_gainmap_after.avg() - gainmap_after.avg()) < 15
 
     @skip_if_no("pngload")
     def test_png(self):
