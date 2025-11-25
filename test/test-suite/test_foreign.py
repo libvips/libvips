@@ -554,6 +554,47 @@ class TestForeign:
         gainmap_after = pyvips.Image.jpegload_buffer(gainmap_data_after)
         assert abs(gainmap_after.width - gainmap_after.height) < 5
 
+    @skip_if_no("uhdrload")
+    @skip_if_no("dzsave")
+    def test_uhdr_dzsave(self):
+        filename = temp_filename(self.tempdir, '')
+        uhdr = pyvips.Image.uhdrload(UHDR_FILE)
+
+        gainmap_data_before = uhdr.get("gainmap-data")
+        gainmap_before = pyvips.Image.jpegload_buffer(gainmap_data_before)
+        hscale = uhdr.width / gainmap_before.width
+        vscale = uhdr.height / gainmap_before.height
+
+        uhdr.dzsave(filename, keep="gainmap")
+
+        # _files/12 is the full res image
+        deepest = 12
+
+        for [level, tile_x, tile_y] in [
+                [deepest, 0, 0],
+                [deepest, 3, 1],
+                [9, 0, 0],
+                [9, 1, 0]
+            ]:
+            tile_path = f"{filename}_files/{level}/{tile_x}_{tile_y}.jpeg"
+
+            tile = pyvips.Image.uhdrload(tile_path)
+            gainmap_data_after = tile.get("gainmap-data")
+            gainmap_after = pyvips.Image.jpegload_buffer(gainmap_data_after)
+
+            # rounding plus overlaps
+            assert abs(gainmap_after.width - tile.width / hscale) < 2
+            assert abs(gainmap_after.height - tile.height / vscale) < 2
+
+            shrunk_gainmap = gainmap_before.resize(1 / (1 << (deepest - level)))
+            left = tile_x * tile.width / hscale
+            top = tile_y * tile.width / vscale
+            expected_gainmap_after = shrunk_gainmap.crop(left,
+                                                         top,
+                                                         gainmap_after.width,
+                                                         gainmap_after.height)
+            assert abs(expected_gainmap_after.avg() - gainmap_after.avg()) < 10
+
     @skip_if_no("pngload")
     def test_png(self):
         def png_valid(im):
