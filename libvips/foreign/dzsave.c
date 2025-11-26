@@ -1425,12 +1425,11 @@ image_strip_work(VipsThreadState *state, void *a)
 			return -1;
 		}
 
-		if (vips_extract_area(a, &b,
-			dz->gainmap_hscale * tile_x * dz->tile_size / level->sub,
-			dz->gainmap_vscale * tile_y * dz->tile_size / level->sub,
-			VIPS_MAX(1, dz->gainmap_hscale * state->pos.width),
-			VIPS_MAX(1, dz->gainmap_vscale * state->pos.height),
-			NULL)) {
+		int left = dz->gainmap_hscale * tile_x * dz->tile_size;
+		int top = dz->gainmap_vscale * tile_y * dz->tile_size;
+		int width = VIPS_MAX(1, dz->gainmap_hscale * state->pos.width);
+		int height = VIPS_MAX(1, dz->gainmap_vscale * state->pos.height);
+		if (vips_extract_area(a, &b, left, top, width, height, NULL)) {
 			VIPS_UNREF(a);
 			VIPS_UNREF(x);
 			return -1;

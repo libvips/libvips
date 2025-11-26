@@ -574,8 +574,7 @@ class TestForeign:
                 [deepest, 0, 0],
                 [deepest, 3, 1],
                 [10, 1, 0],
-                [9, 0, 0],
-                [9, 1, 0]
+                [9, 0, 0]
             ]:
             tile_path = f"{filename}_files/{level}/{tile_x}_{tile_y}.jpeg"
 
@@ -590,12 +589,12 @@ class TestForeign:
             shrunk_gainmap = gainmap_before.resize(1 / (1 << (deepest - level)),
                                                    kernel="linear")
             left = tile_x * tile.width / hscale
-            top = tile_y * tile.width / vscale
+            top = tile_y * tile.height / vscale
             expected_gainmap_after = shrunk_gainmap.crop(left,
                                                          top,
                                                          gainmap_after.width,
                                                          gainmap_after.height)
-            assert abs(expected_gainmap_after.avg() - gainmap_after.avg()) < 15
+            assert abs(expected_gainmap_after.avg() - gainmap_after.avg()) < 1
 
     @skip_if_no("pngload")
     def test_png(self):
