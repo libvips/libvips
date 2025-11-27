@@ -98,6 +98,8 @@
  *	- add dzsave_target
  * 8/9/23
  *	- add direct mode
+ * 24/11/25
+ *	- add gainmap support
  */
 
 /*
@@ -332,6 +334,16 @@ struct _VipsForeignSaveDz {
 	 * saving .. used to test for blank tiles.
 	 */
 	VipsPel *ink;
+
+	/* The gainmap, if this image has one. Workers shrink and crop this during
+	 * tile save.
+	 */
+	VipsImage *gainmap;
+
+	/* Scale main image cods by this to get gainmap cods.
+	 */
+	double gainmap_hscale;
+	double gainmap_vscale;
 };
 
 typedef VipsForeignSaveClass VipsForeignSaveDzClass;
@@ -408,6 +420,7 @@ vips_foreign_save_dz_dispose(GObject *gobject)
 
 	VIPS_FREEF(vips__archive_free, dz->archive);
 	VIPS_UNREF(dz->target);
+	VIPS_UNREF(dz->gainmap);
 
 	VIPS_FREEF(level_free, dz->level);
 
@@ -1390,19 +1403,46 @@ image_strip_work(VipsThreadState *state, void *a)
 
 	if (dz->skip_blanks >= 0 &&
 		image_tile_equal(x, dz->skip_blanks, dz->ink)) {
-		g_object_unref(x);
-
 #ifdef DEBUG_VERBOSE
 		printf("image_strip_work: skipping blank tile %d x %d\n",
 			tile_x, tile_y);
 #endif /*DEBUG_VERBOSE*/
 
+		VIPS_UNREF(x);
 		return 0;
 	}
 
-	if (!(out = tile_name(level, tile_x, tile_y))) {
-		g_object_unref(x);
+	/* If there's a gainmap, generate and attach that too.
+	 */
+	if (dz->gainmap) {
+		VipsImage *a, *b;
 
+		if (vips_resize(dz->gainmap, &a, 1.0 / level->sub,
+			"vscale", 1.0 / level->sub,
+			"kernel", VIPS_KERNEL_LINEAR,
+			NULL)) {
+			VIPS_UNREF(x);
+			return -1;
+		}
+
+		int left = dz->gainmap_hscale * tile_x * dz->tile_size;
+		int top = dz->gainmap_vscale * tile_y * dz->tile_size;
+		int width = VIPS_MAX(1, dz->gainmap_hscale * state->pos.width);
+		int height = VIPS_MAX(1, dz->gainmap_vscale * state->pos.height);
+		if (vips_extract_area(a, &b, left, top, width, height, NULL)) {
+			VIPS_UNREF(a);
+			VIPS_UNREF(x);
+			return -1;
+		}
+		VIPS_UNREF(a);
+
+		vips_image_set_image(x, "gainmap", b);
+
+		VIPS_UNREF(b);
+	}
+
+	if (!(out = tile_name(level, tile_x, tile_y))) {
+		VIPS_UNREF(x);
 		return -1;
 	}
 
@@ -1412,14 +1452,14 @@ image_strip_work(VipsThreadState *state, void *a)
 	vips_image_set_int(x, VIPS_META_CONCURRENCY, 1);
 
 	if (write_image(dz, x, out, dz->suffix)) {
-		g_free(out);
-		g_object_unref(x);
+		VIPS_FREE(out);
+		VIPS_UNREF(x);
 
 		return -1;
 	}
 
-	g_free(out);
-	g_object_unref(x);
+	VIPS_FREE(out);
+	VIPS_UNREF(x);
 
 #ifdef DEBUG_VERBOSE
 	printf("image_strip_work: success\n");
@@ -2074,16 +2114,6 @@ vips_foreign_save_dz_build(VipsObject *object)
 		save->ready = z;
 	}
 
-	/* We use ink to check for blank tiles.
-	 */
-	if (dz->skip_blanks >= 0) {
-		if (!(dz->ink = vips__vector_to_ink(
-				  class->nickname, save->ready,
-				  VIPS_AREA(save->background)->data, NULL,
-				  VIPS_AREA(save->background)->n)))
-			return -1;
-	}
-
 	/* The real (not background) pixels we have. save->ready can be a lot
 	 * bigger. left/top are moved if we centre.
 	 */
@@ -2091,6 +2121,33 @@ vips_foreign_save_dz_build(VipsObject *object)
 	save_area.top = 0;
 	save_area.width = save->ready->Xsize;
 	save_area.height = save->ready->Ysize;
+
+	/* Load the gainmap, if any.
+	 */
+	if ((dz->gainmap = vips_image_get_gainmap(save->ready))) {
+		// we need a true reference
+		g_object_ref(dz->gainmap);
+
+		dz->gainmap_hscale = (double) dz->gainmap->Xsize / save->ready->Xsize;
+		dz->gainmap_vscale = (double) dz->gainmap->Ysize / save->ready->Ysize;
+
+		/* Don't check for blanks, too annoying with a gainmap as well.
+		 */
+		dz->skip_blanks = -1;
+
+		/* Direct mode does not support gainmaps.
+		 */
+		dz->direct = FALSE;
+	}
+
+	/* We use ink to check for blank tiles.
+	 */
+	if (dz->skip_blanks >= 0) {
+		if (!(dz->ink = vips__vector_to_ink(class->nickname, save->ready,
+				VIPS_AREA(save->background)->data, NULL,
+				VIPS_AREA(save->background)->n)))
+			return -1;
+	}
 
 	/* In google mode, we expand the image so we have complete tiles in every
 	 * level. We shrink to fit in one tile, then expand those dimensions out
@@ -2145,7 +2202,28 @@ vips_foreign_save_dz_build(VipsObject *object)
 
 		VIPS_UNREF(save->ready);
 		save->ready = z;
+
+		if (dz->gainmap) {
+			if (vips_embed(dz->gainmap, &z,
+				save_area.left * dz->gainmap_hscale,
+				save_area.top * dz->gainmap_vscale,
+				width * dz->gainmap_hscale,
+				height * dz->gainmap_vscale,
+				"background", save->background,
+				NULL))
+				return -1;
+
+			VIPS_UNREF(dz->gainmap);
+			dz->gainmap = z;
+		}
 	}
+
+	/* Force gainmap decode -- we don't want to delay this until first tile
+	 * write.
+	 */
+	if (dz->gainmap &&
+		vips_image_wio_input(dz->gainmap))
+		return -1;
 
 #ifdef DEBUG
 	printf("vips_foreign_save_dz_build: tile_size == %d\n", dz->tile_size);
