@@ -2135,7 +2135,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 		 */
 		dz->skip_blanks = -1;
 
-		/* Direct mode soes not support gainmaps.
+		/* Direct mode does not support gainmaps.
 		 */
 		dz->direct = FALSE;
 	}
