@@ -22,6 +22,7 @@ master
 - add "path" option to vipsthumbnail, deprecate "output" option [zjturner]
 - add "exact" to webpsave
 - add "uhdr2scRGB"
+- dzsave has gainmap support
 
 8.17.4
 
