@@ -21,6 +21,7 @@ master
 - add "bitdepth" to jxlsave
 - add "path" option to vipsthumbnail, deprecate "output" option [zjturner]
 - add "exact" to webpsave
+- add "uhdr2scRGB"
 
 8.17.4
 
