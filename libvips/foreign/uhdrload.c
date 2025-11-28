@@ -1000,6 +1000,10 @@ vips_foreign_load_uhdr_source_init(VipsForeignLoadUhdrSource *source)
  * If @hdr is set, the UltraHDR image is decoded as an HDR scRGB image. This
  * will usually be slow and require a lot of memory.
  *
+ * If @hdr is not set, at some later point you can use
+ * [method@Image.uhdr2scRGB] to convert the SDR + gainmap image to full scRGB
+ * HDR.
+ *
  * Set @shrink to shrink the returned image by an integer factor during load.
  *
  * ::: tip "Optional arguments"
@@ -1007,7 +1011,7 @@ vips_foreign_load_uhdr_source_init(VipsForeignLoadUhdrSource *source)
  *     * @shrink: `gint`, shrink by this factor on load
  *
  * ::: seealso
- *     [ctor@Image.new_from_file].
+ *     [ctor@Image.new_from_file], [method@Image.uhdr2scRGB].
  *
  * Returns: 0 on success, -1 on error.
  */
