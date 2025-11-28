@@ -85,7 +85,8 @@ vips_uhdr2scRGB_mono(VipsUhdr2scRGB *uhdr,
 		float b = vips_v2Y_8[p1[2]];
 		p1 += 3;
 
-		float gg = vips_v2Y_8[p2[0]];
+		// the gainmap is not gamma corrected in libultrahdr, confusingly
+		float gg = p2[0] / 255.0;
 		p2 += 1;
 
 		if (uhdr->gamma[1] != 1.0f)
