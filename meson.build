@@ -176,12 +176,21 @@ if meson.can_run_host_binaries()
 else
     have_target_clones = cc.links(target_clones_check, args: '-Werror', name: 'Has target_clones attribute')
 endif
-# ThreadSanitizer is incompatible with the target_clones attribute
-# See: https://github.com/llvm/llvm-project/issues/163369
-if have_target_clones and get_option('b_sanitize') == 'thread'
-    have_target_clones = false
+# `target_clones` attribute is incompatible with:
+# - ThreadSanitizer on Clang and GCC
+#   https://github.com/llvm/llvm-project/issues/163369
+#   https://gcc.gnu.org/PR122894
+# - Profile-guided optimization on GCC
+#   https://gcc.gnu.org/PR122895
+cflags = ' '.join(get_option('c_args'))
+broken_fmv = get_option('b_sanitize') == 'thread' or \
+             get_option('b_pgo') != 'off' or \
+             cflags.contains('-fprofile-generate') or \
+             cflags.contains('-fprofile-use')
+if broken_fmv
+    warning('Broken FMV support detected: disabling `target_clones` support')
 endif
-cfg_var.set('HAVE_TARGET_CLONES', have_target_clones)
+cfg_var.set('HAVE_TARGET_CLONES', have_target_clones and not broken_fmv)
 
 func_names = [ '_aligned_malloc', 'posix_memalign', 'memalign' ]
 foreach func_name : func_names
