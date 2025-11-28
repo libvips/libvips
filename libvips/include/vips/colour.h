@@ -204,6 +204,10 @@ int vips_XYZ2CMYK(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
+int vips_uhdr2scRGB(VipsImage *in, VipsImage **out, ...);
+	G_GNUC_NULL_TERMINATED
+
+VIPS_API
 int vips_profile_load(const char *name, VipsBlob **profile, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API

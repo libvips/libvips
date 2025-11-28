@@ -596,6 +596,14 @@ class TestForeign:
                                                          gainmap_after.height)
             assert abs(expected_gainmap_after.avg() - gainmap_after.avg()) < 1
 
+    @skip_if_no("uhdrload")
+    def test_uhdr2scRGB(self):
+        uhdr = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
+        vips = pyvips.Image.uhdrload(UHDR_FILE).uhdr2scRGB()
+
+        # scRGB, so it should be very close
+        assert abs(uhdr.avg() - vips.avg()) < 0.001
+
     @skip_if_no("pngload")
     def test_png(self):
         def png_valid(im):

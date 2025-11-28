@@ -31,6 +31,9 @@ slightly different format:
 Use [method@Image.colourspace] to move an image to a target colourspace
 using the best sequence of colour transform operations.
 
+Use [method@Image.uhdr2scRGB] to convert an SDR image with an attached gainmap
+to a full HDR scRGB image.
+
 Secondly, there are a set of operations for calculating colour difference
 metrics. Finally, libvips wraps LittleCMS and uses it to provide a set of
 operations for reading and writing images with ICC profiles.
@@ -42,7 +45,8 @@ This figure shows how the libvips colour spaces interconvert:
 The colour spaces supported by libvips are:
 
 - [enum@Vips.Interpretation.LAB]: CIELAB '76 colourspace with a D65 white.
-  This uses three floats for each band, and bands have the obvious range.<br /><br />
+  This uses three floats for each band, and bands have the obvious
+  range.<br /><br />
   There are two variants, [enum@Vips.Interpretation.LABQ] and
   [enum@Vips.Interpretation.LABS], which use ints to store values. These are
   less precise, but can be quicker to store and process.<br /><br />
@@ -114,6 +118,7 @@ The colour spaces supported by libvips are:
 * [method@Image.Lab2LabS]
 * [method@Image.CMYK2XYZ]
 * [method@Image.XYZ2CMYK]
+* [method@Image.uhdr2scRGB]
 * [ctor@Blob.profile_load]
 * [func@icc_present]
 * [method@Image.icc_transform]
