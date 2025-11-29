@@ -18,6 +18,7 @@ vips_content_files = files(
   'how-it-works.md',
   'making-image-pyramids.md',
   'multipage-and-animated-images.md',
+  'uhdr.md',
   'using-from-c.md',
   'using-from-cplusplus.md',
   'using-the-cli.md',
