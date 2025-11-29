@@ -379,7 +379,7 @@ vips_foreign_save_png_file_class_init(VipsForeignSavePngFileClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngsave";
-	object_class->description = _("save image to png file");
+	object_class->description = _("save image to file as png");
 	object_class->build = vips_foreign_save_png_file_build;
 
 	VIPS_ARG_STRING(class, "filename", 1,
@@ -438,7 +438,7 @@ vips_foreign_save_png_buffer_class_init(VipsForeignSavePngBufferClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngsave_buffer";
-	object_class->description = _("save image to png buffer");
+	object_class->description = _("save image to buffer as png");
 	object_class->build = vips_foreign_save_png_buffer_build;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,

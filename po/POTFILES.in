@@ -124,6 +124,7 @@ libvips/colour/scRGB2XYZ.c
 libvips/colour/sRGB2HSV.c
 libvips/colour/sRGB2scRGB.c
 libvips/colour/UCS2LCh.c
+libvips/colour/uhdr2scRGB.c
 libvips/colour/XYZ2CMYK.c
 libvips/colour/XYZ2Lab.c
 libvips/colour/XYZ2scRGB.c

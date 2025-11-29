@@ -3760,6 +3760,18 @@ VImage::transpose3d(VOption *options) const
 }
 
 VImage
+VImage::uhdr2scRGB(VOption *options) const
+{
+	VImage out;
+
+	call("uhdr2scRGB", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
 VImage::uhdrload(const char *filename, VOption *options)
 {
 	VImage out;

@@ -345,6 +345,7 @@ API docs each function links to for more details.
 | `tilecache` | Cache an image as a set of tiles | [method@Image.tilecache] |
 | `tonelut` | Build a look-up table | [ctor@Image.tonelut] |
 | `transpose3d` | Transpose3d an image | [method@Image.transpose3d] |
+| `uhdr2scRGB` | Transform uhdr to scrgb | [method@Image.uhdr2scRGB] |
 | `uhdrload` | Load a uhdr image | [ctor@Image.uhdrload] |
 | `uhdrload_buffer` | Load a uhdr image | [ctor@Image.uhdrload_buffer] |
 | `uhdrload_source` | Load a uhdr image | [ctor@Image.uhdrload_source] |
