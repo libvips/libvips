@@ -261,7 +261,7 @@ vips_uhdr2scRGB_class_init(VipsUhdr2scRGBClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "uhdr2scRGB";
-	object_class->description = _("transform XYZ to scRGB");
+	object_class->description = _("transform uhdr to scRGB");
 	object_class->build = vips_uhdr2scRGB_build;
 
 	colour_class->process_line = vips_uhdr2scRGB_line;

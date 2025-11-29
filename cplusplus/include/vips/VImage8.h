@@ -4114,6 +4114,7 @@ public:
 	 *   - **effort** -- Encoding effort, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
+	 *   - **bitdepth** -- Bit depth, int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -4133,6 +4134,7 @@ public:
 	 *   - **effort** -- Encoding effort, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
+	 *   - **bitdepth** -- Bit depth, int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -4152,6 +4154,7 @@ public:
 	 *   - **effort** -- Encoding effort, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
+	 *   - **bitdepth** -- Bit depth, int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -5051,7 +5054,7 @@ public:
 	 * **Optional parameters**
 	 *   - **compression** -- Compression factor, int.
 	 *   - **interlace** -- Interlace image, bool.
-	 *   - **filter** -- libspng row filter flag(s), VipsForeignPngFilter.
+	 *   - **filter** -- libpng row filter flag(s), VipsForeignPngFilter.
 	 *   - **palette** -- Quantise to 8bpp palette, bool.
 	 *   - **Q** -- Quantisation quality, int.
 	 *   - **dither** -- Amount of dithering, double.
@@ -5073,7 +5076,7 @@ public:
 	 * **Optional parameters**
 	 *   - **compression** -- Compression factor, int.
 	 *   - **interlace** -- Interlace image, bool.
-	 *   - **filter** -- libspng row filter flag(s), VipsForeignPngFilter.
+	 *   - **filter** -- libpng row filter flag(s), VipsForeignPngFilter.
 	 *   - **palette** -- Quantise to 8bpp palette, bool.
 	 *   - **Q** -- Quantisation quality, int.
 	 *   - **dither** -- Amount of dithering, double.
@@ -5095,7 +5098,7 @@ public:
 	 * **Optional parameters**
 	 *   - **compression** -- Compression factor, int.
 	 *   - **interlace** -- Interlace image, bool.
-	 *   - **filter** -- libspng row filter flag(s), VipsForeignPngFilter.
+	 *   - **filter** -- libpng row filter flag(s), VipsForeignPngFilter.
 	 *   - **palette** -- Quantise to 8bpp palette, bool.
 	 *   - **Q** -- Quantisation quality, int.
 	 *   - **dither** -- Amount of dithering, double.
@@ -6234,6 +6237,13 @@ public:
 	VImage transpose3d(VOption *options = nullptr) const;
 
 	/**
+	 * Transform uhdr to scrgb.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage uhdr2scRGB(VOption *options = nullptr) const;
+
+	/**
 	 * Load a uhdr image.
 	 *
 	 * **Optional parameters**
@@ -6456,6 +6466,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **exact** -- Preserve color values from transparent pixels, bool.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6484,6 +6495,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **exact** -- Preserve color values from transparent pixels, bool.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6512,6 +6524,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **exact** -- Preserve color values from transparent pixels, bool.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6539,6 +6552,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **exact** -- Preserve color values from transparent pixels, bool.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
