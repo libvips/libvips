@@ -1,4 +1,4 @@
-Title: Processing UltraHDR images
+Title: Using > Processing UltraHDR images
 
 libvips can process HDR images encoded with
 [UltraHDR](https://en.wikipedia.org/wiki/Ultra_HDR). These are ordinary
@@ -59,13 +59,13 @@ gainmap-use-base-cg: 1
 
 The gainmap metadata is copied unmodified through any processing operations.
 If you save an image with gainmap metadata to a JPEG file, libvips will do the
-write with the [method@Image.udrsave] operation, embedding the gainmap and the
+write with the [method@Image.uhdrsave] operation, embedding the gainmap and the
 associated metadata in the output image.
 
 ### High-level libvips operations
 
 Two high-level libvips operations will automatically update the gainmap for
-you during processing: [method@Image.dzsave] and [method@Image.thumbnail].
+you during processing: [method@Image.dzsave] and [ctor@Image.thumbnail].
 
 [method@Image.dzsave] always strips all metadata by default, so you'll need to
 set `keep="gainmap"` to write the gainmap to the tiles. For example:
@@ -77,7 +77,7 @@ $ vips dzsave ultra-hdr.jpg x --keep gainmap
 ### A la carte processing
 
 Other operations will NOT update the gainmap for you automatically. If you
-call something like [method@Imaghe.crop], an operation which changes the
+call something like [method@Image.crop], an operation which changes the
 image geometry, the gainmap and the image will no longer match up. When
 you save the cropped image, the gainmap is very likely to be incorrect.
 
