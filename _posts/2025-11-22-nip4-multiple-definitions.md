@@ -1,5 +1,5 @@
 ---
-title: Programming nip4 
+title: Multiple definitions in nip4 
 ---
 
 There's a [new nip4 release, v9.0.15,](https://github.com/jcupitt/nip4/releases)
