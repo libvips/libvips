@@ -4,27 +4,27 @@ libvips can process HDR images encoded with
 [UltraHDR](https://en.wikipedia.org/wiki/Ultra_HDR). These are ordinary
 SDR images, but with a gainmap embedded within them -- SDR displays will
 just show the regular SDR image, but for an HDR display, the extra gainmap
-can be used as an exponent to recover the full HDR range. The ability to show
+can be used as an exponent to recover the full HDR range. This ability to show
 the same file in good quality on both SDR and HDR displays makes the format
 very useful.
 
 Google's [libultrahdr](https://github.com/google/libultrahdr) is used to
 implement UltraHDR load and save. The current version of this library only
-supports UltraHDR JPEG images --- the next version is expected to add
+supports UltraHDR JPEG images; the next version is expected to add
 support for a wider range of image formats.
 
 There are two main paths for UltraHDR images in libvips: as an image with a
 separate gainmap, and as a full HDR image. The separate gainmap path is
-relatively fast, but you will sometimes need to update the gainmap during
+relatively fast but you will sometimes need to update the gainmap during
 processing. The full HDR path does not require gainmap updates, but can be
 slower, and will usually lose the original image's tone mapping.
 
 ## UltraHDR with an separate gainmap
 
 libvips will detect JPEG images with an embedded gainmap and automatically
-invoke the [ctor@Image.uhdrload] operation to load it. This operation attaches
-the gainmap (a small JPEG-compressed image) as the `"gainmap-data"` metadata
-item, plus some other gainmap tags.
+invoke the [ctor@Image.uhdrload] operation to load them. This operation
+attaches the gainmap (a small JPEG-compressed image) as the `"gainmap-data"`
+metadata item, plus some other gainmap tags.
 
 ### Load and save
 
@@ -84,15 +84,19 @@ you save the cropped image, the gainmap is very likely to be incorrect.
 Any time you change the image geometry, you must also update the gainmap. A
 helper function, [method@Image.get_gainmap], makes this relatively easy: it
 returns a [class@Image] for the gainmap, and attaches the image pointer as
-the metadata item `"gainmap"`.
+the metadata item `"gainmap"`. Once you have updated the gainmap, you can
+overwrite this value.
 
-For example, in C you could wrote
+For example, in C you could write
 
 ```C
+VipsImage *image = ...;
+VipsImage *out;
+int left, top, width, height;
 if (vips_crop(image, &out, left, top, width, height, NULL))
     return -1;
 
-// also crop the gainmap
+// also crop the gainmap, if there is one
 VipsImage *gainmap;
 if ((gainmap = vips_image_get_gainmap(out))) {
     // gainmap is not a reference, just a pointer to the ref held by
@@ -124,12 +128,12 @@ since you supply the gainmap to the UltraHDR save, you can also be certain any
 user tone mapping is preserved.
 
 The disadvantage is the extra development work necessary, The second UltraHDR
-path in libvips fixes this problem.
+path in libvips avoids this problem.
 
 ## Full HDR processing
 
 You can also load UltraHDR images as full HDR by setting the `hdr` flag. This
-will load the image as scRGB --- a three-band float with sRGB primaries, black
+will load the image as scRGB -- a three-band float with sRGB primaries, black
 to white as linear 0-1, and out of range values used to represent HDR.
 
 For example:
@@ -172,17 +176,15 @@ gainmap-use-base-cg: 1
 ```
 
 If you save a scRGB image as JPEG, it will be automatically written as
-UltraJPEG. If the image has a gainmap attached to it, that gainmap will be
-used to tonemap the HDR image to SDR. If there is no gainmap, a simple one is
-computed for you.
+UltraJPEG. A simple gainmap is generated automatically.
 
-If you have modified the image geometry, the saved tonemap will no longer be
-correct and should be removed before save to force regeneration.
+Full HDR processing scRGB is simple, but potentially slower than the separate
+gainmap path, and will not preserve any user tone map.
 
 ## Full HDR from separate gainmap
 
 You can use [method@Image.uhdr2scRGB] to convert a SDR + gainmap image into a
-full HDR scRGB image. The gainmap
+full HDR scRGB image.
 
 
 # TODO
