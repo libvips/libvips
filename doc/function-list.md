@@ -205,9 +205,9 @@ API docs each function links to for more details.
 | `linear` | Calculate (a * in + b) | [method@Image.linear], [method@Image.linear1] |
 | `linecache` | Cache an image as a set of lines | [method@Image.linecache] |
 | `logmat` | Make a laplacian of gaussian image | [ctor@Image.logmat] |
-| `magickload` | Load file with imagemagick | [ctor@Image.magickload] |
-| `magickload_buffer` | Load buffer with imagemagick | [ctor@Image.magickload_buffer] |
-| `magickload_source` | Load source with imagemagick | [ctor@Image.magickload_source] |
+| `magickload` | Load file with imagemagick7 | [ctor@Image.magickload] |
+| `magickload_buffer` | Load buffer with imagemagick7 | [ctor@Image.magickload_buffer] |
+| `magickload_source` | Load source with imagemagick7 | [ctor@Image.magickload_source] |
 | `magicksave` | Save file with imagemagick | [method@Image.magicksave] |
 | `magicksave_buffer` | Save image to magick buffer | [method@Image.magicksave_buffer] |
 | `mapim` | Resample with a map image | [method@Image.mapim] |
@@ -245,23 +245,20 @@ API docs each function links to for more details.
 | `mosaic1` | First-order mosaic of two images | [method@Image.mosaic1] |
 | `msb` | Pick most-significant byte from an image | [method@Image.msb] |
 | `multiply` | Multiply two images | [method@Image.multiply] |
-| `niftiload` | Load nifti volume | [ctor@Image.niftiload] |
-| `niftiload_source` | Load nifti volumes | [ctor@Image.niftiload_source] |
-| `niftisave` | Save image to nifti file | [method@Image.niftisave] |
 | `openexrload` | Load an openexr image | [ctor@Image.openexrload] |
 | `openslideload` | Load file with openslide | [ctor@Image.openslideload] |
 | `openslideload_source` | Load source with openslide | [ctor@Image.openslideload_source] |
-| `pdfload` | Load pdf from file | [ctor@Image.pdfload] |
-| `pdfload_buffer` | Load pdf from buffer | [ctor@Image.pdfload_buffer] |
-| `pdfload_source` | Load pdf from source | [ctor@Image.pdfload_source] |
+| `pdfload` | Load pdf from file (poppler) | [ctor@Image.pdfload] |
+| `pdfload_buffer` | Load pdf from buffer (poppler) | [ctor@Image.pdfload_buffer] |
+| `pdfload_source` | Load pdf from source (poppler) | [ctor@Image.pdfload_source] |
 | `percent` | Find threshold for percent of pixels | [method@Image.percent] |
 | `perlin` | Make a perlin noise image | [ctor@Image.perlin] |
 | `phasecor` | Calculate phase correlation | [method@Image.phasecor] |
 | `pngload` | Load png from file | [ctor@Image.pngload] |
 | `pngload_buffer` | Load png from buffer | [ctor@Image.pngload_buffer] |
 | `pngload_source` | Load png from source | [ctor@Image.pngload_source] |
-| `pngsave` | Save image to file as png | [method@Image.pngsave] |
-| `pngsave_buffer` | Save image to buffer as png | [method@Image.pngsave_buffer] |
+| `pngsave` | Save image to png file | [method@Image.pngsave] |
+| `pngsave_buffer` | Save image to png buffer | [method@Image.pngsave_buffer] |
 | `pngsave_target` | Save image to target as png | [method@Image.pngsave_target] |
 | `ppmload` | Load ppm from file | [ctor@Image.ppmload] |
 | `ppmload_buffer` | Load ppm from buffer | [ctor@Image.ppmload_buffer] |
@@ -345,6 +342,7 @@ API docs each function links to for more details.
 | `tilecache` | Cache an image as a set of tiles | [method@Image.tilecache] |
 | `tonelut` | Build a look-up table | [ctor@Image.tonelut] |
 | `transpose3d` | Transpose3d an image | [method@Image.transpose3d] |
+| `uhdr2scRGB` | Transform xyz to scrgb | [method@Image.uhdr2scRGB] |
 | `uhdrload` | Load a uhdr image | [ctor@Image.uhdrload] |
 | `uhdrload_buffer` | Load a uhdr image | [ctor@Image.uhdrload_buffer] |
 | `uhdrload_source` | Load a uhdr image | [ctor@Image.uhdrload_source] |

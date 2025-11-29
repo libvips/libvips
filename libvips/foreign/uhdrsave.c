@@ -742,8 +742,8 @@ vips_foreign_save_uhdr_target_init(VipsForeignSaveUhdrTarget *target)
  * If the image is scRGB and has a gainmap, a base image will be computed
  * and it will be saved as UltraHDR.
  *
- * If the image is scRGB and has no gainmap, it will be tone-mapped and
- * saved as a regular JPEG. This is slow and takes a lot of memory.
+ * If the image is scRGB and has no gainmap, one will be computed.
+ * This is slow and takes a lot of memory.
  *
  * ::: seealso
  *     [method@Image.write_to_file], [ctor@Image.uhdrload].
