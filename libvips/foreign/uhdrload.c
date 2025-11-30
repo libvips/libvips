@@ -77,10 +77,6 @@ typedef struct _VipsForeignLoadUhdr {
 	 */
 	VipsSource *source;
 
-	/* Set to decode to scRGB.
-	 */
-	gboolean hdr;
-
 	int shrink;
 
 	// decoder
@@ -207,52 +203,6 @@ vips__uhdr_error(uhdr_error_info_t *error)
 		vips_error("uhdr", "error");
 }
 
-typedef guint16 half;
-
-/* From ILM's halfToFloat().
- */
-static guint32
-vips__half_to_float(half y)
-{
-    int s = (y >> 15) & 0x00000001;
-    int e = (y >> 10) & 0x0000001f;
-    int m =  y        & 0x000003ff;
-
-    if (e == 0) {
-		if (m == 0) {
-			// Plus or minus zero
-			return s << 31;
-		}
-		else {
-			// Denormalized number -- renormalize it
-			while (!(m & 0x00000400)) {
-				m <<= 1;
-				e -=  1;
-			}
-
-			e += 1;
-			m &= ~0x00000400;
-		}
-    }
-    else if (e == 31) {
-		if (m == 0) {
-			// Positive or negative infinity
-			return (s << 31) | 0x7f800000;
-		}
-		else {
-			// Nan -- preserve sign and significand bits
-			return (s << 31) | 0x7f800000 | (m << 13);
-		}
-    }
-
-    // Normalized number
-    e = e + (127 - 15);
-    m = m << 13;
-
-    // Assemble s, e and m.
-    return (s << 31) | (e << 23) | m;
-}
-
 static void
 vips_foreign_load_uhdr_dispose(GObject *gobject)
 {
@@ -292,33 +242,6 @@ vips_foreign_load_uhdr_get_flags(VipsForeignLoad *load)
 {
 	// since we always decode the whole thing to memory
 	return VIPS_FOREIGN_PARTIAL;
-}
-
-static int
-vips_foreign_load_uhdr_generate(VipsRegion *out_region,
-	void *seq, void *a, void *b, gboolean *stop)
-{
-	VipsRect *r = &out_region->valid;
-	VipsForeignLoadUhdr *uhdr = VIPS_FOREIGN_LOAD_UHDR(a);
-	half *base = (half *) uhdr->raw_image->planes[0];
-	int stride = uhdr->raw_image->stride[0];
-
-	for (int y = 0; y < r->height; y++) {
-		half *p = base + 4 * stride * (r->top + y) + 4 * r->left;
-		unsigned int *q =
-			(unsigned int *) VIPS_REGION_ADDR(out_region, r->left, r->top + y);
-
-		for (int x = 0; x < r->width; x++) {
-			q[0] = vips__half_to_float(p[0]);
-			q[1] = vips__half_to_float(p[1]);
-			q[2] = vips__half_to_float(p[2]);
-
-			p += 4;
-			q += 3;
-		}
-	}
-
-	return 0;
 }
 
 #ifdef DEBUG
@@ -606,80 +529,11 @@ vips_foreign_load_uhdr_header(VipsForeignLoad *load)
 	int height = image_height / uhdr->shrink;
 
 	vips_image_init_fields(load->out,
-		width, height, 3,
-		uhdr->hdr ? VIPS_FORMAT_FLOAT : VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE,
-		uhdr->hdr ? VIPS_INTERPRETATION_scRGB : VIPS_INTERPRETATION_sRGB,
-		1.0, 1.0);
+		width, height, 3, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
 
 	if (vips_foreign_load_uhdr_set_metadata(uhdr, load->out))
 		return -1;
-
-	return 0;
-}
-
-static int
-vips_foreign_load_uhdr_load_hdr(VipsForeignLoadUhdr *uhdr, VipsImage *out)
-{
-	VipsForeignLoad *load = VIPS_FOREIGN_LOAD(uhdr);
-
-	uhdr_error_info_t error_info;
-
-	// we are decoding with libuhdr, so we use their shrink-on-load
-	error_info = uhdr_add_effect_resize(uhdr->dec,
-		load->out->Xsize, load->out->Ysize);
-	if (error_info.error_code) {
-		vips__uhdr_error(&error_info);
-		return -1;
-	}
-
-#ifdef DEBUG
-	GTimer *timer = g_timer_new();
-	printf("decode start ...\n");
-#endif /*DEBUG*/
-
-	error_info = uhdr_decode(uhdr->dec);
-	if (error_info.error_code) {
-		vips__uhdr_error(&error_info);
-		return -1;
-	}
-
-#ifdef DEBUG
-	printf("... decode took %.2g s\n", g_timer_elapsed(timer, NULL));
-	g_timer_destroy(timer);
-#endif /*DEBUG*/
-
-	vips_source_minimise(uhdr->source);
-
-	uhdr->raw_image = uhdr_get_decoded_image(uhdr->dec);
-	if (!uhdr->raw_image) {
-		vips__uhdr_error(NULL);
-		return -1;
-	}
-#ifdef DEBUG
-	printf("vips_foreign_load_uhdr_header: decoded image\n");
-	vips__print_raw(uhdr->raw_image);
-#endif /*DEBUG*/
-
-	// drop the pointless alpha
-	VipsImage *image = vips_image_new();
-	vips_image_init_fields(image,
-		uhdr->raw_image->w, uhdr->raw_image->h, 3,
-		VIPS_FORMAT_FLOAT,
-		VIPS_CODING_NONE,
-		VIPS_INTERPRETATION_scRGB,
-		1.0, 1.0);
-
-	if (vips_foreign_load_uhdr_set_metadata(uhdr, image) ||
-		vips_image_pipelinev(image, VIPS_DEMAND_STYLE_FATSTRIP, NULL) ||
-		vips_image_generate(image,
-			NULL, vips_foreign_load_uhdr_generate, NULL,
-			uhdr, NULL) ||
-		vips_image_write(image, out)) {
-		VIPS_UNREF(image);
-		return -1;
-	}
-	VIPS_UNREF(image);
 
 	return 0;
 }
@@ -693,32 +547,25 @@ vips_foreign_load_uhdr_load(VipsForeignLoad *load)
 	printf("vips_foreign_load_uhdr_load:\n");
 #endif /*DEBUG*/
 
-	if (uhdr->hdr) {
-		g_info("decoding UltraHDR to scRGB");
-		if (vips_foreign_load_uhdr_load_hdr(uhdr, load->real))
-			return -1;
+	g_info("decoding UltraHDR to sRGB");
+	// decode as SDR with our libjpeg decoder ... downstream can
+	// reconstruct HDR from the gainmap
+	uhdr_mem_block_t *base_image = uhdr_dec_get_base_image(uhdr->dec);
+	if (!base_image) {
+		vips__uhdr_error(NULL);
+		return -1;
 	}
-	else {
-		g_info("decoding UltraHDR to sRGB");
-		// decode as SDR with our libjpeg decoder ... downstream can
-		// reconstruct HDR from the gainmap
-		uhdr_mem_block_t *base_image = uhdr_dec_get_base_image(uhdr->dec);
-		if (!base_image) {
-			vips__uhdr_error(NULL);
-			return -1;
-		}
 
-		VipsImage *out;
-		if (vips_jpegload_buffer(base_image->data, base_image->data_sz, &out,
-			"shrink", uhdr->shrink,
-			NULL))
-			return -1;
-		if (vips_image_write(out, load->real)) {
-			VIPS_UNREF(out);
-			return -1;
-		}
+	VipsImage *out;
+	if (vips_jpegload_buffer(base_image->data, base_image->data_sz, &out,
+		"shrink", uhdr->shrink,
+		NULL))
+		return -1;
+	if (vips_image_write(out, load->real)) {
 		VIPS_UNREF(out);
+		return -1;
 	}
+	VIPS_UNREF(out);
 
 	return 0;
 }
@@ -746,13 +593,6 @@ vips_foreign_load_uhdr_class_init(VipsForeignLoadUhdrClass *class)
 	load_class->get_flags = vips_foreign_load_uhdr_get_flags;
 	load_class->header = vips_foreign_load_uhdr_header;
 	load_class->load = vips_foreign_load_uhdr_load;
-
-	VIPS_ARG_BOOL(class, "hdr", 10,
-		_("HDR"),
-		_("decode to scRGB"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadUhdr, hdr),
-		FALSE);
 
 	VIPS_ARG_INT(class, "shrink", 11,
 		_("Shrink"),
@@ -992,20 +832,19 @@ vips_foreign_load_uhdr_source_init(VipsForeignLoadUhdrSource *source)
  *
  * Read an UltraHDR image.
  *
- * By default, the UltraHDR image is decoded as a tone-mapped SDR base image
+ * The UltraHDR image is decoded as a tone-mapped SDR base image
  * plus a gainmap attached as image metadata.
  *
- * If @hdr is set, the UltraHDR image is decoded as an HDR scRGB image. This
- * will usually be slow and require a lot of memory.
- *
- * If @hdr is not set, at some later point you can use
+ * Either process the SDR image and update the gainmap if necessary, or use
  * [method@Image.uhdr2scRGB] to convert the SDR + gainmap image to full scRGB
  * HDR.
+ *
+ * [method@Image.uhdrsave] can write both scRGB HDR and SDR plus gainmap
+ * images.
  *
  * Set @shrink to shrink the returned image by an integer factor during load.
  *
  * ::: tip "Optional arguments"
- *     * @hdr: `gboolean`, load as an scRGB image
  *     * @shrink: `gint`, shrink by this factor on load
  *
  * ::: seealso
@@ -1036,7 +875,6 @@ vips_uhdrload(const char *filename, VipsImage **out, ...)
  * Exactly as [ctor@Image.uhdrload], but read from a buffer.
  *
  * ::: tip "Optional arguments"
- *     * @hdr: `gboolean`, load as an scRGB image
  *     * @shrink: `gint`, shrink by this factor on load
  *
  * Returns: 0 on success, -1 on error.
@@ -1070,7 +908,6 @@ vips_uhdrload_buffer(void *buf, size_t len, VipsImage **out, ...)
  * Exactly as [ctor@Image.uhdrload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @hdr: `gboolean`, load as an scRGB image
  *     * @shrink: `gint`, shrink by this factor on load
  *
  * Returns: 0 on success, -1 on error.
