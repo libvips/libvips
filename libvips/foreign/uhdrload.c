@@ -468,17 +468,15 @@ vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 	if ((mem_block = uhdr_dec_get_icc(uhdr->dec))) {
 		const char *prefix = "ICC_PROFILE";
 
-		void *data;
-		size_t length;
+		void *data = mem_block->data;
+		size_t length = mem_block->data_sz;
+		size_t prefix_len = strlen(prefix);
 
 		// libuhdr profiles sometimes start with "ICC_PROFILE" and three bytes
-		if (vips_isprefix(prefix, mem_block->data)) {
-			data = (void *) ((char *) mem_block->data + strlen(prefix) + 3);
-			length = mem_block->data_sz - strlen(prefix) - 3;
-		}
-		else {
-			data = mem_block->data;
-			length = mem_block->data_sz;
+		if (length > prefix_len + 3 &&
+			vips_isprefix(prefix, data)) {
+			data = (void *) ((char *) data + prefix_len + 3);
+			length -= prefix_len + 3;
 		}
 
 		g_info("attaching libuhdr profile");
