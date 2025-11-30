@@ -62,6 +62,11 @@ If you save an image with gainmap metadata to a JPEG file, libvips will do the
 write with the [method@Image.uhdrsave] operation, embedding the gainmap and the
 associated metadata in the output image.
 
+Intermediate operations which change the image geometry will need to also
+update the `"gainmap0-data" metadata item, the mechanisms for doing this are
+described below. The other gainmap fields should probably not be changed
+unless the intention is to alter the image appearance.
+
 ### High-level libvips operations
 
 Two high-level libvips operations will automatically update the gainmap for
@@ -127,7 +132,7 @@ gainmap transformations that are strictly necessary take place. Secondly,
 since you supply the gainmap to the UltraHDR save, you can also be certain any
 user tone mapping is preserved.
 
-The disadvantage is the extra development work necessary, The second UltraHDR
+The disadvantage is the extra development work necessary. The second UltraHDR
 path in libvips avoids this problem.
 
 ## Full HDR processing
@@ -178,8 +183,8 @@ gainmap-use-base-cg: 1
 If you save a scRGB image as JPEG, it will be automatically written as
 UltraJPEG. A simple gainmap is generated automatically.
 
-Full HDR processing scRGB is simple, but potentially slower than the separate
-gainmap path, and will not preserve any user tone map.
+Full HDR processing with scRGB is simple, but potentially slower than the
+separate gainmap path, and will not preserve any user tone map.
 
 ## Full HDR from separate gainmap
 
@@ -190,9 +195,10 @@ full HDR scRGB image.
 # TODO
 
 - add scRGB2uhdr .. inverse of uhdr2scRGB? only works if there's a gainmap on
-  the scRGB image
-- don't use libuhdr linear import, just call uhdr2scRGB on result
-- call uhdr2scRGB automatically from sRGB2scRGB
+  the scRGB image (leave ubtil a later version)
+- don't use libuhdr linear import, just call uhdr2scRGB on result (should be a
+  good speedup)
+- call uhdr2scRGB automatically from sRGB2scRGB?
 - uhdr should be a supported colourspace? not clear how this would interact
   with nclx, best to leave it
 - verify that uhdrsave will only use `gainmap-data` if `gainmap` is missing
