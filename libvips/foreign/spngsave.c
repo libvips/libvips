@@ -639,9 +639,20 @@ vips_foreign_save_spng_build(VipsObject *object)
 			g_object_unref(in);
 			return -1;
 		}
-		g_object_unref(in);
-		in = x;
 	}
+	else {
+		VipsBandFormat target_format =
+			spng->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+
+		/* Cast in down to target format if we can.
+		 */
+		if (vips_cast(in, &x, target_format, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+	}
+	g_object_unref(in);
+	in = x;
 
 	/* If this is a RGB or RGBA image and a low bit depth has been
 	 * requested, enable palettisation.
