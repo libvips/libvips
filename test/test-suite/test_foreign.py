@@ -448,20 +448,6 @@ class TestForeign:
         value = im.get("icc-profile-data")
         assert len(value) > 100
 
-    @skip_if_no("uhdrload")
-    def test_uhdrload_hdr(self):
-        # decode as scRGB + gainmap
-        im = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
-
-        assert im.width == 3840
-        assert im.height == 2160
-        assert im.bands == 3
-        assert im.format == "float"
-        assert im.interpretation == "scrgb"
-
-        value = im.get("gainmap-data")
-        assert len(value) > 10000
-
     @skip_if_no("uhdrsave")
     def test_uhdrsave(self):
         im = pyvips.Image.uhdrload(UHDR_FILE)
@@ -477,56 +463,21 @@ class TestForeign:
         assert len(value) > 10000
 
     @skip_if_no("uhdrsave")
-    def test_uhdrsave_hdr(self):
-        im = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
-        data = im.uhdrsave_buffer()
-        im2 = pyvips.Image.uhdrload_buffer(data)
-
-        assert im2.width == 3840
-        assert im2.height == 2160
-        assert im2.bands == 3
-        assert im2.format == "uchar"
-        assert im2.interpretation == "srgb"
-        value = im2.get("gainmap-data")
-        assert len(value) > 10000
-
-    @skip_if_no("uhdrsave")
-    def test_uhdrsave_hdr_no_gainmap(self):
-        im = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
-        gainmap1 = im.get("gainmap-data")
-        im = im.copy()
-        im.remove("gainmap-data")
-        data = im.uhdrsave_buffer()
-        im2 = pyvips.Image.uhdrload_buffer(data)
-        gainmap2 = im2.get("gainmap-data")
-
-        assert im2.width == 3840
-        assert im2.height == 2160
-        assert im2.bands == 3
-        assert im2.format == "uchar"
-        assert im2.interpretation == "srgb"
-
-        # gainmap should have been regenerated
-        assert len(gainmap1) != len(gainmap2)
-
-    @skip_if_no("uhdrsave")
     def test_uhdrsave_roundtrip(self):
         im = pyvips.Image.uhdrload(UHDR_FILE)
         data = im.uhdrsave_buffer()
-        im_hdr2 = pyvips.Image.uhdrload_buffer(data, hdr=True)
-        im_hdr = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
+        im_hdr2 = pyvips.Image.uhdrload_buffer(data).uhdr2scRGB()
+        im_hdr = pyvips.Image.uhdrload(UHDR_FILE).uhdr2scRGB()
 
         assert (im_hdr2 - im_hdr).abs().avg() < 0.02
 
     @skip_if_no("uhdrsave")
     def test_uhdrsave_roundtrip_hdr(self):
-        im_hdr = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
-        im_hdr = im_hdr.copy()
-        im_hdr.remove("gainmap-data")
-        data = im_hdr.uhdrsave_buffer()
-        im_hdr2 = pyvips.Image.uhdrload_buffer(data, hdr=True)
+        im = pyvips.Image.uhdrload(UHDR_FILE).uhdr2scRGB()
+        data = im.uhdrsave_buffer()
+        im2 = pyvips.Image.uhdrload_buffer(data).uhdr2scRGB()
 
-        assert (im_hdr2 - im_hdr).abs().avg() < 0.03
+        assert (im2 - im).abs().avg() < 0.05
 
     @skip_if_no("uhdrload")
     def test_uhdr_thumbnail(self):
@@ -595,14 +546,6 @@ class TestForeign:
                                                          gainmap_after.width,
                                                          gainmap_after.height)
             assert abs(expected_gainmap_after.avg() - gainmap_after.avg()) < 1
-
-    @skip_if_no("uhdrload")
-    def test_uhdr2scRGB(self):
-        uhdr = pyvips.Image.uhdrload(UHDR_FILE, hdr=True)
-        vips = pyvips.Image.uhdrload(UHDR_FILE).uhdr2scRGB()
-
-        # scRGB, so it should be very close
-        assert abs(uhdr.avg() - vips.avg()) < 0.001
 
     @skip_if_no("pngload")
     def test_png(self):
