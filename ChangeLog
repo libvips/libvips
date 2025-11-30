@@ -23,6 +23,7 @@ master
 - add "exact" to webpsave
 - add "uhdr2scRGB"
 - dzsave has gainmap support
+- jpegload: deprecate "unlimited" argument [kleisauke]
 
 8.17.4
 

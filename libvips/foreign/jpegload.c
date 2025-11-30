@@ -74,10 +74,6 @@ typedef struct _VipsForeignLoadJpeg {
 	 */
 	VipsSource *source;
 
-	/* Remove DoS limits.
-	 */
-	gboolean unlimited;
-
 	/* Shrink by this much during load.
 	 */
 	int shrink;
@@ -85,6 +81,12 @@ typedef struct _VipsForeignLoadJpeg {
 	/* Autorotate using exif orientation tag.
 	 */
 	gboolean autorotate;
+
+	/* Remove DoS limits.
+	 *
+	 * This is deprecated and does nothing.
+	 */
+	gboolean unlimited;
 
 } VipsForeignLoadJpeg;
 
@@ -140,7 +142,7 @@ vips_foreign_load_jpeg_header(VipsForeignLoad *load)
 
 	if (vips__jpeg_read_source(jpeg->source,
 			load->out, TRUE, jpeg->shrink, load->fail_on,
-			jpeg->autorotate, jpeg->unlimited))
+			jpeg->autorotate))
 		return -1;
 
 	return 0;
@@ -153,7 +155,7 @@ vips_foreign_load_jpeg_load(VipsForeignLoad *load)
 
 	if (vips__jpeg_read_source(jpeg->source,
 			load->real, FALSE, jpeg->shrink, load->fail_on,
-			jpeg->autorotate, jpeg->unlimited))
+			jpeg->autorotate))
 		return -1;
 
 	return 0;
@@ -199,14 +201,12 @@ vips_foreign_load_jpeg_class_init(VipsForeignLoadJpegClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadJpeg, autorotate),
 		FALSE);
 
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	VIPS_ARG_BOOL(class, "unlimited", 22,
 		_("Unlimited"),
 		_("Remove all denial of service limits"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
 		G_STRUCT_OFFSET(VipsForeignLoadJpeg, unlimited),
 		FALSE);
-#endif
 }
 
 static void
