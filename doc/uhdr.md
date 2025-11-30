@@ -63,7 +63,7 @@ write with the [method@Image.uhdrsave] operation, embedding the gainmap and the
 associated metadata in the output image.
 
 Intermediate operations which change the image geometry will also need to
-update the `"gainmap-data" metadata item, the mechanisms for doing this are
+update the `"gainmap-data"` metadata item, the mechanisms for doing this are
 described below. The other gainmap fields should probably not be changed
 unless the intention is to alter the image appearance.
 
