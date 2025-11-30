@@ -96,10 +96,6 @@ typedef struct _ReadJpeg {
 	 */
 	gboolean autorotate;
 
-	/* Remove DoS limits.
-	 */
-	gboolean unlimited;
-
 	/* cinfo->output_width and height can be larger than we want since
 	 * libjpeg rounds up on shrink-on-load. This is the real size we will
 	 * output, as opposed to the size we decompress to.
@@ -119,8 +115,7 @@ void vips__new_output_message(j_common_ptr cinfo);
 void vips__new_error_exit(j_common_ptr cinfo);
 
 ReadJpeg *vips__readjpeg_new(VipsSource *source, VipsImage *out,
-	int shrink, VipsFailOn fail_on, gboolean autorotate,
-	gboolean unlimited);
+	int shrink, VipsFailOn fail_on, gboolean autorotate);
 int vips__readjpeg_open_input(ReadJpeg *jpeg);
 
 #ifdef __cplusplus

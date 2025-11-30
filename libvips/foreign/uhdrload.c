@@ -111,7 +111,7 @@ vips_foreign_load_uhdr_is_a(VipsSource *source)
 
 	ReadJpeg *jpeg;
 	if (!(jpeg = vips__readjpeg_new(source, context, 1, VIPS_FAIL_ON_NONE,
-			  FALSE, FALSE))) {
+			  FALSE))) {
 		VIPS_UNREF(context);
 		return 0;
 	}
