@@ -13,13 +13,13 @@ implement UltraHDR load and save. The current version of this library only
 supports UltraHDR JPEG images; the next version is expected to add
 support for a wider range of image formats.
 
-There are two main paths for UltraHDR images in libvips: as an image with a
-separate gainmap, and as a full HDR image. The separate gainmap path is
+There are two main paths for UltraHDR images in libvips: as an SDR image with a
+separate gainmap, and as full HDR. The separate gainmap path is
 relatively fast but you will sometimes need to update the gainmap during
 processing. The full HDR path does not require gainmap updates, but can be
 slower, and will usually lose the original image's tone mapping.
 
-## UltraHDR with an separate gainmap
+## UltraHDR as SDR with an separate gainmap
 
 libvips will detect JPEG images with an embedded gainmap and automatically
 invoke the [ctor@Image.uhdrload] operation to load them. This operation
@@ -62,7 +62,7 @@ If you save an image with gainmap metadata to a JPEG file, libvips will do the
 write with the [method@Image.uhdrsave] operation, embedding the gainmap and the
 associated metadata in the output image.
 
-Intermediate operations which change the image geometry will need to also
+Intermediate operations which change the image geometry will also need to
 update the `"gainmap-data" metadata item, the mechanisms for doing this are
 described below. The other gainmap fields should probably not be changed
 unless the intention is to alter the image appearance.
@@ -83,14 +83,13 @@ $ vips dzsave ultra-hdr.jpg x --keep gainmap
 
 Other operations will NOT update the gainmap for you automatically. If you
 call something like [method@Image.crop], an operation which changes the
-image geometry, the gainmap and the image will no longer match up. When
-you save the cropped image, the gainmap is very likely to be incorrect.
+image geometry, the gainmap and the image will no longer match. When
+you save the cropped image, the gainmap is likely to be incorrect.
 
-Any time you change the image geometry, you must also update the gainmap. A
-helper function, [method@Image.get_gainmap], makes this relatively easy: it
-returns a [class@Image] for the gainmap, and attaches the image pointer as
-the metadata item `"gainmap"`. Once you have updated the gainmap, you can
-overwrite this value.
+A helper function, [method@Image.get_gainmap], makes updating the gainmap
+relatively easy: it returns a [class@Image] for the gainmap, and attaches
+the image pointer as the metadata item `"gainmap"`. Once you have updated
+the gainmap, you can overwrite this value.
 
 For example, in C you could write
 
@@ -126,83 +125,34 @@ if ((gainmap = vips_image_get_gainmap(out))) {
 
 ### Performance and quality considerations
 
-Doing the gainmap processing explicitly like this has two big advantages:
-first, you have control over this processing, so you can make sure only the
-gainmap transformations that are strictly necessary take place. Secondly,
-since you supply the gainmap to the UltraHDR save, you can also be certain any
-user tone mapping is preserved.
+Doing gainmap processing explicitly like this has two big advantages:
+first, you have exact control over this processing, so you can make sure
+only the gainmap transformations that are strictly necessary take place.
+Secondly, since you supply the gainmap to the UltraHDR save, you can also
+be certain any user tone mapping is preserved.
 
 The disadvantage is the extra development work necessary. The second UltraHDR
 path in libvips avoids this problem.
 
 ## Full HDR processing
 
-You can also load UltraHDR images as full HDR by setting the `hdr` flag. This
-will load the image as scRGB -- a three-band float with sRGB primaries, black
-to white as linear 0-1, and out of range values used to represent HDR.
+You can transform an UltraHDR SDR plus gainmap image to full HDR with
+[method@Image.uhdr2scRGB]. This will compute an scRGB image -- a three-band
+float with sRGB primaries, black to white as linear 0-1, and out of range
+values used to represent HDR.
 
 For example:
 
 ```
-$ vips max ultra-hdr.jpg[hdr]
+$ vips uhdr2scRGB ultra-hdr.jpg x.v
+$ vips max x.v
 15.210938
 ```
 
-The `hdr` flag means float HDR load, and [method@Image.max] finds an scRGB
-value of 15.2, well outside the usual 0-1 range of scRGB.
-
-The gainmap metadata is still there:
-
-```
-$ vipsheader -a ultra-hdr.jpg[hdr]
-ultra-hdr.jpg: 3840x2160 float, 3 bands, scrgb, uhdrload
-width: 3840
-height: 2160
-bands: 3
-format: float
-coding: none
-interpretation: scrgb
-xoffset: 0
-yoffset: 0
-xres: 1
-yres: 1
-filename: ultra-hdr.jpg
-vips-loader: uhdrload
-icc-profile-data: 588 bytes of binary data
-gainmap-data: 31738 bytes of binary data
-gainmap-max-content-boost: 100 100 100
-gainmap-min-content-boost: 1 1 1
-gainmap-gamma: 1 1 1
-gainmap-offset-sdr: 0 0 0
-gainmap-offset-hdr: 0 0 0
-gainmap-hdr-capacity-min: 1
-gainmap-hdr-capacity-max: 100
-gainmap-use-base-cg: 1
-```
-
-If you save a scRGB image as JPEG, it will be automatically written as
-UltraJPEG. A simple gainmap is generated automatically.
+If you save an scRGB image as JPEG, it will be automatically written as
+UltraJPEG. Any associated gainmap is thrown away and basic tonemapping
+performed to make a new gainmap.
 
 Full HDR processing with scRGB is simple, but potentially slower than the
 separate gainmap path, and will not preserve any user tone map.
-
-## Full HDR from separate gainmap
-
-You can use [method@Image.uhdr2scRGB] to convert a SDR + gainmap image into a
-full HDR scRGB image.
-
-
-# TODO
-
-- add scRGB2uhdr .. inverse of uhdr2scRGB? only works if there's a gainmap on
-  the scRGB image (leave ubtil a later version)
-- don't use libuhdr linear import, just call uhdr2scRGB on result (should be a
-  good speedup)
-- call uhdr2scRGB automatically from sRGB2scRGB?
-- uhdr should be a supported colourspace? not clear how this would interact
-  with nclx, best to leave it
-- verify that uhdrsave will only use `gainmap-data` if `gainmap` is missing
-- saving scRGB as uhdr always recomputes the gainmap, is this the best
-  behaviour?
-
 
