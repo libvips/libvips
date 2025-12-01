@@ -551,7 +551,7 @@ public:
 	/**
 	 * The associated gainmap image, if any.
 	 */
-	const VImage
+	VImage
 	gainmap() const
 	{
 		return VImage(vips_image_get_gainmap(get_image()));
