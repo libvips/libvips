@@ -55,8 +55,8 @@ public:
 	/**
 	 * Get a reference to the underlying C string.
 	 */
-	virtual const char *
-	what() const noexcept
+	const char *
+	what() const noexcept override
 	{
 		return std::runtime_error::what();
 	}
