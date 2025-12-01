@@ -549,10 +549,10 @@ public:
 	}
 
 	/**
-	 * Return the gainmap image.
+	 * The associated gainmap image, if any.
 	 */
-	VImage
-	get_gainmap() const
+	const VImage
+	gainmap() const
 	{
 		return VImage(vips_image_get_gainmap(get_image()));
 	}
@@ -683,7 +683,7 @@ public:
 	 * Set the value of an image metadata item on an image.
 	 */
 	void
-	set(const char *field, VImage value)
+	set(const char *field, const VImage value)
 	{
 		vips_image_set_image(this->get_image(), field, value.get_image());
 	}
