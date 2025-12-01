@@ -6247,7 +6247,6 @@ public:
 	 * Load a uhdr image.
 	 *
 	 * **Optional parameters**
-	 *   - **hdr** -- decode to scRGB, bool.
 	 *   - **shrink** -- Shrink factor on load, int.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
@@ -6264,7 +6263,6 @@ public:
 	 * Load a uhdr image.
 	 *
 	 * **Optional parameters**
-	 *   - **hdr** -- decode to scRGB, bool.
 	 *   - **shrink** -- Shrink factor on load, int.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
@@ -6281,7 +6279,6 @@ public:
 	 * Load a uhdr image.
 	 *
 	 * **Optional parameters**
-	 *   - **hdr** -- decode to scRGB, bool.
 	 *   - **shrink** -- Shrink factor on load, int.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
