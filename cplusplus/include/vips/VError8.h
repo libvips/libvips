@@ -32,7 +32,7 @@
 
 #include <cstring>
 #include <ostream>
-#include <exception>
+#include <stdexcept>
 
 #include <vips/vips.h>
 
@@ -42,22 +42,15 @@ VIPS_NAMESPACE_START
  * The libvips error class. It holds a single string containing an
  * internationalized error message in utf-8 encoding.
  */
-class VIPS_CPLUSPLUS_API VError : public std::exception {
-	std::string _what;
-
+class VIPS_CPLUSPLUS_API VError : public std::runtime_error {
 public:
-	/**
-	 * Construct a VError, setting the error message.
-	 */
-	VError(const std::string &what) : _what(what) {}
+	using std::runtime_error::runtime_error;
 
 	/**
 	 * Construct a VError, fetching the error message from the libvips
 	 * error buffer.
 	 */
-	VError() : _what(vips_error_buffer()) {}
-
-	virtual ~VError() throw() {}
+	VError() : std::runtime_error(vips_error_buffer()) {}
 
 	/**
 	 * Get a reference to the underlying C string.
@@ -65,7 +58,7 @@ public:
 	virtual const char *
 	what() const throw()
 	{
-		return _what.c_str();
+		return std::runtime_error::what();
 	}
 
 	/**
