@@ -549,6 +549,15 @@ public:
 	}
 
 	/**
+	 * The associated gainmap image, if any.
+	 */
+	VImage
+	gainmap() const
+	{
+		return VImage(vips_image_get_gainmap(get_image()));
+	}
+
+	/**
 	 * Gets an VImage ready for an in-place operation, such as draw_circle().
 	 * After calling this function you can both read and write the image with
 	 * VIPS_IMAGE_ADDR().
@@ -556,10 +565,10 @@ public:
 	 * This method is called for you by the draw operations,
 	 * there's no need to call it yourself.
 	 *
-	 * Since this function modifies the image, it is not thread-safe. Only call it on
-	 * images which you are sure have not been shared with another thread.
-	 * All in-place operations are inherently not thread-safe, so you need to take
-	 * great care in any case.
+	 * Since this function modifies the image, it is not thread-safe. Only
+	 * call it on images which you are sure have not been shared with another
+	 * thread.  All in-place operations are inherently not thread-safe, so
+	 * you need to take great care in any case.
 	 */
 	void
 	inplace()
@@ -668,6 +677,15 @@ public:
 	{
 		vips_image_set_blob(this->get_image(), field,
 			free_fn, data, length);
+	}
+
+	/**
+	 * Set the value of an image metadata item on an image.
+	 */
+	void
+	set(const char *field, const VImage value)
+	{
+		vips_image_set_image(this->get_image(), field, value.get_image());
 	}
 
 	/**
