@@ -56,7 +56,7 @@ public:
 	 * Get a reference to the underlying C string.
 	 */
 	virtual const char *
-	what() const throw()
+	what() const noexcept
 	{
 		return std::runtime_error::what();
 	}
