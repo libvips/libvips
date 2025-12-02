@@ -2388,8 +2388,8 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  *
  * Set @lossless `TRUE` to switch to lossless compression.
  *
- * Use @compression to set the compression format e.g. HEVC, AVC, AV1 to use. It defaults to AV1
- * if the target filename ends with ".avif", otherwise HEVC.
+ * Use @compression to set the compression format e.g. HEVC, AVC, AV1 to use.
+ * It defaults to AV1 if the target filename ends with ".avif", otherwise HEVC.
  *
  * Use @effort to control the CPU effort spent improving compression.
  * This is currently only applicable to AV1 encoders. Defaults to 4, 0 is
@@ -2403,6 +2403,9 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  *
  * Use @encoder to set the encode library to use, e.g. aom, SVT-AV1, rav1e etc.
  *
+ * Use @tune to pass a set of tuning parameters to the encoder, see the
+ * libheif documentation.
+ *
  * ::: tip "Optional arguments"
  *     * @Q: `gint`, quality factor
  *     * @bitdepth: `gint`, set write bit depth to 8, 10, or 12 bits
@@ -2410,8 +2413,9 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  *     * @compression: [enum@ForeignHeifCompression], write with this
  *       compression
  *     * @effort: `gint`, encoding effort
- *     * @subsample_mode: [class@Foreign]Subsample, chroma subsampling mode
- *     * @encoder: [class@Foreign]HeifEncoder, select encoder to use
+ *     * @subsample_mode: [class@ForeignSubsample], chroma subsampling mode
+ *     * @encoder: [class@ForeignHeifEncoder], select encoder to use
+ *     * @tune: `gchararray`, encoder tuning parameters
  *
  * ::: seealso
  *     [method@Image.write_to_file], [ctor@Image.heifload].
@@ -2451,8 +2455,9 @@ vips_heifsave(VipsImage *in, const char *filename, ...)
  *     * @compression: [enum@ForeignHeifCompression], write with this
  *       compression
  *     * @effort: `gint`, encoding effort
- *     * @subsample_mode: [class@Foreign]Subsample, chroma subsampling mode
- *     * @encoder: [class@Foreign]HeifEncoder, select encoder to use
+ *     * @subsample_mode: [class@ForeignSubsample], chroma subsampling mode
+ *     * @encoder: [class@ForeignHeifEncoder], select encoder to use
+ *     * @tune: `gchararray`, encoder tuning parameters
  *
  * ::: seealso
  *     [method@Image.heifsave], [method@Image.write_to_file].
@@ -2502,8 +2507,9 @@ vips_heifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  *     * @compression: [enum@ForeignHeifCompression], write with this
  *       compression
  *     * @effort: `gint`, encoding effort
- *     * @subsample_mode: [class@Foreign]Subsample, chroma subsampling mode
- *     * @encoder: [class@Foreign]HeifEncoder, select encoder to use
+ *     * @subsample_mode: [class@ForeignSubsample], chroma subsampling mode
+ *     * @encoder: [class@ForeignHeifEncoder], select encoder to use
+ *     * @tune: `gchararray`, encoder tuning parameters
  *
  * ::: seealso
  *     [method@Image.heifsave], [method@Image.write_to_target].

@@ -26,6 +26,7 @@ master
 - cpp: add .gainmap(), .set(VImage)
 - add support for Oklab colourspace
 - add vips_Oklab2XYZ(), vips_XYZ2Oklab()
+- heifsave: add "tune" parameter
 
 8.17.4
 
