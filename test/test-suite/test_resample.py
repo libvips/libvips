@@ -249,6 +249,13 @@ class TestResample:
         im_orig = pyvips.Image.new_from_file(JPEG_FILE)
         assert im_orig.de00(im).max() < 10
 
+    # this has caused a few bugs in the past ,,,
+    def test_thumbnail_uhdr_linear(self):
+        im = pyvips.Image.thumbnail(UHDR_FILE, 128, linear=True)
+
+        assert im.width == 128
+        assert im.bands == 3
+
     def test_similarity(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
         im2 = im.similarity(angle=90)

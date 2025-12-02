@@ -1072,7 +1072,7 @@ vips_image_get_gainmap(VipsImage *image)
 		const void *data;
 		size_t length;
 
-		if (vips_image_get_blob(image, "gainmap-data", &data, &length) &&
+		if (vips_image_get_blob(image, "gainmap-data", &data, &length) ||
 			vips_jpegload_buffer((void *) data, length, &gainmap, NULL))
 			return NULL;
 
