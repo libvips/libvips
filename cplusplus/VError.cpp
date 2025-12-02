@@ -45,7 +45,7 @@ operator<<(std::ostream &file, const VError &err)
 void
 VError::ostream_print(std::ostream &file) const
 {
-	file << _what;
+	file << what();
 }
 
 VIPS_NAMESPACE_END
