@@ -19,6 +19,7 @@ colour_sources = files(
     'LabS2LabQ.c',
     'LCh2Lab.c',
     'LCh2UCS.c',
+    'Oklab2XYZ.c',
     'profile_load.c',
     'profiles.c',
     'rad2float.c',
@@ -32,6 +33,7 @@ colour_sources = files(
     'XYZ2CMYK.c',
     'XYZ2Lab.c',
     'XYZ2scRGB.c',
+    'XYZ2Oklab.c',
     'XYZ2Yxy.c',
     'Yxy2XYZ.c',
   )

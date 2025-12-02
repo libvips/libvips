@@ -24,6 +24,8 @@ master
 - add "uhdr2scRGB"
 - dzsave has gainmap support
 - cpp: add .gainmap(), .set(VImage)
+- add support for Oklab colourspace
+- add vips_Oklab2XYZ(), vips_XYZ2Oklab()
 
 8.17.4
 
