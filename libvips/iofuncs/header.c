@@ -1061,18 +1061,19 @@ vips_image_get_tile_height(VipsImage *image)
 VipsImage *
 vips_image_get_gainmap(VipsImage *image)
 {
-    VipsImage *gainmap;
-	const void *data;
-	size_t length;
+	VipsImage *gainmap;
 
 	gainmap = NULL;
+	if (vips_image_get_typeof(image, "gainmap")) {
+		if (vips_image_get_image(image, "gainmap", &gainmap))
+			return NULL;
+	}
+	else if (vips_image_get_typeof(image, "gainmap-data")) {
+		const void *data;
+		size_t length;
 
-	if (vips_image_get_typeof(image, "gainmap") &&
-		vips_image_get_image(image, "gainmap", &gainmap))
-		return NULL;
-	else if (vips_image_get_typeof(image, "gainmap-data") &&
-		!vips_image_get_blob(image, "gainmap-data", &data, &length)) {
-		if (vips_jpegload_buffer((void *) data, length, &gainmap, NULL))
+		if (vips_image_get_blob(image, "gainmap-data", &data, &length) &&
+			vips_jpegload_buffer((void *) data, length, &gainmap, NULL))
 			return NULL;
 
 		vips_image_set_image(image, "gainmap", gainmap);
