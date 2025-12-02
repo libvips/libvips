@@ -673,7 +673,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 		return -1;
 	}
 
-	if (vips_object_argument_isset(object, "tune")) {
+	if (heif->tune) {
 		error = heif_encoder_set_parameter_string(heif->encoder,
 			"tune", heif->tune);
 		if (error.code &&
