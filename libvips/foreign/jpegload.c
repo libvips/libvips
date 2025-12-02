@@ -179,8 +179,7 @@ vips_foreign_load_jpeg_class_init(VipsForeignLoadJpegClass *class)
 	 */
 	foreign_class->priority = 50;
 
-	load_class->get_flags_filename =
-		vips_foreign_load_jpeg_get_flags_filename;
+	load_class->get_flags_filename = vips_foreign_load_jpeg_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_jpeg_get_flags;
 	load_class->header = vips_foreign_load_jpeg_header;
 	load_class->load = vips_foreign_load_jpeg_load;
@@ -231,8 +230,7 @@ static int
 vips_foreign_load_jpeg_source_build(VipsObject *object)
 {
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) object;
-	VipsForeignLoadJpegSource *source =
-		(VipsForeignLoadJpegSource *) object;
+	VipsForeignLoadJpegSource *source = (VipsForeignLoadJpegSource *) object;
 
 	if (source->source) {
 		jpeg->source = source->source;
@@ -301,8 +299,7 @@ vips_foreign_load_jpeg_file_build(VipsObject *object)
 	VipsForeignLoadJpegFile *file = (VipsForeignLoadJpegFile *) object;
 
 	if (file->filename &&
-		!(jpeg->source =
-				vips_source_new_from_file(file->filename)))
+		!(jpeg->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_jpeg_file_parent_class)
@@ -370,8 +367,7 @@ static int
 vips_foreign_load_jpeg_buffer_build(VipsObject *object)
 {
 	VipsForeignLoadJpeg *jpeg = (VipsForeignLoadJpeg *) object;
-	VipsForeignLoadJpegBuffer *buffer =
-		(VipsForeignLoadJpegBuffer *) object;
+	VipsForeignLoadJpegBuffer *buffer = (VipsForeignLoadJpegBuffer *) object;
 
 	if (buffer->blob &&
 		!(jpeg->source = vips_source_new_from_memory(
