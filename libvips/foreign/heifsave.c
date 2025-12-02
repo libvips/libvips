@@ -130,6 +130,10 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	int speed;
 
+	/* Tuning parameters.
+	 */
+	const char *tune;
+
 } VipsForeignSaveHeif;
 
 typedef VipsForeignSaveClass VipsForeignSaveHeifClass;
@@ -313,6 +317,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	options->image_orientation = vips_image_get_orientation(save->ready);
 	vips_autorot_remove_angle(save->ready);
 #endif
+
 
 #ifdef DEBUG
 	{
@@ -668,6 +673,16 @@ vips_foreign_save_heif_build(VipsObject *object)
 		return -1;
 	}
 
+	if (vips_object_argument_isset(object, "tune")) {
+		error = heif_encoder_set_parameter_string(heif->encoder,
+			"tune", heif->tune);
+		if (error.code &&
+			error.subcode != heif_suberror_Unsupported_parameter) {
+			vips__heif_error(&error);
+			return -1;
+		}
+	}
+
 	/* TODO .. support extra per-encoder params with
 	 * heif_encoder_list_parameters().
 	 */
@@ -827,6 +842,14 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveHeif, selected_encoder),
 		VIPS_TYPE_FOREIGN_HEIF_ENCODER,
 		VIPS_FOREIGN_HEIF_ENCODER_AUTO);
+
+	VIPS_ARG_STRING(class, "tune", 19,
+		_("Tune"),
+		_("Tuning parameters"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveHeif, tune),
+		NULL);
+
 }
 
 static void

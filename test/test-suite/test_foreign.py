@@ -1784,6 +1784,11 @@ class TestForeign:
             assert y.get("exif-ifd0-XPComment").startswith("banana")
 
     @skip_if_no("heifsave")
+    def test_avifsave_tune(self):
+        buf = self.colour.heifsave_buffer(tune="ssim")
+        assert len(buf) > 10000
+
+    @skip_if_no("heifsave")
     @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif built with patent-encumbered HEVC dependencies")
     def test_heicsave_16_to_12(self):
         rgb16 = self.colour.colourspace("rgb16")

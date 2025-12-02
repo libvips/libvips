@@ -24,6 +24,7 @@ master
 - add "uhdr2scRGB"
 - dzsave has gainmap support
 - cpp: add .gainmap(), .set(VImage)
+- heifsave: add "tune" parameter
 
 8.17.4
 
