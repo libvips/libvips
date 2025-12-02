@@ -168,6 +168,8 @@ EOF
 
 # highway
 pushd $SRC/highway
+# FIXME: Remove once Highway 1.4.0 is released.
+sed -i '/^project(hwy VERSION/s/1.3.0/1.4.0/' CMakeLists.txt
 cmake \
   -GNinja \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo \

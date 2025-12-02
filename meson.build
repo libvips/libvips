@@ -474,6 +474,7 @@ simd_package = disabler()
 # Require 1.0.5 to support the `ReorderDemote2To(u8, i16, i16)` operation
 # See: https://github.com/google/highway/pull/1247
 libhwy_dep = dependency('libhwy', version: '>=1.0.5', required: get_option('highway'))
+libhwy_overrides = []
 if libhwy_dep.found()
     external_deps += libhwy_dep
     cfg_var.set('HAVE_HWY', true)
@@ -487,6 +488,11 @@ if libhwy_dep.found()
     disabled_targets += ['HWY_AVX3_ZEN4', 'HWY_AVX3_SPR']
     if libhwy_dep.version().version_compare('>=1.3.0')
         disabled_targets += ['HWY_AVX10_2']
+    endif
+    # Use C++14 for libraries compiling Highway sources (required from v1.4.0)
+    # See: https://github.com/google/highway/pull/2805
+    if libhwy_dep.version().version_compare('>=1.4.0') and get_option('cpp_std') == 'c++11'
+        libhwy_overrides = ['cpp_std=c++14']
     endif
     # Optionally, build without AVX512 support (helps to reduce binary size at the cost of performance)
     #disabled_targets += ['HWY_AVX3']

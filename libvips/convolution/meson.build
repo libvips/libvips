@@ -29,6 +29,7 @@ convolution_lib = static_library('convolution',
     convolution_headers,
     dependencies: libvips_deps,
     gnu_symbol_visibility: 'hidden',
+    override_options: libhwy_overrides,
 )
 
 libvips_components += convolution_lib

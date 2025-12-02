@@ -19,6 +19,7 @@ morphology_lib = static_library('morphology',
     morphology_headers,
     dependencies: libvips_deps,
     gnu_symbol_visibility: 'hidden',
+    override_options: libhwy_overrides,
 )
 
 libvips_components += morphology_lib

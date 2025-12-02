@@ -36,6 +36,7 @@ resample_lib = static_library('resample',
     resample_headers,
     dependencies: libvips_deps,
     gnu_symbol_visibility: 'hidden',
+    override_options: libhwy_overrides,
 )
 
 libvips_components += resample_lib
