@@ -113,7 +113,7 @@ typedef enum {
 	VIPS_INTERPRETATION_scRGB = 28,
 	VIPS_INTERPRETATION_HSV = 29,
 	VIPS_INTERPRETATION_OKLAB = 30,
-	VIPS_INTERPRETATION_LAST = 30	/*< skip >*/
+	VIPS_INTERPRETATION_LAST = 31	/*< skip >*/
 } VipsInterpretation;
 
 typedef enum {

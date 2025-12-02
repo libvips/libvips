@@ -573,6 +573,7 @@ vips_image_is_profile_compatible(VipsImage *image, int profile_bands)
 	case VIPS_INTERPRETATION_RGB16:
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_HSV:
+	case VIPS_INTERPRETATION_OKLAB:
 		/* The band count in the ICC profile must correspond to that of
 		 * the image, with a maximum of 3 bands allowed.
 		 */

@@ -470,6 +470,7 @@ vips_image_guess_format(const VipsImage *image)
 	case VIPS_INTERPRETATION_HSV:
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_OKLAB:
 		format = VIPS_FORMAT_FLOAT;
 		break;
 
@@ -682,6 +683,7 @@ vips_image_guess_interpretation(const VipsImage *image)
 	case VIPS_INTERPRETATION_LCH:
 	case VIPS_INTERPRETATION_sRGB:
 	case VIPS_INTERPRETATION_HSV:
+	case VIPS_INTERPRETATION_OKLAB:
 		if (image->Bands < 3)
 			sane = FALSE;
 		break;

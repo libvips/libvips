@@ -56,24 +56,35 @@ G_DEFINE_TYPE(VipsOklab2XYZ, vips_Oklab2XYZ, VIPS_TYPE_COLOUR_TRANSFORM);
 static void
 vips_Oklab2XYZ_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
-	VipsOklab2XYZ *Oklab2XYZ = (VipsOklab2XYZ *) colour;
 	float *restrict p = (float *) in[0];
 	float *restrict q = (float *) out;
 
 	for (int x = 0; x < width; x++) {
-		float L, a, b;
-		float X, Y, Z;
-
-		L = p[0];
-		a = p[1];
-		b = p[2];
+		const float L = p[0];
+		const float a = p[1];
+		const float b = p[2];
 		p += 3;
+
+		// M2 inv to get LMS prime
+		const float lp = L * 1.         + a *  0.39633779 + b *  0.21580376;
+		const float mp = L * 1.00000001 + a * -0.10556134 + b * -0.06385417;
+		const float sp = L * 1.00000005 + a * -0.08948418 + b * -1.29148554;
+
+		// back to lms
+		const float l = lp * lp * lp;
+		const float m = mp * mp * mp;
+		const float s = sp * sp * sp;
+
+		// M1 inv to get XYZ
+		const float X = l *  1.22701385 + m * -0.55779998 + s *  0.28125615;
+		const float Y = l * -0.04058018 + m *  1.11225687 + s * -0.07167668;
+		const float Z = l * -0.07638128 + m * -0.42148198 + s *  1.58616322;
 
 		/* Write.
 		 */
-		q[0] = X;
-		q[1] = Y;
-		q[2] = Z;
+		q[0] = X * VIPS_D65_X0;
+		q[1] = Y * VIPS_D65_Y0;
+		q[2] = Z * VIPS_D65_Z0;
 		q += 3;
 	}
 }
@@ -81,7 +92,6 @@ vips_Oklab2XYZ_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 static void
 vips_Oklab2XYZ_class_init(VipsOklab2XYZClass *class)
 {
-	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 

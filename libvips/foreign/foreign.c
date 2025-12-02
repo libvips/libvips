@@ -1620,6 +1620,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		case VIPS_INTERPRETATION_RGB16:
 		case VIPS_INTERPRETATION_scRGB:
 		case VIPS_INTERPRETATION_HSV:
+		case VIPS_INTERPRETATION_OKLAB:
 			max_bands = 3;
 			break;
 

@@ -48,6 +48,7 @@ typedef VipsColourTransformClass VipsXYZ2OklabClass;
 
 G_DEFINE_TYPE(VipsXYZ2Oklab, vips_XYZ2Oklab, VIPS_TYPE_COLOUR_TRANSFORM);
 
+// see https://en.wikipedia.org/wiki/Oklab_color_space#Conversion_from_CIE_XYZ
 static void
 vips_XYZ2Oklab_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
@@ -55,18 +56,30 @@ vips_XYZ2Oklab_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 	float *restrict q = (float *) out;
 
 	for (int i = 0; i < width; i++) {
-		const float X = p[0];
-		const float Y = p[1];
-		const float Z = p[2];
-
+		// to D65 normalised XYZ
+		const float X = p[0] / VIPS_D65_X0;
+		const float Y = p[1] / VIPS_D65_Y0;
+		const float Z = p[2] / VIPS_D65_Z0;
 		p += 3;
 
-		float L, a, b;
+		// convert to LMS
+		const float l = X * 0.8189330101 + Y * 0.3618667424 + Z * -0.1288597137;
+		const float m = X * 0.0329845436 + Y * 0.9293118715 + Z *  0.0361456387;
+		const float s = X * 0.0482003018 + Y * 0.2643662691 + Z *  0.6338517070;
+
+		// cube root ... possibly LUT this?
+		const float lp = cbrtf(l);
+		const float mp = cbrtf(m);
+		const float sp = cbrtf(s);
+
+		// to Oklab
+		const float L = lp * 0.2104542553 + mp *  0.7936177850 + sp * -0.0040720468;
+		const float a = lp * 1.9779984951 + mp * -2.4285922050 + sp *  0.4505937099;
+		const float b = lp * 0.0259040371 + mp *  0.7827717662 + sp * -0.8086757660;
 
 		q[0] = L;
 		q[1] = a;
 		q[2] = b;
-
 		q += 3;
 	}
 }
@@ -97,7 +110,7 @@ vips_XYZ2Oklab_init(VipsXYZ2Oklab *XYZ2Oklab)
  * @out: (out): output image
  * @...: `NULL`-terminated list of optional named arguments
  *
- * Transform XYZ to Oklab.
+ * Transform XYZ to Oklab assuming D65 illuminant.
  *
  * Returns: 0 on success, -1 on error
  */

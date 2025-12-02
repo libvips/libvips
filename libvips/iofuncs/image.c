@@ -206,6 +206,7 @@
  * @VIPS_INTERPRETATION_FOURIER: image is in fourier space
  * @VIPS_INTERPRETATION_XYZ: the first three bands are CIE XYZ
  * @VIPS_INTERPRETATION_LAB: pixels are in CIE Lab space
+ * @VIPS_INTERPRETATION_OKLAB: pixels are in Oklab colourspace
  * @VIPS_INTERPRETATION_CMYK: the first four bands are in CMYK space
  * @VIPS_INTERPRETATION_LABQ: implies [enum@Vips.Coding.LABQ]
  * @VIPS_INTERPRETATION_RGB: generic RGB space
@@ -3106,6 +3107,7 @@ vips_image_hasalpha(VipsImage *image)
 	case VIPS_INTERPRETATION_RGB16:
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_HSV:
+	case VIPS_INTERPRETATION_OKLAB:
 		return image->Bands > 3;
 
 	case VIPS_INTERPRETATION_CMYK:
