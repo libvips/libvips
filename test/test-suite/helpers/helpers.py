@@ -81,7 +81,7 @@ noncomplex_formats = int_formats + float_formats
 all_formats = int_formats + float_formats + complex_formats
 
 colour_colourspaces = ["xyz", "lab", "lch", "cmc", "labs", "scrgb",
-                       "hsv", "srgb", "yxy"]
+                       "hsv", "srgb", "yxy", "oklab"]
 cmyk_colourspaces = ["cmyk"]
 coded_colourspaces = ["labq"]
 mono_colourspaces = ["b-w"]
