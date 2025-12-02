@@ -54,6 +54,8 @@ public:
 
 	/**
 	 * Get a reference to the underlying C string.
+	 * Note: this override must be preserved for ABI, removing it
+	 * would also eliminate the `_ZNK4vips6VError4whatEv` symbol.
 	 */
 	const char *
 	what() const noexcept override
@@ -65,6 +67,13 @@ public:
 	 * Print the error message to a stream.
 	 */
 	void ostream_print(std::ostream &) const;
+
+private:
+	/**
+	 * ABI padding to preserve original VError size.
+	 */
+	char _abi_padding[sizeof(std::exception) + sizeof(std::string) -
+		sizeof(std::runtime_error)] = {};
 };
 
 VIPS_NAMESPACE_END
