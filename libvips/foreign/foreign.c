@@ -2386,8 +2386,8 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  *     * @compression: [enum@ForeignHeifCompression], write with this
  *       compression
  *     * @effort: `gint`, encoding effort
- *     * @subsample_mode: [class@ForeignSubsample], chroma subsampling mode
- *     * @encoder: [class@ForeignHeifEncoder], select encoder to use
+ *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
+ *     * @encoder: [enum@ForeignHeifEncoder], select encoder to use
  *     * @tune: `gchararray`, encoder tuning parameters
  *
  * ::: seealso
@@ -2428,8 +2428,8 @@ vips_heifsave(VipsImage *in, const char *filename, ...)
  *     * @compression: [enum@ForeignHeifCompression], write with this
  *       compression
  *     * @effort: `gint`, encoding effort
- *     * @subsample_mode: [class@ForeignSubsample], chroma subsampling mode
- *     * @encoder: [class@ForeignHeifEncoder], select encoder to use
+ *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
+ *     * @encoder: [enum@ForeignHeifEncoder], select encoder to use
  *     * @tune: `gchararray`, encoder tuning parameters
  *
  * ::: seealso
@@ -2480,8 +2480,8 @@ vips_heifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  *     * @compression: [enum@ForeignHeifCompression], write with this
  *       compression
  *     * @effort: `gint`, encoding effort
- *     * @subsample_mode: [class@ForeignSubsample], chroma subsampling mode
- *     * @encoder: [class@ForeignHeifEncoder], select encoder to use
+ *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
+ *     * @encoder: [enum@ForeignHeifEncoder], select encoder to use
  *     * @tune: `gchararray`, encoder tuning parameters
  *
  * ::: seealso
