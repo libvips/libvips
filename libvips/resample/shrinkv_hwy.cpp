@@ -34,9 +34,9 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 
 #include <vips/vips.h>
 #include <vips/vector.h>
@@ -74,6 +74,11 @@ constexpr int32_t max_bits = 1 << 8;
 #define InterleaveUpper InterleaveWholeUpper
 #endif
 
+// Compat for Highway versions < 1.3.0
+#ifndef HWY_LANES_CONSTEXPR
+#define HWY_LANES_CONSTEXPR
+#endif
+
 HWY_ATTR void
 vips_shrinkv_add_line_uchar_hwy(VipsPel *pin,
 	int32_t ne, uint32_t *HWY_RESTRICT sum)
@@ -85,7 +90,7 @@ vips_shrinkv_add_line_uchar_hwy(VipsPel *pin,
 	 */
 	const int32_t N = 8;
 #else
-	const int32_t N = Lanes(du16);
+	HWY_LANES_CONSTEXPR int32_t N = Lanes(du16);
 #endif
 
 	const auto zero = Zero(du16);
@@ -126,7 +131,7 @@ vips_shrinkv_write_line_uchar_hwy(VipsPel *pout,
 	 */
 	const int32_t N = 8;
 #else
-	const int32_t N = Lanes(du16);
+	HWY_LANES_CONSTEXPR int32_t N = Lanes(du16);
 #endif
 
 	const uint32_t multiplier = max_uint32 / (max_bits * vshrink);

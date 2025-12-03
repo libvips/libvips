@@ -63,10 +63,10 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstdint>
+#include <cmath>
 
 #include <vips/vips.h>
 #include <vips/vector.h>
@@ -199,12 +199,12 @@ vips_reducev_start(VipsImage *out, void *a, void *b)
 	VipsReducevSequence *seq;
 
 	if (!(seq = VIPS_NEW(out, VipsReducevSequence)))
-		return NULL;
+		return nullptr;
 
 	/* Init!
 	 */
 	seq->reducev = reducev;
-	seq->ir = NULL;
+	seq->ir = nullptr;
 #ifdef HAVE_ORC
 	seq->t1 = NULL;
 	seq->t2 = NULL;
