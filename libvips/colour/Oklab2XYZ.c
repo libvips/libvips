@@ -75,16 +75,10 @@ vips_Oklab2XYZ_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 		const float m = mp * mp * mp;
 		const float s = sp * sp * sp;
 
-		// M1 inv to get XYZ
-		const float X = l *  1.22701385 + m * -0.55779998 + s *  0.28125615;
-		const float Y = l * -0.04058018 + m *  1.11225687 + s * -0.07167668;
-		const float Z = l * -0.07638128 + m * -0.42148198 + s *  1.58616322;
-
-		/* Write.
-		 */
-		q[0] = X * VIPS_D65_X0;
-		q[1] = Y * VIPS_D65_Y0;
-		q[2] = Z * VIPS_D65_Z0;
+		// M1 inv to get D65 normalised XYZ
+		q[0] = l *  1.22701385 + m * -0.55779998 + s *  0.28125615;
+		q[1] = l * -0.04058018 + m *  1.11225687 + s * -0.07167668;
+		q[2] = l * -0.07638128 + m * -0.42148198 + s *  1.58616322;
 		q += 3;
 	}
 }
