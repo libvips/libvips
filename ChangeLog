@@ -27,6 +27,7 @@ master
 - add support for Oklab colourspace
 - add vips_Oklab2XYZ(), vips_XYZ2Oklab()
 - heifsave: add "tune" parameter
+- require C++14 as a minimum standard [kleisauke]
 
 8.17.4
 

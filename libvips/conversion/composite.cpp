@@ -53,14 +53,10 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#include <stdio.h>
-#include <string.h>
-#ifdef _MSC_VER
+#include <cstdio>
+#include <cstring>
 #include <cstdlib>
-#else
-#include <stdlib.h>
-#endif
-#include <math.h>
+#include <cmath>
 
 #if defined(HAVE__ALIGNED_MALLOC) || defined(HAVE_MEMALIGN)
 #include <malloc.h>
@@ -152,11 +148,11 @@ vips_composite_base_dispose(GObject *gobject)
 
 	if (composite->in) {
 		vips_area_unref((VipsArea *) composite->in);
-		composite->in = NULL;
+		composite->in = nullptr;
 	}
 	if (composite->mode) {
 		vips_area_unref((VipsArea *) composite->mode);
-		composite->mode = NULL;
+		composite->mode = nullptr;
 	}
 	VIPS_FREE(composite->subimages);
 
@@ -217,7 +213,7 @@ vips_alloc_aligned(size_t sz, size_t align)
 #elif defined(HAVE_POSIX_MEMALIGN)
 	void *ptr;
 	if (posix_memalign(&ptr, align, sz))
-		return NULL;
+		return nullptr;
 	return ptr;
 #elif defined(HAVE_MEMALIGN)
 	return memalign(align, sz);
@@ -283,12 +279,12 @@ vips_composite_start(VipsImage *out, void *a, void *b)
 #else  /*!defined(HAVE_VECTOR_ARITH)*/
 	if (!(seq = VIPS_NEW(NULL, VipsCompositeSequence)))
 #endif /*HAVE_VECTOR_ARITH*/
-		return NULL;
+		return nullptr;
 
 	seq->composite = composite;
-	seq->input_regions = NULL;
-	seq->enabled = NULL;
-	seq->p = NULL;
+	seq->input_regions = nullptr;
+	seq->enabled = nullptr;
+	seq->p = nullptr;
 
 	/* How many images?
 	 */
@@ -298,26 +294,26 @@ vips_composite_start(VipsImage *out, void *a, void *b)
 	/* Allocate space for region array.
 	 */
 	if (!(seq->input_regions = VIPS_ARRAY(NULL, n + 1, VipsRegion *))) {
-		vips_composite_stop(seq, NULL, NULL);
-		return NULL;
+		vips_composite_stop(seq, nullptr, nullptr);
+		return nullptr;
 	}
 	for (i = 0; i < n + 1; i++)
-		seq->input_regions[i] = NULL;
+		seq->input_regions[i] = nullptr;
 
 	if (!(seq->composite_regions =
 				VIPS_ARRAY(NULL, n + 1, VipsRegion *))) {
-		vips_composite_stop(seq, NULL, NULL);
-		return NULL;
+		vips_composite_stop(seq, nullptr, nullptr);
+		return nullptr;
 	}
 	for (i = 0; i < n + 1; i++)
-		seq->composite_regions[i] = NULL;
+		seq->composite_regions[i] = nullptr;
 
 	seq->enabled = VIPS_ARRAY(NULL, n, int);
 	seq->p = VIPS_ARRAY(NULL, n, VipsPel *);
 	if (!seq->enabled ||
 		!seq->p) {
-		vips_composite_stop(seq, NULL, NULL);
-		return NULL;
+		vips_composite_stop(seq, nullptr, nullptr);
+		return nullptr;
 	}
 
 	/* Create a set of regions.
@@ -328,8 +324,8 @@ vips_composite_start(VipsImage *out, void *a, void *b)
 
 		if (!seq->input_regions[i] ||
 			!seq->composite_regions[i]) {
-			vips_composite_stop(seq, NULL, NULL);
-			return NULL;
+			vips_composite_stop(seq, nullptr, nullptr);
+			return nullptr;
 		}
 	}
 
@@ -1683,7 +1679,7 @@ vips_composite2_build(VipsObject *object)
 
 		in[0] = composite2->base;
 		in[1] = composite2->overlay;
-		in[2] = NULL;
+		in[2] = nullptr;
 		base->in = vips_array_image_new(in, 2);
 
 		mode[0] = (int) composite2->mode;
