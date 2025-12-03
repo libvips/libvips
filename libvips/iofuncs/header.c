@@ -205,6 +205,49 @@ vips_interpretation_max_alpha(VipsInterpretation interpretation)
 	}
 }
 
+/**
+ * vips_interpretation_bands:
+ * @interpretation: image to check
+ *
+ * The number of "real" bands we expect for this interpretation. If we've no
+ * idea (eg. MULTIBAND), return 0.
+ *
+ * Returns: the number of bands implied by this interpretation, or 0.
+ */
+int
+vips_interpretation_bands(VipsInterpretation interpretation)
+{
+	switch (interpretation) {
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_GREY16:
+		return 1;
+
+	case VIPS_INTERPRETATION_RGB:
+	case VIPS_INTERPRETATION_CMC:
+	case VIPS_INTERPRETATION_LCH:
+	case VIPS_INTERPRETATION_LABS:
+	case VIPS_INTERPRETATION_sRGB:
+	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_XYZ:
+	case VIPS_INTERPRETATION_LAB:
+	case VIPS_INTERPRETATION_RGB16:
+	case VIPS_INTERPRETATION_scRGB:
+	case VIPS_INTERPRETATION_HSV:
+	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
+		return 3;
+
+	case VIPS_INTERPRETATION_CMYK:
+		return 4;
+
+	default:
+		/* We can't really guess bands for things like HISTOGRAM or FOURIER or
+		 * MULTIBAND.
+		 */
+		return 0;
+	}
+}
+
 #ifdef DEBUG
 /* Check that this meta is on the hash table.
  */
@@ -515,49 +558,6 @@ vips_image_guess_format(const VipsImage *image)
 }
 
 /**
- * vips_image_get_interpretation_bands:
- * @interpretation: image to check
- *
- * The number of "real" bands we expect for this interpretation. If we've no
- * idea (eg. MULTIBAND), return 0.
- *
- * Returns: the number of bands implied by this interpretation, or 0.
- */
-int
-vips_image_get_interpretation_bands(VipsInterpretation interpretation)
-{
-	switch (interpretation) {
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_GREY16:
-		return 1;
-
-	case VIPS_INTERPRETATION_RGB:
-	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_LCH:
-	case VIPS_INTERPRETATION_LABS:
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_YXY:
-	case VIPS_INTERPRETATION_XYZ:
-	case VIPS_INTERPRETATION_LAB:
-	case VIPS_INTERPRETATION_RGB16:
-	case VIPS_INTERPRETATION_scRGB:
-	case VIPS_INTERPRETATION_HSV:
-	case VIPS_INTERPRETATION_OKLAB:
-	case VIPS_INTERPRETATION_OKLCH:
-		return 3;
-
-	case VIPS_INTERPRETATION_CMYK:
-		return 4;
-
-	default:
-		/* We can't really guess bands for things like HISTOGRAM or FOURIER or
-		 * MULTIBAND.
-		 */
-		return 0;
-	}
-}
-
-/**
  * vips_image_get_coding:
  * @image: image to get from
  *
@@ -695,7 +695,7 @@ vips_image_guess_interpretation(const VipsImage *image)
 
 	/* If we have eg. a two-band sRGB, we are crazy.
 	 */
-	if (image->Bands < vips_image_get_interpretation_bands(image->Type))
+	if (image->Bands < vips_interpretation_bands(image->Type))
 		sane = FALSE;
 
 	switch (image->Type) {

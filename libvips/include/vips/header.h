@@ -199,6 +199,8 @@ guint64 vips_format_sizeof_unsafe(VipsBandFormat format);
 
 VIPS_API
 double vips_interpretation_max_alpha(VipsInterpretation interpretation);
+VIPS_API
+int vips_interpretation_bands(VipsInterpretation interpretation);
 
 VIPS_API
 int vips_image_get_width(const VipsImage *image);
@@ -212,8 +214,6 @@ VIPS_API
 double vips_image_get_format_max(VipsBandFormat format);
 VIPS_API
 VipsBandFormat vips_image_guess_format(const VipsImage *image);
-VIPS_API
-int vips_image_get_interpretation_bands(VipsInterpretation interpretation);
 VIPS_API
 VipsCoding vips_image_get_coding(const VipsImage *image);
 VIPS_API

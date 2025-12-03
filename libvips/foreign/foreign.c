@@ -1605,7 +1605,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 		int bands;
 
-		bands = vips_image_get_interpretation_bands(interpretation);
+		bands = vips_interpretation_bands(interpretation);
 		if (saveable == VIPS_FOREIGN_SAVEABLE_ANY)
 			bands = in->Bands;
 		else if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)

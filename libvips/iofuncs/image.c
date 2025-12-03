@@ -3087,7 +3087,7 @@ vips_image_ispartial(VipsImage *image)
 gboolean
 vips_image_hasalpha(VipsImage *image)
 {
-	int bands = vips_image_get_interpretation_bands(image->Type);
+	int bands = vips_interpretation_bands(image->Type);
 
 	return bands > 0 &&
 		image->Bands > bands;

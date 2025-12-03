@@ -554,7 +554,7 @@ vips_icc_print_profile(const char *name, cmsHPROFILE profile)
 static gboolean
 vips_image_is_profile_compatible(VipsImage *image, int profile_bands)
 {
-	int bands = vips_image_get_interpretation_bands(image->Type);
+	int bands = vips_interpretation_bands(image->Type);
 
 	// CMYK can mean more than 4 bands for eg. hexachrome
 	if (image->Type == VIPS_INTERPRETATION_CMYK)

@@ -27,9 +27,9 @@ master
 - add support for Oklab and Oklch colourspaces
 - add vips_Oklab2XYZ(), vips_XYZ2Oklab()
 - add vips_Oklab2Oklch(), vips_OKlch2Oklab()
+- add vips_interpretation_bands()
 - heifsave: add "tune" parameter
 - require C++14 as a minimum standard [kleisauke]
-- add vips_image_get_interpretation_bands()
 
 8.17.4
 
