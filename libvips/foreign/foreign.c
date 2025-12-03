@@ -1536,8 +1536,8 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
  */
 int
 vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
-	VipsForeignSaveable saveable, VipsBandFormat *format, VipsForeignCoding coding,
-	VipsArrayDouble *background)
+	VipsForeignSaveable saveable, VipsBandFormat *format,
+	VipsForeignCoding coding, VipsArrayDouble *background)
 {
 	VipsImage *out;
 
@@ -1600,48 +1600,21 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 * bands.
 	 */
 	if (in->Coding == VIPS_CODING_NONE) {
-		int max_bands;
-
 		// use a sanity-checked interpretation
-		switch (vips_image_guess_interpretation(in)) {
-		case VIPS_INTERPRETATION_B_W:
-		case VIPS_INTERPRETATION_GREY16:
-			max_bands = 1;
-			break;
+		VipsInterpretation interpretation = vips_image_guess_interpretation(in);
 
-		case VIPS_INTERPRETATION_RGB:
-		case VIPS_INTERPRETATION_CMC:
-		case VIPS_INTERPRETATION_LCH:
-		case VIPS_INTERPRETATION_LABS:
-		case VIPS_INTERPRETATION_sRGB:
-		case VIPS_INTERPRETATION_YXY:
-		case VIPS_INTERPRETATION_XYZ:
-		case VIPS_INTERPRETATION_LAB:
-		case VIPS_INTERPRETATION_RGB16:
-		case VIPS_INTERPRETATION_scRGB:
-		case VIPS_INTERPRETATION_HSV:
-		case VIPS_INTERPRETATION_OKLAB:
-			max_bands = 3;
-			break;
+		int bands;
 
-		case VIPS_INTERPRETATION_CMYK:
-			max_bands = 4;
-			break;
-
-		default:
-			max_bands = 0;
-			break;
-		}
-
+		bands = vips_image_get_interpretation_bands(interpretation);
 		if (saveable == VIPS_FOREIGN_SAVEABLE_ANY)
-			max_bands = in->Bands;
+			bands = in->Bands;
 		else if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
-			max_bands += 1;
+			bands += 1;
 
-		if (max_bands > 0 &&
-			in->Bands > max_bands) {
+		if (bands > 0 &&
+			in->Bands > bands) {
 			if (vips_extract_band(in, &out, 0,
-					"n", max_bands,
+					"n", bands,
 					NULL)) {
 				g_object_unref(in);
 				return -1;

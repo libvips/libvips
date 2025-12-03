@@ -3086,39 +3086,10 @@ vips_image_ispartial(VipsImage *image)
 gboolean
 vips_image_hasalpha(VipsImage *image)
 {
-	/* The result of hasalpha is used to turn on things like
-	 * premultiplication, so we are rather conservative about when we
-	 * signal this. We don't want to premultiply things that should not be
-	 * premultiplied.
-	 */
-	switch (image->Type) {
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_GREY16:
-		return image->Bands > 1;
+	int bands = vips_image_get_interpretation_bands(image->Type);
 
-	case VIPS_INTERPRETATION_RGB:
-	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_LCH:
-	case VIPS_INTERPRETATION_LABS:
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_YXY:
-	case VIPS_INTERPRETATION_XYZ:
-	case VIPS_INTERPRETATION_LAB:
-	case VIPS_INTERPRETATION_RGB16:
-	case VIPS_INTERPRETATION_scRGB:
-	case VIPS_INTERPRETATION_HSV:
-	case VIPS_INTERPRETATION_OKLAB:
-		return image->Bands > 3;
-
-	case VIPS_INTERPRETATION_CMYK:
-		return image->Bands > 4;
-
-	default:
-		/* We can't really infer anything about bands from things like
-		 * HISTOGRAM or FOURIER.
-		 */
-		return FALSE;
-	}
+	return bands > 0 &&
+		image->Bands > bands;
 }
 
 /**

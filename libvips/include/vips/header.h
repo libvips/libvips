@@ -213,6 +213,8 @@ double vips_image_get_format_max(VipsBandFormat format);
 VIPS_API
 VipsBandFormat vips_image_guess_format(const VipsImage *image);
 VIPS_API
+int vips_image_get_interpretation_bands(VipsInterpretation interpretation);
+VIPS_API
 VipsCoding vips_image_get_coding(const VipsImage *image);
 VIPS_API
 VipsInterpretation vips_image_get_interpretation(const VipsImage *image);

@@ -28,6 +28,7 @@ master
 - add vips_Oklab2XYZ(), vips_XYZ2Oklab()
 - heifsave: add "tune" parameter
 - require C++14 as a minimum standard [kleisauke]
+- add vips_image_get_interpretation_bands()
 
 8.17.4
 
