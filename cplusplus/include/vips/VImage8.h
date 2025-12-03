@@ -2084,7 +2084,7 @@ public:
 	 * @param fd File descriptor to write to.
 	 * @param options Set of options.
 	 */
-	G_DEPRECATED_FOR(rawsave_target)
+	[[deprecated("Use 'rawsave_target' instead")]]
 	void rawsave_fd(int fd, VOption *options = nullptr) const;
 
 	/* Automatically generated members.

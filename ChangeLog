@@ -25,6 +25,7 @@ master
 - dzsave has gainmap support
 - cpp: add .gainmap(), .set(VImage)
 - heifsave: add "tune" parameter
+- require C++14 as a minimum standard [kleisauke]
 
 8.17.4
 

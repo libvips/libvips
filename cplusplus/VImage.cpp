@@ -860,7 +860,7 @@ VImage::minpos(VOption *options) const
 		->set("x", &x)
 		->set("y", &y));
 
-	return std::complex<double>(x, y);
+	return {x, y};
 }
 
 std::complex<double>
@@ -872,7 +872,7 @@ VImage::maxpos(VOption *options) const
 		->set("x", &x)
 		->set("y", &y));
 
-	return std::complex<double>(x, y);
+	return {x, y};
 }
 
 // Operator overloads

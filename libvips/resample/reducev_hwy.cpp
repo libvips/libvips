@@ -40,9 +40,9 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 
 #include <vips/vips.h>
 #include <vips/vector.h>
@@ -78,6 +78,11 @@ constexpr DI32 di32;
 #define InterleaveUpper InterleaveWholeUpper
 #endif
 
+// Compat for Highway versions < 1.3.0
+#ifndef HWY_LANES_CONSTEXPR
+#define HWY_LANES_CONSTEXPR
+#endif
+
 HWY_ATTR void
 vips_reducev_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	int32_t n, int32_t ne, int32_t lskip, const int16_t *HWY_RESTRICT k)
@@ -91,7 +96,7 @@ vips_reducev_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	 */
 	const int32_t N = 16;
 #else
-	const int32_t N = Lanes(du8);
+	HWY_LANES_CONSTEXPR int32_t N = Lanes(du8);
 #endif
 
 	const auto zero = Zero(du8);
