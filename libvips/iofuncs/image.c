@@ -207,6 +207,7 @@
  * @VIPS_INTERPRETATION_XYZ: the first three bands are CIE XYZ
  * @VIPS_INTERPRETATION_LAB: pixels are in CIE Lab space
  * @VIPS_INTERPRETATION_OKLAB: pixels are in Oklab colourspace
+ * @VIPS_INTERPRETATION_OKLCH: pixels are in Oklch colourspace
  * @VIPS_INTERPRETATION_CMYK: the first four bands are in CMYK space
  * @VIPS_INTERPRETATION_LABQ: implies [enum@Vips.Coding.LABQ]
  * @VIPS_INTERPRETATION_RGB: generic RGB space

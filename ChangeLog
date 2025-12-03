@@ -24,8 +24,9 @@ master
 - add "uhdr2scRGB"
 - dzsave has gainmap support
 - cpp: add .gainmap(), .set(VImage)
-- add support for Oklab colourspace
+- add support for Oklab and Oklch colourspaces
 - add vips_Oklab2XYZ(), vips_XYZ2Oklab()
+- add vips_Oklab2Oklch(), vips_OKlch2Oklab()
 - heifsave: add "tune" parameter
 - require C++14 as a minimum standard [kleisauke]
 - add vips_image_get_interpretation_bands()

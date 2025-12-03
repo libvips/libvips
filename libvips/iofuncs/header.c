@@ -471,6 +471,7 @@ vips_image_guess_format(const VipsImage *image)
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_YXY:
 	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
 		format = VIPS_FORMAT_FLOAT;
 		break;
 
@@ -542,6 +543,7 @@ vips_image_get_interpretation_bands(VipsInterpretation interpretation)
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_HSV:
 	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
 		return 3;
 
 	case VIPS_INTERPRETATION_CMYK:
@@ -720,6 +722,7 @@ vips_image_guess_interpretation(const VipsImage *image)
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_YXY:
 	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
 		/* Need float values in 0 - 1.
 		 */
 		if (!vips_band_format_isfloat(image->BandFmt))

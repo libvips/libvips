@@ -20,6 +20,8 @@ colour_sources = files(
     'LCh2Lab.c',
     'LCh2UCS.c',
     'Oklab2XYZ.c',
+    'Oklab2Oklch.c',
+    'Oklch2Oklab.c',
     'profile_load.c',
     'profiles.c',
     'rad2float.c',
