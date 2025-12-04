@@ -549,7 +549,7 @@ public:
 	}
 
 	/**
-	 * The associated gainmap image. nullptr for no gainmap.
+	 * The associated gainmap image, if any.
 	 */
 	VImage
 	gainmap() const
