@@ -100,6 +100,19 @@ cmake \
 cmake --build . --target install
 popd
 
+# libpng
+pushd $SRC/libpng
+autoreconf -fi
+./configure \
+  --prefix=$WORK \
+  --disable-shared \
+  --disable-tools \
+  --without-binconfigs \
+  --disable-unversioned-libpng-config \
+  --disable-dependency-tracking
+make install dist_man_MANS=
+popd
+
 # libwebp
 pushd $SRC/libwebp
 autoreconf -fi
