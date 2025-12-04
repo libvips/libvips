@@ -549,12 +549,19 @@ public:
 	}
 
 	/**
-	 * The associated gainmap image, if any.
+	 * The associated gainmap image. nullptr for no gainmap.
 	 */
 	VImage
 	gainmap() const
 	{
-		return VImage(vips_image_get_gainmap(get_image()), NOSTEAL);
+		VipsImage *gainmap = vips_image_get_gainmap(get_image());
+
+		if (gainmap)
+			// get_gainmap peeks the gainmap image attached to us as metadata,
+			// it does not make a reference
+			g_object_ref(gainmap);
+
+		return VImage(gainmap);
 	}
 
 	/**
