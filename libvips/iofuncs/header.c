@@ -205,6 +205,49 @@ vips_interpretation_max_alpha(VipsInterpretation interpretation)
 	}
 }
 
+/**
+ * vips_interpretation_bands:
+ * @interpretation: image to check
+ *
+ * The number of "real" bands we expect for this interpretation. If we've no
+ * idea (eg. MULTIBAND), return 0.
+ *
+ * Returns: the number of bands implied by this interpretation, or 0.
+ */
+int
+vips_interpretation_bands(VipsInterpretation interpretation)
+{
+	switch (interpretation) {
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_GREY16:
+		return 1;
+
+	case VIPS_INTERPRETATION_RGB:
+	case VIPS_INTERPRETATION_CMC:
+	case VIPS_INTERPRETATION_LCH:
+	case VIPS_INTERPRETATION_LABS:
+	case VIPS_INTERPRETATION_sRGB:
+	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_XYZ:
+	case VIPS_INTERPRETATION_LAB:
+	case VIPS_INTERPRETATION_RGB16:
+	case VIPS_INTERPRETATION_scRGB:
+	case VIPS_INTERPRETATION_HSV:
+	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
+		return 3;
+
+	case VIPS_INTERPRETATION_CMYK:
+		return 4;
+
+	default:
+		/* We can't really guess bands for things like HISTOGRAM or FOURIER or
+		 * MULTIBAND.
+		 */
+		return 0;
+	}
+}
+
 #ifdef DEBUG
 /* Check that this meta is on the hash table.
  */
@@ -470,6 +513,8 @@ vips_image_guess_format(const VipsImage *image)
 	case VIPS_INTERPRETATION_HSV:
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
 		format = VIPS_FORMAT_FLOAT;
 		break;
 
@@ -648,6 +693,11 @@ vips_image_guess_interpretation(const VipsImage *image)
 		break;
 	}
 
+	/* If we have eg. a two-band sRGB, we are crazy.
+	 */
+	if (image->Bands < vips_interpretation_bands(image->Type))
+		sane = FALSE;
+
 	switch (image->Type) {
 	case VIPS_INTERPRETATION_ERROR:
 		sane = FALSE;
@@ -657,12 +707,6 @@ vips_image_guess_interpretation(const VipsImage *image)
 		/* This is a pretty useless generic tag. Always reset it.
 		 */
 		sane = FALSE;
-		break;
-
-	case VIPS_INTERPRETATION_B_W:
-		/* Don't test bands, we allow bands after the first to be
-		 * unused extras, like alpha.
-		 */
 		break;
 
 	case VIPS_INTERPRETATION_HISTOGRAM:
@@ -675,28 +719,13 @@ vips_image_guess_interpretation(const VipsImage *image)
 			sane = FALSE;
 		break;
 
-	case VIPS_INTERPRETATION_XYZ:
-	case VIPS_INTERPRETATION_LAB:
-	case VIPS_INTERPRETATION_RGB:
-	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_LCH:
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_HSV:
-		if (image->Bands < 3)
-			sane = FALSE;
-		break;
-
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
 		/* Need float values in 0 - 1.
 		 */
-		if (!vips_band_format_isfloat(image->BandFmt) ||
-			image->Bands < 3)
-			sane = FALSE;
-		break;
-
-	case VIPS_INTERPRETATION_CMYK:
-		if (image->Bands < 4)
+		if (!vips_band_format_isfloat(image->BandFmt))
 			sane = FALSE;
 		break;
 
@@ -709,14 +738,12 @@ vips_image_guess_interpretation(const VipsImage *image)
 		/* Needs to be able to express +/- 32767
 		 */
 		if (vips_band_format_isuint(image->BandFmt) ||
-			vips_band_format_is8bit(image->BandFmt) ||
-			image->Bands < 3)
+			vips_band_format_is8bit(image->BandFmt))
 			sane = FALSE;
 		break;
 
 	case VIPS_INTERPRETATION_RGB16:
-		if (vips_band_format_is8bit(image->BandFmt) ||
-			image->Bands < 3)
+		if (vips_band_format_is8bit(image->BandFmt))
 			sane = FALSE;
 		break;
 
@@ -725,13 +752,7 @@ vips_image_guess_interpretation(const VipsImage *image)
 			sane = FALSE;
 		break;
 
-	case VIPS_INTERPRETATION_MATRIX:
-		if (image->Bands != 1)
-			sane = FALSE;
-		break;
-
 	default:
-		g_assert_not_reached();
 	}
 
 	if (sane)

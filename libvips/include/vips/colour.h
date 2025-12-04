@@ -204,6 +204,19 @@ int vips_XYZ2CMYK(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
+int vips_Oklab2XYZ(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_XYZ2Oklab(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_Oklch2Oklab(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_Oklab2Oklch(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
 int vips_uhdr2scRGB(VipsImage *in, VipsImage **out, ...);
 	G_GNUC_NULL_TERMINATED
 

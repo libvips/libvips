@@ -1785,7 +1785,7 @@ class TestForeign:
 
     @skip_if_no("heifsave")
     def test_avifsave_tune(self):
-        buf = self.colour.heifsave_buffer(tune="ssim")
+        buf = self.colour.heifsave_buffer(compression="av1", tune="ssim")
         assert len(buf) > 10000
 
     @skip_if_no("heifsave")

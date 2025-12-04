@@ -206,6 +206,8 @@
  * @VIPS_INTERPRETATION_FOURIER: image is in fourier space
  * @VIPS_INTERPRETATION_XYZ: the first three bands are CIE XYZ
  * @VIPS_INTERPRETATION_LAB: pixels are in CIE Lab space
+ * @VIPS_INTERPRETATION_OKLAB: pixels are in Oklab colourspace
+ * @VIPS_INTERPRETATION_OKLCH: pixels are in Oklch colourspace
  * @VIPS_INTERPRETATION_CMYK: the first four bands are in CMYK space
  * @VIPS_INTERPRETATION_LABQ: implies [enum@Vips.Coding.LABQ]
  * @VIPS_INTERPRETATION_RGB: generic RGB space
@@ -3085,38 +3087,10 @@ vips_image_ispartial(VipsImage *image)
 gboolean
 vips_image_hasalpha(VipsImage *image)
 {
-	/* The result of hasalpha is used to turn on things like
-	 * premultiplication, so we are rather conservative about when we
-	 * signal this. We don't want to premultiply things that should not be
-	 * premultiplied.
-	 */
-	switch (image->Type) {
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_GREY16:
-		return image->Bands > 1;
+	int bands = vips_interpretation_bands(image->Type);
 
-	case VIPS_INTERPRETATION_RGB:
-	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_LCH:
-	case VIPS_INTERPRETATION_LABS:
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_YXY:
-	case VIPS_INTERPRETATION_XYZ:
-	case VIPS_INTERPRETATION_LAB:
-	case VIPS_INTERPRETATION_RGB16:
-	case VIPS_INTERPRETATION_scRGB:
-	case VIPS_INTERPRETATION_HSV:
-		return image->Bands > 3;
-
-	case VIPS_INTERPRETATION_CMYK:
-		return image->Bands > 4;
-
-	default:
-		/* We can't really infer anything about bands from things like
-		 * HISTOGRAM or FOURIER.
-		 */
-		return FALSE;
-	}
+	return bands > 0 &&
+		image->Bands > bands;
 }
 
 /**

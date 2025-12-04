@@ -48,6 +48,7 @@ copied between images efficiently.
 * [func@format_sizeof]
 * [func@format_sizeof_unsafe]
 * [func@Interpretation.max_alpha]
+* [func@Interpretation.bands]
 * [method@Image.get_width]
 * [method@Image.get_height]
 * [method@Image.get_bands]
