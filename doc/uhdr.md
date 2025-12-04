@@ -8,18 +8,18 @@ can be used as an exponent to recover the full HDR range. This ability to show
 the same file in good quality on both SDR and HDR displays makes the format
 very useful.
 
-Google's [libultrahdr](https://github.com/google/libultrahdr) is used to
-implement UltraHDR load and save. The current version of this library only
-supports UltraHDR JPEG images; the next version is expected to add
-support for a wider range of image formats.
+libvips uses Google's [libultrahdr](https://github.com/google/libultrahdr)
+for UltraHDR load and save. The current version of this library only
+supports UltraHDR JPEG images; the next version is expected to add support
+for a wider range of image formats.
 
 There are two main paths for UltraHDR images in libvips: as an SDR image with a
-separate gainmap, and as full HDR. The separate gainmap path is
+separate gainmap, and as a full HDR image. The separate gainmap path is
 relatively fast but you will sometimes need to update the gainmap during
 processing. The full HDR path does not require gainmap updates, but can be
 slower, and will usually lose the original image's tone mapping.
 
-## UltraHDR as SDR with an separate gainmap
+## UltraHDR as SDR with a separate gainmap
 
 libvips will detect JPEG images with an embedded gainmap and automatically
 invoke the [ctor@Image.uhdrload] operation to load them. This operation
@@ -57,7 +57,7 @@ gainmap-hdr-capacity-max: 100
 gainmap-use-base-cg: 1
 ```
 
-The gainmap metadata is copied unmodified through any processing operations.
+This gainmap metadata is copied unmodified through any processing operations.
 If you save an image with gainmap metadata to a JPEG file, libvips will do the
 write with the [method@Image.uhdrsave] operation, embedding the gainmap and the
 associated metadata in the output image.
@@ -79,9 +79,9 @@ set `keep="gainmap"` to write the gainmap to the tiles. For example:
 $ vips dzsave ultra-hdr.jpg x --keep gainmap
 ```
 
-### A la carte processing
+### À la carte processing
 
-Other operations will NOT update the gainmap for you automatically. If you
+Other operations will NOT automatically update the gainmap for you. If you
 call something like [method@Image.crop], an operation which changes the
 image geometry, the gainmap and the image will no longer match. When
 you save the cropped image, the gainmap is likely to be incorrect.
@@ -137,7 +137,7 @@ path in libvips avoids this problem.
 ## Full HDR processing
 
 You can transform an UltraHDR SDR plus gainmap image to full HDR with
-[method@Image.uhdr2scRGB]. This will compute an scRGB image -- a three-band
+[method@Image.uhdr2scRGB]. This will compute an scRGB image: a three-band
 float with sRGB primaries, black to white as linear 0-1, and out of range
 values used to represent HDR.
 
@@ -145,13 +145,15 @@ For example:
 
 ```
 $ vips uhdr2scRGB ultra-hdr.jpg x.v
+$ vipsheader x.v
+x.v: 3840x2160 float, 3 bands, scrgb, uhdrload
 $ vips max x.v
 15.210938
 ```
 
 If you save an scRGB image as JPEG, it will be automatically written as
 UltraJPEG. Any associated gainmap is thrown away and basic tonemapping
-performed to make a new gainmap.
+performed to make a new gainmap for SDR display.
 
 Full HDR processing with scRGB is simple, but potentially slower than the
 separate gainmap path, and will not preserve any user tone map.
