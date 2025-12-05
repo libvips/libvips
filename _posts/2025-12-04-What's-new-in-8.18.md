@@ -59,7 +59,6 @@ Makes this image
 
 [dcrawload thumbnail](/assets/images/tn_IMG_3260.jpg)
 
-
 Most time is spent in dcraw, so performance isn't that much better than
 the previous solution with imagemagick:
 
@@ -119,7 +118,7 @@ im.write_to_file(sys.argv[2])
 
 I can run it like this:
 
-
+```
 $ ./watermark-oklab.py ~/pics/theo.jpg x.jpg "in the beginning was the word" 0.7 0.2 -0.2
 ```
 
@@ -127,27 +126,50 @@ To generate:
 
 [watermark](/assets/images/tn_watermark.jpg)
 
-
 A watermarked image, with the watermark colour specified in Oklab coordinates. 
 
 ## Improvements to the libvips core
 
-- larger mmap windows on 64-bit machines improve random access mode for many
-  file formats
-- system: add "cache" argument
-- add vips_image_get_tile_width(), vips_image_get_tile_height(): get tile
-  cache geometry hints [jbaiter]
-- add "path" option to vipsthumbnail, deprecate "output" option [zjturner]
-- add vips_interpretation_bands()
-- require C++14 as a minimum standard [kleisauke]
-- add vips__worker_exit(): enables fast threadpool shutdown
+The libvips core has seen some useful improvements, mostly driven by
+interactive use:
+
+- The mmap window size hadn't been reviewed for a long time, and I think had
+  been previously set after benchmarking on a 32-bit machine with limited
+  VMEM. For 64-bit machines this is now much larger, improving random access
+  speeds for many file formats.
+
+- [`vips_system()`](/API/8.18/ctor.Image.system.html) has a new `"cache"` 
+  argument which adds the command to the libvips operation cache. This makes
+  nip4 much, much faster at issuing ImageMagick commands.
+
+- A new system for forcing the exit of worker threads makes threadpoool
+  shutdown dramatically faster, greatly improving interactive performance.
+
+- Tiled image formats now set metadata to hint their cache size to downstream
+  operations. This can help prevent retiling, again improving interactive
+  performance. 
+
+- [`vipsthumbnail`](/API/8.18/using-vipsthumbnail.html) has a new `"path"` 
+  argument. This gives you much more flexibility in how the output filename is
+  constructed. The old `-o` option is still supported, but is deprecated.
 
 ## Better file format support
 
-File format support has been improved (again). Highlights this time are:
+As well as the RAW support above, the other file format operations have
+seen some improvements:
 
-- add magickload_source: load from a source with imagemagick
-- pdfload: control region to be rendered via `page_box` [lovell]
-- add "bitdepth" to jxlsave
-- add "exact" to webpsave
-- heifsave: add "tune" parameter
+- [`vips_pdfload()`](/API/8.18/ctor.Image.pdfload.html) has a new `"page-box"`
+  argument which lets you control which of the various media boxes you'd like
+  to load.
+
+- [`vips_jxlload()`](/API/8.18/ctor.Image.jxlload.html) has a new `"bitdepth"` 
+  argument which sets the depth at which the image should be loaded.
+
+- [`vips_webpsave()`](/API/8.18/ctor.Image.webpsave.html) has a new 
+  `"exact"` argument which forces the RGB in RGBA to always be saved, even if
+  the pixel is transparent. This can be important if you are using WebP to
+  store data.
+
+- [`vips_heifsave()`](/API/8.18/ctor.Image.heifsave.html) has a new 
+  `"tune"` parameter that lets you pass detailed options to the encoder. Handy
+  for tuning output.
