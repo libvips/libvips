@@ -100,6 +100,15 @@ int left, top, width, height;
 if (vips_crop(image, &out, left, top, width, height, NULL))
     return -1;
 
+// vips_image_get_gainmap() can modify the metadata, so we need to make a
+// unique copy of the image ... you can skip this step if you know your
+// image is already unique
+VipsImage *x;
+if (vips_copy(out, &x, NULL))
+    return -1;
+g_object_unref(out);
+out = x;
+
 // also crop the gainmap, if there is one
 VipsImage *gainmap;
 if ((gainmap = vips_image_get_gainmap(out))) {
