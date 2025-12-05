@@ -1033,8 +1033,7 @@ vips_image_get_tile_width(VipsImage *image)
 	int tile_width;
 
 	if (vips_image_get_typeof(image, VIPS_META_TILE_WIDTH) &&
-		!vips_image_get_int(image, VIPS_META_TILE_WIDTH,
-			&tile_width) &&
+		!vips_image_get_int(image, VIPS_META_TILE_WIDTH, &tile_width) &&
 		tile_width > 0 &&
 		tile_width <= vips_image_get_width(image))
 		return tile_width;
@@ -1057,8 +1056,7 @@ vips_image_get_tile_height(VipsImage *image)
 	int tile_height;
 
 	if (vips_image_get_typeof(image, VIPS_META_TILE_HEIGHT) &&
-		!vips_image_get_int(image, VIPS_META_TILE_HEIGHT,
-			&tile_height) &&
+		!vips_image_get_int(image, VIPS_META_TILE_HEIGHT, &tile_height) &&
 		tile_height > 0 &&
 		tile_height <= vips_image_get_height(image))
 		return tile_height;
@@ -1072,10 +1070,12 @@ vips_image_get_tile_height(VipsImage *image)
  *
  * If the image has an attached `"gainmap"`, return that. If there's a
  * compressed `"gainmap-data"`, decompress, attach to the image, and return
- * that.
+ * it.
  *
- * The result is owned by @image and must not be unreffed. Don't call this
- * function on the same image from two different threads!
+ * Since this function can modify the image metadata, you must use
+ * [method@Image.copy] to make a unique copy of the image first.
+ *
+ * This function does not return a new reference -- do not unref the result.
  *
  * Returns: (nullable) (transfer none): the gainmap image, if present, or NULL.
  */
