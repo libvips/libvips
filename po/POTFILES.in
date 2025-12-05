@@ -115,6 +115,9 @@ libvips/colour/LabS2Lab.c
 libvips/colour/LabS2LabQ.c
 libvips/colour/LCh2Lab.c
 libvips/colour/LCh2UCS.c
+libvips/colour/Oklab2Oklch.c
+libvips/colour/Oklab2XYZ.c
+libvips/colour/Oklch2Oklab.c
 libvips/colour/profile_load.c
 libvips/colour/profiles.c
 libvips/colour/rad2float.c
@@ -127,6 +130,7 @@ libvips/colour/UCS2LCh.c
 libvips/colour/uhdr2scRGB.c
 libvips/colour/XYZ2CMYK.c
 libvips/colour/XYZ2Lab.c
+libvips/colour/XYZ2Oklab.c
 libvips/colour/XYZ2scRGB.c
 libvips/colour/XYZ2Yxy.c
 libvips/colour/Yxy2XYZ.c

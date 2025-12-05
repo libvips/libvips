@@ -106,8 +106,14 @@ def generate_operation(operation_name, declaration_only=False, indent=''):
     # Add a C++ style comment block with some additional markings (@param,
     # @return)
     if declaration_only:
+        description = intro.description.capitalize()
+        # hide library-specific implementation details
+        description = (description
+                       .replace('imagemagick7', 'imagemagick')
+                       .replace(' (pdfium)', '')
+                       .replace(' (poppler)', ''))
         result = f'\n{indent}/**'
-        result += f'\n{indent} * {intro.description.capitalize()}.'
+        result += f'\n{indent} * {description}.'
 
         if len(optional_input) > 0:
             result += f'\n{indent} *'

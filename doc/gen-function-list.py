@@ -42,7 +42,13 @@ def gen_function(operation_name, overloads):
     if overloads:
         c_operations += ', ' + (', '.join(f'[method@Image.{n}]' for n in overloads))
 
-    result = f"| `{operation_name}` | {intro.description.capitalize()} | {c_operations} |"
+    description = intro.description.capitalize()
+    # hide library-specific implementation details
+    description = (description
+                   .replace('imagemagick7', 'imagemagick')
+                   .replace(' (pdfium)', '')
+                   .replace(' (poppler)', ''))
+    result = f"| `{operation_name}` | {description} | {c_operations} |"
 
     return result
 

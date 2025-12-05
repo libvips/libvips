@@ -4263,7 +4263,7 @@ public:
 	static VImage logmat(double sigma, double min_ampl, VOption *options = nullptr);
 
 	/**
-	 * Load file with imagemagick7.
+	 * Load file with imagemagick.
 	 *
 	 * **Optional parameters**
 	 *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
@@ -4280,7 +4280,7 @@ public:
 	static VImage magickload(const char *filename, VOption *options = nullptr);
 
 	/**
-	 * Load buffer with imagemagick7.
+	 * Load buffer with imagemagick.
 	 *
 	 * **Optional parameters**
 	 *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
@@ -4297,7 +4297,7 @@ public:
 	static VImage magickload_buffer(VipsBlob *buffer, VOption *options = nullptr);
 
 	/**
-	 * Load source with imagemagick7.
+	 * Load source with imagemagick.
 	 *
 	 * **Optional parameters**
 	 *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
@@ -4955,7 +4955,7 @@ public:
 	static VImage openslideload_source(VSource source, VOption *options = nullptr);
 
 	/**
-	 * Load pdf from file (poppler).
+	 * Load pdf from file.
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
@@ -4977,7 +4977,7 @@ public:
 	static VImage pdfload(const char *filename, VOption *options = nullptr);
 
 	/**
-	 * Load pdf from buffer (poppler).
+	 * Load pdf from buffer.
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
@@ -4999,7 +4999,7 @@ public:
 	static VImage pdfload_buffer(VipsBlob *buffer, VOption *options = nullptr);
 
 	/**
-	 * Load pdf from source (poppler).
+	 * Load pdf from source.
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.

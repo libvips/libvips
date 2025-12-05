@@ -54,8 +54,12 @@ API docs each function links to for more details.
 | `LabQ2sRGB` | Convert a labq image to srgb | [method@Image.LabQ2sRGB] |
 | `LabS2Lab` | Transform signed short lab to float | [method@Image.LabS2Lab] |
 | `LabS2LabQ` | Transform short lab to labq coding | [method@Image.LabS2LabQ] |
+| `Oklab2Oklch` | Transform oklab to oklch | [method@Image.Oklab2Oklch] |
+| `Oklab2XYZ` | Transform oklab to xyz | [method@Image.Oklab2XYZ] |
+| `Oklch2Oklab` | Transform oklch to oklab | [method@Image.Oklch2Oklab] |
 | `XYZ2CMYK` | Transform xyz to cmyk | [method@Image.XYZ2CMYK] |
 | `XYZ2Lab` | Transform xyz to lab | [method@Image.XYZ2Lab] |
+| `XYZ2Oklab` | Transform xyz to oklab | [method@Image.XYZ2Oklab] |
 | `XYZ2Yxy` | Transform xyz to yxy | [method@Image.XYZ2Yxy] |
 | `XYZ2scRGB` | Transform xyz to scrgb | [method@Image.XYZ2scRGB] |
 | `Yxy2XYZ` | Transform yxy to xyz | [method@Image.Yxy2XYZ] |
