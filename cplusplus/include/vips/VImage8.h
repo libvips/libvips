@@ -2205,6 +2205,27 @@ public:
 	VImage LabS2LabQ(VOption *options = nullptr) const;
 
 	/**
+	 * Transform oklab to oklch.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage Oklab2Oklch(VOption *options = nullptr) const;
+
+	/**
+	 * Transform oklab to xyz.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage Oklab2XYZ(VOption *options = nullptr) const;
+
+	/**
+	 * Transform oklch to oklab.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage Oklch2Oklab(VOption *options = nullptr) const;
+
+	/**
 	 * Transform xyz to cmyk.
 	 * @param options Set of options.
 	 * @return Output image.
@@ -2221,6 +2242,13 @@ public:
 	 * @return Output image.
 	 */
 	VImage XYZ2Lab(VOption *options = nullptr) const;
+
+	/**
+	 * Transform xyz to oklab.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage XYZ2Oklab(VOption *options = nullptr) const;
 
 	/**
 	 * Transform xyz to yxy.
@@ -3511,6 +3539,7 @@ public:
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
+	 *   - **tune** -- Tuning parameters, const char *.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3532,6 +3561,7 @@ public:
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
+	 *   - **tune** -- Tuning parameters, const char *.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3553,6 +3583,7 @@ public:
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
+	 *   - **tune** -- Tuning parameters, const char *.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -4232,7 +4263,7 @@ public:
 	static VImage logmat(double sigma, double min_ampl, VOption *options = nullptr);
 
 	/**
-	 * Load file with imagemagick.
+	 * Load file with imagemagick7.
 	 *
 	 * **Optional parameters**
 	 *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
@@ -4249,7 +4280,7 @@ public:
 	static VImage magickload(const char *filename, VOption *options = nullptr);
 
 	/**
-	 * Load buffer with imagemagick.
+	 * Load buffer with imagemagick7.
 	 *
 	 * **Optional parameters**
 	 *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
@@ -4266,7 +4297,7 @@ public:
 	static VImage magickload_buffer(VipsBlob *buffer, VOption *options = nullptr);
 
 	/**
-	 * Load source with imagemagick.
+	 * Load source with imagemagick7.
 	 *
 	 * **Optional parameters**
 	 *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
@@ -4924,7 +4955,7 @@ public:
 	static VImage openslideload_source(VSource source, VOption *options = nullptr);
 
 	/**
-	 * Load pdf from file.
+	 * Load pdf from file (poppler).
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
@@ -4946,7 +4977,7 @@ public:
 	static VImage pdfload(const char *filename, VOption *options = nullptr);
 
 	/**
-	 * Load pdf from buffer.
+	 * Load pdf from buffer (poppler).
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
@@ -4968,7 +4999,7 @@ public:
 	static VImage pdfload_buffer(VipsBlob *buffer, VOption *options = nullptr);
 
 	/**
-	 * Load pdf from source.
+	 * Load pdf from source (poppler).
 	 *
 	 * **Optional parameters**
 	 *   - **page** -- First page to load, int.
