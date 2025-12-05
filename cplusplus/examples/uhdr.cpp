@@ -32,6 +32,11 @@ main(int argc, char **argv)
 
 	VImage out = in.crop(left, top, width, height);
 
+	// vips_image_get_gainmap() can modify the metadata, so we need to make a
+	// unique copy of the image ... you can skip this step if you know your
+	// image is already unique
+	out = out.copy();
+
 	// also crop the gainmap, if there is one
 	VImage gainmap = out.gainmap();
 	if (!gainmap.is_null()) {
