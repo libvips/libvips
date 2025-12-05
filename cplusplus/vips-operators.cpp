@@ -171,6 +171,42 @@ VImage::LabS2LabQ(VOption *options) const
 }
 
 VImage
+VImage::Oklab2Oklch(VOption *options) const
+{
+	VImage out;
+
+	call("Oklab2Oklch", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
+VImage::Oklab2XYZ(VOption *options) const
+{
+	VImage out;
+
+	call("Oklab2XYZ", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
+VImage::Oklch2Oklab(VOption *options) const
+{
+	VImage out;
+
+	call("Oklch2Oklab", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
 VImage::XYZ2CMYK(VOption *options) const
 {
 	VImage out;
@@ -188,6 +224,18 @@ VImage::XYZ2Lab(VOption *options) const
 	VImage out;
 
 	call("XYZ2Lab", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
+VImage::XYZ2Oklab(VOption *options) const
+{
+	VImage out;
+
+	call("XYZ2Oklab", (options ? options : VImage::option())
 			->set("in", *this)
 			->set("out", &out));
 
