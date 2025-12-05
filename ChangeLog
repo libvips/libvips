@@ -30,6 +30,7 @@ master
 - add vips_interpretation_bands()
 - heifsave: add "tune" parameter
 - require C++14 as a minimum standard [kleisauke]
+- prefer libpng over spng
 
 8.17.4
 
