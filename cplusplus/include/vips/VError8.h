@@ -72,8 +72,9 @@ private:
 	/**
 	 * ABI padding to preserve original VError size.
 	 */
+	// TODO: Migrate to [[maybe_unused]] once we require C++17.
 	char _abi_padding[sizeof(std::exception) + sizeof(std::string) -
-		sizeof(std::runtime_error)] = {};
+		sizeof(std::runtime_error)] G_GNUC_UNUSED = {};
 };
 
 VIPS_NAMESPACE_END
