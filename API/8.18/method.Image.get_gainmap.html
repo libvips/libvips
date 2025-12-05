@@ -992,15 +992,16 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/header.c#L1069">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/header.c#L1067">[src]</a>
         
       </h4>
 
       <div class="docblock">
         <p>If the image has an attached <code>"gainmap"</code>, return that. If there&#8217;s a
-compressed <code>"gainmap-data"</code>, decompress, attach to the image, and return&nbsp;that.</p>
-<p>The result is owned by <code>image</code> and must not be unreffed. Don&#8217;t call this
-function on the same image from two different&nbsp;threads!</p>
+compressed <code>"gainmap-data"</code>, decompress, attach to the image, and return&nbsp;it.</p>
+<p>Since this function can modify the image metadata, you must use
+<a href="method.Image.copy.html"><code>vips_copy()</code></a> to make a unique copy of the image&nbsp;first.</p>
+<p>This function does not return a new reference &#8212; do not unref the&nbsp;result.</p>
       </div>
 
       <div class="docblock">
