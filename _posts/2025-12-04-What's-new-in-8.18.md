@@ -38,7 +38,7 @@ $ vipsthumbnail ultra-hdr.jpg --size 500
 
 Makes this image:
 
-[ultrahdr thumbnail](/assets/images/tn_ultra-hdr.jpg)
+![ultrahdr thumbnail](/assets/images/tn_ultra-hdr.jpg)
 
 If you view that image on an HDR display and with a web browser that supports
 UltraHDR images, the rocket exhaust should look very bright. It should also
@@ -57,7 +57,7 @@ $ vipsthumbnail IMG_3260.CR2 --size 500
 
 Makes this image
 
-[dcrawload thumbnail](/assets/images/tn_IMG_3260.jpg)
+![dcrawload thumbnail](/assets/images/tn_IMG_3260.jpg)
 
 Most time is spent in dcraw, so performance isn't that much better than
 the previous solution with imagemagick:
@@ -124,7 +124,7 @@ $ ./watermark-oklab.py ~/pics/theo.jpg x.jpg "in the beginning was the word" 0.7
 
 To generate:
 
-[watermark](/assets/images/tn_watermark.jpg)
+![watermark](/assets/images/tn_watermark.jpg)
 
 A watermarked image, with the watermark colour specified in Oklab coordinates. 
 
