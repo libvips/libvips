@@ -840,8 +840,11 @@ vips_thumbnail_build(VipsObject *object)
 		return -1;
 	in = t[5];
 
-	/* Process the gainmap, if any.
+	/* Process the gainmap, if any. Make sure we don't have a shared image.
 	 */
+	if (vips_copy(in, &t[8], NULL))
+		return -1;
+	in = t[8];
 	if ((gainmap = vips_image_prepare_gainmap(in))) {
 		if (vips_resize(gainmap, &t[15], 1.0 / hshrink,
 			"vscale", 1.0 / vshrink,
@@ -865,10 +868,6 @@ vips_thumbnail_build(VipsObject *object)
 	 */
 	if (thumbnail->n_loaded_pages > 1) {
 		int output_page_height = rint(preshrunk_page_height / vshrink);
-
-		if (vips_copy(in, &t[8], NULL))
-			return -1;
-		in = t[8];
 
 		vips_image_set_int(in, VIPS_META_PAGE_HEIGHT, output_page_height);
 	}
