@@ -998,10 +998,9 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 
       <div class="docblock">
         <p>If the image has an attached <code>"gainmap"</code>, return that. If there&#8217;s a
-compressed <code>"gainmap-data"</code>, decompress, attach to the image, and return&nbsp;it.</p>
-<p>Since this function can modify the image metadata, you must use
-<a href="method.Image.copy.html"><code>vips_copy()</code></a> to make a unique copy of the image&nbsp;first.</p>
-<p>This function does not return a new reference &#8212; do not unref the&nbsp;result.</p>
+compressed <code>"gainmap-data"</code>, decompress, and return&nbsp;it.</p>
+<p>You need to free the result with <a href="javascript:void(0)" data-namespace="GObject" data-link="method.Object.unref.html" class="external"><code>g_object_unref()</code></a> when
+you&#8217;re done with&nbsp;it.</p>
       </div>
 
       <div class="docblock">
@@ -1037,7 +1036,7 @@ compressed <code>"gainmap-data"</code>, decompress, attach to the image, and ret
             
             
             
-            <tr><td title="transfer: none">The returned data is owned by the instance.</td></tr>
+            <tr><td title="transfer: full">The caller of the method takes ownership of the returned data, and is responsible for freeing it.</td></tr>
             <tr><td>The return value can be <code>NULL</code>.</td></tr>
             
             </table>

@@ -172,21 +172,9 @@ the gainmap, you can overwrite this&nbsp;value.</p>
 <span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vips_crop</span><span class="p">(</span><span class="n">image</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="n">left</span><span class="p">,</span><span class="w"> </span><span class="n">top</span><span class="p">,</span><span class="w"> </span><span class="n">width</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">))</span>
 <span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
 
-<span class="c1">// vips_image_get_gainmap() can modify the metadata, so we need to make a</span>
-<span class="c1">// unique copy of the image ... you can skip this step if you know your</span>
-<span class="c1">// image is already unique</span>
-<span class="n">VipsImage</span><span class="w"> </span><span class="o">*</span><span class="n">x</span><span class="p">;</span>
-<span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vips_copy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">))</span>
-<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
-<span class="n">g_object_unref</span><span class="p">(</span><span class="n">out</span><span class="p">);</span>
-<span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x</span><span class="p">;</span>
-
 <span class="c1">// also crop the gainmap, if there is one</span>
 <span class="n">VipsImage</span><span class="w"> </span><span class="o">*</span><span class="n">gainmap</span><span class="p">;</span>
 <span class="k">if</span><span class="w"> </span><span class="p">((</span><span class="n">gainmap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">vips_image_get_gainmap</span><span class="p">(</span><span class="n">out</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span>
-<span class="w">    </span><span class="c1">// gainmap is not a reference, just a pointer to the ref held by</span>
-<span class="w">    </span><span class="c1">// out.gainmap</span>
-
 <span class="w">    </span><span class="c1">// the gainmap can be smaller than the image, we must scale the</span>
 <span class="w">    </span><span class="c1">// crop area</span>
 <span class="w">    </span><span class="kt">double</span><span class="w"> </span><span class="n">hscale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="kt">double</span><span class="p">)</span><span class="w"> </span><span class="n">gainmap</span><span class="o">-&gt;</span><span class="n">Xsize</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">image</span><span class="o">-&gt;</span><span class="n">Xsize</span><span class="p">;</span>
@@ -196,6 +184,16 @@ the gainmap, you can overwrite this&nbsp;value.</p>
 <span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vips_crop</span><span class="p">(</span><span class="n">gainmap</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">x</span><span class="p">,</span><span class="w"> </span><span class="n">left</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hscale</span><span class="p">,</span><span class="w"> </span><span class="n">top</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">vscale</span><span class="p">,</span>
 <span class="w">        </span><span class="n">width</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hscale</span><span class="p">,</span><span class="w"> </span><span class="n">height</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">vscale</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">))</span>
 <span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+<span class="w">    </span><span class="n">g_object_unref</span><span class="p">(</span><span class="n">gainmap</span><span class="p">);</span>
+
+<span class="w">    </span><span class="c1">// vips_image_set_image() modifies the image, so we need to make a</span>
+<span class="w">    </span><span class="c1">// unique copy ... you can skip this step if you know your image is</span>
+<span class="w">    </span><span class="c1">// already unique</span>
+<span class="w">    </span><span class="n">VipsImage</span><span class="w"> </span><span class="o">*</span><span class="n">x2</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">vips_copy</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">x2</span><span class="p">,</span><span class="w"> </span><span class="nb">NULL</span><span class="p">))</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+<span class="w">    </span><span class="n">g_object_unref</span><span class="p">(</span><span class="n">out</span><span class="p">);</span>
+<span class="w">    </span><span class="n">out</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">x2</span><span class="p">;</span>
 
 <span class="w">    </span><span class="c1">// update the gainmap</span>
 <span class="w">    </span><span class="n">vips_image_set_image</span><span class="p">(</span><span class="n">out</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;gainmap&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">x</span><span class="p">);</span>
