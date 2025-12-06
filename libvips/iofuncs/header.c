@@ -1069,15 +1069,12 @@ vips_image_get_tile_height(VipsImage *image)
  * @image: image to get the gainmap from
  *
  * If the image has an attached `"gainmap"`, return that. If there's a
- * compressed `"gainmap-data"`, decompress, attach to the image, and return
- * it.
+ * compressed `"gainmap-data"`, decompress, and return it.
  *
- * Since this function can modify the image metadata, you must use
- * [method@Image.copy] to make a unique copy of the image first.
+ * You need to free the result with [method@GObject.Object.unref] when
+ * you're done with it.
  *
- * This function does not return a new reference -- do not unref the result.
- *
- * Returns: (nullable) (transfer none): the gainmap image, if present, or NULL.
+ * Returns: (nullable) (transfer full): the gainmap image, if present, or NULL.
  */
 VipsImage *
 vips_image_get_gainmap(VipsImage *image)
@@ -1096,12 +1093,7 @@ vips_image_get_gainmap(VipsImage *image)
 		if (vips_image_get_blob(image, "gainmap-data", &data, &length) ||
 			vips_jpegload_buffer((void *) data, length, &gainmap, NULL))
 			return NULL;
-
-		vips_image_set_image(image, "gainmap", gainmap);
 	}
-
-	if (gainmap)
-		g_object_unref(gainmap);
 
 	return gainmap;
 }
