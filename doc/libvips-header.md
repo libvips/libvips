@@ -73,7 +73,7 @@ copied between images efficiently.
 * [method@Image.get_orientation_swap]
 * [method@Image.get_tile_width]
 * [method@Image.get_tile_height]
-* [method@Image.get_gainmap]
+* [method@Image.prepare_gainmap]
 * [method@Image.get_concurrency]
 * [method@Image.get_data]
 * [method@Image.init_fields]

@@ -225,7 +225,7 @@ vips_uhdr2scRGB_build(VipsObject *object)
 			return -1;
 
 		VipsImage *gainmap;
-		if (!(gainmap = vips_image_get_gainmap(uhdr->in)))
+		if (!(gainmap = vips_image_prepare_gainmap(uhdr->in)))
 			return -1;
 		if (vips_check_bands_1or3(class->nickname, gainmap))
 			return -1;

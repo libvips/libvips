@@ -549,12 +549,15 @@ public:
 	}
 
 	/**
-	 * The associated gainmap image, if any.
+	 * Prepare and return the associated gainmap image, if any.
+	 *
+	 * This can modify the image metadata, so you should make sure you have a
+	 * unique reference before calling it.
 	 */
 	VImage
-	gainmap() const
+	prepare_gainmap() const
 	{
-		return VImage(vips_image_get_gainmap(get_image()), NOSTEAL);
+		return VImage(vips_image_prepare_gainmap(get_image()), NOSTEAL);
 	}
 
 	/**

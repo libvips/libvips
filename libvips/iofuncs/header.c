@@ -1065,7 +1065,7 @@ vips_image_get_tile_height(VipsImage *image)
 }
 
 /**
- * vips_image_get_gainmap:
+ * vips_image_prepare_gainmap:
  * @image: image to get the gainmap from
  *
  * If the image has an attached `"gainmap"`, return that. If there's a
@@ -1080,9 +1080,17 @@ vips_image_get_tile_height(VipsImage *image)
  * Returns: (nullable) (transfer none): the gainmap image, if present, or NULL.
  */
 VipsImage *
-vips_image_get_gainmap(VipsImage *image)
+vips_image_prepare_gainmap(VipsImage *image)
 {
 	VipsImage *gainmap;
+
+#ifdef DEBUG
+	// allow one ref for the caller, one ref for the operation cache
+	// more than that and this is probably a shared image pointer
+	if (G_OBJECT(image)->ref_count > 2)
+		printf("vips_image_prepare_gainmap: shared image, ref_count = %d\n",
+			G_OBJECT(image)->ref_count);
+#endif /*DEBUG*/
 
 	gainmap = NULL;
 	if (vips_image_get_typeof(image, "gainmap")) {

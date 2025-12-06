@@ -2124,7 +2124,7 @@ vips_foreign_save_dz_build(VipsObject *object)
 
 	/* Load the gainmap, if any.
 	 */
-	if ((dz->gainmap = vips_image_get_gainmap(save->ready))) {
+	if ((dz->gainmap = vips_image_prepare_gainmap(save->ready))) {
 		// we need a true reference
 		g_object_ref(dz->gainmap);
 
