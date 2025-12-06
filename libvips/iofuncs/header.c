@@ -1288,6 +1288,14 @@ vips_image_set(VipsImage *image, const char *name, GValue *value)
 	g_assert(name);
 	g_assert(value);
 
+#ifdef DEBUG_LEAK
+	/* Warn if metadata is being set on a shared image.
+	 */
+	if (vips__leak &&
+		G_OBJECT(image)->ref_count > 2)
+		printf("vips_image_set: set \"%s\" on shared image\n", name);
+#endif /*DEBUG_LEAK*/
+
 	/* We lock between modifying metadata and copying metadata between
 	 * images, see vips__image_meta_copy().
 	 *
@@ -1501,6 +1509,14 @@ vips_image_remove(VipsImage *image, const char *name)
 	gboolean result;
 
 	result = FALSE;
+
+#ifdef DEBUG_LEAK
+	/* Warn if metadata is being removed from a shared image.
+	 */
+	if (vips__leak &&
+		G_OBJECT(image)->ref_count > 2)
+		printf("vips_image_remove: remove \"%s\" on shared image\n", name);
+#endif /*DEBUG_LEAK*/
 
 	if (image->meta) {
 		/* We lock between modifying metadata and copying metadata
