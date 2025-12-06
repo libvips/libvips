@@ -114,9 +114,9 @@ if ((gainmap = vips_image_get_gainmap(out))) {
         return -1;
 	g_object_unref(gainmap);
 
-    // vips_image_set_image() modifies the metadata, so we need to make a
-    // unique copy of the image ... you can skip this step if you know your
-    // image is already unique
+    // vips_image_set_image() modifies the image, so we need to make a
+    // unique copy ... you can skip this step if you know your image is
+    // already unique
     VipsImage *x2;
     if (vips_copy(out, &x2, NULL))
         return -1;

@@ -43,9 +43,9 @@ main(int argc, char **argv)
 		VImage x = gainmap.crop(left * hscale, top * vscale,
 			width * hscale, height * vscale);
 
-		// vips_image_set_image() modifies the metadata, so we need to make a
-		// unique copy of the image ... you can skip this step if you know your
-		// image is already unique
+		// .set() modifies the image, so we need to make a unique
+		// copy ... you can skip this step if you know your image is
+		// already unique
 		out = out.copy();
 
 		// update the gainmap
