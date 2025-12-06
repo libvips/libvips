@@ -46,10 +46,10 @@ look nicely tonemapped on an SDR display.
 
 ## Camera RAW support
 
-Thanks to @lxsameer, libvips 8.18 now has support for most camera RAW formats
-using [libraw](https://www.libraw.org). The new 
-[`vips_dcrawload()`](/API/8.18/method.Image.dcrawload.html)
-operator will automatically import images, for example:
+Thanks to @lxsameer, libvips 8.18 now uses [libraw](https://www.libraw.org)
+to add support for most camera RAW formats. The new
+[`vips_dcrawload()`](/API/8.18/method.Image.dcrawload.html) operator will
+be used to automatically import images, for example:
 
 ```
 $ vipsthumbnail IMG_3260.CR2 --size 1024
@@ -73,14 +73,14 @@ But it's convenient to have it all in one thing.
 
 ## Support for Oklab colourspace
 
-[Oklab and Oklch](https://en.wikipedia.org/wiki/Oklab_color_space) are a
-new colourspaces that are more linear than CIELAB '76, faster to compute,
-and support HDR imaging. They have been added to CSS4 and are now supported
+[Oklab and Oklch](https://en.wikipedia.org/wiki/Oklab_color_space) are new
+colourspaces that are more linear than CIELAB '76, faster to compute, and
+support HDR imaging. They have been added to CSS4 and are now implemented
 by all major web browsers.
 
-libvips supports them like any other colourspace, so you can use Oklab
-coordinates in image processing. For example, you could render a watermark in
-an Oklab colour like this:
+libvips 8.18 supports them like any other colourspace, so you can use Oklab
+coordinates in image processing. For example, you could render a watermark
+in an Oklab colour like this:
 
 ```python
 #!/usr/bin/env python3
