@@ -16,7 +16,7 @@
   UltraHDR image
 - fix cpp binding leak [VivitionDeveloper]
 - add "gainmap" to VipsKeep
-- add vips_image_get_gainmap()
+- add vips_image_prepare_gainmap()
 - thumbnail updates gainmaps
 - add "bitdepth" to jxlsave
 - add "path" option to vipsthumbnail, deprecate "output" option [zjturner]

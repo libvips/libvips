@@ -86,7 +86,7 @@ call something like [method@Image.crop], an operation which changes the
 image geometry, the gainmap and the image will no longer match. When
 you save the cropped image, the gainmap is likely to be incorrect.
 
-A helper function, [method@Image.get_gainmap], makes updating the gainmap
+A helper function, [method@Image.prepare_gainmap], makes updating the gainmap
 relatively easy: it returns a [class@Image] for the gainmap, and attaches
 the image pointer as the metadata item `"gainmap"`. Once you have updated
 the gainmap, you can overwrite this value.
@@ -100,7 +100,7 @@ int left, top, width, height;
 if (vips_crop(image, &out, left, top, width, height, NULL))
     return -1;
 
-// vips_image_get_gainmap() can modify the metadata, so we need to make a
+// vips_image_prepare_gainmap() can modify the metadata, so we need to make a
 // unique copy of the image ... you can skip this step if you know your
 // image is already unique
 VipsImage *x;
@@ -111,7 +111,7 @@ out = x;
 
 // also crop the gainmap, if there is one
 VipsImage *gainmap;
-if ((gainmap = vips_image_get_gainmap(out))) {
+if ((gainmap = vips_image_prepare_gainmap(out))) {
     // gainmap is not a reference, just a pointer to the ref held by
     // out.gainmap
 

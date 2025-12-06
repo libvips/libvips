@@ -845,7 +845,7 @@ vips_thumbnail_build(VipsObject *object)
 	if (vips_copy(in, &t[8], NULL))
 		return -1;
 	in = t[8];
-	if ((gainmap = vips_image_get_gainmap(in))) {
+	if ((gainmap = vips_image_prepare_gainmap(in))) {
 		if (vips_resize(gainmap, &t[15], 1.0 / hshrink,
 			"vscale", 1.0 / vshrink,
 			"kernel", VIPS_KERNEL_LINEAR,
@@ -949,7 +949,7 @@ vips_thumbnail_build(VipsObject *object)
 
 		/* Also rotate the gainmap, if any.
 		 */
-		if ((gainmap = vips_image_get_gainmap(in))) {
+		if ((gainmap = vips_image_prepare_gainmap(in))) {
 			vips_image_set_int(gainmap,
 				VIPS_META_ORIENTATION, thumbnail->orientation);
 			if (vips_autorot(gainmap, &t[17], NULL))
@@ -988,7 +988,7 @@ vips_thumbnail_build(VipsObject *object)
 
 		/* Also crop the gainmap, if any.
 		 */
-		if ((gainmap = vips_image_get_gainmap(in))) {
+		if ((gainmap = vips_image_prepare_gainmap(in))) {
 			double xscale = (double) gainmap->Xsize / original_width;
 			double yscale = (double) gainmap->Ysize / original_height;
 
