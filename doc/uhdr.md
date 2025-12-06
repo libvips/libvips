@@ -100,21 +100,9 @@ int left, top, width, height;
 if (vips_crop(image, &out, left, top, width, height, NULL))
     return -1;
 
-// vips_image_get_gainmap() can modify the metadata, so we need to make a
-// unique copy of the image ... you can skip this step if you know your
-// image is already unique
-VipsImage *x;
-if (vips_copy(out, &x, NULL))
-    return -1;
-g_object_unref(out);
-out = x;
-
 // also crop the gainmap, if there is one
 VipsImage *gainmap;
 if ((gainmap = vips_image_get_gainmap(out))) {
-    // gainmap is not a reference, just a pointer to the ref held by
-    // out.gainmap
-
     // the gainmap can be smaller than the image, we must scale the
     // crop area
     double hscale = (double) gainmap->Xsize / image->Xsize;
@@ -124,6 +112,16 @@ if ((gainmap = vips_image_get_gainmap(out))) {
     if (vips_crop(gainmap, &x, left * hscale, top * vscale,
         width * hscale, height * vscale, NULL))
         return -1;
+	g_object_unref(gainmap);
+
+    // vips_image_set_image() modifies the metadata, so we need to make a
+    // unique copy of the image ... you can skip this step if you know your
+    // image is already unique
+    VipsImage *x2;
+    if (vips_copy(out, &x2, NULL))
+        return -1;
+    g_object_unref(out);
+    out = x2;
 
     // update the gainmap
     vips_image_set_image(out, "gainmap", x);

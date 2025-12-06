@@ -238,6 +238,7 @@ vips_uhdr2scRGB_build(VipsObject *object)
 				"kernel", VIPS_KERNEL_LINEAR,
 				NULL))
 			return -1;
+		g_object_unref(gainmap);
 
 		colour->in[0] = uhdr->in;
 		g_object_ref(uhdr->in);

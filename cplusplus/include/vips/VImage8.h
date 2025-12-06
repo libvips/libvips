@@ -554,7 +554,7 @@ public:
 	VImage
 	gainmap() const
 	{
-		return VImage(vips_image_get_gainmap(get_image()), NOSTEAL);
+		return VImage(vips_image_get_gainmap(get_image()));
 	}
 
 	/**
