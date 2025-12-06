@@ -47,7 +47,7 @@ look nicely tonemapped on an SDR display.
 ## Camera RAW support
 
 Thanks to @lxsameer, libvips 8.18 now has support for most camera RAW formats
-by wrapping [libraw](https://www.libraw.org). The new 
+using [libraw](https://www.libraw.org). The new 
 [`vips_dcrawload()`](/API/8.18/method.Image.dcrawload.html)
 operator will automatically import images, for example:
 
