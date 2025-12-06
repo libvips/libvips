@@ -33,7 +33,7 @@ this feature and explains how to use it. As an example, you can use
 `vipsthumbnail` to resize UltraHDR images. This command:
 
 ```
-$ vipsthumbnail ultra-hdr.jpg --size 500
+$ vipsthumbnail ultra-hdr.jpg --size 1024
 ```
 
 Makes this image:
@@ -52,7 +52,7 @@ using [libraw](https://www.libraw.org). The new
 operator will automatically import images, for example:
 
 ```
-$ vipsthumbnail IMG_3260.CR2 --size 500
+$ vipsthumbnail IMG_3260.CR2 --size 1024
 ```
 
 Makes this image
