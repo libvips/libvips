@@ -95,11 +95,8 @@ typedef struct _VipsForeignLoadUhdrClass {
 G_DEFINE_ABSTRACT_TYPE(VipsForeignLoadUhdr, vips_foreign_load_uhdr,
 	VIPS_TYPE_FOREIGN_LOAD);
 
-/* We need a fast uhdr detector that only looks at the header. We don't want
- * to pull the whole image in!
- *
- * Use vanilla libjpeg only, and just check for an MPF block in an APP2
- * marker.
+/* A fast uhdr detector. We just check the header for an MPF APP2 block
+ * (quick) and only call is_uhdr_image() if we find it.
  */
 static int
 vips_foreign_load_uhdr_is_a(VipsSource *source)
@@ -152,6 +149,20 @@ vips_foreign_load_uhdr_is_a(VipsSource *source)
 		}
 
 	VIPS_UNREF(context);
+
+	/* If we found an MPF block, also call is_uhdr_image(). This is very slow
+	 * and will force the whole image into memory, but it will only happen for
+	 * JPEGs with an MPF block, so hopefully not too often.
+	 */
+	if (found) {
+		const void *data;
+		size_t length;
+
+		g_info("forcing JPEG into memory for uhdr detection");
+		if (!(data = vips_source_map(source, &length)))
+			return -1;
+		found = is_uhdr_image((void *) data, length);
+	}
 
 	return found;
 }

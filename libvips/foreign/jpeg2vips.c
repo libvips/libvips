@@ -662,9 +662,21 @@ read_jpeg_header(ReadJpeg *jpeg, VipsImage *out)
 				p->data_length,
 				p->marker - JPEG_APP0);
 
-			for (i = 0; i < 10; i++)
-				printf("\t%d) '%c' (%d)\n",
-					i, p->data[i], p->data[i]);
+			i = 0;
+			for (int row = 0; i < VIPS_MIN(100, p->data_length); row++) {
+				printf(" 0x%02x)", i);
+
+				for (int col = 0; col < 8 &&
+						i < VIPS_MIN(100, p->data_length); col++, i++) {
+					printf(" %02x", p->data[i]);
+					if (p->data[i] > 32 && p->data[i] < 127)
+						printf(" '%c'", p->data[i]);
+					else
+						printf("    ");
+				}
+
+				printf("\n");
+			}
 		}
 #endif /*DEBUG*/
 
