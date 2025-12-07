@@ -558,7 +558,7 @@ vips_image_is_profile_compatible(VipsImage *image, int profile_bands)
 
 	// CMYK can mean more than 4 bands for eg. hexachrome
 	if (image->Type == VIPS_INTERPRETATION_CMYK)
-		return image->Bands >= 4;
+		return profile_bands >= 4;
 
 	if (bands > 0)
 		return bands == profile_bands;
