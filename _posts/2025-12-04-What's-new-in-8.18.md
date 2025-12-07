@@ -48,7 +48,7 @@ look nicely tonemapped on an SDR display.
 
 Thanks to @lxsameer, libvips 8.18 now uses [libraw](https://www.libraw.org)
 to add support for most camera RAW formats. The new
-[`vips_dcrawload()`](/API/8.18/method.Image.dcrawload.html) operator will
+[`vips_dcrawload()`](/API/8.18/ctor.Image.dcrawload.html) operator will
 be used to automatically import images, for example:
 
 ```
@@ -165,11 +165,11 @@ seen some improvements:
 - [`vips_jxlload()`](/API/8.18/ctor.Image.jxlload.html) has a new `"bitdepth"` 
   argument which sets the depth at which the image should be loaded.
 
-- [`vips_webpsave()`](/API/8.18/ctor.Image.webpsave.html) has a new 
+- [`vips_webpsave()`](/API/8.18/method.Image.webpsave.html) has a new 
   `"exact"` argument which forces the RGB in RGBA to always be saved, even if
   the pixel is transparent. This can be important if you are using WebP to
   store data.
 
-- [`vips_heifsave()`](/API/8.18/ctor.Image.heifsave.html) has a new 
+- [`vips_heifsave()`](/API/8.18/method.Image.heifsave.html) has a new 
   `"tune"` parameter that lets you pass detailed options to the encoder. Handy
   for tuning output.
