@@ -1493,7 +1493,7 @@ direct_strip_init(DirectStrip *strip, Level *level)
 	if (vips_copy(level->image, &strip->image, NULL))
 		return -1;
 
-	/* We don't want threadpoolrun to minimise on completion -- we need to
+	/* We don't want threadpool_run to minimise on completion -- we need to
 	 * keep the cache on the pipeline before us.
 	 */
 	vips_image_set_int(strip->image, "vips-no-minimise", 1);
