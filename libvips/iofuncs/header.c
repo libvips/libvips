@@ -743,16 +743,13 @@ vips_image_guess_interpretation(const VipsImage *image)
 		break;
 
 	case VIPS_INTERPRETATION_RGB16:
-		if (vips_band_format_is8bit(image->BandFmt))
-			sane = FALSE;
-		break;
-
 	case VIPS_INTERPRETATION_GREY16:
 		if (vips_band_format_is8bit(image->BandFmt))
 			sane = FALSE;
 		break;
 
 	default:
+		break;
 	}
 
 	if (sane)
