@@ -315,24 +315,19 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	 * Orientation is defined using irot and imir transformations.
 	 */
 	options->image_orientation = vips_image_get_orientation(save->ready);
-	vips_autorot_remove_angle(save->ready);
 #endif
 
-
 #ifdef DEBUG
-	{
-		GTimer *timer = g_timer_new();
-
-		printf("calling heif_context_encode_image() ...\n");
+	GTimer *timer = g_timer_new();
+	printf("calling heif_context_encode_image() ...\n");
 #endif /*DEBUG*/
 
-		error = heif_context_encode_image(heif->ctx,
-			heif->img, heif->encoder, options, &heif->handle);
+	error = heif_context_encode_image(heif->ctx,
+		heif->img, heif->encoder, options, &heif->handle);
 
 #ifdef DEBUG
-		printf("... libheif took %.2g seconds\n", g_timer_elapsed(timer, NULL));
-		g_timer_destroy(timer);
-	}
+	printf("... libheif took %.2g seconds\n", g_timer_elapsed(timer, NULL));
+	g_timer_destroy(timer);
 #endif /*DEBUG*/
 
 	heif_encoding_options_free(options);
