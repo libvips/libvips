@@ -1987,7 +1987,7 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 		/* We don't want threadpool_run to minimise on completion -- we need to
 		 * keep the cache on the pipeline before us.
 		 */
-		vips_image_set_int(im, "vips-no-minimise", 1);
+		vips_image_set_int(x, "vips-no-minimise", 1);
 
 		if (vips_threadpool_run(x,
 				vips_thread_state_new,
