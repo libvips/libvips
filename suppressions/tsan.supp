@@ -15,6 +15,7 @@ race_top:vips_rect_includesrect
 race_top:vips_rect_intersectrect
 race_top:vips_reduceh_uchar_hwy
 race_top:vips_reducev_uchar_hwy
+race_top:vips_region_paint_pel
 race_top:vips__transform_invert_point
 
 # unlocked access to image/region fields, which is fine
