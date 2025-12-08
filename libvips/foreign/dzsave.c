@@ -1473,10 +1473,39 @@ image_strip_work(VipsThreadState *state, void *a)
 typedef struct _DirectStrip {
 	Level *level;
 
+	/* Private image for this strip write.
+	 */
+	VipsImage *image;
+
 	/* Allocate the next tile on this boundary.
 	 */
 	int x;
 } DirectStrip;
+
+static int
+direct_strip_init(DirectStrip *strip, Level *level)
+{
+	strip->level = level;
+	strip->x = 0;
+
+	/* We need a private image so we can modify the metadata.
+	 */
+	if (vips_copy(level->image, &strip->image, NULL))
+		return -1;
+
+	/* We don't want threadpool_run to minimise on completion -- we need to
+	 * keep the cache on the pipeline before us.
+	 */
+	vips_image_set_int(strip->image, "vips-no-minimise", 1);
+
+	return 0;
+}
+
+static void
+direct_strip_free(DirectStrip *strip)
+{
+	VIPS_UNREF(strip->image);
+}
 
 static int
 direct_strip_allocate(VipsThreadState *state, void *a, gboolean *stop)
@@ -1526,8 +1555,7 @@ direct_strip_allocate(VipsThreadState *state, void *a, gboolean *stop)
 
 static int
 direct_image_write(VipsForeignSaveDz *dz,
-	VipsRegion *region, VipsRect *rect,
-	const char *filename)
+	VipsRegion *region, VipsRect *rect, const char *filename)
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE(dz);
 	VipsTarget *target;
@@ -1630,20 +1658,22 @@ strip_save(Level *level)
 #endif /*DEBUG_VERBOSE*/
 
 	if (level->dz->direct) {
-		DirectStrip strip = { level, 0 };
+		DirectStrip strip;
 
-		/* We don't want threadpoolrun to minimise on completion -- we need to
-		 * keep the cache on the pipeline before us.
-		 */
-		vips_image_set_int(level->image, "vips-no-minimise", 1);
+		if (direct_strip_init(&strip, level))
+			return -1;
 
-		if (vips_threadpool_run(level->image,
+		if (vips_threadpool_run(strip.image,
 				vips_thread_state_new,
 				direct_strip_allocate,
 				direct_strip_work,
 				NULL,
-				&strip))
+				&strip)) {
+			direct_strip_free(&strip);
 			return -1;
+		}
+
+		direct_strip_free(&strip);
 	}
 	else {
 		ImageStrip strip;
