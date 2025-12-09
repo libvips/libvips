@@ -455,7 +455,8 @@ if openexr_dep.found()
     cfg_var.set('HAVE_OPENEXR', true)
 endif
 
-libraw_dep = dependency('libraw_r', required: get_option('raw'))
+# require 0.14 for LIBRAW_COMPILE_CHECK_VERSION_NOTLESS
+libraw_dep = dependency('libraw_r', version: '>=0.14', required: get_option('raw'))
 if libraw_dep.found()
     external_deps += libraw_dep
     cfg_var.set('HAVE_LIBRAW', true)

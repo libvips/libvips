@@ -133,8 +133,10 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		raw->raw_processor->idata.make);
 	vips_image_set_string(image, "raw-model",
 		raw->raw_processor->idata.model);
+#if LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)
 	vips_image_set_string(image, "raw-software",
 		raw->raw_processor->idata.software);
+#endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)*/
 	vips_image_set_double(image, "raw-iso",
 		raw->raw_processor->other.iso_speed);
 	vips_image_set_double(image, "raw-shutter",
@@ -144,6 +146,9 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	vips_image_set_double(image, "raw-focal-length",
 		raw->raw_processor->other.focal_len);
 
+	/* See also: vips__get_iso8601()
+	 */
+#if GLIB_CHECK_VERSION(2, 62, 0)
 	GDateTime *dt =
 		g_date_time_new_from_unix_utc(raw->raw_processor->other.timestamp);
 	if (dt) {
@@ -156,7 +161,18 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 		g_date_time_unref(dt);
 	}
+#else /*!GLIB_CHECK_VERSION(2, 62, 0)*/
+	GTimeVal val = { raw->raw_processor->other.timestamp, 0 };
 
+	char *str = g_time_val_to_iso8601(&val);
+	if (str) {
+		vips_image_set_string(image, "raw-timestamp", str);
+
+		g_free(str);
+	}
+#endif /*GLIB_CHECK_VERSION(2, 62, 0)*/
+
+#if LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)
 	if (raw->raw_processor->idata.xmpdata)
 		vips_image_set_blob_copy(image, VIPS_META_XMP_NAME,
 			raw->raw_processor->idata.xmpdata,
@@ -164,6 +180,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 	vips_image_set_string(image, "raw-lens",
 		raw->raw_processor->lens.Lens);
+#endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)*/
 
 	if (raw->raw_processor->color.profile)
 		vips_image_set_blob_copy(image, VIPS_META_ICC_NAME,
@@ -197,6 +214,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	}
 	vips_image_set_int(image, VIPS_META_ORIENTATION, orientation);
 
+#if LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 21)
 	/* Search the available thumbnails for the largest that's smaller than
 	 * the main image and has a known type.
 	 */
@@ -251,6 +269,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 			raw->raw_processor->thumbnail.thumb,
 			raw->raw_processor->thumbnail.tlength);
 	}
+#endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 21)*/
 
 	return 0;
 }
