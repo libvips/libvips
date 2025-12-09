@@ -1120,7 +1120,7 @@ vips_foreign_load_magick_source_header(VipsForeignLoad *load)
 		const char *filename =
 			vips_connection_filename(VIPS_CONNECTION(magick_source->source));
 
-		g_strlcpy(magick->image_info->filename, filename, MagickPathExtent);
+		g_strlcpy(magick->image_info->filename, filename, MaxPathExtent);
 		magick_sniff_file(magick->image_info, filename);
 		magick->image = ReadImage(magick->image_info, magick->exception);
 	}
