@@ -108,8 +108,8 @@ if ((gainmap = vips_image_get_gainmap(out))) {
     double hscale = (double) gainmap->Xsize / image->Xsize;
     double vscale = (double) gainmap->Ysize / image->Ysize;
 
-    VipsImage *x;
-    if (vips_crop(gainmap, &x, left * hscale, top * vscale,
+    VipsImage *new_gainmap;
+    if (vips_crop(gainmap, &new_gainmap, left * hscale, top * vscale,
         width * hscale, height * vscale, NULL))
         return -1;
 	g_object_unref(gainmap);
@@ -117,17 +117,38 @@ if ((gainmap = vips_image_get_gainmap(out))) {
     // vips_image_set_image() modifies the image, so we need to make a
     // unique copy ... you can skip this step if you know your image is
     // already unique
-    VipsImage *x2;
-    if (vips_copy(out, &x2, NULL))
+    VipsImage *new_out;
+    if (vips_copy(out, &new_out, NULL)) {
+	    g_object_unref(new_gainmap);
         return -1;
+    }
     g_object_unref(out);
-    out = x2;
+    out = new_out;
 
     // update the gainmap
-    vips_image_set_image(out, "gainmap", x);
+    vips_image_set_image(out, "gainmap", new_gainmap);
 
-    g_object_unref(x);
+    g_object_unref(new_gainmap);
 }
+```
+
+Or with ruby-vips:
+
+```ruby
+def crop_image_and_gainmap(image, left, top, width, height)
+  image = image.crop left, top, width, height
+  gainmap = image.get_gainmap
+  unless gainmap.nil?
+    hscale = gainmap.width / image.width
+    vscale = gainmap.height / image.height
+    new_gainmap = gainmap.crop left * hscale, top * vscale, width * hscale, height * vscale
+    image = image.mutate do |mutable|
+      mutable.set_type! Vips::IMAGE_TYPE, "gainmap", new_gainmap
+    end
+  end
+
+  image
+end
 ```
 
 ### Performance and quality considerations
