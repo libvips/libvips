@@ -44,6 +44,9 @@ If you view that image on an HDR display and with a web browser that supports
 UltraHDR images, the rocket exhaust should look very bright. It should also
 look nicely tonemapped on an SDR display.
 
+We'd like to thank Shopify for their generous support while developing this
+feature.
+
 ## Camera RAW support
 
 Thanks to @lxsameer, libvips 8.18 now uses [libraw](https://www.libraw.org)
