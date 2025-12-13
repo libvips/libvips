@@ -545,7 +545,7 @@ vips_foreign_load_jxl_shift_frame(VipsForeignLoadJxl *jxl, VipsImage *frame)
 	printf("vips_foreign_load_jxl_shift_frame:\n");
 #endif /*DEBUG*/
 
-	if (jxl->shift) {
+	if (jxl->shift > 0) {
 		for (int y = 0; y < frame->Ysize; y++) {
 			VipsPel *q = VIPS_IMAGE_ADDR(frame, 0, y);
 			int n_elements = VIPS_IMAGE_N_ELEMENTS(frame);
