@@ -2,8 +2,8 @@
 title: What's new in libvips 8.18
 ---
 
-libvips 8.18 should be out in a week or two, here's a summary of what's new.
-Check the [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
+Here's a summary of what's new in libvips 8.18. Check the
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
 The headline features are support for UltraHDR, camera RAW images,
@@ -28,7 +28,7 @@ relatively fast but you will sometimes need to update the gainmap during
 processing. The full HDR path does not require gainmap updates, but can be
 slower, and will usually lose the original image's tone mapping.
 
-[A new chapter in the libvips documentation](/API/8.18/uhdr.html) introduces
+[A new chapter in the libvips documentation](/API/current/uhdr.html) introduces
 this feature and explains how to use it. As an example, you can use
 `vipsthumbnail` to resize UltraHDR images. This command:
 
@@ -51,7 +51,7 @@ feature.
 
 Thanks to @lxsameer, libvips 8.18 now uses [libraw](https://www.libraw.org)
 to add support for most camera RAW formats. The new
-[`vips_dcrawload()`](/API/8.18/ctor.Image.dcrawload.html) operator will
+[`vips_dcrawload()`](/API/current/ctor.Image.dcrawload.html) operator will
 be used to automatically import images, for example:
 
 ```
@@ -92,9 +92,9 @@ import sys
 import pyvips
 
 im = pyvips.Image.new_from_file(sys.argv[1], access="sequential")
-    
-# make the watermark 
-text = pyvips.Image \   
+
+# make the watermark
+text = pyvips.Image \
     .text(sys.argv[3], width=500, dpi=600, align="centre") \
     .rotate(45)
 colour = text \
@@ -109,7 +109,7 @@ text = colour \
         .copy_memory()
 
 # replicate many times to cover the image
-overlay = text \ 
+overlay = text \
     .replicate(1 + im.width / text.width, 1 + im.height / text.height) \
     .crop(0, 0, im.width, im.height)
 
@@ -129,7 +129,7 @@ To generate:
 
 ![watermark](/assets/images/tn_watermark.jpg)
 
-A watermarked image, with the watermark colour specified in Oklab coordinates. 
+A watermarked image, with the watermark colour specified in Oklab coordinates.
 
 ## Improvements to the libvips core
 
@@ -141,7 +141,7 @@ interactive use:
   VMEM. For 64-bit machines this is now much larger, improving random access
   speeds for many file formats.
 
-- [`vips_system()`](/API/8.18/ctor.Image.system.html) has a new `"cache"` 
+- [`vips_system()`](/API/current/ctor.Image.system.html) has a new `"cache"`
   argument which adds the command to the libvips operation cache. This makes
   nip4 much, much faster at issuing ImageMagick commands.
 
@@ -150,9 +150,9 @@ interactive use:
 
 - Tiled image formats now set metadata to hint their cache size to downstream
   operations. This can help prevent retiling, again improving interactive
-  performance. 
+  performance.
 
-- [`vipsthumbnail`](/API/8.18/using-vipsthumbnail.html) has a new `"path"` 
+- [`vipsthumbnail`](/API/current/using-vipsthumbnail.html) has a new `"path"`
   argument. This gives you much more flexibility in how the output filename is
   constructed. The old `-o` option is still supported, but is deprecated.
 
@@ -161,18 +161,18 @@ interactive use:
 As well as the RAW support above, the other file format operations have
 seen some improvements:
 
-- [`vips_pdfload()`](/API/8.18/ctor.Image.pdfload.html) has a new `"page-box"`
+- [`vips_pdfload()`](/API/current/ctor.Image.pdfload.html) has a new `"page-box"`
   argument which lets you control which of the various media boxes you'd like
   to load.
 
-- [`vips_jxlload()`](/API/8.18/ctor.Image.jxlload.html) has a new `"bitdepth"` 
+- [`vips_jxlload()`](/API/current/ctor.Image.jxlload.html) has a new `"bitdepth"`
   argument which sets the depth at which the image should be loaded.
 
-- [`vips_webpsave()`](/API/8.18/method.Image.webpsave.html) has a new 
+- [`vips_webpsave()`](/API/current/method.Image.webpsave.html) has a new
   `"exact"` argument which forces the RGB in RGBA to always be saved, even if
   the pixel is transparent. This can be important if you are using WebP to
   store data.
 
-- [`vips_heifsave()`](/API/8.18/method.Image.heifsave.html) has a new 
+- [`vips_heifsave()`](/API/current/method.Image.heifsave.html) has a new
   `"tune"` parameter that lets you pass detailed options to the encoder. Handy
   for tuning output.
