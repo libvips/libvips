@@ -66,9 +66,9 @@ jobs:
             ninja pkgconf \
             cfitsio cgif fftw fontconfig glib \
             highway jpeg-xl libarchive libexif \
-            libheif libimagequant libmatio librsvg \
-            libpng libtiff little-cms2 mozjpeg \
-            openexr openjpeg openslide pango \
+            libheif libimagequant libmatio libpng \
+            librsvg libtiff libultrahdr little-cms2 \
+            mozjpeg openexr openjpeg openslide pango \
             poppler webp
 
       - name: Install Clang 19
