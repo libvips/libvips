@@ -24,8 +24,8 @@ jobs:
             os: ubuntu-24.04
             build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'thread' }
 
-          - name: "macOS arm64 (14) - Xcode 15"
-            os: macos-14
+          - name: "macOS arm64 (15) - Xcode 16"
+            os: macos-15
             build: { cc: clang, cxx: clang++, linker: ld.lld }
 
     env:
@@ -36,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Ubuntu dependencies
         if: runner.os == 'Linux'
@@ -66,9 +66,9 @@ jobs:
             ninja pkgconf \
             cfitsio cgif fftw fontconfig glib \
             highway jpeg-xl libarchive libexif \
-            libheif libimagequant libmatio librsvg \
-            libpng libtiff little-cms2 mozjpeg \
-            openexr openjpeg openslide pango \
+            libheif libimagequant libmatio libpng \
+            librsvg libtiff libultrahdr little-cms2 \
+            mozjpeg openexr openjpeg openslide pango \
             poppler webp
 
       - name: Install Clang 19
