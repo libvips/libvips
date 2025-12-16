@@ -1,4 +1,4 @@
-8.18.0 10/12/25
+17/12/25 8.18.0
 
 - add dcrawload, dcrawload_source, dcrawload_buffer: load raw camera files
   using libraw [lxsameer]
