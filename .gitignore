@@ -11,6 +11,7 @@
 build/
 debug/
 release/
+.cache/
 
 # Executables
 *.out
@@ -42,6 +43,11 @@ tmp-*
 tags
 TAGS
 ### End of VIM
+
+### macOS
+# Temporary files
+.DS_Store
+### End of macOS
 
 ### Distribution
 vips-*.tar.gz

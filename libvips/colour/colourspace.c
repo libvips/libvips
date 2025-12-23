@@ -217,6 +217,7 @@ typedef struct _VipsColourRoute {
 #define YXY VIPS_INTERPRETATION_YXY
 #define OKLAB VIPS_INTERPRETATION_OKLAB
 #define OKLCH VIPS_INTERPRETATION_OKLCH
+#define CICP VIPS_INTERPRETATION_CICP
 
 /* All the routes we know about.
  */
@@ -493,6 +494,24 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ OKLCH, YXY, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2Yxy, NULL } },
 	{ OKLCH, OKLAB, { vips_Oklch2Oklab, NULL } },
 	{ OKLCH, OKLCH, { vips_cast_float, NULL } },
+
+	{ CICP, XYZ, {vips_CICP2scRGB, vips_scRGB2XYZ, NULL}, },
+	{ CICP, LAB, {vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, NULL} },
+	{ CICP, LABQ, {vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, vips_Lab2LabQ, NULL} },
+	{ CICP, LCH, {vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, vips_Lab2LCh, NULL} },
+	{ CICP, CMC, {vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL} },
+	{ CICP, LABS, {vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, vips_Lab2LabS, NULL} },
+	{ CICP, CMYK, {vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2CMYK, NULL} },
+	{ CICP, scRGB, { vips_CICP2scRGB, NULL } },
+	{ CICP, sRGB, { vips_CICP2scRGB, vips_scRGB2sRGB, NULL } },
+	{ CICP, HSV, { vips_CICP2scRGB, vips_scRGB2sRGB, vips_sRGB2HSV, NULL } },
+	{ CICP, BW, { vips_CICP2scRGB, vips_scRGB2BW, NULL } },
+	{ CICP, RGB16, { vips_CICP2scRGB, vips_scRGB2RGB16, NULL } },
+	{ CICP, GREY16, { vips_CICP2scRGB, vips_scRGB2BW16, NULL } },
+	{ CICP, YXY, { vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
+	{ CICP, OKLAB, { vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, NULL } },
+	{ CICP, OKLCH, { vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
+	{ CICP, CICP, { NULL } },
 
 };
 
