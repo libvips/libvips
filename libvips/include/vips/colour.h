@@ -114,6 +114,63 @@ typedef enum {
 	VIPS_PCS_LAST	/*< skip >*/
 } VipsPCS;
 
+/* ITU-T H.273
+ */
+typedef enum {
+	VIPS_CICP_COLOUR_PRIMARIES_BT709 = 1,			// sRGB
+	VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED = 2,
+	VIPS_CICP_COLOUR_PRIMARIES_BT470M = 4,			// unsupported
+	VIPS_CICP_COLOUR_PRIMARIES_BT470BG = 5,			// unsupported
+	VIPS_CICP_COLOUR_PRIMARIES_BT601 = 6,			// unsupported
+	VIPS_CICP_COLOUR_PRIMARIES_SMPTE240 = 7,		// same as 6
+	VIPS_CICP_COLOUR_PRIMARIES_GENERIC_FILM = 8,	// unsupported
+	VIPS_CICP_COLOUR_PRIMARIES_BT2020 = 9,
+	VIPS_CICP_COLOUR_PRIMARIES_SMPTE428 = 10,		// unsupported
+	VIPS_CICP_COLOUR_PRIMARIES_SMPTE431 = 11,		//< nick=DCI-P3 >
+	VIPS_CICP_COLOUR_PRIMARIES_SMPTE432 = 12,		//< nick=Display-P3 >
+	VIPS_CICP_COLOUR_PRIMARIES_EBU3213 = 22,		// unsupported
+	VIPS_CICP_COLOUR_PRIMARIES_LAST					/*< skip >*/
+} VipsCICPColourPrimaries;
+
+typedef enum {
+	VIPS_CICP_TRANSFER_BT709 = 1,
+	VIPS_CICP_TRANSFER_UNSPECIFIED = 2,
+	VIPS_CICP_TRANSFER_BT470M = 4,		/* gamma 2.2 */
+	VIPS_CICP_TRANSFER_BT470BG = 5,		/* gamma 2.8 */
+	VIPS_CICP_TRANSFER_BT601 = 6,
+	VIPS_CICP_TRANSFER_SMPTE240 = 7,
+	VIPS_CICP_TRANSFER_LINEAR = 8,
+	VIPS_CICP_TRANSFER_LOG_100 = 9,
+	VIPS_CICP_TRANSFER_LOG_100_SQRT10 = 10,
+	VIPS_CICP_TRANSFER_IEC61966 = 11,
+	VIPS_CICP_TRANSFER_BT1361 = 12,
+	VIPS_CICP_TRANSFER_SRGB = 13,
+	VIPS_CICP_TRANSFER_BT2020_10BIT = 14,
+	VIPS_CICP_TRANSFER_BT2020_12BIT = 15,
+	VIPS_CICP_TRANSFER_PQ = 16,			/*< nick=PQ >*/ /* ITU-R BT.2100 PQ */
+	VIPS_CICP_TRANSFER_SMPTE428 = 17,
+	VIPS_CICP_TRANSFER_HLG = 18,		/*< nick=HLG >*/ /* ITU-R BT.2100 HLG */
+	VIPS_CICP_TRANSFER_LAST		/*< skip >*/
+} VipsCICPTransferCharacteristics;
+
+typedef enum {
+	VIPS_CICP_MATRIX_RGB = 0,		/* Identity */
+	VIPS_CICP_MATRIX_BT709 = 1,
+	VIPS_CICP_MATRIX_UNSPECIFIED = 2,
+	VIPS_CICP_MATRIX_FCC = 4,
+	VIPS_CICP_MATRIX_BT470BG = 5,
+	VIPS_CICP_MATRIX_BT601 = 6,
+	VIPS_CICP_MATRIX_SMPTE240 = 7,
+	VIPS_CICP_MATRIX_YCGCO = 8,
+	VIPS_CICP_MATRIX_BT2020_NCL = 9,
+	VIPS_CICP_MATRIX_BT2020_CL = 10,
+	VIPS_CICP_MATRIX_SMPTE2085 = 11,
+	VIPS_CICP_MATRIX_CHROMA_NCL = 12,
+	VIPS_CICP_MATRIX_CHROMA_CL = 13,
+	VIPS_CICP_MATRIX_ICTCP = 14,
+	VIPS_CICP_MATRIX_LAST		/*< skip >*/
+} VipsCICPMatrixCoefficients;
+
 VIPS_API
 gboolean vips_colourspace_issupported(const VipsImage *image);
 VIPS_API
@@ -220,105 +277,109 @@ VIPS_API
 int vips_uhdr2scRGB(VipsImage *in, VipsImage **out, ...);
 	G_GNUC_NULL_TERMINATED
 
-VIPS_API
-int vips_profile_load(const char *name, VipsBlob **profile, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_icc_present(void);
-VIPS_API
-int vips_icc_transform(VipsImage *in, VipsImage **out,
-	const char *output_profile, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_icc_import(VipsImage *in, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_icc_export(VipsImage *in, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_icc_ac2rc(VipsImage *in, VipsImage **out,
-	const char *profile_filename);
-VIPS_API
-gboolean vips_icc_is_compatible_profile(VipsImage *image,
-	const void *data, size_t data_length);
+	VIPS_API
+	int vips_CICP2scRGB(VipsImage *in, VipsImage **out, ...);
+	G_GNUC_NULL_TERMINATED
 
-VIPS_API
-int vips_dE76(VipsImage *left, VipsImage *right, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_dE00(VipsImage *left, VipsImage *right, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
-VIPS_API
-int vips_dECMC(VipsImage *left, VipsImage *right, VipsImage **out, ...)
-	G_GNUC_NULL_TERMINATED;
+	VIPS_API
+	int vips_profile_load(const char *name, VipsBlob **profile, ...)
+		G_GNUC_NULL_TERMINATED;
+	VIPS_API
+	int vips_icc_present(void);
+	VIPS_API
+	int vips_icc_transform(VipsImage *in, VipsImage **out,
+		const char *output_profile, ...)
+		G_GNUC_NULL_TERMINATED;
+	VIPS_API
+	int vips_icc_import(VipsImage *in, VipsImage **out, ...)
+		G_GNUC_NULL_TERMINATED;
+	VIPS_API
+	int vips_icc_export(VipsImage *in, VipsImage **out, ...)
+		G_GNUC_NULL_TERMINATED;
+	VIPS_API
+	int vips_icc_ac2rc(VipsImage *in, VipsImage **out,
+		const char *profile_filename);
+	VIPS_API
+	gboolean vips_icc_is_compatible_profile(VipsImage *image,
+		const void *data, size_t data_length);
 
-VIPS_API
-void vips_col_Lab2XYZ(float L, float a, float b,
-	float *X, float *Y, float *Z);
-VIPS_API
-void vips_col_XYZ2Lab(float X, float Y, float Z,
-	float *L, float *a, float *b);
-VIPS_API
-double vips_col_ab2h(double a, double b);
-VIPS_API
-void vips_col_ab2Ch(float a, float b, float *C, float *h);
-VIPS_API
-void vips_col_Ch2ab(float C, float h, float *a, float *b);
+	VIPS_API
+	int vips_dE76(VipsImage *left, VipsImage *right, VipsImage **out, ...)
+		G_GNUC_NULL_TERMINATED;
+	VIPS_API
+	int vips_dE00(VipsImage *left, VipsImage *right, VipsImage **out, ...)
+		G_GNUC_NULL_TERMINATED;
+	VIPS_API
+	int vips_dECMC(VipsImage *left, VipsImage *right, VipsImage **out, ...)
+		G_GNUC_NULL_TERMINATED;
 
-VIPS_API
-float vips_col_L2Lcmc(float L);
-VIPS_API
-float vips_col_C2Ccmc(float C);
-VIPS_API
-float vips_col_Ch2hcmc(float C, float h);
+	VIPS_API
+	void vips_col_Lab2XYZ(float L, float a, float b,
+		float *X, float *Y, float *Z);
+	VIPS_API
+	void vips_col_XYZ2Lab(float X, float Y, float Z,
+		float *L, float *a, float *b);
+	VIPS_API
+	double vips_col_ab2h(double a, double b);
+	VIPS_API
+	void vips_col_ab2Ch(float a, float b, float *C, float *h);
+	VIPS_API
+	void vips_col_Ch2ab(float C, float h, float *a, float *b);
 
-VIPS_API
-void vips_col_make_tables_CMC(void);
-VIPS_API
-float vips_col_Lcmc2L(float Lcmc);
-VIPS_API
-float vips_col_Ccmc2C(float Ccmc);
-VIPS_API
-float vips_col_Chcmc2h(float C, float hcmc);
+	VIPS_API
+	float vips_col_L2Lcmc(float L);
+	VIPS_API
+	float vips_col_C2Ccmc(float C);
+	VIPS_API
+	float vips_col_Ch2hcmc(float C, float h);
 
-VIPS_API
-int vips_col_sRGB2scRGB_8(int r, int g, int b, float *R, float *G, float *B);
-VIPS_API
-int vips_col_sRGB2scRGB_16(int r, int g, int b, float *R, float *G, float *B);
-VIPS_API
-int vips_col_sRGB2scRGB_8_noclip(int r, int g, int b,
-	float *R, float *G, float *B);
-VIPS_API
-int vips_col_sRGB2scRGB_16_noclip(int r, int g, int b,
-	float *R, float *G, float *B);
+	VIPS_API
+	void vips_col_make_tables_CMC(void);
+	VIPS_API
+	float vips_col_Lcmc2L(float Lcmc);
+	VIPS_API
+	float vips_col_Ccmc2C(float Ccmc);
+	VIPS_API
+	float vips_col_Chcmc2h(float C, float hcmc);
 
-VIPS_API
-int vips_col_scRGB2XYZ(float R, float G, float B,
-	float *X, float *Y, float *Z);
-VIPS_API
-int vips_col_XYZ2scRGB(float X, float Y, float Z,
-	float *R, float *G, float *B);
+	VIPS_API
+	int vips_col_sRGB2scRGB_8(int r, int g, int b, float *R, float *G, float *B);
+	VIPS_API
+	int vips_col_sRGB2scRGB_16(int r, int g, int b, float *R, float *G, float *B);
+	VIPS_API
+	int vips_col_sRGB2scRGB_8_noclip(int r, int g, int b,
+		float *R, float *G, float *B);
+	VIPS_API
+	int vips_col_sRGB2scRGB_16_noclip(int r, int g, int b,
+		float *R, float *G, float *B);
 
-VIPS_API
-int vips_col_scRGB2sRGB_8(float R, float G, float B,
-	int *r, int *g, int *b, int *og);
-VIPS_API
-int vips_col_scRGB2sRGB_16(float R, float G, float B,
-	int *r, int *g, int *b, int *og);
-VIPS_API
-int vips_col_scRGB2BW_16(float R, float G, float B, int *g, int *og);
-VIPS_API
-int vips_col_scRGB2BW_8(float R, float G, float B, int *g, int *og);
+	VIPS_API
+	int vips_col_scRGB2XYZ(float R, float G, float B,
+		float *X, float *Y, float *Z);
+	VIPS_API
+	int vips_col_XYZ2scRGB(float X, float Y, float Z,
+		float *R, float *G, float *B);
 
-VIPS_API
-float vips_pythagoras(float L1, float a1, float b1,
-	float L2, float a2, float b2);
-VIPS_API
-float vips_col_dE00(
-	float L1, float a1, float b1, float L2, float a2, float b2);
+	VIPS_API
+	int vips_col_scRGB2sRGB_8(float R, float G, float B,
+		int *r, int *g, int *b, int *og);
+	VIPS_API
+	int vips_col_scRGB2sRGB_16(float R, float G, float B,
+		int *r, int *g, int *b, int *og);
+	VIPS_API
+	int vips_col_scRGB2BW_16(float R, float G, float B, int *g, int *og);
+	VIPS_API
+	int vips_col_scRGB2BW_8(float R, float G, float B, int *g, int *og);
+
+	VIPS_API
+	float vips_pythagoras(float L1, float a1, float b1,
+		float L2, float a2, float b2);
+	VIPS_API
+	float vips_col_dE00(
+		float L1, float a1, float b1, float L2, float a2, float b2);
 
 #ifdef __cplusplus
-}
+	}
 #endif /*__cplusplus*/
 
 #endif /*VIPS_COLOUR_H*/

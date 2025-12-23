@@ -103,6 +103,8 @@ typedef struct _VipsForeignLoadJxl {
 	size_t xmp_size;
 	uint8_t *xmp_data;
 
+	JxlColorEncoding color_encoding;
+
 	int frame_count;
 	GArray *delay;
 
@@ -843,6 +845,73 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 			(VipsCallbackFn) vips_area_free_cb, jxl->icc_data, jxl->icc_size);
 		jxl->icc_data = NULL;
 		jxl->icc_size = 0;
+	}
+
+	// CICP only covers RGB
+	if (jxl->color_encoding.color_space == JXL_COLOR_SPACE_RGB) {
+
+		double gamma = jxl->color_encoding.gamma;
+
+		switch (jxl->color_encoding.primaries) {
+			case JXL_PRIMARIES_SRGB:
+				vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_BT709);
+				break;
+			case JXL_PRIMARIES_2100:
+				vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_BT2020);
+				break;
+			case JXL_PRIMARIES_P3:
+				if (jxl->color_encoding.white_point == JXL_WHITE_POINT_D65) {
+					// Display P3
+					vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_SMPTE432);
+				} else if (jxl->color_encoding.white_point == JXL_WHITE_POINT_DCI) {
+					// DCI-P3
+					vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_SMPTE431);
+				} else {
+					vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED);
+				}
+				break;
+			default:
+				vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED);
+				break;
+		}
+		switch (jxl->color_encoding.transfer_function) {
+			case JXL_TRANSFER_FUNCTION_709:
+				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_BT709);
+				break;
+			case JXL_TRANSFER_FUNCTION_UNKNOWN:
+				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_UNSPECIFIED);
+				break;
+			case JXL_TRANSFER_FUNCTION_LINEAR:
+				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_LINEAR);
+				break;
+			case JXL_TRANSFER_FUNCTION_SRGB:
+				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_SRGB);
+				break;
+			case JXL_TRANSFER_FUNCTION_PQ:
+				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_PQ);
+				break;
+			case JXL_TRANSFER_FUNCTION_DCI:
+				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_SMPTE428);
+				break;
+			case JXL_TRANSFER_FUNCTION_HLG:
+				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_HLG);
+				break;
+			case JXL_TRANSFER_FUNCTION_GAMMA:
+				if (gamma == 2.2)
+					vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_BT470M);
+				else if (gamma == 2.8)
+					vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_BT470BG);
+				else
+					vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_UNSPECIFIED);
+				break;
+			default:
+				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_UNSPECIFIED);
+				break;
+
+		}
+
+		vips_image_set_int(out, "cicp-matrix-coefficients", 0); // RGB, identity
+		vips_image_set_int(out, "cicp-full-range-flag", 1);
 	}
 
 	if (jxl->exif_data &&

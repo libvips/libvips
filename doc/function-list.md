@@ -86,6 +86,7 @@ API docs each function links to for more details.
 | `canny` | Canny edge detector | [method@Image.canny] |
 | `case` | Use pixel values to pick cases from an array of images | [method@Image.case] |
 | `cast` | Cast an image | [method@Image.cast], [method@Image.cast_uchar], [method@Image.cast_char], [method@Image.cast_ushort], [method@Image.cast_short], [method@Image.cast_uint], [method@Image.cast_int], [method@Image.cast_float], [method@Image.cast_double], [method@Image.cast_complex], [method@Image.cast_dpcomplex] |
+| `CICP2scRGB` | Transform image with CICP signals to scRGB | [method@Image.CICP2scRGB] |
 | `clamp` | Clamp values of an image | [method@Image.clamp] |
 | `colourspace` | Convert to a new colorspace | [method@Image.colourspace] |
 | `compass` | Convolve with rotating mask | [method@Image.compass] |
