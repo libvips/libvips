@@ -97,7 +97,7 @@
 /* For vips__win32_terminate().
  */
 #ifdef G_OS_WIN32
-#include <processthreadsapi.h>
+#include <windows.h>
 #endif /*G_OS_WIN32*/
 
 #define VIPS_DISABLE_DEPRECATION_WARNINGS
