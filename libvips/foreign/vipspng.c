@@ -89,6 +89,8 @@
  * 	- add exif read/write
  * 3/2/23 MathemanFlo
  * 	- add bits per sample metadata
+ * 23/12/25 Starbix
+ *  - add support for reading cICP chunk
  */
 
 /*
@@ -545,6 +547,22 @@ png2vips_header(Read *read, VipsImage *out)
 		vips_image_set_blob_copy(out,
 			VIPS_META_ICC_NAME, profile, proflen);
 	}
+
+	/* Read cICP chunk and set if present */
+#if PNG_LIBPNG_VER >= 10645
+	png_byte colour_primaries;
+	png_byte transfer_characteristics;
+	png_byte matrix_coefficients;
+	png_byte full_range_flag;
+
+	if (png_get_cICP(read->pPng, read->pInfo,
+		&colour_primaries, &transfer_characteristics, &matrix_coefficients, &full_range_flag)) {
+		vips_image_set_int(out, "cicp-colour-primaries", colour_primaries);
+		vips_image_set_int(out, "cicp-transfer-characteristics", transfer_characteristics);
+		vips_image_set_int(out, "cicp-matrix-coefficients", matrix_coefficients);
+		vips_image_set_int(out, "cicp-full-range-flag", full_range_flag);
+    }
+#endif
 
 	/* Some libpng warn you to call png_set_interlace_handling(); here, but
 	 * that can actually break interlace on older libpngs.
