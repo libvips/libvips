@@ -454,13 +454,14 @@ calculate_coefficients(T *c, const int n_points,
 	VipsFilterFn filter_fn, const double shrink, const double x)
 {
 	const double half = x + n_points / 2.0 - 1;
+	const double scale = 1.0 / shrink;
 
 	int i;
 	T sum;
 
 	sum = 0.0;
 	for (i = 0; i < n_points; i++) {
-		const double xp = (i - half) / shrink;
+		const double xp = (i - half) * scale;
 		double l = filter_fn(xp);
 
 		c[i] = l;
