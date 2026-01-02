@@ -235,6 +235,7 @@ vips_interpretation_bands(VipsInterpretation interpretation)
 	case VIPS_INTERPRETATION_HSV:
 	case VIPS_INTERPRETATION_OKLAB:
 	case VIPS_INTERPRETATION_OKLCH:
+	case VIPS_INTERPRETATION_CICP:
 		return 3;
 
 	case VIPS_INTERPRETATION_CMYK:

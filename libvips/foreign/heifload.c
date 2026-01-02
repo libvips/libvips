@@ -660,6 +660,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	 */
 	vips_autorot_remove_angle(out);
 
+	// if both nclx and ICC are present, ICC is returned
 	enum heif_color_profile_type profile_type =
 		heif_image_handle_get_color_profile_type(heif->handle);
 
@@ -716,8 +717,41 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		vips_image_set_blob(out, VIPS_META_ICC_NAME,
 			(VipsCallbackFn) vips_area_free_cb, data, length);
 	}
-	else if (profile_type == heif_color_profile_type_nclx) {
-		g_info("heifload: ignoring nclx profile");
+	/* is only set if no ICC profile is present
+	* TODO: also set if ICC is present, but describes HDR transfer characteristics
+	* as ICC profiles cannot describe PQ or HLG apart from "cicp" tag as of 2025
+	* and the "cicp" tag in ICC is ignored by lcms2
+	*/
+	if (profile_type == heif_color_profile_type_nclx) {
+		g_info("heifload: setting CICP from nclx");
+
+		struct heif_color_profile_nclx *nclx = heif_nclx_color_profile_alloc();
+		if (!nclx) {
+			vips_error("heifload", "%s", _("unable to allocate nclx"));
+			return -1;
+		}
+
+		error = heif_image_handle_get_nclx_color_profile(heif->handle, &nclx);
+		if (error.code) {
+			heif_nclx_color_profile_free(nclx);
+			vips__heif_error(&error);
+			return -1;
+		}
+
+#ifdef DEBUG
+		printf("\tnclx: %p\n", nclx);
+		printf("\tnclx->color_primaries: %d\n", nclx->color_primaries);
+		printf("\tnclx->transfer_characteristics: %d\n", nclx->transfer_characteristics);
+		printf("\tnclx->matrix_coefficients: %d\n", nclx->matrix_coefficients);
+		printf("\tnclx->full_range_flag: %d\n", nclx->full_range_flag);
+#endif
+
+		vips_image_set_int(out, "cicp-colour-primaries", nclx->color_primaries);
+		vips_image_set_int(out, "cicp-transfer-characteristics", nclx->transfer_characteristics);
+		vips_image_set_int(out, "cicp-matrix-coefficients", 0); // converted to RGB by libheif already
+		vips_image_set_int(out, "cicp-full-range-flag", nclx->full_range_flag);
+
+		heif_nclx_color_profile_free(nclx);
 	}
 
 	vips_image_set_int(out, "heif-primary", heif->primary_page);
@@ -758,6 +792,12 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	else {
 		interpretation = VIPS_INTERPRETATION_sRGB;
 		format = VIPS_FORMAT_UCHAR;
+	}
+
+	/* If we have no ICC profile but CICP, set interpretation to CICP
+	 */
+	if (profile_type == heif_color_profile_type_nclx) {
+		interpretation = VIPS_INTERPRETATION_CICP;
 	}
 
 	/* FIXME .. we always decode to RGB in generate. We should check for

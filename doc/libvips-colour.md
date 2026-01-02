@@ -34,6 +34,8 @@ slightly different format:
 Use [method@Image.colourspace] to move an image to a target colourspace
 using the best sequence of colour transform operations.
 
+Use [method@Image.CICP2scRGB] to convert an image with CICP signals to scRGB.
+
 Use [method@Image.uhdr2scRGB] to convert an SDR image with an attached gainmap
 to a full HDR scRGB image.
 
@@ -133,6 +135,7 @@ The colour spaces supported by libvips are:
 * [method@Image.CMYK2XYZ]
 * [method@Image.XYZ2CMYK]
 * [method@Image.uhdr2scRGB]
+* [method@Image.CICP2scRGB]
 * [ctor@Blob.profile_load]
 * [func@icc_present]
 * [method@Image.icc_transform]
