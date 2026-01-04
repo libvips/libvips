@@ -428,45 +428,31 @@ G_DEFINE_TYPE(VipsInterpolateBilinear, vips_interpolate_bilinear,
  * p3  p4
  */
 
-#define BILINEAR_INT_INNER \
-	{ \
-		tq[z] = (c1 * tp1[z] + c2 * tp2[z] + \
-					c3 * tp3[z] + c4 * tp4[z] + \
-					(1 << VIPS_INTERPOLATE_SHIFT) / 2) >> \
-			VIPS_INTERPOLATE_SHIFT; \
-		z += 1; \
-	}
-
 /* Fixed-point arithmetic, no tables.
  */
 #define BILINEAR_INT(TYPE) \
 	{ \
 		TYPE *restrict tq = (TYPE *) out; \
 \
-		int X = (x - ix) * VIPS_INTERPOLATE_SCALE; \
-		int Y = (y - iy) * VIPS_INTERPOLATE_SCALE; \
+		const int X = (x - ix) * VIPS_INTERPOLATE_SCALE; \
+		const int Y = (y - iy) * VIPS_INTERPOLATE_SCALE; \
 \
-		int Yd = VIPS_INTERPOLATE_SCALE - Y; \
+		const int Yd = VIPS_INTERPOLATE_SCALE - Y; \
 \
-		int c4 = (Y * X) >> VIPS_INTERPOLATE_SHIFT; \
-		int c2 = (Yd * X) >> VIPS_INTERPOLATE_SHIFT; \
-		int c3 = Y - c4; \
-		int c1 = Yd - c2; \
+		const int c4 = (Y * X) >> VIPS_INTERPOLATE_SHIFT; \
+		const int c2 = (Yd * X) >> VIPS_INTERPOLATE_SHIFT; \
+		const int c3 = Y - c4; \
+		const int c1 = Yd - c2; \
 \
 		const TYPE *restrict tp1 = (TYPE *) p1; \
 		const TYPE *restrict tp2 = (TYPE *) p2; \
 		const TYPE *restrict tp3 = (TYPE *) p3; \
 		const TYPE *restrict tp4 = (TYPE *) p4; \
 \
-		z = 0; \
-		VIPS_UNROLL(b, BILINEAR_INT_INNER); \
-	}
-
-#define BILINEAR_FLOAT_INNER \
-	{ \
-		tq[z] = c1 * tp1[z] + c2 * tp2[z] + \
-			c3 * tp3[z] + c4 * tp4[z]; \
-		z += 1; \
+		for (z = 0; z < b; z++) { \
+			tq[z] = (c1 * tp1[z] + c2 * tp2[z] + c3 * tp3[z] + c4 * tp4[z] + \
+				(1 << VIPS_INTERPOLATE_SHIFT) / 2) >> VIPS_INTERPOLATE_SHIFT; \
+		} \
 	}
 
 /* Interpolate a pel ... int16, int32 and float types, no tables, float
@@ -477,23 +463,24 @@ G_DEFINE_TYPE(VipsInterpolateBilinear, vips_interpolate_bilinear,
 	{ \
 		TYPE *restrict tq = (TYPE *) out; \
 \
-		double X = x - ix; \
-		double Y = y - iy; \
+		const double X = x - ix; \
+		const double Y = y - iy; \
 \
-		double Yd = 1.0f - Y; \
+		const double Yd = 1.0f - Y; \
 \
-		double c4 = Y * X; \
-		double c2 = Yd * X; \
-		double c3 = Y - c4; \
-		double c1 = Yd - c2; \
+		const double c4 = Y * X; \
+		const double c2 = Yd * X; \
+		const double c3 = Y - c4; \
+		const double c1 = Yd - c2; \
 \
 		const TYPE *restrict tp1 = (TYPE *) p1; \
 		const TYPE *restrict tp2 = (TYPE *) p2; \
 		const TYPE *restrict tp3 = (TYPE *) p3; \
 		const TYPE *restrict tp4 = (TYPE *) p4; \
 \
-		z = 0; \
-		VIPS_UNROLL(b, BILINEAR_FLOAT_INNER); \
+		for (z = 0; z < b; z++) { \
+			tq[z] = c1 * tp1[z] + c2 * tp2[z] + c3 * tp3[z] + c4 * tp4[z]; \
+		} \
 	}
 
 /* The fixed-point path is fine for uchar pixels, but it'll be inaccurate for
