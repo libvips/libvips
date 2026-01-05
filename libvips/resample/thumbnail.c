@@ -659,6 +659,8 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	if (!(im = class->open(thumbnail, factor)))
 		return NULL;
 
+	vips_image_set_int(im, "orig-width", thumbnail->input_width);
+	vips_image_set_int(im, "orig-height", thumbnail->input_height);
 	g_info("pre-shrunk size is %d x %d", im->Xsize, im->Ysize);
 
 	return im;
