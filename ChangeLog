@@ -3,6 +3,7 @@ date-tbd 8.18.1
 - vector: mask supported Highway targets by builtin targets [kleisauke]
 - fix Highway paths on big-endian targets [kleisauke]
 - fix build with MSVC [star-hengxing]
+- fix compatibility with glibc 2.43 [mtasaka]
 
 17/12/25 8.18.0
 
