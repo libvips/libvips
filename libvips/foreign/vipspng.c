@@ -820,7 +820,7 @@ vips__png_header_source(VipsSource *source, VipsImage *out,
 {
 	Read *read;
 
-	if (!(read = read_new(source, out, TRUE, unlimited)) ||
+	if (!(read = read_new(source, out, VIPS_FAIL_ON_NONE, unlimited)) ||
 		png2vips_header(read, out, TRUE))
 		return -1;
 
@@ -855,7 +855,7 @@ vips__png_isinterlaced_source(VipsSource *source)
 
 	image = vips_image_new();
 
-	if (!(read = read_new(source, image, TRUE, FALSE))) {
+	if (!(read = read_new(source, image, VIPS_FAIL_ON_NONE, FALSE))) {
 		g_object_unref(image);
 		return -1;
 	}
