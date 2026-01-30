@@ -4,6 +4,7 @@ date-tbd 8.18.1
 - fix Highway paths on big-endian targets [kleisauke]
 - fix build with MSVC [star-hengxing]
 - fix compatibility with glibc 2.43 [mtasaka]
+- pngload: avoid an expensive check during header read [kleisauke]
 
 17/12/25 8.18.0
 
