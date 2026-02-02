@@ -32,8 +32,9 @@ main = map (\[x, y] x + y) (zip2 [1..10] [11..20]);
 ```
 
 So the lambda (the backslash character) expects a two element list with
-elements names as `x` and `y`, and adds them together. The `zip2` makes a list
-like `[[1, 11], [2, 12], ..]`, so main will have the value `[12, 14, 16, ..]`.
+elements named as `x` and `y` and adds them together. The `zip2` makes
+a list like `[[1, 11], [2, 12], ..]`, so therefore `main` will have the
+value `[12, 14, 16, ..]`.
 
 This means that (finally!) you can use patterns and argument deconstruction
 everywhere. For example, you could write that lambda expression as:
@@ -49,7 +50,7 @@ The compiler is now lazy -- everything is parsed during load, but code
 generation only happens when functions are evaluated. This improves startup
 time.
 
-## Welcome to **snip**
+## It's now **snip**
 
 And finally the programming language is officially renamed as **snip**, and
 the old `nip54-batch` program is now installed as `snip`. You can use it to
