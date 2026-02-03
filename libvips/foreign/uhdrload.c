@@ -79,11 +79,7 @@ typedef struct _VipsForeignLoadUhdr {
 
 	int shrink;
 
-	// decoder
 	uhdr_codec_private_t *dec;
-
-	uhdr_raw_image_t *raw_image;
-	uhdr_raw_image_t *gainmap_image;
 
 } VipsForeignLoadUhdr;
 
