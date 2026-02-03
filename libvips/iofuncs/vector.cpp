@@ -132,7 +132,7 @@ vips_vector_get_builtin_targets()
 /**
  * vips_vector_get_supported_targets:
  *
- * Gets a bitfield of enabled targets that are supported on this CPU. The
+ * Gets a bitfield of builtin targets that are supported on this CPU. The
  * targets returned may change after calling [func@vector_disable_targets].
  *
  * Returns: a bitfield of supported CPU targets.
@@ -141,7 +141,7 @@ gint64
 vips_vector_get_supported_targets()
 {
 #ifdef HAVE_HWY
-	return hwy::SupportedTargets() & ~(HWY_EMU128 | HWY_SCALAR);
+	return hwy::SupportedTargets() & HWY_TARGETS & ~(HWY_EMU128 | HWY_SCALAR);
 #elif defined(HAVE_ORC)
 	return orc_target_get_default_flags(orc_target_get_default());
 #else

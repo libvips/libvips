@@ -83,6 +83,12 @@ constexpr DI32 di32;
 #define HWY_LANES_CONSTEXPR
 #endif
 
+#if HWY_IS_BIG_ENDIAN
+#define HWY_ENDIAN_LOHI(lo, hi) hi, lo
+#else
+#define HWY_ENDIAN_LOHI(lo, hi) lo, hi
+#endif
+
 HWY_ATTR void
 vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 	int32_t ne, int32_t nnz, int32_t offset, const int32_t *HWY_RESTRICT offsets,
@@ -146,24 +152,28 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				auto bottom = LoadU(du8, /* bottom line */
 					p + offsets[i + 1]);
 
-				auto source = InterleaveLower(top, bottom);
-				auto pix = BitCast(di16, InterleaveLower(source, zero));
+				auto source = InterleaveLower(HWY_ENDIAN_LOHI(top, bottom));
+				auto pix = BitCast(di16,
+					InterleaveLower(HWY_ENDIAN_LOHI(source, zero)));
 
 				sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
 					/* byref */ sum1);
 
-				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+				pix = BitCast(di16,
+					InterleaveUpper(du8, HWY_ENDIAN_LOHI(source, zero)));
 
 				sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 					/* byref */ sum3);
 
-				source = InterleaveUpper(du8, top, bottom);
-				pix = BitCast(di16, InterleaveLower(source, zero));
+				source = InterleaveUpper(du8, HWY_ENDIAN_LOHI(top, bottom));
+				pix = BitCast(di16,
+					InterleaveLower(HWY_ENDIAN_LOHI(source, zero)));
 
 				sum4 = ReorderWidenMulAccumulate(di32, pix, mmk, sum4,
 					/* byref */ sum5);
 
-				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+				pix = BitCast(di16,
+					InterleaveUpper(du8, HWY_ENDIAN_LOHI(source, zero)));
 
 				sum6 = ReorderWidenMulAccumulate(di32, pix, mmk, sum6,
 					/* byref */ sum7);
@@ -175,24 +185,28 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				 */
 				auto top = LoadU(du8, p + offsets[i]);
 
-				auto source = InterleaveLower(top, zero);
-				auto pix = BitCast(di16, InterleaveLower(source, zero));
+				auto source = InterleaveLower(HWY_ENDIAN_LOHI(top, zero));
+				auto pix = BitCast(di16,
+					InterleaveLower(HWY_ENDIAN_LOHI(source, zero)));
 
 				sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
 					/* byref */ sum1);
 
-				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+				pix = BitCast(di16,
+					InterleaveUpper(du8, HWY_ENDIAN_LOHI(source, zero)));
 
 				sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 					/* byref */ sum3);
 
-				source = InterleaveUpper(du8, top, zero);
-				pix = BitCast(di16, InterleaveLower(source, zero));
+				source = InterleaveUpper(du8, HWY_ENDIAN_LOHI(top, zero));
+				pix = BitCast(di16,
+					InterleaveLower(HWY_ENDIAN_LOHI(source, zero)));
 
 				sum4 = ReorderWidenMulAccumulate(di32, pix, mmk, sum4,
 					/* byref */ sum5);
 
-				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+				pix = BitCast(di16,
+					InterleaveUpper(du8, HWY_ENDIAN_LOHI(source, zero)));
 
 				sum6 = ReorderWidenMulAccumulate(di32, pix, mmk, sum6,
 					/* byref */ sum7);

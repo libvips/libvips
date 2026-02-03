@@ -79,6 +79,12 @@ constexpr int32_t max_bits = 1 << 8;
 #define HWY_LANES_CONSTEXPR
 #endif
 
+#if HWY_IS_BIG_ENDIAN
+#define HWY_ENDIAN_LOHI(lo, hi) hi, lo
+#else
+#define HWY_ENDIAN_LOHI(lo, hi) lo, hi
+#endif
+
 HWY_ATTR void
 vips_shrinkv_add_line_uchar_hwy(VipsPel *pin,
 	int32_t ne, uint32_t *HWY_RESTRICT sum)
@@ -105,8 +111,10 @@ vips_shrinkv_add_line_uchar_hwy(VipsPel *pin,
 		auto sum0 = LoadU(du32, &sum[x + 0 * N / 2]);
 		auto sum1 = LoadU(du32, &sum[x + 1 * N / 2]);
 
-		sum0 = Add(sum0, BitCast(du32, InterleaveLower(du16, pix0, zero)));
-		sum1 = Add(sum1, BitCast(du32, InterleaveUpper(du16, pix0, zero)));
+		sum0 = Add(sum0, BitCast(du32,
+			InterleaveLower(du16, HWY_ENDIAN_LOHI(pix0, zero))));
+		sum1 = Add(sum1, BitCast(du32,
+			InterleaveUpper(du16, HWY_ENDIAN_LOHI(pix0, zero))));
 
 		StoreU(sum0, du32, &sum[x + 0 * N / 2]);
 		StoreU(sum1, du32, &sum[x + 1 * N / 2]);
