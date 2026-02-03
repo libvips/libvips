@@ -195,6 +195,7 @@
  * @VIPS_INTERESTING_CENTRE: just take the centre
  * @VIPS_INTERESTING_ENTROPY: use an entropy measure
  * @VIPS_INTERESTING_ATTENTION: look for features likely to draw human attention
+ * @VIPS_INTERESTING_SPECIFIC: use the specified point of interest
  * @VIPS_INTERESTING_LOW: position the crop towards the low coordinate
  * @VIPS_INTERESTING_HIGH: position the crop towards the high coordinate
  * @VIPS_INTERESTING_ALL: everything is interesting
