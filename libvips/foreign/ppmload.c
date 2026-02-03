@@ -47,6 +47,8 @@
  * 	- byteswap binary loads
  * 9/3/23
  *	- pfm assumes linear 0-1 [NiHoel]
+ * 2/6/25
+ *	- add ppmload_buffer [kleisauke]
  */
 
 /*
@@ -221,10 +223,8 @@ vips_foreign_load_ppm_build(VipsObject *object)
 	if (ppm->source)
 		ppm->sbuf = vips_sbuf_new_from_source(ppm->source);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_ppm_parent_class)
+		->build(object);
 }
 
 /* Scan the header into our class.
@@ -803,10 +803,8 @@ vips_foreign_load_ppm_file_build(VipsObject *object)
 		!(ppm->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_file_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_ppm_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -838,6 +836,79 @@ vips_foreign_load_ppm_file_init(VipsForeignLoadPpmFile *file)
 {
 }
 
+typedef struct _VipsForeignLoadPpmBuffer {
+	VipsForeignLoadPpm parent_object;
+
+	/* Load from a buffer.
+	 */
+	VipsBlob *blob;
+
+} VipsForeignLoadPpmBuffer;
+
+typedef VipsForeignLoadPpmClass VipsForeignLoadPpmBufferClass;
+
+G_DEFINE_TYPE(VipsForeignLoadPpmBuffer, vips_foreign_load_ppm_buffer,
+	vips_foreign_load_ppm_get_type());
+
+static int
+vips_foreign_load_ppm_buffer_build(VipsObject *object)
+{
+	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) object;
+	VipsForeignLoadPpmBuffer *buffer = (VipsForeignLoadPpmBuffer *) object;
+
+	if (buffer->blob &&
+		!(ppm->source = vips_source_new_from_memory(
+			  VIPS_AREA(buffer->blob)->data,
+			  VIPS_AREA(buffer->blob)->length)))
+		return -1;
+
+	return VIPS_OBJECT_CLASS(vips_foreign_load_ppm_buffer_parent_class)
+		->build(object);
+}
+
+static gboolean
+vips_foreign_load_ppm_is_a_buffer(const void *buf, size_t len)
+{
+	VipsSource *source;
+	gboolean result;
+
+	if (!(source = vips_source_new_from_memory(buf, len)))
+		return FALSE;
+	result = vips_foreign_load_ppm_is_a_source(source);
+	VIPS_UNREF(source);
+
+	return result;
+}
+
+static void
+vips_foreign_load_ppm_buffer_class_init(VipsForeignLoadPpmBufferClass *class)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "ppmload_buffer";
+	object_class->description = _("load ppm from buffer");
+	object_class->build = vips_foreign_load_ppm_buffer_build;
+
+	load_class->is_a_buffer = vips_foreign_load_ppm_is_a_buffer;
+
+	VIPS_ARG_BOXED(class, "buffer", 1,
+		_("Buffer"),
+		_("Buffer to load from"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadPpmBuffer, blob),
+		VIPS_TYPE_BLOB);
+}
+
+static void
+vips_foreign_load_ppm_buffer_init(VipsForeignLoadPpmBuffer *buffer)
+{
+}
+
 typedef struct _VipsForeignLoadPpmSource {
 	VipsForeignLoadPpm parent_object;
 
@@ -861,11 +932,8 @@ vips_foreign_load_ppm_source_build(VipsObject *object)
 		g_object_ref(ppm->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_ppm_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_ppm_source_parent_class)
+		->build(object);
 }
 
 static void
@@ -880,6 +948,7 @@ vips_foreign_load_ppm_source_class_init(VipsForeignLoadPpmFileClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "ppmload_source";
+	object_class->description = _("load ppm from source");
 	object_class->build = vips_foreign_load_ppm_source_build;
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;
@@ -927,6 +996,40 @@ vips_ppmload(const char *filename, VipsImage **out, ...)
 	va_start(ap, out);
 	result = vips_call_split("ppmload", ap, filename, out);
 	va_end(ap);
+
+	return result;
+}
+
+/**
+ * vips_ppmload_buffer:
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Exactly as [ctor@Image.ppmload], but read from a memory source.
+ *
+ * ::: seealso
+ *     [ctor@Image.ppmload].
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_ppmload_buffer(void *buf, size_t len, VipsImage **out, ...)
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new(NULL, buf, len);
+
+	va_start(ap, out);
+	result = vips_call_split("ppmload_buffer", ap, blob, out);
+	va_end(ap);
+
+	vips_area_unref(VIPS_AREA(blob));
 
 	return result;
 }

@@ -186,22 +186,19 @@ vips_foreign_save_tiff_build(VipsObject *object)
 		vips_isprefix("in", p))
 		resunit = VIPS_FOREIGN_TIFF_RESUNIT_INCH;
 
-	double xres;
-	xres = ready->Xres;
-	if (vips_object_argument_isset(object, "xres")) {
-		if (resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH)
-			xres = tiff->xres * 25.4;
-		else
-			xres = tiff->xres * 10.0;
-	}
+	double xres = vips_object_argument_isset(object, "xres") ?
+		tiff->xres : ready->Xres;
 
-	double yres;
-	yres = ready->Yres;
-	if (vips_object_argument_isset(object, "yres")) {
-		if (resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH)
-			yres = tiff->yres * 25.4;
-		else
-			yres = tiff->yres * 10.0;
+	double yres = vips_object_argument_isset(object, "yres") ?
+		tiff->yres : ready->Yres;
+
+	if (resunit == VIPS_FOREIGN_TIFF_RESUNIT_INCH) {
+		xres *= 25.4;
+		yres *= 25.4;
+	}
+	else {
+		xres *= 10.0;
+		yres *= 10.0;
 	}
 
 	if (vips__tiff_write_target(ready, tiff->target,
@@ -452,11 +449,8 @@ vips_foreign_save_tiff_target_build(VipsObject *object)
 	tiff->target = target->target;
 	g_object_ref(tiff->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_tiff_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -506,11 +500,8 @@ vips_foreign_save_tiff_file_build(VipsObject *object)
 	if (!(tiff->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_tiff_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_tiff_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -610,16 +601,15 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  *
  * Write a VIPS image to a file as TIFF.
  *
- * If @in has the [const@META_PAGE_HEIGHT] metadata item, this is assumed to be a
- * "toilet roll" image. It will be
- * written as series of pages, each [const@META_PAGE_HEIGHT] pixels high.
+ * If @in has the [const@META_PAGE_HEIGHT] metadata item, this is assumed to
+ * be a "toilet roll" image. It will be written as series of pages, each
+ * [const@META_PAGE_HEIGHT] pixels high.
  *
  * Use @compression to set the tiff compression. Currently jpeg, packbits,
  * fax4, lzw, none, deflate, webp and zstd are supported. The default is no
- * compression.
- * JPEG compression is a good lossy compressor for photographs, packbits is
- * good for 1-bit images, and deflate is the best lossless compression TIFF
- * can do.
+ * compression. JPEG compression is a good lossy compressor for photographs,
+ * packbits is good for 1-bit images, and deflate is the best lossless
+ * compression TIFF can do.
  *
  * XYZ images are automatically saved as libtiff LOGLUV with SGILOG compression.
  * Float LAB images are saved as float CIELAB. Set @bitdepth to save as 8-bit
@@ -627,8 +617,9 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  *
  * Use @Q to set the JPEG compression factor. Default 75.
  *
- * User @level to set the ZSTD (1-22) or Deflate (1-9) compression level. Use @lossless to
- * set WEBP lossless mode on. Use @Q to set the WEBP compression level.
+ * User @level to set the ZSTD (1-22) or Deflate (1-9) compression level.
+ * Use @lossless to set WEBP lossless mode on. Use @Q to set the WEBP
+ * compression level.
  *
  * Use @predictor to set the predictor for lzw, deflate and zstd compression.
  * It defaults to [enum@Vips.ForeignTiffPredictor.HORIZONTAL], meaning horizontal
@@ -649,11 +640,13 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * a single layer.
  *
  * Set @bitdepth to save 8-bit uchar images as 1, 2 or 4-bit TIFFs.
+ *
  * In case of depth 1: Values >128 are written as white, values <=128 as black.
  * Normally vips will write MINISBLACK TIFFs where black is a 0 bit, but if you
  * set @miniswhite, it will use 0 for a white bit. Many pre-press applications
  * only work with images which use this sense. @miniswhite only affects one-bit
  * images, it does nothing for greyscale images.
+ *
  * In case of depth 2: The same holds but values < 64 are written as black.
  * For 64 <= values < 128 they are written as dark grey, for 128 <= values < 192
  * they are written as light gray and values above are written as white.
@@ -661,11 +654,9 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * In case of depth 4: values < 16 are written as black, and so on for the
  * lighter shades. In case @miniswhite is set to true this behavior is inverted.
  *
- * Use @resunit to override the default resolution unit.
- * The default
- * resolution unit is taken from the header field
- * [const@META_RESOLUTION_UNIT]. If this field is not set, then
- * VIPS defaults to cm.
+ * Use @resunit to override the default resolution unit. The default
+ * resolution unit is taken from the header field [const@META_RESOLUTION_UNIT].
+ * If this field is not set, then VIPS defaults to cm.
  *
  * Use @xres and @yres to override the default horizontal and vertical
  * resolutions. By default these values are taken from the VIPS image header.
@@ -678,12 +669,11 @@ vips_foreign_save_tiff_buffer_init(VipsForeignSaveTiffBuffer *buffer)
  * xml. If @properties is not set, the value of [const@META_IMAGEDESCRIPTION] is
  * used instead.
  *
- * The value of [const@META_XMP_NAME] is written to
- * the XMP tag. [const@META_ORIENTATION] (if set) is used to set the value of
- * the orientation
- * tag. [const@META_IPTC_NAME] (if set) is used to set the value of the IPTC tag.
- * [const@META_PHOTOSHOP_NAME] (if set) is used to set the value of the PHOTOSHOP
- * tag.
+ * The value of [const@META_XMP_NAME] is written to the XMP tag.
+ * [const@META_ORIENTATION] (if set) is used to set the value of the
+ * orientation tag. [const@META_IPTC_NAME] (if set) is used to set the
+ * value of the IPTC tag. [const@META_PHOTOSHOP_NAME] (if set) is used to
+ * set the value of the PHOTOSHOP tag.
  *
  * By default, pyramid layers are saved as consecutive pages.
  * Set @subifd to save pyramid layers as sub-directories of the main image.

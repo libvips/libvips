@@ -125,24 +125,39 @@ vips_foreign_save_png_build(VipsObject *object)
 	if (vips_object_argument_isset(object, "colours"))
 		png->bitdepth = ceil(log2(png->colours));
 
-	/* The bitdepth param can change the interpretation.
-	 */
-	VipsInterpretation interpretation;
-	if (in->Bands > 2) {
-	   if (png->bitdepth > 8)
-		   interpretation = VIPS_INTERPRETATION_RGB16;
-	   else
-		   interpretation = VIPS_INTERPRETATION_sRGB;
+	if (vips_colourspace_issupported(in)) {
+		VipsInterpretation interpretation;
+
+		/* The bitdepth param can change the interpretation.
+		 */
+		if (in->Bands > 2) {
+		   if (png->bitdepth > 8)
+			   interpretation = VIPS_INTERPRETATION_RGB16;
+		   else
+			   interpretation = VIPS_INTERPRETATION_sRGB;
+		}
+		else {
+		   if (png->bitdepth > 8)
+			   interpretation = VIPS_INTERPRETATION_GREY16;
+		   else
+			   interpretation = VIPS_INTERPRETATION_B_W;
+		}
+
+		if (vips_colourspace(in, &x, interpretation, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
 	}
 	else {
-	   if (png->bitdepth > 8)
-		   interpretation = VIPS_INTERPRETATION_GREY16;
-	   else
-		   interpretation = VIPS_INTERPRETATION_B_W;
-	}
-	if (vips_colourspace(in, &x, interpretation, NULL)) {
-		g_object_unref(in);
-		return -1;
+		VipsBandFormat target_format =
+			png->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+
+		/* Cast in down to target format if we can.
+		 */
+		if (vips_cast(in, &x, target_format, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
 	}
 	g_object_unref(in);
 	in = x;
@@ -315,11 +330,8 @@ vips_foreign_save_png_target_build(VipsObject *object)
 	png->target = target->target;
 	g_object_ref(png->target);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_png_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_png_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -382,7 +394,7 @@ vips_foreign_save_png_file_class_init(VipsForeignSavePngFileClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngsave";
-	object_class->description = _("save image to png file");
+	object_class->description = _("save image to file as png");
 	object_class->build = vips_foreign_save_png_file_build;
 
 	VIPS_ARG_STRING(class, "filename", 1,
@@ -441,7 +453,7 @@ vips_foreign_save_png_buffer_class_init(VipsForeignSavePngBufferClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pngsave_buffer";
-	object_class->description = _("save image to png buffer");
+	object_class->description = _("save image to buffer as png");
 	object_class->build = vips_foreign_save_png_buffer_build;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,

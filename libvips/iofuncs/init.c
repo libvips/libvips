@@ -94,6 +94,12 @@
 #include <limits.h>
 #include <string.h>
 
+/* For vips__win32_terminate().
+ */
+#ifdef G_OS_WIN32
+#include <processthreadsapi.h>
+#endif /*G_OS_WIN32*/
+
 #define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/vector.h>
@@ -1331,4 +1337,26 @@ vips_block_untrusted_set(gboolean state)
 {
 	vips_class_map_all(g_type_from_name("VipsOperation"),
 		(VipsClassMapFn) vips_block_untrusted_set_operation, &state);
+}
+
+/* win32 can occasionally deadlock on main() return for exes built with clang,
+ * see: https://github.com/libvips/libvips/discussions/4690
+ *
+ * This function will terminate the process prematurely on win32, bypassing
+ * normal process exit, but does nothing on other platforms.
+ */
+void
+vips__win32_terminate(int ret)
+{
+#ifdef G_OS_WIN32
+	/* These won't be flushed on a disorderly exit.
+	 */
+	fflush(stdout);
+	fflush(stderr);
+
+	/* Maybe add some other stuff!
+	 */
+
+	TerminateProcess(GetCurrentProcess(), ret);
+#endif /*G_OS_WIN32*/
 }

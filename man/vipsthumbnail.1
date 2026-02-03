@@ -53,26 +53,22 @@ Append "<" to only resize if the input image is smaller than the
 target, append ">" to only resize if the input image is larger than the target.
 
 .TP
-.B -o FORMAT, --output=FORMAT
-Set the output format string. The input filename has any file type suffix
-removed, then that value is substituted into
-.B FORMAT
-replacing
-.B %s.
-If
-.B FORMAT
-is a relative path, the name of the input directory is prepended. In other
-words, any path in
-.B FORMAT
-is relative to the directory of the current input file.
+.B --path=FORMAT
+Set the output path format. Three substitutions are performed:
+.B %s
+is replaced by the input basename with any suffix removed,
+.B %d
+is replaced by the input dirname, and
+.B %c
+is replaced by the current working directory.
 
 The default value is
-.B tn_%s.jpg
-meaning JPEG output, with
+.B %d/tn_%s.jpg
+meaning JPEG output, to the same directory as the input file, with
 .B tn_
 prepended. You can add format options too, for example
-.B tn_%s.jpg[Q=20]
-will write JPEG images with Q set to 20.
+.B %c/%s/tn_%s.jpg[Q=20]
+will write JPEG images to a tree within the current directory with Q set to 20.
 
 .TP
 .B -e PROFILE, --eprofile=PROFILE

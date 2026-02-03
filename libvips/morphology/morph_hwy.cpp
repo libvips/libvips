@@ -36,9 +36,9 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 
 #include <vips/vips.h>
 #include <vips/vector.h>
@@ -61,6 +61,11 @@ using namespace hwy::HWY_NAMESPACE;
 using DU8 = ScalableTag<uint8_t>;
 constexpr DU8 du8;
 
+// Compat for Highway versions < 1.3.0
+#ifndef HWY_LANES_CONSTEXPR
+#define HWY_LANES_CONSTEXPR
+#endif
+
 HWY_ATTR void
 vips_dilate_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 	int32_t sz, int32_t nn128, const int32_t *HWY_RESTRICT offsets,
@@ -68,7 +73,7 @@ vips_dilate_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 {
 	int32_t bo = VIPS_RECT_BOTTOM(r);
 
-	const int32_t N = Lanes(du8);
+	HWY_LANES_CONSTEXPR int32_t N = Lanes(du8);
 	const auto zero = Zero(du8);
 	const auto one = Set(du8, 255);
 
@@ -101,19 +106,12 @@ vips_dilate_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 		 * proceed one by one.
 		 */
 		for (; x < sz; ++x) {
-			auto sum = zero;
+			int32_t sum = 0;
 
-			for (int32_t i = 0; i < nn128; ++i) {
-				/* Load with an offset.
-				 */
-				auto pix = LoadU(du8, p + offsets[i]);
+			for (int32_t i = 0; i < nn128; ++i) 
+				sum |= !coeff[i] ? ~p[offsets[i]] : p[offsets[i]];
 
-				if (!coeff[i])
-					pix = AndNot(pix, one);
-				sum = Or(sum, pix);
-			}
-
-			q[x] = GetLane(sum);
+			q[x] = sum;
 			p += 1;
 		}
 	}
@@ -126,7 +124,7 @@ vips_erode_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 {
 	int32_t bo = VIPS_RECT_BOTTOM(r);
 
-	const int32_t N = Lanes(du8);
+	HWY_LANES_CONSTEXPR int32_t N = Lanes(du8);
 	const auto one = Set(du8, 255);
 
 	for (int32_t y = r->top; y < bo; ++y) {
@@ -158,19 +156,12 @@ vips_erode_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 		 * proceed one by one.
 		 */
 		for (; x < sz; ++x) {
-			auto sum = one;
+			int32_t sum = 255;
 
-			for (int32_t i = 0; i < nn128; ++i) {
-				/* Load with an offset.
-				 */
-				auto pix = LoadU(du8, p + offsets[i]);
+			for (int32_t i = 0; i < nn128; ++i)
+				sum &= !coeff[i] ? ~p[offsets[i]] : p[offsets[i]];
 
-				if (!coeff[i])
-					pix = AndNot(pix, one);
-				sum = And(sum, pix);
-			}
-
-			q[x] = GetLane(sum);
+			q[x] = sum;
 			p += 1;
 		}
 	}

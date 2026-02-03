@@ -18,18 +18,24 @@ The colour functions can be divided into three main groups. First,
 functions to transform images between the different colour spaces supported
 by libvips:
 [enum@Vips.Interpretation.SRGB], [enum@Vips.Interpretation.SCRGB],
-[enum@Vips.Interpretation.B_W], [enum@Vips.Interpretation.XYZ],
-[enum@Vips.Interpretation.YXY], [enum@Vips.Interpretation.LAB],
-[enum@Vips.Interpretation.LCH], and [enum@Vips.Interpretation.CMC].
+[enum@Vips.Interpretation.HSV], [enum@Vips.Interpretation.B_W],
+[enum@Vips.Interpretation.CMYK],
+[enum@Vips.Interpretation.XYZ], [enum@Vips.Interpretation.YXY],
+[enum@Vips.Interpretation.LAB], [enum@Vips.Interpretation.LCH],
+[enum@Vips.Interpretation.Oklab], [enum@Vips.Interpretation.Oklch],
+and [enum@Vips.Interpretation.CMC].
 
 There are also a set of minor colourspaces which are one of the above in a
 slightly different format:
-[enum@Vips.Interpretation.LAB], [enum@Vips.Interpretation.LABQ],
-[enum@Vips.Interpretation.LABS], [enum@Vips.Interpretation.LCH],
+[enum@Vips.Interpretation.LABQ],
+[enum@Vips.Interpretation.LABS],
 [enum@Vips.Interpretation.RGB16], and [enum@Vips.Interpretation.GREY16].
 
 Use [method@Image.colourspace] to move an image to a target colourspace
 using the best sequence of colour transform operations.
+
+Use [method@Image.uhdr2scRGB] to convert an SDR image with an attached gainmap
+to a full HDR scRGB image.
 
 Secondly, there are a set of operations for calculating colour difference
 metrics. Finally, libvips wraps LittleCMS and uses it to provide a set of
@@ -42,11 +48,19 @@ This figure shows how the libvips colour spaces interconvert:
 The colour spaces supported by libvips are:
 
 - [enum@Vips.Interpretation.LAB]: CIELAB '76 colourspace with a D65 white.
-  This uses three floats for each band, and bands have the obvious range.<br /><br />
+  This uses three floats for each band, and bands have the obvious
+  range.<br /><br />
   There are two variants, [enum@Vips.Interpretation.LABQ] and
   [enum@Vips.Interpretation.LABS], which use ints to store values. These are
   less precise, but can be quicker to store and process.<br /><br />
   [enum@Vips.Interpretation.LCH] is the same, but with a\*b\* as polar
+  coordinates. Hue is expressed in degrees.
+
+- [enum@Vips.Interpretation.OKLAB]: The Oklab colourspace with a D65 white.
+  This uses three floats for each band, with 0 - 1 for L and roughly plus or
+  minus 0.5 for a and b. Values can be outside this range for HDR
+  images. <br /><br />
+  [enum@Vips.Interpretation.Oklch] is the same, but with a and b as polar
   coordinates. Hue is expressed in degrees.
 
 - [enum@Vips.Interpretation.XYZ]: CIE XYZ. This uses three floats.
@@ -109,11 +123,16 @@ The colour spaces supported by libvips are:
 * [method@Image.LCh2CMC]
 * [method@Image.CMC2LCh]
 * [method@Image.XYZ2Yxy]
+* [method@Image.XYZ2Oklab]
+* [method@Image.Oklab2Oklch]
+* [method@Image.Oklab2XYZ]
+* [method@Image.Oklch2Oklab]
 * [method@Image.Yxy2XYZ]
 * [method@Image.LabS2Lab]
 * [method@Image.Lab2LabS]
 * [method@Image.CMYK2XYZ]
 * [method@Image.XYZ2CMYK]
+* [method@Image.uhdr2scRGB]
 * [ctor@Blob.profile_load]
 * [func@icc_present]
 * [method@Image.icc_transform]

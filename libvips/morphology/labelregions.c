@@ -73,14 +73,15 @@ vips_labelregions_build(VipsObject *object)
 
 	/* Create the zero mask image in memory.
 	 */
-	mask = vips_image_new_memory();
+	if (vips_black(&t[0], in->Xsize, in->Ysize, NULL) ||
+		vips_cast(t[0], &t[1], VIPS_FORMAT_INT, NULL) ||
+		!(t[2] = vips_image_copy_memory(t[1])))
+		return -1;
+
+	mask = t[2];
 	g_object_set(object,
 		"mask", mask,
 		NULL);
-	if (vips_black(&t[0], in->Xsize, in->Ysize, NULL) ||
-		vips_cast(t[0], &t[1], VIPS_FORMAT_INT, NULL) ||
-		vips_image_write(t[1], mask))
-		return -1;
 
 	segments = 1;
 	m = (int *) mask->data;

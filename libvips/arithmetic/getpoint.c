@@ -94,7 +94,6 @@ vips_getpoint_build(VipsObject *object)
 	VipsGetpoint *getpoint = (VipsGetpoint *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 4);
 
-	double *vector;
 	VipsArrayDouble *out_array;
 
 	if (VIPS_OBJECT_CLASS(vips_getpoint_parent_class)->build(object))
@@ -104,7 +103,7 @@ vips_getpoint_build(VipsObject *object)
 	 */
 	gboolean iscomplex = getpoint->unpack_complex &&
 		vips_band_format_iscomplex(getpoint->in->BandFmt);
-	VipsBandFormat target_bands = iscomplex ?
+	int target_bands = iscomplex ?
 		getpoint->in->Bands * 2 : getpoint->in->Bands;
 	VipsBandFormat target_format = iscomplex ?
 		VIPS_FORMAT_DPCOMPLEX : VIPS_FORMAT_DOUBLE;
@@ -123,11 +122,7 @@ vips_getpoint_build(VipsObject *object)
 		vips_image_write(t[2], t[3]))
 		return -1;
 
-	if (!(vector = VIPS_ARRAY(getpoint->in, target_bands, double)))
-		return -1;
-	memcpy(vector, t[3]->data, VIPS_IMAGE_SIZEOF_PEL(t[3]));
-
-	out_array = vips_array_double_new(vector, target_bands);
+	out_array = vips_array_double_new((double *) t[3]->data, target_bands);
 	g_object_set(object,
 		"out_array", out_array,
 		NULL);
@@ -201,14 +196,17 @@ vips_getpoint_init(VipsGetpoint *getpoint)
  * Reads a single pixel on an image.
  *
  * The pixel values are returned in @vector, the length of the
- * array in @n. You must free the array with [func@GLib.free] when you are done with
- * it.
+ * array in @n. You must free the array with [func@GLib.free] when you are
+ * done with it.
  *
  * The result array has an element for each band. If @unpack_complex is set,
  * pixels in complex images are returned as double-length arrays.
  *
+ * This operation is slow. If you want to read many points, use
+ * [method@Image.write_to_memory].
+ *
  * ::: seealso
- *     [method@Image.draw_point].
+ *     [method@Image.draw_point], [method@Image.write_to_memory].
  *
  * Returns: 0 on success, or -1 on error.
  */

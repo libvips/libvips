@@ -206,11 +206,8 @@ vips_foreign_load_png_source_build(VipsObject *object)
 		g_object_ref(png->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_png_source_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -275,10 +272,8 @@ vips_foreign_load_png_file_build(VipsObject *object)
 		!(png->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_file_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_png_file_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -353,11 +348,8 @@ vips_foreign_load_png_buffer_build(VipsObject *object)
 			  VIPS_AREA(buffer->blob)->length)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_png_buffer_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_png_buffer_parent_class)
+		->build(object);
 }
 
 static gboolean

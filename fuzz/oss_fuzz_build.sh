@@ -94,17 +94,23 @@ cmake \
   -DENABLE_STATIC=TRUE \
   -DENABLE_SHARED=FALSE \
   -DWITH_TURBOJPEG=FALSE \
+  -DWITH_TOOLS=FALSE \
+  -DWITH_TESTS=FALSE \
   .
-cmake --build . --target jpeg-static
-cmake --install . --component lib
-cmake --install . --component include
+cmake --build . --target install
 popd
 
-# libspng
-pushd $SRC/libspng
-meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debugoptimized \
-  -Dstatic_zlib=true -Dbuild_examples=false
-meson install -C build --tag devel
+# libpng
+pushd $SRC/libpng
+autoreconf -fi
+./configure \
+  --prefix=$WORK \
+  --disable-shared \
+  --disable-tools \
+  --without-binconfigs \
+  --disable-unversioned-libpng-config \
+  --disable-dependency-tracking
+make install dist_man_MANS=
 popd
 
 # libwebp
@@ -188,14 +194,51 @@ cmake \
 cmake --build . --target install
 popd
 
-# FIXME: Workaround for https://github.com/mesonbuild/meson/issues/14533
-export LDFLAGS+=" $CFLAGS"
+# libjxl
+pushd $SRC/libjxl
+# libvips always decodes to pixels, so build with
+# -DJPEGXL_ENABLE_TRANSCODE_JPEG=FALSE
+cmake \
+  -GNinja \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_INSTALL_PREFIX=$WORK \
+  -DCMAKE_FIND_ROOT_PATH=$WORK \
+  -DBUILD_SHARED_LIBS=FALSE \
+  -DBUILD_TESTING=FALSE \
+  -DJPEGXL_ENABLE_BENCHMARK=FALSE \
+  -DJPEGXL_ENABLE_EXAMPLES=FALSE \
+  -DJPEGXL_ENABLE_FUZZERS=FALSE \
+  -DJPEGXL_ENABLE_JPEGLI=FALSE \
+  -DJPEGXL_ENABLE_MANPAGES=FALSE \
+  -DJPEGXL_ENABLE_SJPEG=FALSE \
+  -DJPEGXL_ENABLE_SKCMS=FALSE \
+  -DJPEGXL_ENABLE_TOOLS=FALSE \
+  -DJPEGXL_ENABLE_TRANSCODE_JPEG=FALSE \
+  -DJPEGXL_FORCE_SYSTEM_BROTLI=TRUE \
+  -DJPEGXL_FORCE_SYSTEM_HWY=TRUE \
+  -DJPEGXL_FORCE_SYSTEM_LCMS2=TRUE \
+  .
+cmake --build . --target install
+popd
+
+# libultrahdr
+pushd $SRC/libultrahdr
+cmake \
+  -GNinja \
+  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+  -DCMAKE_INSTALL_PREFIX=$WORK \
+  -DBUILD_SHARED_LIBS=FALSE \
+  -DUHDR_BUILD_EXAMPLES=FALSE \
+  -DUHDR_MAX_DIMENSION=65500 \
+  .
+cmake --build . --target install
+popd
 
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 sed -i "/subdir('man')/{N;N;N;d;}" meson.build
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debugoptimized \
-  -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dmodules=disabled \
+  -Dbackend_max_links=4 -Ddeprecated=false -Dexamples=false -Dcplusplus=false -Dmodules=disabled \
   -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE" \
   -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
 meson install -C build --tag devel

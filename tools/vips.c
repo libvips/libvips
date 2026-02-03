@@ -216,23 +216,17 @@ list_operation_arg(VipsObjectClass *object_class,
 	/* These are the pspecs that vips uses that have interesting values.
 	 */
 	if (G_IS_PARAM_SPEC_ENUM(pspec)) {
-		GTypeClass *class = g_type_class_ref(type);
+		/* GParamSpecEnum holds a ref on the class so we just peek.
+		 */
+		GEnumClass *genum = g_type_class_peek(type);
 
-		GEnumClass *genum;
 		int i;
 
-		/* Should be impossible, no need to warn.
-		 */
-		if (!class)
-			return NULL;
-
-		genum = G_ENUM_CLASS(class);
+		g_assert(genum);
 
 		printf("word:");
 
-		/* -1 since we always have a "last" member.
-		 */
-		for (i = 0; i < genum->n_values - 1; i++) {
+		for (i = 0; i < genum->n_values; i++) {
 			if (i > 0)
 				printf("|");
 			printf("%s", genum->values[i].value_nick);
@@ -566,7 +560,7 @@ static ActionEntry actions[] = {
 		&empty_options[0], print_help },
 };
 
-static void
+static int
 parse_options(GOptionContext *context, int *argc, char **argv)
 {
 	char txt[1024];
@@ -595,7 +589,7 @@ parse_options(GOptionContext *context, int *argc, char **argv)
 			g_error_free(error);
 		}
 
-		vips_error_exit(NULL);
+		return -1;
 	}
 
 	/* On Windows, argc will not have been updated by
@@ -616,6 +610,8 @@ parse_options(GOptionContext *context, int *argc, char **argv)
 
 			*argc -= 1;
 		}
+
+	return 0;
 }
 
 static GOptionGroup *
@@ -730,6 +726,7 @@ main(int argc, char **argv)
 		help = g_option_context_get_help(context, TRUE, NULL);
 		printf("%s", help);
 		g_free(help);
+		g_option_context_free(context);
 
 		exit(0);
 	}
@@ -750,6 +747,8 @@ main(int argc, char **argv)
 			g_error_free(error);
 		}
 
+		g_option_context_free(context);
+
 		vips_error_exit(NULL);
 	}
 
@@ -762,13 +761,16 @@ main(int argc, char **argv)
 	if (main_option_plugin) {
 #ifdef ENABLE_MODULES
 #ifdef ENABLE_DEPRECATED
-		if (!im_load_plugin(main_option_plugin))
+		if (!im_load_plugin(main_option_plugin)) {
+			g_option_context_free(context);
 			vips_error_exit(NULL);
+		}
 #else  /*!ENABLE_DEPRECATED*/
 		GModule *module;
 
 		module = g_module_open(main_option_plugin, G_MODULE_BIND_LAZY);
 		if (!module) {
+			g_option_context_free(context);
 			vips_error_exit(_("unable to load \"%s\" -- %s"),
 				main_option_plugin, g_module_error());
 		}
@@ -832,12 +834,13 @@ main(int argc, char **argv)
 		for (i = 0; i < VIPS_NUMBER(actions); i++)
 			if (strcmp(action, actions[i].name) == 0) {
 				group = add_operation_group(context, NULL);
-				g_option_group_add_entries(group,
-					actions[i].group);
+				g_option_group_add_entries(group, actions[i].group);
 				parse_options(context, &argc, argv);
 
-				if (actions[i].action(argc - 1, argv + 1))
+				if (actions[i].action(argc - 1, argv + 1)) {
+					g_option_context_free(context);
 					vips_error_exit("%s", action);
+				}
 
 				handled = TRUE;
 				break;
@@ -854,8 +857,10 @@ main(int argc, char **argv)
 		if (im_run_command(action, argc - 1, argv + 1)) {
 			if (argc == 1)
 				usage(fn);
-			else
+			else {
+				g_option_context_free(context);
 				vips_error_exit(NULL);
+			}
 		}
 
 		handled = TRUE;
@@ -875,7 +880,10 @@ main(int argc, char **argv)
 		(operation = vips_operation_new(action))) {
 		group = add_operation_group(context, operation);
 		vips_call_options(group, operation);
-		parse_options(context, &argc, argv);
+		if (parse_options(context, &argc, argv)) {
+			g_option_context_free(context);
+			vips_error_exit(NULL);
+		}
 
 		if (vips_call_argv(operation, argc - 1, argv + 1)) {
 			if (argc == 1)
@@ -884,6 +892,7 @@ main(int argc, char **argv)
 
 			vips_object_unref_outputs(VIPS_OBJECT(operation));
 			g_object_unref(operation);
+			g_option_context_free(context);
 
 			if (argc == 1)
 				/* We don't exit with an error for something
@@ -913,14 +922,18 @@ main(int argc, char **argv)
 
 	if (action &&
 		!handled) {
+		g_option_context_free(context);
 		vips_error_exit(_("unknown action \"%s\""), action);
 	}
 
 	/* Still not handled? We may not have called parse_options(), so
 	 * --help args may not have been processed.
 	 */
-	if (!handled)
-		parse_options(context, &argc, argv);
+	if (!handled &&
+		parse_options(context, &argc, argv)) {
+		g_option_context_free(context);
+		vips_error_exit(NULL);
+	}
 
 	g_option_context_free(context);
 
@@ -930,5 +943,6 @@ main(int argc, char **argv)
 
 	vips_shutdown();
 
+	vips__win32_terminate(0);
 	return 0;
 }

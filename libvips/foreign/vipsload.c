@@ -198,11 +198,8 @@ vips_foreign_load_vips_file_build(VipsObject *object)
 		!(vips->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_vips_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_vips_file_parent_class)
+		->build(object);
 }
 
 const char *vips__suffs[] = { ".v", ".vips", NULL };
@@ -269,11 +266,8 @@ vips_foreign_load_vips_source_build(VipsObject *object)
 		g_object_ref(vips->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_vips_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_vips_source_parent_class)
+		->build(object);
 }
 
 static gboolean

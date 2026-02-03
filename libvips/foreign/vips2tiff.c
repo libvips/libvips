@@ -459,7 +459,7 @@ static int
 wtiff_handler_warning(TIFF *tiff, void* user_data,
 	const char *module, const char *fmt, va_list ap)
 {
-	g_logv("vips2tiff", G_LOG_LEVEL_WARNING, fmt, ap);
+	g_logv(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, fmt, ap);
 	return 1;
 }
 
@@ -1980,20 +1980,26 @@ wtiff_layer_write_tiles(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 		 */
 		WtiffRow row = { wtiff, strip, layer, 0 };
 
+		VipsImage *x;
+		if (vips_copy(im, &x, NULL))
+			return -1;
+
 		/* We don't want threadpool_run to minimise on completion -- we need to
 		 * keep the cache on the pipeline before us.
 		 */
-		vips_image_set_int(im, "vips-no-minimise", 1);
+		vips_image_set_int(x, "vips-no-minimise", 1);
 
-		if (vips_threadpool_run(im,
+		if (vips_threadpool_run(x,
 				vips_thread_state_new,
 				wtiff_layer_row_allocate,
 				wtiff_layer_row_work,
 				NULL,
 				&row)) {
+			VIPS_UNREF(x);
 			wtiff_row_free(&row);
 			return -1;
 		}
+		VIPS_UNREF(x);
 
 		if (wtiff_row_write(&row, layer->tif)) {
 			wtiff_row_free(&row);
@@ -2370,6 +2376,7 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 	CopyField(TIFFTAG_ROWSPERSTRIP, ui32);
 	CopyField(TIFFTAG_SUBFILETYPE, ui32);
 	CopyField(TIFFTAG_PREDICTOR, ui16);
+	CopyField(TIFFTAG_SAMPLEFORMAT, ui16);
 
 	if (TIFFGetField(in, TIFFTAG_EXTRASAMPLES, &ui16, &a))
 		TIFFSetField(out, TIFFTAG_EXTRASAMPLES, ui16, a);

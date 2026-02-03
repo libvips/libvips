@@ -102,8 +102,15 @@ class TestConnection:
 
         assert (im - self.mono).abs().max() == 0
 
-    @skip_if_no("csvload_source")
-    @skip_if_no("csvsave_target")
+    @skip_if_no("svgload_source")
+    def test_connection_svg(self):
+        svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="1" height="1" />'
+        x = pyvips.Source.new_from_memory(svg)
+        im = pyvips.Image.new_from_source(x, "")
+
+        assert im.width == 1
+        assert im.height == 1
+
     def test_connection_csv(self):
         x = pyvips.Target.new_to_memory()
         self.mono.csvsave_target(x)

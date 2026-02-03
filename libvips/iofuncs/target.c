@@ -116,7 +116,7 @@ vips_target_build(VipsObject *object)
 	}
 
 	// for filename targets, don't create the file we write on _build() --
-	// do it lazily on the first write
+	// do it lazily on the first write or seek
 
 	if (vips_object_argument_isset(object, "descriptor")) {
 		connection->descriptor = dup(connection->descriptor);
@@ -137,8 +137,8 @@ vips_target_build(VipsObject *object)
 }
 
 /* If necessary, create the file we write to from the filename. We do this
- * lazily on first write, since eg. dzsave might not actually write to this
- * filename in some cases.
+ * lazily on first write or seek, since eg. dzsave might not actually write
+ * to this filename in some cases.
  */
 static int
 vips_target_create_file(VipsTarget *target)
@@ -233,11 +233,14 @@ vips_target_seek_real(VipsTarget *target, gint64 offset, int whence)
 		target->position = new_position;
 	}
 	else
-		/* We need to use the vips__seek() wrapper so we can seek long
-		 * files on Windows.
-		 */
-		new_position = vips__seek_no_error(connection->descriptor,
-			offset, whence);
+		if (vips_target_create_file(target))
+			new_position = -1;
+		else
+			/* We need to use the vips__seek() wrapper so we can seek long
+			 * files on Windows.
+			 */
+			new_position = vips__seek_no_error(connection->descriptor,
+				offset, whence);
 
 	return new_position;
 }

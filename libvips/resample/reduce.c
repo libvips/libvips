@@ -60,14 +60,14 @@
 
 /**
  * VipsKernel:
- * @VIPS_KERNEL_NEAREST: The nearest pixel to the point.
- * @VIPS_KERNEL_LINEAR: Convolve with a triangle filter.
- * @VIPS_KERNEL_CUBIC: Convolve with a cubic filter.
- * @VIPS_KERNEL_MITCHELL: Convolve with a Mitchell kernel.
- * @VIPS_KERNEL_LANCZOS2: Convolve with a two-lobe Lanczos kernel.
- * @VIPS_KERNEL_LANCZOS3: Convolve with a three-lobe Lanczos kernel.
- * @VIPS_KERNEL_MKS2013: Convolve with Magic Kernel Sharp 2013.
- * @VIPS_KERNEL_MKS2021: Convolve with Magic Kernel Sharp 2021.
+ * @VIPS_KERNEL_NEAREST: the nearest pixel to the point
+ * @VIPS_KERNEL_LINEAR: convolve with a triangle filter
+ * @VIPS_KERNEL_CUBIC: convolve with a cubic filter
+ * @VIPS_KERNEL_MITCHELL: convolve with a Mitchell kernel
+ * @VIPS_KERNEL_LANCZOS2: convolve with a two-lobe Lanczos kernel
+ * @VIPS_KERNEL_LANCZOS3: convolve with a three-lobe Lanczos kernel
+ * @VIPS_KERNEL_MKS2013: convolve with Magic Kernel Sharp 2013
+ * @VIPS_KERNEL_MKS2021: convolve with Magic Kernel Sharp 2021
  *
  * The resampling kernels vips supports. See [method@Image.reduce], for example.
  */

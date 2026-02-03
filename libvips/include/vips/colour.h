@@ -105,13 +105,13 @@ typedef enum {
 	 * four standard ones.
 	 */
 	VIPS_INTENT_AUTO = 32,
-	VIPS_INTENT_LAST
+	VIPS_INTENT_LAST	/*< skip >*/
 } VipsIntent;
 
 typedef enum {
 	VIPS_PCS_LAB,
 	VIPS_PCS_XYZ,
-	VIPS_PCS_LAST
+	VIPS_PCS_LAST	/*< skip >*/
 } VipsPCS;
 
 VIPS_API
@@ -202,6 +202,23 @@ int vips_CMYK2XYZ(VipsImage *in, VipsImage **out, ...)
 VIPS_API
 int vips_XYZ2CMYK(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_Oklab2XYZ(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_XYZ2Oklab(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_Oklch2Oklab(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_Oklab2Oklch(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_uhdr2scRGB(VipsImage *in, VipsImage **out, ...);
+	G_GNUC_NULL_TERMINATED
 
 VIPS_API
 int vips_profile_load(const char *name, VipsBlob **profile, ...)

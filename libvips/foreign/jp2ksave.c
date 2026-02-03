@@ -1040,11 +1040,8 @@ vips_foreign_save_jp2k_file_build(VipsObject *object)
 	if (!(jp2k->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -1158,11 +1155,8 @@ vips_foreign_save_jp2k_target_build(VipsObject *object)
 		g_object_ref(jp2k->target);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_target_parent_class)
+		->build(object);
 }
 
 static void

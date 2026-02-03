@@ -265,11 +265,8 @@ vips_foreign_load_tiff_source_build(VipsObject *object)
 		g_object_ref(tiff->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_tiff_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_tiff_source_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -336,11 +333,8 @@ vips_foreign_load_tiff_file_build(VipsObject *object)
 				vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_tiff_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_tiff_file_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -418,11 +412,8 @@ vips_foreign_load_tiff_buffer_build(VipsObject *object)
 			  VIPS_AREA(buffer->blob)->length)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_tiff_buffer_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_tiff_buffer_parent_class)
+		->build(object);
 }
 
 static gboolean
@@ -514,7 +505,7 @@ vips_foreign_load_tiff_buffer_init(VipsForeignLoadTiffBuffer *buffer)
  * default, loaders are permissive, that is, [enum@Vips.FailOn.NONE].
  *
  * When using libtiff 4.7.0+, the TIFF loader will limit memory allocation
- * for tag processing to 20MB to prevent denial of service attacks.
+ * for decoding each input file to 50MB to prevent denial of service attacks.
  * Set @unlimited to remove this limit.
  *
  * Any ICC profile is read and attached to the VIPS image as

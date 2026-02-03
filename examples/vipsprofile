@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 
-# this program analyses the trace files generated when running with the
-# --vips-profile flag
+# Analyses the file written by the --vips-profile option, calculates some
+# statistics, and draws a graph of evaluation.
 #
-# for example:
+# Run any vips program with the --vips-profile option to generate a file called
+# "vips-profile.txt". This contains timing information about CPU use, memory use
+# and thread synchronisation.
+#
+# Run vipsprofile to load this file, calculate some statistics, and draw a graph
+# of evaluation saved to vips-profile.svg. This analysis can help track down
+# performance problems.
+#
+# For example:
 #
 #     $ vips sharpen ~/pics/k2.jpg x.jpg --vips-profile
 #     recording profile in vips-profile.txt

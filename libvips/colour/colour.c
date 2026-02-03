@@ -188,8 +188,7 @@ vips_colour_build(VipsObject *object)
 	g_assert(!colour->in[colour->n]);
 
 	in = colour->in;
-	extra_bands = (VipsImage **)
-		vips_object_local_array(object, colour->n);
+	extra_bands = (VipsImage **) vips_object_local_array(object, colour->n);
 
 	/* If there are more than @input_bands bands, we detach and reattach
 	 * after processing.
@@ -639,6 +638,11 @@ vips_colour_operation_init(void)
 	extern GType vips_scRGB2sRGB_get_type(void);
 	extern GType vips_CMYK2XYZ_get_type(void);
 	extern GType vips_XYZ2CMYK_get_type(void);
+	extern GType vips_XYZ2Oklab_get_type(void);
+	extern GType vips_Oklab2XYZ_get_type(void);
+	extern GType vips_Oklab2Oklch_get_type(void);
+	extern GType vips_Oklch2Oklab_get_type(void);
+	extern GType vips_uhdr2scRGB_get_type(void);
 	extern GType vips_profile_load_get_type(void);
 #ifdef HAVE_LCMS2
 	extern GType vips_icc_import_get_type(void);
@@ -650,6 +654,10 @@ vips_colour_operation_init(void)
 	extern GType vips_dECMC_get_type(void);
 
 	vips_colourspace_get_type();
+	vips_Oklab2Oklch_get_type();
+	vips_Oklch2Oklab_get_type();
+	vips_Oklab2XYZ_get_type();
+	vips_XYZ2Oklab_get_type();
 	vips_Lab2XYZ_get_type();
 	vips_XYZ2Lab_get_type();
 	vips_Lab2LCh_get_type();
@@ -676,6 +684,7 @@ vips_colour_operation_init(void)
 	vips_scRGB2sRGB_get_type();
 	vips_CMYK2XYZ_get_type();
 	vips_XYZ2CMYK_get_type();
+	vips_uhdr2scRGB_get_type();
 	vips_profile_load_get_type();
 #ifdef HAVE_LCMS2
 	vips_icc_import_get_type();

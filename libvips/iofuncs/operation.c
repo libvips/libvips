@@ -164,6 +164,7 @@
  * VipsOperationFlags:
  * @VIPS_OPERATION_NONE: no flags
  * @VIPS_OPERATION_SEQUENTIAL: can work sequentially with a small buffer
+ * @VIPS_OPERATION_SEQUENTIAL_UNBUFFERED: deprecated, use [flags@Vips.OperationFlags.SEQUENTIAL] instead
  * @VIPS_OPERATION_NOCACHE: must not be cached
  * @VIPS_OPERATION_DEPRECATED: a compatibility thing
  * @VIPS_OPERATION_UNTRUSTED: not hardened for untrusted input
@@ -186,23 +187,24 @@
  * not at the top of the image. In this case, the first part of the image will
  * be read and discarded
  *
- * [flags@Vips.OperationFlags.NOCACHE] means that the operation must not be cached by
- * vips.
+ * [flags@Vips.OperationFlags.NOCACHE] means that the operation must not be
+ * cached by vips.
  *
- * [flags@Vips.OperationFlags.DEPRECATED] means this is an old operation kept in vips for
- * compatibility only and should be hidden from users.
+ * [flags@Vips.OperationFlags.DEPRECATED] means this is an old operation kept
+ * in vips for compatibility only and should be hidden from users.
  *
- * [flags@Vips.OperationFlags.UNTRUSTED] means the operation depends on external libraries
- * which have not been hardened against attack. It should probably not be used
- * on untrusted input. Use [func@block_untrusted_set] to block all
- * untrusted operations.
+ * [flags@Vips.OperationFlags.UNTRUSTED] means the operation depends on
+ * external libraries which have not been hardened against attack. It should
+ * probably not be used on untrusted input. Use [func@block_untrusted_set]
+ * to block all untrusted operations.
  *
- * [flags@Vips.OperationFlags.BLOCKED] means the operation is prevented from executing. Use
- * [func@Operation.block_set] to enable and disable groups of operations.
+ * [flags@Vips.OperationFlags.BLOCKED] means the operation is prevented from
+ * executing. Use [func@Operation.block_set] to enable and disable groups of
+ * operations.
  *
- * [flags@Vips.OperationFlags.REVALIDATE] force the operation to run, updating the cache
- * with the new value. This is used by eg. VipsForeignLoad to implement the
- * "revalidate" argument.
+ * [flags@Vips.OperationFlags.REVALIDATE] force the operation to run, updating
+ * the cache with the new value. This is used by eg. VipsForeignLoad to
+ * implement the "revalidate" argument.
  */
 
 /* Abstract base class for operations.
@@ -292,14 +294,9 @@ vips_operation_class_usage_classify(VipsArgumentClass *argument_class)
 /* Display a set of flags as "a:b:c"
  */
 static void
-vips__flags_to_str(VipsBuf *buf, GType type, guint value)
+vips__flags_to_str(VipsBuf *buf, GFlagsClass *flags, guint value)
 {
-	GTypeClass *class = g_type_class_ref(type);
-	GFlagsClass *flags = G_FLAGS_CLASS(class);
-
-	gboolean first;
-
-	first = TRUE;
+	gboolean first = TRUE;
 	for (int i = 0; i < flags->n_values; i++)
 		// can't be 0 (would match everything), and all bits
 		// should match all bits in the value, or "all" would always match
@@ -321,18 +318,14 @@ vips_operation_pspec_usage(VipsBuf *buf, GParamSpec *pspec)
 	/* These are the pspecs that vips uses that have interesting values.
 	 */
 	if (G_IS_PARAM_SPEC_ENUM(pspec)) {
-		GTypeClass *class = g_type_class_ref(type);
+		/* GParamSpecEnum holds a ref on the class so we just peek.
+		 */
+		GEnumClass *genum = g_type_class_peek(type);
 		GParamSpecEnum *pspec_enum = (GParamSpecEnum *) pspec;
 
-		GEnumClass *genum;
 		int i;
 
-		/* Should be impossible, no need to warn.
-		 */
-		if (!class)
-			return;
-
-		genum = G_ENUM_CLASS(class);
+		g_assert(genum);
 
 		vips_buf_appendf(buf, "\t\t\t");
 		vips_buf_appendf(buf, "%s", _("default enum"));
@@ -342,9 +335,7 @@ vips_operation_pspec_usage(VipsBuf *buf, GParamSpec *pspec)
 		vips_buf_appendf(buf, "%s", _("allowed enums"));
 		vips_buf_appendf(buf, ": ");
 
-		/* -1 since we always have a "last" member.
-		 */
-		for (i = 0; i < genum->n_values - 1; i++) {
+		for (i = 0; i < genum->n_values; i++) {
 			if (i > 0)
 				vips_buf_appends(buf, ", ");
 			vips_buf_appends(buf, genum->values[i].value_nick);
@@ -353,23 +344,19 @@ vips_operation_pspec_usage(VipsBuf *buf, GParamSpec *pspec)
 		vips_buf_appendf(buf, "\n");
 	}
 	if (G_IS_PARAM_SPEC_FLAGS(pspec)) {
-		GTypeClass *class = g_type_class_ref(type);
+		/* GParamSpecFlags holds a ref on the class so we just peek.
+		 */
+		GFlagsClass *gflags = g_type_class_peek(type);
 		GParamSpecFlags *pspec_flags = (GParamSpecFlags *) pspec;
 
-		GFlagsClass *gflags;
 		int i;
 
-		/* Should be impossible, no need to warn.
-		 */
-		if (!class)
-			return;
-
-		gflags = G_FLAGS_CLASS(class);
+		g_assert(gflags);
 
 		vips_buf_appendf(buf, "\t\t\t");
 		vips_buf_appendf(buf, "%s", _("default flags"));
 		vips_buf_appendf(buf, ": ");
-		vips__flags_to_str(buf, type, pspec_flags->default_value);
+		vips__flags_to_str(buf, gflags, pspec_flags->default_value);
 		vips_buf_appendf(buf, "\n");
 		vips_buf_appendf(buf, "\t\t\t");
 		vips_buf_appendf(buf, "%s", _("allowed flags"));
@@ -621,6 +608,20 @@ vips_operation_build(VipsObject *object)
 }
 
 static void
+vips_operation_summary_class(VipsObjectClass *object_class, VipsBuf *buf)
+{
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(object_class);
+
+	VIPS_OBJECT_CLASS(vips_operation_parent_class)
+		->summary_class(object_class, buf);
+
+	GType gtype = G_OBJECT_CLASS_TYPE(operation_class);
+	if (!G_TYPE_IS_ABSTRACT(gtype) &&
+		operation_class->flags & VIPS_OPERATION_NOCACHE)
+		vips_buf_appendf(buf, ", nocache");
+}
+
+static void
 vips_operation_summary(VipsObject *object, VipsBuf *buf)
 {
 	VipsOperation *operation = VIPS_OPERATION(object);
@@ -653,6 +654,7 @@ vips_operation_class_init(VipsOperationClass *class)
 	gobject_class->dispose = vips_operation_dispose;
 
 	vobject_class->build = vips_operation_build;
+	vobject_class->summary_class = vips_operation_summary_class;
 	vobject_class->summary = vips_operation_summary;
 	vobject_class->dump = vips_operation_dump;
 	vobject_class->nickname = "operation";

@@ -496,11 +496,16 @@ readslide_parse(ReadSlide *rslide, VipsImage *image)
 		 * feature.
 		 */
 		g_snprintf(buf, 256, "openslide.level[%d].tile-width", rslide->level);
-		if ((value = openslide_get_property_value(rslide->osr, buf)))
+		if ((value = openslide_get_property_value(rslide->osr, buf))) {
 			rslide->tile_width = atoi(value);
+			vips_image_set_int(image, VIPS_META_TILE_WIDTH, rslide->tile_width);
+		}
 		g_snprintf(buf, 256, "openslide.level[%d].tile-height", rslide->level);
-		if ((value = openslide_get_property_value(rslide->osr, buf)))
+		if ((value = openslide_get_property_value(rslide->osr, buf))) {
 			rslide->tile_height = atoi(value);
+			vips_image_set_int(image,
+				VIPS_META_TILE_HEIGHT, rslide->tile_height);
+		}
 		if (value)
 			VIPS_DEBUG_MSG("readslide_new: found tile-size\n");
 
@@ -878,11 +883,8 @@ vips_foreign_load_openslide_build(VipsObject *object)
 		openslide->filename = filename;
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_openslide_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_openslide_parent_class)
+		->build(object);
 }
 
 static VipsForeignFlags
@@ -1073,6 +1075,7 @@ static const char *vips_foreign_openslide_suffs[] = {
 	".svslide",				 /* Sakura */
 	".tif",					 /* Trestle */
 	".bif",					 /* Ventana */
+	".dcm",					 /* DICOM */
 	NULL
 };
 
@@ -1158,6 +1161,7 @@ vips_foreign_load_openslide_source_class_init(
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	gobject_class->set_property = vips_object_set_property;
@@ -1166,6 +1170,8 @@ vips_foreign_load_openslide_source_class_init(
 	object_class->nickname = "openslideload_source";
 	object_class->description = _("load source with OpenSlide");
 	object_class->build = vips_foreign_load_openslide_source_build;
+
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source =
 		vips_foreign_load_openslide_source_is_a_source;

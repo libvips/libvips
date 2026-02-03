@@ -178,6 +178,20 @@ extern "C" {
  */
 #define VIPS_META_CONCURRENCY "concurrency"
 
+/**
+ * VIPS_META_TILE_WIDTH
+ *
+ * If set, the width of the tiles for this image.
+ */
+#define VIPS_META_TILE_WIDTH "tile-width"
+
+/**
+ * VIPS_META_TILE_HEIGHT
+ *
+ * If set, the height of the tiles for this image.
+ */
+#define VIPS_META_TILE_HEIGHT "tile-height"
+
 VIPS_API
 guint64 vips_format_sizeof(VipsBandFormat format);
 VIPS_API
@@ -185,6 +199,8 @@ guint64 vips_format_sizeof_unsafe(VipsBandFormat format);
 
 VIPS_API
 double vips_interpretation_max_alpha(VipsInterpretation interpretation);
+VIPS_API
+int vips_interpretation_bands(VipsInterpretation interpretation);
 
 VIPS_API
 int vips_image_get_width(const VipsImage *image);
@@ -232,6 +248,12 @@ VIPS_API
 gboolean vips_image_get_orientation_swap(VipsImage *image);
 VIPS_API
 int vips_image_get_concurrency(VipsImage *image, int default_concurrency);
+VIPS_API
+int vips_image_get_tile_width(VipsImage *image);
+VIPS_API
+int vips_image_get_tile_height(VipsImage *image);
+VIPS_API
+VipsImage *vips_image_get_gainmap(VipsImage *image);
 VIPS_API
 const void *vips_image_get_data(VipsImage *image);
 

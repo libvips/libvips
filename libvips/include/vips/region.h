@@ -72,6 +72,12 @@ extern "C" {
  * @VIPS_REGION_SHRINK_NEAREST: use the top-left pixel
  *
  * How to calculate the output pixels when shrinking a 2x2 region.
+ *
+ * Images with alpha (see [method@Image.hasalpha]) always shrink with
+ * [enum@Vips.RegionShrink.MEAN] and pixels scaled by alpha to avoid fringing.
+ *
+ * Set the image interpretation to [enum@Vips.Interpretation.MULTIBAND] to
+ * treat all bands equally.
  */
 typedef enum {
 	VIPS_REGION_SHRINK_MEAN,
@@ -80,7 +86,7 @@ typedef enum {
 	VIPS_REGION_SHRINK_MAX,
 	VIPS_REGION_SHRINK_MIN,
 	VIPS_REGION_SHRINK_NEAREST,
-	VIPS_REGION_SHRINK_LAST
+	VIPS_REGION_SHRINK_LAST	/*< skip >*/
 } VipsRegionShrink;
 
 /* Sub-area of image.

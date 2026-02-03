@@ -205,6 +205,49 @@ vips_interpretation_max_alpha(VipsInterpretation interpretation)
 	}
 }
 
+/**
+ * vips_interpretation_bands:
+ * @interpretation: image to check
+ *
+ * The number of "real" bands we expect for this interpretation. If we've no
+ * idea (eg. MULTIBAND), return 0.
+ *
+ * Returns: the number of bands implied by this interpretation, or 0.
+ */
+int
+vips_interpretation_bands(VipsInterpretation interpretation)
+{
+	switch (interpretation) {
+	case VIPS_INTERPRETATION_B_W:
+	case VIPS_INTERPRETATION_GREY16:
+		return 1;
+
+	case VIPS_INTERPRETATION_RGB:
+	case VIPS_INTERPRETATION_CMC:
+	case VIPS_INTERPRETATION_LCH:
+	case VIPS_INTERPRETATION_LABS:
+	case VIPS_INTERPRETATION_sRGB:
+	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_XYZ:
+	case VIPS_INTERPRETATION_LAB:
+	case VIPS_INTERPRETATION_RGB16:
+	case VIPS_INTERPRETATION_scRGB:
+	case VIPS_INTERPRETATION_HSV:
+	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
+		return 3;
+
+	case VIPS_INTERPRETATION_CMYK:
+		return 4;
+
+	default:
+		/* We can't really guess bands for things like HISTOGRAM or FOURIER or
+		 * MULTIBAND.
+		 */
+		return 0;
+	}
+}
+
 #ifdef DEBUG
 /* Check that this meta is on the hash table.
  */
@@ -470,6 +513,8 @@ vips_image_guess_format(const VipsImage *image)
 	case VIPS_INTERPRETATION_HSV:
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
 		format = VIPS_FORMAT_FLOAT;
 		break;
 
@@ -648,6 +693,11 @@ vips_image_guess_interpretation(const VipsImage *image)
 		break;
 	}
 
+	/* If we have eg. a two-band sRGB, we are crazy.
+	 */
+	if (image->Bands < vips_interpretation_bands(image->Type))
+		sane = FALSE;
+
 	switch (image->Type) {
 	case VIPS_INTERPRETATION_ERROR:
 		sane = FALSE;
@@ -657,12 +707,6 @@ vips_image_guess_interpretation(const VipsImage *image)
 		/* This is a pretty useless generic tag. Always reset it.
 		 */
 		sane = FALSE;
-		break;
-
-	case VIPS_INTERPRETATION_B_W:
-		/* Don't test bands, we allow bands after the first to be
-		 * unused extras, like alpha.
-		 */
 		break;
 
 	case VIPS_INTERPRETATION_HISTOGRAM:
@@ -675,28 +719,13 @@ vips_image_guess_interpretation(const VipsImage *image)
 			sane = FALSE;
 		break;
 
-	case VIPS_INTERPRETATION_XYZ:
-	case VIPS_INTERPRETATION_LAB:
-	case VIPS_INTERPRETATION_RGB:
-	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_LCH:
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_HSV:
-		if (image->Bands < 3)
-			sane = FALSE;
-		break;
-
 	case VIPS_INTERPRETATION_scRGB:
 	case VIPS_INTERPRETATION_YXY:
+	case VIPS_INTERPRETATION_OKLAB:
+	case VIPS_INTERPRETATION_OKLCH:
 		/* Need float values in 0 - 1.
 		 */
-		if (!vips_band_format_isfloat(image->BandFmt) ||
-			image->Bands < 3)
-			sane = FALSE;
-		break;
-
-	case VIPS_INTERPRETATION_CMYK:
-		if (image->Bands < 4)
+		if (!vips_band_format_isfloat(image->BandFmt))
 			sane = FALSE;
 		break;
 
@@ -709,29 +738,18 @@ vips_image_guess_interpretation(const VipsImage *image)
 		/* Needs to be able to express +/- 32767
 		 */
 		if (vips_band_format_isuint(image->BandFmt) ||
-			vips_band_format_is8bit(image->BandFmt) ||
-			image->Bands < 3)
+			vips_band_format_is8bit(image->BandFmt))
 			sane = FALSE;
 		break;
 
 	case VIPS_INTERPRETATION_RGB16:
-		if (vips_band_format_is8bit(image->BandFmt) ||
-			image->Bands < 3)
-			sane = FALSE;
-		break;
-
 	case VIPS_INTERPRETATION_GREY16:
 		if (vips_band_format_is8bit(image->BandFmt))
 			sane = FALSE;
 		break;
 
-	case VIPS_INTERPRETATION_MATRIX:
-		if (image->Bands != 1)
-			sane = FALSE;
-		break;
-
 	default:
-		g_assert_not_reached();
+		break;
 	}
 
 	if (sane)
@@ -998,6 +1016,86 @@ vips_image_get_orientation_swap(VipsImage *image)
 }
 
 /**
+ * vips_image_get_tile_width:
+ * @image: image to get from
+ *
+ * Fetch and sanity-check [const@META_TILE_WIDTH]. Default to -1 (no tiling)
+ * if not present or crazy.
+ *
+ * Returns: the width of the tiles encoded in the image.
+ */
+int
+vips_image_get_tile_width(VipsImage *image)
+{
+	int tile_width;
+
+	if (vips_image_get_typeof(image, VIPS_META_TILE_WIDTH) &&
+		!vips_image_get_int(image, VIPS_META_TILE_WIDTH, &tile_width) &&
+		tile_width > 0 &&
+		tile_width <= vips_image_get_width(image))
+		return tile_width;
+
+	return -1;
+}
+
+/**
+ * vips_image_get_tile_height:
+ * @image: image to get from
+ *
+ * Fetch and sanity-check [const@META_TILE_HEIGHT]. Default to -1 (no tiling)
+ * if not present or crazy.
+ *
+ * Returns: the height of the tiles encoded in the image.
+ */
+int
+vips_image_get_tile_height(VipsImage *image)
+{
+	int tile_height;
+
+	if (vips_image_get_typeof(image, VIPS_META_TILE_HEIGHT) &&
+		!vips_image_get_int(image, VIPS_META_TILE_HEIGHT, &tile_height) &&
+		tile_height > 0 &&
+		tile_height <= vips_image_get_height(image))
+		return tile_height;
+
+	return -1;
+}
+
+/**
+ * vips_image_get_gainmap:
+ * @image: image to get the gainmap from
+ *
+ * If the image has an attached `"gainmap"`, return that. If there's a
+ * compressed `"gainmap-data"`, decompress, and return it.
+ *
+ * You need to free the result with [method@GObject.Object.unref] when
+ * you're done with it.
+ *
+ * Returns: (nullable) (transfer full): the gainmap image, if present, or NULL.
+ */
+VipsImage *
+vips_image_get_gainmap(VipsImage *image)
+{
+	VipsImage *gainmap;
+
+	gainmap = NULL;
+	if (vips_image_get_typeof(image, "gainmap")) {
+		if (vips_image_get_image(image, "gainmap", &gainmap))
+			return NULL;
+	}
+	else if (vips_image_get_typeof(image, "gainmap-data")) {
+		const void *data;
+		size_t length;
+
+		if (vips_image_get_blob(image, "gainmap-data", &data, &length) ||
+			vips_jpegload_buffer((void *) data, length, &gainmap, NULL))
+			return NULL;
+	}
+
+	return gainmap;
+}
+
+/**
  * vips_image_get_data:
  * @image: image to get data for
  *
@@ -1045,10 +1143,8 @@ vips_image_get_data(VipsImage *image)
  *     [method.Image.pipelinev].
  */
 void
-vips_image_init_fields(VipsImage *image,
-	int xsize, int ysize, int bands,
-	VipsBandFormat format, VipsCoding coding,
-	VipsInterpretation interpretation,
+vips_image_init_fields(VipsImage *image, int xsize, int ysize, int bands,
+	VipsBandFormat format, VipsCoding coding, VipsInterpretation interpretation,
 	double xres, double yres)
 {
 	g_object_set(image,
@@ -1188,6 +1284,14 @@ vips_image_set(VipsImage *image, const char *name, GValue *value)
 {
 	g_assert(name);
 	g_assert(value);
+
+#ifdef DEBUG_LEAK
+	/* Warn if metadata is being set on a shared image.
+	 */
+	if (vips__leak &&
+		G_OBJECT(image)->ref_count > 2)
+		printf("vips_image_set: set \"%s\" on shared image\n", name);
+#endif /*DEBUG_LEAK*/
 
 	/* We lock between modifying metadata and copying metadata between
 	 * images, see vips__image_meta_copy().
@@ -1403,6 +1507,14 @@ vips_image_remove(VipsImage *image, const char *name)
 
 	result = FALSE;
 
+#ifdef DEBUG_LEAK
+	/* Warn if metadata is being removed from a shared image.
+	 */
+	if (vips__leak &&
+		G_OBJECT(image)->ref_count > 2)
+		printf("vips_image_remove: remove \"%s\" on shared image\n", name);
+#endif /*DEBUG_LEAK*/
+
 	if (image->meta) {
 		/* We lock between modifying metadata and copying metadata
 		 * between images, see vips__image_meta_copy().
@@ -1432,11 +1544,9 @@ static const char *vips_image_header_deprecated[] = {
 static void *
 vips_image_map_fn(VipsMeta *meta, VipsImageMapFn fn, void *a)
 {
-	int i;
-
 	/* Hide deprecated fields.
 	 */
-	for (i = 0; i < VIPS_NUMBER(vips_image_header_deprecated); i++)
+	for (int i = 0; i < VIPS_NUMBER(vips_image_header_deprecated); i++)
 		if (strcmp(meta->name, vips_image_header_deprecated[i]) == 0)
 			return NULL;
 
@@ -1464,12 +1574,11 @@ vips_image_map_fn(VipsMeta *meta, VipsImageMapFn fn, void *a)
 void *
 vips_image_map(VipsImage *image, VipsImageMapFn fn, void *a)
 {
-	int i;
-	GValue value = G_VALUE_INIT;
 	void *result;
 
-	for (i = 0; i < VIPS_NUMBER(vips_header_fields); i++) {
+	for (int i = 0; i < VIPS_NUMBER(vips_header_fields); i++) {
 		HeaderField *field = &vips_header_fields[i];
+		GValue value = G_VALUE_INIT;
 
 		(void) vips_image_get(image, field->name, &value);
 		result = fn(image, field->name, &value, a);
@@ -1571,11 +1680,8 @@ meta_get_value(const VipsImage *image,
 		return -1;
 	g_value_init(value_copy, type);
 	if (!g_value_transform(&value, value_copy)) {
-		vips_error("VipsImage",
-			_("field \"%s\" is of type %s, not %s"),
-			name,
-			g_type_name(G_VALUE_TYPE(&value)),
-			g_type_name(type));
+		vips_error("VipsImage", _("field \"%s\" is of type %s, not %s"),
+			name, g_type_name(G_VALUE_TYPE(&value)), g_type_name(type));
 		g_value_unset(&value);
 
 		return -1;

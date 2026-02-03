@@ -130,6 +130,10 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	int speed;
 
+	/* Tuning parameters.
+	 */
+	const char *tune;
+
 } VipsForeignSaveHeif;
 
 typedef VipsForeignSaveClass VipsForeignSaveHeifClass;
@@ -268,7 +272,9 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 
 	struct heif_error error;
 	struct heif_encoding_options *options;
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
 	struct heif_color_profile_nclx *nclx = NULL;
+#endif
 
 	/* A profile supplied as an argument overrides an embedded
 	 * profile.
@@ -285,6 +291,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	options = heif_encoding_options_alloc();
 	options->save_alpha_channel = save->ready->Bands > 3;
 
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
 	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless
 	 * mode.
 	 */
@@ -301,33 +308,32 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 		 */
 		options->macOS_compatibility_workaround_no_nclx_profile = 0;
 	}
+#endif /*HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
 
 #ifdef HAVE_HEIF_ENCODING_OPTIONS_IMAGE_ORIENTATION
 	/* EXIF orientation is informational in the HEIF specification.
 	 * Orientation is defined using irot and imir transformations.
 	 */
 	options->image_orientation = vips_image_get_orientation(save->ready);
-	vips_autorot_remove_angle(save->ready);
 #endif
 
 #ifdef DEBUG
-	{
-		GTimer *timer = g_timer_new();
-
-		printf("calling heif_context_encode_image() ...\n");
+	GTimer *timer = g_timer_new();
+	printf("calling heif_context_encode_image() ...\n");
 #endif /*DEBUG*/
 
-		error = heif_context_encode_image(heif->ctx,
-			heif->img, heif->encoder, options, &heif->handle);
+	error = heif_context_encode_image(heif->ctx,
+		heif->img, heif->encoder, options, &heif->handle);
 
 #ifdef DEBUG
-		printf("... libheif took %.2g seconds\n", g_timer_elapsed(timer, NULL));
-		g_timer_destroy(timer);
-	}
+	printf("... libheif took %.2g seconds\n", g_timer_elapsed(timer, NULL));
+	g_timer_destroy(timer);
 #endif /*DEBUG*/
 
 	heif_encoding_options_free(options);
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
 	VIPS_FREEF(heif_nclx_color_profile_free, nclx);
+#endif
 
 	if (error.code) {
 		vips__heif_error(&error);
@@ -505,7 +511,9 @@ vips_foreign_save_heif_build(VipsObject *object)
 	struct heif_writer writer;
 	char *chroma;
 	const struct heif_encoder_descriptor *out_encoder;
+#ifdef HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES
 	const struct heif_encoder_parameter *const *param;
+#endif
 	gboolean has_alpha;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)-> build(object))
@@ -610,6 +618,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 		return -1;
 	}
 
+#ifdef HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES
 	for (param = heif_encoder_list_parameters(heif->encoder);
 		*param; param++) {
 		int have_minimum;
@@ -635,6 +644,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 			return -1;
 		}
 	}
+#endif /*HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES*/
 
 	/* Try to enable auto_tiles. This can make AVIF encoding a lot faster,
 	 * with only a very small increase in file size.
@@ -656,6 +666,16 @@ vips_foreign_save_heif_build(VipsObject *object)
 		error.subcode != heif_suberror_Unsupported_parameter) {
 		vips__heif_error(&error);
 		return -1;
+	}
+
+	if (heif->tune) {
+		error = heif_encoder_set_parameter_string(heif->encoder,
+			"tune", heif->tune);
+		if (error.code &&
+			error.subcode != heif_suberror_Unsupported_parameter) {
+			vips__heif_error(&error);
+			return -1;
+		}
 	}
 
 	/* TODO .. support extra per-encoder params with
@@ -817,6 +837,14 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveHeif, selected_encoder),
 		VIPS_TYPE_FOREIGN_HEIF_ENCODER,
 		VIPS_FOREIGN_HEIF_ENCODER_AUTO);
+
+	VIPS_ARG_STRING(class, "tune", 19,
+		_("Tune"),
+		_("Tuning parameters"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveHeif, tune),
+		NULL);
+
 }
 
 static void
@@ -854,17 +882,15 @@ vips_foreign_save_heif_file_build(VipsObject *object)
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
 	VipsForeignSaveHeifFile *file = (VipsForeignSaveHeifFile *) object;
 
-	if (!(heif->target = vips_target_new_to_file(file->filename)))
+	if (file->filename &&
+		!(heif->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
 	if (vips_iscasepostfix(file->filename, ".avif"))
 		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_heif_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -982,11 +1008,8 @@ vips_foreign_save_heif_target_build(VipsObject *object)
 		g_object_ref(heif->target);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_heif_target_parent_class)
+		->build(object);
 }
 
 static void

@@ -252,10 +252,8 @@ vips_foreign_load_magick_build(VipsObject *object)
 	if (magick->page > 0)
 		magick_set_number_scenes(magick->image_info, magick->page, magick->n);
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_magick_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_magick_parent_class)
+		->build(object);
 }
 
 static void
@@ -1073,6 +1071,113 @@ vips_foreign_load_magick_buffer_class_init(
 
 static void
 vips_foreign_load_magick_buffer_init(VipsForeignLoadMagickBuffer *buffer)
+{
+}
+
+typedef struct _VipsForeignLoadMagickSource {
+	VipsForeignLoadMagick parent_object;
+
+	VipsSource *source;
+
+} VipsForeignLoadMagickSource;
+
+typedef VipsForeignLoadMagickClass VipsForeignLoadMagickSourceClass;
+
+G_DEFINE_TYPE(VipsForeignLoadMagickSource, vips_foreign_load_magick_source,
+	vips_foreign_load_magick_get_type());
+
+static gboolean
+vips_foreign_load_magick_source_is_a_source(VipsSource *source)
+{
+	const unsigned char *p;
+
+	// just use the first 100 bytes, we don't want to force too much into
+	// memory
+	return (p = vips_source_sniff(source, 100)) &&
+		magick_ismagick(p, 100);
+}
+
+/* Unfortunately, libMagick does not support header-only reads very well. See
+ *
+ * http://www.imagemagick.org/discourse-server/viewtopic.php?f=1&t=20017
+ *
+ * Test especially with BMP, GIF, TGA. So we are forced to read the entire
+ * image in the @header() method.
+ */
+static int
+vips_foreign_load_magick_source_header(VipsForeignLoad *load)
+{
+	VipsForeignLoadMagick *magick = (VipsForeignLoadMagick *) load;
+	VipsForeignLoadMagickSource *magick_source =
+		(VipsForeignLoadMagickSource *) load;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(magick);
+
+#ifdef DEBUG
+	printf("vips_foreign_load_magick_source_header: %p\n", load);
+#endif /*DEBUG*/
+
+	if (vips_source_is_file(magick_source->source)) {
+		const char *filename =
+			vips_connection_filename(VIPS_CONNECTION(magick_source->source));
+
+		g_strlcpy(magick->image_info->filename, filename, MaxPathExtent);
+		magick_sniff_file(magick->image_info, filename);
+		magick->image = ReadImage(magick->image_info, magick->exception);
+	}
+	else {
+		size_t length;
+		const void *data;
+
+		if (!(data = vips_source_map(magick_source->source, &length)))
+			return -1;
+		magick_sniff_bytes(magick->image_info, data, length);
+		magick->image = BlobToImage(magick->image_info,
+			data, length, magick->exception);
+	}
+
+	/* It would be great if we could PingImage and just read the header,
+	 * but sadly many IM coders do not support ping. The critical one for
+	 * us is DICOM. TGA also has issues.
+	 */
+	if (!magick->image) {
+		magick_vips_error(class->nickname, magick->exception);
+		vips_error(class->nickname, _("unable to read source"));
+		return -1;
+	}
+
+	if (vips_foreign_load_magick_load(magick))
+		return -1;
+
+	return 0;
+}
+
+static void
+vips_foreign_load_magick_source_class_init(
+	VipsForeignLoadMagickSourceClass *class)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "magickload_source";
+	object_class->description = _("load source with ImageMagick");
+
+	load_class->is_a_source = vips_foreign_load_magick_source_is_a_source;
+	load_class->header = vips_foreign_load_magick_source_header;
+
+	VIPS_ARG_OBJECT(class, "source", 1,
+		_("Source"),
+		_("Source to load from"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadMagickSource, source),
+		VIPS_TYPE_SOURCE);
+}
+
+static void
+vips_foreign_load_magick_source_init(VipsForeignLoadMagickSource *source)
 {
 }
 

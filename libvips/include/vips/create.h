@@ -43,7 +43,7 @@ typedef enum {
 	VIPS_TEXT_WRAP_CHAR,
 	VIPS_TEXT_WRAP_WORD_CHAR,
 	VIPS_TEXT_WRAP_NONE,
-	VIPS_TEXT_WRAP_LAST
+	VIPS_TEXT_WRAP_LAST	/*< skip >*/
 } VipsTextWrap;
 
 typedef enum {
@@ -51,7 +51,7 @@ typedef enum {
 	VIPS_SDF_SHAPE_BOX,
 	VIPS_SDF_SHAPE_ROUNDED_BOX,
 	VIPS_SDF_SHAPE_LINE,
-	VIPS_SDF_SHAPE_LAST
+	VIPS_SDF_SHAPE_LAST	/*< skip >*/
 } VipsSdfShape;
 
 VIPS_API

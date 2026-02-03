@@ -22,6 +22,8 @@
  * 	  stray command-windows on Windows
  * 27/3/16
  * 	- allow [options] in out_format
+ * 20/8/25
+ *	- add "cache" argument
  */
 
 /*
@@ -51,6 +53,10 @@
 
  */
 
+/*
+#define DEBUG
+ */
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /*HAVE_CONFIG_H*/
@@ -78,6 +84,7 @@ typedef struct _VipsSystem {
 	char *in_format;
 	char *out_format;
 	char *log;
+	gboolean cache;
 
 	/* Array of names we wrote the input images to.
 	 */
@@ -143,9 +150,7 @@ vips_system_build(VipsObject *object)
 	 * command needs a different format.
 	 */
 	if (system->in) {
-		char *in_format = system->in_format
-			? system->in_format
-			: "%s.tif";
+		char *in_format = system->in_format ? system->in_format : "%s.tif";
 		int n;
 		VipsImage **in = vips_array_image_get(system->in, &n);
 
@@ -153,11 +158,9 @@ vips_system_build(VipsObject *object)
 			return -1;
 		memset(system->in_name, 0, n * sizeof(char *));
 		for (i = 0; i < n; i++) {
-			if (!(system->in_name[i] =
-						vips__temp_name(in_format)))
+			if (!(system->in_name[i] = vips__temp_name(in_format)))
 				return -1;
-			if (vips_image_write_to_file(in[i],
-					system->in_name[i], NULL))
+			if (vips_image_write_to_file(in[i], system->in_name[i], NULL))
 				return -1;
 		}
 	}
@@ -168,8 +171,7 @@ vips_system_build(VipsObject *object)
 		char filename[VIPS_PATH_MAX];
 		char option_string[VIPS_PATH_MAX];
 
-		vips__filename_split8(system->out_format,
-			filename, option_string);
+		vips__filename_split8(system->out_format, filename, option_string);
 		if (!(system->out_name = vips__temp_name(filename)))
 			return -1;
 		system->out_name_options =
@@ -179,8 +181,7 @@ vips_system_build(VipsObject *object)
 	g_strlcpy(cmd, system->cmd_format, VIPS_PATH_MAX);
 	if (system->in)
 		for (i = 0; i < VIPS_AREA(system->in)->n; i++)
-			if (vips__substitute(cmd, VIPS_PATH_MAX,
-					system->in_name[i])) {
+			if (vips__substitute(cmd, VIPS_PATH_MAX, system->in_name[i])) {
 				vips_error(class->nickname, "%s",
 					_("unable to substitute input filename"));
 				return -1;
@@ -201,9 +202,16 @@ vips_system_build(VipsObject *object)
 			p[1] == '%')
 			memmove(p, p + 1, strlen(p));
 
+#ifdef DEBUG
+	printf("vips_system_build: spawn <<%s>> ...\n", cmd);
+#endif /*DEBUG*/
 	if (!g_spawn_command_line_sync(cmd,
 			&std_output, &std_error, &result, &error) ||
 		result) {
+#ifdef DEBUG
+		printf("\t... failed\n");
+#endif /*DEBUG*/
+
 		if (error) {
 			vips_error(class->nickname, "%s", error->message);
 			g_error_free(error);
@@ -211,15 +219,13 @@ vips_system_build(VipsObject *object)
 		if (std_error) {
 			g_strchomp(std_error);
 			if (strcmp(std_error, "") != 0)
-				vips_error(class->nickname,
-					"error output: %s", std_error);
+				vips_error(class->nickname, "error output: %s", std_error);
 			VIPS_FREE(std_error);
 		}
 		if (std_output) {
 			g_strchomp(std_output);
 			if (strcmp(std_output, "") != 0)
-				vips_error(class->nickname,
-					"output: %s", std_output);
+				vips_error(class->nickname, "output: %s", std_output);
 			VIPS_FREE(std_output);
 		}
 		vips_error_system(result, class->nickname,
@@ -227,6 +233,10 @@ vips_system_build(VipsObject *object)
 
 		return -1;
 	}
+
+#ifdef DEBUG
+	printf("\t... success\n");
+#endif /*DEBUG*/
 
 	if (std_error) {
 		g_strchomp(std_error);
@@ -244,14 +254,26 @@ vips_system_build(VipsObject *object)
 	if (system->out_name_options) {
 		VipsImage *out;
 
-		if (!(out = vips_image_new_from_file(system->out_name_options,
-				  NULL)))
+		if (!(out = vips_image_new_from_file(system->out_name_options, NULL)))
 			return -1;
 		vips_image_set_delete_on_close(out, TRUE);
 		g_object_set(system, "out", out, NULL);
 	}
 
 	return 0;
+}
+
+static VipsOperationFlags
+vips_system_get_flags(VipsOperation *operation)
+{
+	VipsOperationFlags flags =
+		VIPS_OPERATION_CLASS(vips_system_parent_class)->get_flags(operation);
+	VipsSystem *system = (VipsSystem *) operation;
+
+	if (system->cache)
+		flags &= ~VIPS_OPERATION_NOCACHE;
+
+	return flags;
 }
 
 static void
@@ -269,9 +291,8 @@ vips_system_class_init(VipsSystemClass *class)
 	vobject_class->description = _("run an external command");
 	vobject_class->build = vips_system_build;
 
-	/* Commands can have side-effects, so don't cache them.
-	 */
-	operation_class->flags |= VIPS_OPERATION_NOCACHE;
+	operation_class->get_flags = vips_system_get_flags;
+	operation_class->flags = VIPS_OPERATION_NOCACHE;
 
 	VIPS_ARG_BOXED(class, "in", 0,
 		_("Input"),
@@ -293,26 +314,34 @@ vips_system_class_init(VipsSystemClass *class)
 		G_STRUCT_OFFSET(VipsSystem, cmd_format),
 		NULL);
 
-	VIPS_ARG_STRING(class, "in_format", 2,
+	VIPS_ARG_STRING(class, "in_format", 3,
 		_("Input format"),
 		_("Format for input filename"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsSystem, in_format),
 		NULL);
 
-	VIPS_ARG_STRING(class, "out_format", 2,
+	VIPS_ARG_STRING(class, "out_format", 4,
 		_("Output format"),
 		_("Format for output filename"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsSystem, out_format),
 		NULL);
 
-	VIPS_ARG_STRING(class, "log", 2,
+	VIPS_ARG_BOOL(class, "cache", 5,
+		_("Cache"),
+		_("Cache this call"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsSystem, cache),
+		FALSE);
+
+	VIPS_ARG_STRING(class, "log", 6,
 		_("Log"),
 		_("Command log"),
 		VIPS_ARGUMENT_OPTIONAL_OUTPUT,
 		G_STRUCT_OFFSET(VipsSystem, log),
 		NULL);
+
 }
 
 static void
@@ -342,7 +371,8 @@ vips_system_init(VipsSystem *system)
  * You can put a number between the `%` and the `s` to change the order
  * in which the substitution occurs.
  *
- * The command is executed with [`popen()`](man:popen(3)) and the output captured in @log.
+ * The command is executed with [`popen()`](man:popen(3)) and the output
+ * captured in @log.
  *
  * After the command finishes, if @out_format is set, the output image is
  * opened and returned in @out. You can append `[options]` to @out_format to
@@ -351,6 +381,9 @@ vips_system_init(VipsSystem *system)
  * Closing @out image will automatically delete the output file.
  *
  * Finally the input images are deleted.
+ *
+ * If @cache is set, this call will be added to the libvips operation cache
+ * and reused if possible.
  *
  * For example, this call will run the ImageMagick convert program on an
  * image, using JPEG files to pass images into and out of the convert command.
@@ -365,6 +398,7 @@ vips_system_init(VipsSystem *system)
  *         "out", &out,
  *         "in_format", "%s.jpg",
  *         "out_format", "%s.jpg",
+ *         "cache", TRUE,
  *         "log", &log,
  *         NULL))
  *     error ...
@@ -375,6 +409,7 @@ vips_system_init(VipsSystem *system)
  *     * @out: [class@Image], output, image
  *     * @in_format: `gchararray`, write input files like this
  *     * @out_format: `gchararray`, write output filename like this
+ *     * @cache: `gboolean`, cache this call
  *     * @log: `gchararray`, output, stdout of command is returned here
  *
  * Returns: 0 on success, -1 on failure.

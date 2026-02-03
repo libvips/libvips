@@ -16,11 +16,11 @@ libvips is licensed under the [LGPL-2.1-or-later](
 https://spdx.org/licenses/LGPL-2.1-or-later).
 
 It has around [300
-operations](https://libvips.github.io/libvips/API/current/func-list.html)
+operations](https://www.libvips.org/API/current/function-list.html)
 covering arithmetic, histograms, convolution, morphological
 operations, frequency filtering, colour, resampling,
 statistics and others. It supports a large range of [numeric
-types](https://libvips.github.io/libvips/API/current/VipsImage.html#VipsBandFormat),
+types](https://www.libvips.org/API/current/enum.BandFormat.html),
 from 8-bit int to 128-bit complex. Images can have any number of bands.
 It supports a good range of image formats, including JPEG, JPEG 2000, JPEG XL,
 TIFF, PNG, WebP, HEIC, AVIF, FITS, Matlab, OpenEXR, PDF, SVG, HDR, PPM / PGM /
@@ -29,11 +29,11 @@ images via ImageMagick or GraphicsMagick, letting it work with formats
 like DICOM.
 
 It comes with bindings for
-[C](https://libvips.github.io/libvips/API/current/using-from-c.html),
-[C++](https://libvips.github.io/libvips/API/current/libvips-from-C++.html),
+[C](https://www.libvips.org/API/current/using-from-c.html),
+[C++](https://www.libvips.org/API/current/using-from-cplusplus.html),
 and the
-[command-line](https://libvips.github.io/libvips/API/current/using-cli.html).
-Full bindings are available for :
+[command-line](https://www.libvips.org/API/current/using-the-cli.html).
+Full bindings are available for:
 
 | Language | Binding |
 |---|---|
@@ -41,25 +41,25 @@ Full bindings are available for :
 | Python | [pyvips](https://pypi.python.org/pypi/pyvips) |
 | PHP | [php-vips](https://github.com/libvips/php-vips) |
 | C# / .NET | [NetVips](https://www.nuget.org/packages/NetVips) |
-| Go | [govips](https://github.com/davidbyttow/govips) |
+| Go | [vips-gen](https://github.com/cshum/vipsgen) |
 | Lua | [lua-vips](https://github.com/libvips/lua-vips) |
 | Crystal | [crystal-vips](https://github.com/naqvis/crystal-vips) |
 | Elixir | [vix](https://github.com/akash-akya/vix) |
-| JVM | [vips-ffm](https://github.com/lopcode/vips-ffm) |
+| Java | [vips-ffm](https://github.com/lopcode/vips-ffm) |
+| Nim | [libvips-nim](https://github.com/openpeeps/libvips-nim) |
 
 libvips is used as an image processing engine by:
 
 | |
 |---|
-| [sharp (on node.js)](https://www.npmjs.org/package/sharp) |
+| [Mastodon](https://github.com/mastodon/mastodon) |
+| [sharp (on Node.js)](https://www.npmjs.org/package/sharp) |
 | [imgproxy](https://github.com/imgproxy/imgproxy) |
+| [wsrv.nl](https://github.com/weserv/images) |
 | [bimg](https://github.com/h2non/bimg) |
-| [sharp for Go](https://github.com/DAddYE/vips) |
 | [Ruby on Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html) |
 | [CarrierWave](https://github.com/carrierwaveuploader/carrierwave#using-vips) |
-| [mediawiki](https://www.mediawiki.org/wiki/Extension:VipsScaler) |
-| [PhotoFlow](https://github.com/aferrero2707/PhotoFlow) |
-| [JVips](https://github.com/criteo/JVips) |
+| [MediaWiki](https://www.mediawiki.org/wiki/Extension:Thumbro) |
 
 and others. The official libvips GUI is
 [nip2](https://github.com/libvips/nip2), a strange combination of a
@@ -73,8 +73,8 @@ macOS. Check your package manager.
 There are binaries for Windows in
 [releases](https://github.com/libvips/libvips/releases).
 
-The [libvips website](https://libvips.github.io/libvips) has [detailed
-install notes](https://libvips.github.io/libvips/install.html).
+The [libvips website](https://www.libvips.org) has [detailed
+install notes](https://www.libvips.org/install.html).
 
 # Building from source
 
@@ -134,6 +134,11 @@ so make sure that is working.
 Anything that is compatible with the IJG JPEG library. Use `mozjpeg` if you
 can. Another option is `libjpeg-turbo`.
 
+### libultrahdr (libuhdr)
+
+If present, libvips will load UltraHDR images with Google's libultrahdr
+library. The `pkg-config` name is libuhdr.
+
 ### libexif
 
 If available, libvips adds support for EXIF metadata in JPEG files.
@@ -143,33 +148,43 @@ If available, libvips adds support for EXIF metadata in JPEG files.
 The usual SVG loader. If this is not present, vips will try to load SVGs
 via imagemagick instead.
 
+### libraw
+
+The usual camera RAW loader. If this is not present, vips will try to load raw
+camera images via imagemagick instead.
+
 ### PDFium
 
 If present, libvips will attempt to load PDFs with PDFium. Download the
 prebuilt pdfium binary from:
 
-    https://github.com/bblanchon/pdfium-binaries
+https://github.com/bblanchon/pdfium-binaries/releases/latest
 
 Untar to the libvips install prefix, for example:
 
-    cd ~/vips
-    tar xf ~/pdfium-linux.tgz
+```
+cd ~/vips
+tar xf ~/pdfium-linux.tgz
+```
 
 Create a `pdfium.pc` like this (update the version number):
 
-    VIPSHOME=/home/john/vips
-    cat > $VIPSHOME/lib/pkgconfig/pdfium.pc << EOF
-         prefix=$VIPSHOME
-         exec_prefix=\${prefix}
-         libdir=\${exec_prefix}/lib
-         includedir=\${prefix}/include
-         Name: pdfium
-         Description: pdfium
-         Version: 4290
-         Requires:
-         Libs: -L\${libdir} -lpdfium
-         Cflags: -I\${includedir}
-    EOF
+```
+VIPSHOME=$HOME/vips
+mkdir -p $VIPSHOME/lib/pkgconfig
+cat > $VIPSHOME/lib/pkgconfig/pdfium.pc << EOF
+prefix=$VIPSHOME
+exec_prefix=\${prefix}
+libdir=\${exec_prefix}/lib
+includedir=\${prefix}/include
+
+Name: pdfium
+Description: PDFium
+Version: 4290
+Libs: -L\${libdir} -lpdfium
+Cflags: -I\${includedir}
+EOF
+```
 
 If PDFium is not detected, libvips will look for `poppler-glib` instead.
 
@@ -202,10 +217,10 @@ If libvips finds this library, it uses it for fourier transforms.
 If present, `vips_icc_import()`, `vips_icc_export()` and `vips_icc_transform()`
 can be used to manipulate images with ICC profiles.
 
-### libspng
+### libpng
 
-If present, libvips will load and save PNG files using libspng. If not, it
-will look for the standard libpng package.
+If present, libvips will load and save PNG files using libpng. If not, it
+will look for the spng package.
 
 ### libimagequant, quantizr
 

@@ -33,10 +33,12 @@ EXR_FILE = os.path.join(IMAGES, "sample.exr")
 FITS_FILE = os.path.join(IMAGES, "WFPC2u5780205r_c0fx.fits")
 OPENSLIDE_FILE = os.path.join(IMAGES, "CMU-1-Small-Region.svs")
 PDF_FILE = os.path.join(IMAGES, "ISO_12233-reschart.pdf")
+PDF_PAGE_BOX_FILE = os.path.join(IMAGES, "page-box.pdf")
 CMYK_PDF_FILE = os.path.join(IMAGES, "cmyktest.pdf")
 SVG_FILE = os.path.join(IMAGES, "logo.svg")
 SVGZ_FILE = os.path.join(IMAGES, "logo.svgz")
 SVG_GZ_FILE = os.path.join(IMAGES, "logo.svg.gz")
+TRUNCATED_SVGZ_FILE = os.path.join(IMAGES, "truncated.svgz")
 GIF_ANIM_FILE = os.path.join(IMAGES, "cogs.gif")
 GIF_ANIM_FILE_INVALID = os.path.join(IMAGES, "invalid_multiframe.gif")
 GIF_ANIM_EXPECTED_PNG_FILE = os.path.join(IMAGES, "cogs.png")
@@ -68,6 +70,7 @@ MOSAIC_VERTICAL_MARKS = [[388, 44], [364, 346],
                          [384, 17], [385, 629],
                          [527, 42], [503, 959]]
 JP2K_FILE = os.path.join(IMAGES, "world.jp2")
+UHDR_FILE = os.path.join(IMAGES, "ultra-hdr.jpg")
 
 unsigned_formats = ["uchar", "ushort", "uint"]
 signed_formats = ["char", "short", "int"]
@@ -78,7 +81,7 @@ noncomplex_formats = int_formats + float_formats
 all_formats = int_formats + float_formats + complex_formats
 
 colour_colourspaces = ["xyz", "lab", "lch", "cmc", "labs", "scrgb",
-                       "hsv", "srgb", "yxy"]
+                       "hsv", "srgb", "yxy", "oklab", "oklch"]
 cmyk_colourspaces = ["cmyk"]
 coded_colourspaces = ["labq"]
 mono_colourspaces = ["b-w"]

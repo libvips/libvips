@@ -202,6 +202,14 @@ vips__mmap(int fd, int writeable, size_t length, gint64 offset)
 
 			FIXME ... is this a performance problem?
 
+			see https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createfilemappinga
+
+			We should probably have a small cache from hFile -> hMMFile and
+			reuse mappings between vips__mmap calls
+
+			keep a ref count for each mapping and kick the hMMFile out of
+			cache on the final munmap
+
 		 */
 		CloseHandle(hMMFile);
 	}

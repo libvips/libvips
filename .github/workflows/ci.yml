@@ -18,10 +18,14 @@ jobs:
 
           - name: "Linux x64 (Ubuntu 24.04) - Clang 19 with ASan and UBSan"
             os: ubuntu-24.04
-            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: true }
+            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'address,undefined' }
 
-          - name: "macOS arm64 (14) - Xcode 15"
-            os: macos-14
+          - name: "Linux x64 (Ubuntu 24.04) - Clang 19 with TSan"
+            os: ubuntu-24.04
+            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'thread' }
+
+          - name: "macOS arm64 (15) - Xcode 16"
+            os: macos-15
             build: { cc: clang, cxx: clang++, linker: ld.lld }
 
     env:
@@ -32,7 +36,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install Ubuntu dependencies
         if: runner.os == 'Linux'
@@ -62,47 +66,58 @@ jobs:
             ninja pkgconf \
             cfitsio cgif fftw fontconfig glib \
             highway jpeg-xl libarchive libexif \
-            libheif libimagequant libmatio librsvg \
-            libspng libtiff little-cms2 mozjpeg \
-            openexr openjpeg openslide pango \
+            libheif libimagequant libmatio libpng \
+            librsvg libtiff libultrahdr little-cms2 \
+            mozjpeg openexr openjpeg openslide pango \
             poppler webp
 
       - name: Install Clang 19
         if: runner.os == 'Linux' && matrix.build.cc == 'clang-19'
-        run: sudo apt-get install clang-19 libomp-19-dev lld-19 llvm-19
+        run: sudo apt-get install clang-19 libclang-rt-19-dev lld-19 llvm-19
 
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
         run: |
           echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$(brew --prefix libarchive)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
-      - name: Prepare sanitizers
+      - name: Prepare sanitizers environment
         if: matrix.build.sanitize
-        env:
-          LLVM_PREFIX: /usr/lib/llvm-19
         run: |
-          ASAN_DSO=`$CC -print-file-name=libclang_rt.asan-x86_64.so`
-          echo "LDSHARED=$CC -shared" >> $GITHUB_ENV
-          echo "CPPFLAGS=-g -fsanitize=address,undefined -fno-sanitize=function -fno-omit-frame-pointer -fopenmp -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
-          echo "LDFLAGS=-g -fsanitize=address,undefined -shared-libasan -fopenmp=libomp" >> $GITHUB_ENV
-          echo "ASAN_DSO=$ASAN_DSO" >> $GITHUB_ENV
+          echo "CPPFLAGS=-g -fno-omit-frame-pointer -fno-sanitize=function -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
+          echo "LDFLAGS=-g -shared-libsan" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
           # to disable the fast unwinder to get full stacktraces.
           echo "ASAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/asan.supp:fast_unwind_on_malloc=0:allocator_may_return_null=1" >> $GITHUB_ENV
           echo "LSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/lsan.supp:fast_unwind_on_malloc=0" >> $GITHUB_ENV
-          echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp" >> $GITHUB_ENV
+          echo "TSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/tsan.supp:print_suppressions=1:ignore_noninstrumented_modules=1" >> $GITHUB_ENV
           # Ensure UBSan issues causes the program to abort.
           echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1:print_stacktrace=1" >> $GITHUB_ENV
-          echo "LD_LIBRARY_PATH=$LLVM_PREFIX/lib:`dirname $ASAN_DSO`" >> $GITHUB_ENV
-          echo "$LLVM_PREFIX/bin" >> $GITHUB_PATH
+          echo "$(dirname $($CC -print-prog-name=llvm-symbolizer))" >> $GITHUB_PATH
+
+      - name: Prepare ASan/UBSan
+        if: matrix.build.sanitize == 'address,undefined'
+        run: |
+          ASAN_DSO=$($CC -print-file-name=libclang_rt.asan-x86_64.so)
+          echo "SANITIZE_DSO=$ASAN_DSO" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$(dirname $ASAN_DSO)" >> $GITHUB_ENV
+
+      - name: Prepare TSan
+        if: matrix.build.sanitize == 'thread'
+        run: |
+          TSAN_DSO=$($CC -print-file-name=libclang_rt.tsan-x86_64.so)
+          echo "SANITIZE_DSO=$TSAN_DSO" >> $GITHUB_ENV
+          echo "LD_LIBRARY_PATH=$(dirname $TSAN_DSO)" >> $GITHUB_ENV
 
       - name: Configure libvips
         run:
           meson setup build
             -Ddebug=true
-            -Ddocs=${{ matrix.build.docs && 'true' || 'false' }}
             -Ddeprecated=false
             -Dmagick=disabled
+            -Ddocs=${{ matrix.build.docs || 'false' }}
+            -Dintrospection=${{ matrix.build.docs && 'enabled' || 'disabled' }}
+            -Db_sanitize=${{ matrix.build.sanitize || 'none' }}
+            -Db_lundef=${{ matrix.build.sanitize && 'false' || 'true' }}
           || (cat build/meson-logs/meson-log.txt && exit 1)
 
       - name: Build libvips
@@ -110,7 +125,8 @@ jobs:
 
       - name: Check libvips
         run:
-          meson test -C build
+          # TSan is slow, so disable timeout in test cases
+          meson test -C build --timeout-multiplier=${{ matrix.build.sanitize == 'thread' && '0' || '1' }}
           || (cat build/meson-logs/testlog.txt && exit 1)
 
       - name: Install libvips
@@ -126,5 +142,5 @@ jobs:
       - name: Run test suite
         env:
           VIPS_LEAK: 1
-          LD_PRELOAD: ${{ env.ASAN_DSO }}
+          LD_PRELOAD: ${{ env.SANITIZE_DSO }}
         run: python3 -m pytest -sv --log-cli-level=WARNING test/test-suite

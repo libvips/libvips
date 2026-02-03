@@ -288,46 +288,48 @@ vips_rot_build(VipsObject *object)
 	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsRot *rot = (VipsRot *) object;
 
+	VipsImage *in;
 	VipsGenerateFn generate_fn;
 	VipsDemandStyle hint;
 
 	if (VIPS_OBJECT_CLASS(vips_rot_parent_class)->build(object))
 		return -1;
 
-	if (rot->angle == VIPS_ANGLE_D0)
-		return vips_image_write(rot->in, conversion->out);
+	in = rot->in;
 
-	if (vips_image_pio_input(rot->in))
+	if (rot->angle == VIPS_ANGLE_D0)
+		return vips_image_write(in, conversion->out);
+
+	if (vips_image_pio_input(in))
 		return -1;
 
-	hint = rot->angle == VIPS_ANGLE_D180
-		? VIPS_DEMAND_STYLE_THINSTRIP
-		: VIPS_DEMAND_STYLE_SMALLTILE;
+	hint = rot->angle == VIPS_ANGLE_D180 ?
+		VIPS_DEMAND_STYLE_THINSTRIP : VIPS_DEMAND_STYLE_SMALLTILE;
 
-	if (vips_image_pipelinev(conversion->out, hint, rot->in, NULL))
+	if (vips_image_pipelinev(conversion->out, hint, in, NULL))
 		return -1;
 
 	switch (rot->angle) {
 	case VIPS_ANGLE_D90:
 		generate_fn = vips_rot90_gen;
-		conversion->out->Xsize = rot->in->Ysize;
-		conversion->out->Ysize = rot->in->Xsize;
-		conversion->out->Xoffset = rot->in->Ysize;
+		conversion->out->Xsize = in->Ysize;
+		conversion->out->Ysize = in->Xsize;
+		conversion->out->Xoffset = in->Ysize;
 		conversion->out->Yoffset = 0;
 		break;
 
 	case VIPS_ANGLE_D180:
 		generate_fn = vips_rot180_gen;
-		conversion->out->Xoffset = rot->in->Xsize;
-		conversion->out->Yoffset = rot->in->Ysize;
+		conversion->out->Xoffset = in->Xsize;
+		conversion->out->Yoffset = in->Ysize;
 		break;
 
 	case VIPS_ANGLE_D270:
 		generate_fn = vips_rot270_gen;
-		conversion->out->Xsize = rot->in->Ysize;
-		conversion->out->Ysize = rot->in->Xsize;
+		conversion->out->Xsize = in->Ysize;
+		conversion->out->Ysize = in->Xsize;
 		conversion->out->Xoffset = 0;
-		conversion->out->Yoffset = rot->in->Xsize;
+		conversion->out->Yoffset = in->Xsize;
 		break;
 
 	default:
@@ -340,7 +342,7 @@ vips_rot_build(VipsObject *object)
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, generate_fn, vips_stop_one,
-			rot->in, rot))
+			in, rot))
 		return -1;
 
 	return 0;

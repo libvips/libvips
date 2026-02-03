@@ -106,10 +106,8 @@ vips_foreign_load_webp_build(VipsObject *object)
 		webp->shrink != 0)
 		webp->scale = 1.0 / webp->shrink; // FIXME: Invalidates operation cache
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_webp_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_webp_parent_class)
+		->build(object);
 }
 
 static VipsForeignFlags
@@ -235,11 +233,8 @@ vips_foreign_load_webp_source_build(VipsObject *object)
 		g_object_ref(webp->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_webp_source_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_webp_source_parent_class)
+		->build(object);
 }
 
 static void
@@ -300,11 +295,8 @@ vips_foreign_load_webp_file_build(VipsObject *object)
 				vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_webp_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_webp_file_parent_class)
+			->build(object);
 }
 
 static gboolean
@@ -382,11 +374,8 @@ vips_foreign_load_webp_buffer_build(VipsObject *object)
 			  VIPS_AREA(buffer->blob)->length)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_webp_buffer_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_webp_buffer_parent_class)
+		->build(object);
 }
 
 static gboolean

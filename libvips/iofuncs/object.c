@@ -49,6 +49,9 @@
 #include <string.h>
 #include <stdarg.h>
 
+/* For VIPS_OPERATION_SEQUENTIAL_UNBUFFERED
+ */
+#define VIPS_DISABLE_DEPRECATION_WARNINGS
 #include <vips/vips.h>
 #include <vips/internal.h>
 #include <vips/debug.h>
@@ -179,21 +182,21 @@
  * Input gobjects are automatically reffed, output gobjects automatically ref
  * us. We also automatically watch for "destroy" and unlink.
  *
- * [flags@Vips.ArgumentFlags.SET_ALWAYS] is handy for arguments which are set from C. For
- * example, [property@Image:width] is a property that gives access to the Xsize
- * member of struct _VipsImage. We default its 'assigned' to `TRUE`
- * since the field is always set directly by C.
+ * [flags@Vips.ArgumentFlags.SET_ALWAYS] is handy for arguments which are set
+ * from C. For example, [property@Image:width] is a property that gives
+ * access to the Xsize member of struct _VipsImage. We default its
+ * 'assigned' to `TRUE` since the field is always set directly by C.
  *
- * [flags@Vips.ArgumentFlags.DEPRECATED] arguments are not shown in help text, are not
- * looked for if required, are not checked for "have-been-set". You can
+ * [flags@Vips.ArgumentFlags.DEPRECATED] arguments are not shown in help text,
+ * are not looked for if required, are not checked for "have-been-set". You can
  * deprecate a required argument, but you must obviously add a new required
  * argument if you do.
  *
- * Input args with [flags@Vips.ArgumentFlags.MODIFY] will be modified by the operation.
- * This is used for things like the in-place drawing operations.
+ * Input args with [flags@Vips.ArgumentFlags.MODIFY] will be modified by the
+ * operation. This is used for things like the in-place drawing operations.
  *
- * [flags@Vips.ArgumentFlags.NON_HASHABLE] stops the argument being used in hash and
- * equality tests. It's useful for arguments like `revalidate` which
+ * [flags@Vips.ArgumentFlags.NON_HASHABLE] stops the argument being used in
+ * hash and equality tests. It's useful for arguments like `revalidate` which
  * control the behaviour of the operator cache.
  */
 
@@ -470,23 +473,18 @@ vips_object_print_name(VipsObject *object)
 gboolean
 vips_object_sanity(VipsObject *object)
 {
-	VipsObjectClass *class;
-	char str[1000];
-	VipsBuf buf = VIPS_BUF_STATIC(str);
-
 	if (!object) {
-		printf("vips_object_sanity: null object\n");
-
+		vips_error("vips_object_sanity", _("null object"));
 		return FALSE;
 	}
 
-	class = VIPS_OBJECT_GET_CLASS(object);
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
+
+	char str[1000];
+	VipsBuf buf = VIPS_BUF_STATIC(str);
 	class->sanity(object, &buf);
 	if (!vips_buf_is_empty(&buf)) {
-		printf("sanity failure: ");
-		vips_object_print_name(object);
-		printf(" %s\n", vips_buf_all(&buf));
-
+		vips_error(class->nickname, "%s", vips_buf_all(&buf));
 		return FALSE;
 	}
 
@@ -1965,8 +1963,7 @@ vips_object_set_argument_from_string(VipsObject *object,
 				VIPS_OPERATION(object));
 
 		if (flags &
-			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED |
-				VIPS_OPERATION_SEQUENTIAL))
+			(VIPS_OPERATION_SEQUENTIAL_UNBUFFERED | VIPS_OPERATION_SEQUENTIAL))
 			access = VIPS_ACCESS_SEQUENTIAL;
 		else
 			access = VIPS_ACCESS_RANDOM;

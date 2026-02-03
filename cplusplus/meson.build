@@ -59,6 +59,6 @@ if get_option('cpp-docs')
         output: 'html',
         command: [doxygen, doxyfile],
         install: true,
-        install_dir: get_option('prefix') / get_option('datadir') / 'doc' / 'vips-doc'
+        install_dir: get_option('prefix') / get_option('datadir') / 'doc' / 'vips-cpp'
     )
 endif

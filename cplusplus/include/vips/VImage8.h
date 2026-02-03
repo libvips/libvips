@@ -549,6 +549,15 @@ public:
 	}
 
 	/**
+	 * The associated gainmap image, if any.
+	 */
+	VImage
+	gainmap() const
+	{
+		return VImage(vips_image_get_gainmap(get_image()));
+	}
+
+	/**
 	 * Gets an VImage ready for an in-place operation, such as draw_circle().
 	 * After calling this function you can both read and write the image with
 	 * VIPS_IMAGE_ADDR().
@@ -556,10 +565,10 @@ public:
 	 * This method is called for you by the draw operations,
 	 * there's no need to call it yourself.
 	 *
-	 * Since this function modifies the image, it is not thread-safe. Only call it on
-	 * images which you are sure have not been shared with another thread.
-	 * All in-place operations are inherently not thread-safe, so you need to take
-	 * great care in any case.
+	 * Since this function modifies the image, it is not thread-safe. Only
+	 * call it on images which you are sure have not been shared with another
+	 * thread.  All in-place operations are inherently not thread-safe, so
+	 * you need to take great care in any case.
 	 */
 	void
 	inplace()
@@ -668,6 +677,15 @@ public:
 	{
 		vips_image_set_blob(this->get_image(), field,
 			free_fn, data, length);
+	}
+
+	/**
+	 * Set the value of an image metadata item on an image.
+	 */
+	void
+	set(const char *field, const VImage value)
+	{
+		vips_image_set_image(this->get_image(), field, value.get_image());
 	}
 
 	/**
@@ -2066,7 +2084,7 @@ public:
 	 * @param fd File descriptor to write to.
 	 * @param options Set of options.
 	 */
-	G_DEPRECATED_FOR(rawsave_target)
+	[[deprecated("Use 'rawsave_target' instead")]]
 	void rawsave_fd(int fd, VOption *options = nullptr) const;
 
 	/* Automatically generated members.
@@ -2187,6 +2205,27 @@ public:
 	VImage LabS2LabQ(VOption *options = nullptr) const;
 
 	/**
+	 * Transform oklab to oklch.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage Oklab2Oklch(VOption *options = nullptr) const;
+
+	/**
+	 * Transform oklab to xyz.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage Oklab2XYZ(VOption *options = nullptr) const;
+
+	/**
+	 * Transform oklch to oklab.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage Oklch2Oklab(VOption *options = nullptr) const;
+
+	/**
 	 * Transform xyz to cmyk.
 	 * @param options Set of options.
 	 * @return Output image.
@@ -2203,6 +2242,13 @@ public:
 	 * @return Output image.
 	 */
 	VImage XYZ2Lab(VOption *options = nullptr) const;
+
+	/**
+	 * Transform xyz to oklab.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage XYZ2Oklab(VOption *options = nullptr) const;
 
 	/**
 	 * Transform xyz to yxy.
@@ -2714,7 +2760,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -2775,6 +2820,53 @@ public:
 	 * @return Output image.
 	 */
 	VImage dECMC(VImage right, VOption *options = nullptr) const;
+
+	/**
+	 * Load raw camera files.
+	 *
+	 * **Optional parameters**
+	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param filename Filename to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage dcrawload(const char *filename, VOption *options = nullptr);
+
+	/**
+	 * Load raw camera files.
+	 *
+	 * **Optional parameters**
+	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param buffer Buffer to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage dcrawload_buffer(VipsBlob *buffer, VOption *options = nullptr);
+
+	/**
+	 * Load raw camera files.
+	 *
+	 * **Optional parameters**
+	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *
+	 * @param source Source to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage dcrawload_source(VSource source, VOption *options = nullptr);
 
 	/**
 	 * Find image standard deviation.
@@ -3075,7 +3167,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -3258,7 +3349,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -3431,7 +3521,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -3450,6 +3539,7 @@ public:
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
+	 *   - **tune** -- Tuning parameters, const char *.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3471,6 +3561,7 @@ public:
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
+	 *   - **tune** -- Tuning parameters, const char *.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3492,6 +3583,7 @@ public:
 	 *   - **effort** -- CPU effort, int.
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
+	 *   - **tune** -- Tuning parameters, const char *.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3804,7 +3896,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -3915,7 +4006,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -3924,7 +4014,7 @@ public:
 	static VImage jpegload_source(VSource source, VOption *options = nullptr);
 
 	/**
-	 * Save image to jpeg file.
+	 * Save as jpeg.
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
@@ -3947,7 +4037,7 @@ public:
 	void jpegsave(const char *filename, VOption *options = nullptr) const;
 
 	/**
-	 * Save image to jpeg buffer.
+	 * Save as jpeg.
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
@@ -3992,7 +4082,7 @@ public:
 	void jpegsave_mime(VOption *options = nullptr) const;
 
 	/**
-	 * Save image to jpeg target.
+	 * Save as jpeg.
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
@@ -4057,7 +4147,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4074,6 +4163,7 @@ public:
 	 *   - **effort** -- Encoding effort, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
+	 *   - **bitdepth** -- Bit depth, int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -4093,6 +4183,7 @@ public:
 	 *   - **effort** -- Encoding effort, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
+	 *   - **bitdepth** -- Bit depth, int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -4112,6 +4203,7 @@ public:
 	 *   - **effort** -- Encoding effort, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
+	 *   - **bitdepth** -- Bit depth, int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -4180,7 +4272,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param filename Filename to load from.
 	 * @param options Set of options.
@@ -4198,13 +4289,29 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param buffer Buffer to load from.
 	 * @param options Set of options.
 	 * @return Output image.
 	 */
 	static VImage magickload_buffer(VipsBlob *buffer, VOption *options = nullptr);
+
+	/**
+	 * Load source with imagemagick.
+	 *
+	 * **Optional parameters**
+	 *   - **density** -- Canvas resolution for rendering vector formats like SVG, const char *.
+	 *   - **page** -- First page to load, int.
+	 *   - **n** -- Number of pages to load, -1 for all, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *
+	 * @param source Source to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage magickload_source(VSource source, VOption *options = nullptr);
 
 	/**
 	 * Save file with imagemagick.
@@ -4552,7 +4659,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4773,7 +4879,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4842,7 +4947,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4860,6 +4964,7 @@ public:
 	 *   - **scale** -- Factor to scale by, double.
 	 *   - **background** -- Background colour, std::vector<double>.
 	 *   - **password** -- Password to decrypt with, const char *.
+	 *   - **page_box** -- The region of the page to render, VipsForeignPdfPageBox.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -4881,6 +4986,7 @@ public:
 	 *   - **scale** -- Factor to scale by, double.
 	 *   - **background** -- Background colour, std::vector<double>.
 	 *   - **password** -- Password to decrypt with, const char *.
+	 *   - **page_box** -- The region of the page to render, VipsForeignPdfPageBox.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -4902,10 +5008,10 @@ public:
 	 *   - **scale** -- Factor to scale by, double.
 	 *   - **background** -- Background colour, std::vector<double>.
 	 *   - **password** -- Password to decrypt with, const char *.
+	 *   - **page_box** -- The region of the page to render, VipsForeignPdfPageBox.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4984,7 +5090,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -4998,7 +5103,7 @@ public:
 	 * **Optional parameters**
 	 *   - **compression** -- Compression factor, int.
 	 *   - **interlace** -- Interlace image, bool.
-	 *   - **filter** -- libspng row filter flag(s), VipsForeignPngFilter.
+	 *   - **filter** -- libpng row filter flag(s), VipsForeignPngFilter.
 	 *   - **palette** -- Quantise to 8bpp palette, bool.
 	 *   - **Q** -- Quantisation quality, int.
 	 *   - **dither** -- Amount of dithering, double.
@@ -5020,7 +5125,7 @@ public:
 	 * **Optional parameters**
 	 *   - **compression** -- Compression factor, int.
 	 *   - **interlace** -- Interlace image, bool.
-	 *   - **filter** -- libspng row filter flag(s), VipsForeignPngFilter.
+	 *   - **filter** -- libpng row filter flag(s), VipsForeignPngFilter.
 	 *   - **palette** -- Quantise to 8bpp palette, bool.
 	 *   - **Q** -- Quantisation quality, int.
 	 *   - **dither** -- Amount of dithering, double.
@@ -5042,7 +5147,7 @@ public:
 	 * **Optional parameters**
 	 *   - **compression** -- Compression factor, int.
 	 *   - **interlace** -- Interlace image, bool.
-	 *   - **filter** -- libspng row filter flag(s), VipsForeignPngFilter.
+	 *   - **filter** -- libpng row filter flag(s), VipsForeignPngFilter.
 	 *   - **palette** -- Quantise to 8bpp palette, bool.
 	 *   - **Q** -- Quantisation quality, int.
 	 *   - **dither** -- Amount of dithering, double.
@@ -5074,13 +5179,27 @@ public:
 	static VImage ppmload(const char *filename, VOption *options = nullptr);
 
 	/**
-	 * Load ppm base class.
+	 * Load ppm from buffer.
 	 *
 	 * **Optional parameters**
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
 	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param buffer Buffer to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage ppmload_buffer(VipsBlob *buffer, VOption *options = nullptr);
+
+	/**
+	 * Load ppm from source.
+	 *
+	 * **Optional parameters**
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -5220,7 +5339,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -5824,7 +5942,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -5845,8 +5962,9 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **in** -- Array of input images, std::vector<VImage>.
-	 *   - **out_format** -- Format for output filename, const char *.
 	 *   - **in_format** -- Format for input filename, const char *.
+	 *   - **out_format** -- Format for output filename, const char *.
+	 *   - **cache** -- Cache this call, bool.
 	 *
 	 * @param cmd_format Command to run.
 	 * @param options Set of options.
@@ -6011,7 +6129,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -6169,6 +6286,105 @@ public:
 	VImage transpose3d(VOption *options = nullptr) const;
 
 	/**
+	 * Transform uhdr to scrgb.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage uhdr2scRGB(VOption *options = nullptr) const;
+
+	/**
+	 * Load a uhdr image.
+	 *
+	 * **Optional parameters**
+	 *   - **shrink** -- Shrink factor on load, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param filename Filename to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage uhdrload(const char *filename, VOption *options = nullptr);
+
+	/**
+	 * Load a uhdr image.
+	 *
+	 * **Optional parameters**
+	 *   - **shrink** -- Shrink factor on load, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param buffer Buffer to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage uhdrload_buffer(VipsBlob *buffer, VOption *options = nullptr);
+
+	/**
+	 * Load a uhdr image.
+	 *
+	 * **Optional parameters**
+	 *   - **shrink** -- Shrink factor on load, int.
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *
+	 * @param source Source to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage uhdrload_source(VSource source, VOption *options = nullptr);
+
+	/**
+	 * Save image in ultrahdr format.
+	 *
+	 * **Optional parameters**
+	 *   - **Q** -- Q factor, int.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param filename Filename to save to.
+	 * @param options Set of options.
+	 */
+	void uhdrsave(const char *filename, VOption *options = nullptr) const;
+
+	/**
+	 * Save image in ultrahdr format.
+	 *
+	 * **Optional parameters**
+	 *   - **Q** -- Q factor, int.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param options Set of options.
+	 * @return Buffer to save to.
+	 */
+	VipsBlob *uhdrsave_buffer(VOption *options = nullptr) const;
+
+	/**
+	 * Save image in ultrahdr format.
+	 *
+	 * **Optional parameters**
+	 *   - **Q** -- Q factor, int.
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param target Target to save to.
+	 * @param options Set of options.
+	 */
+	void uhdrsave_target(VTarget target, VOption *options = nullptr) const;
+
+	/**
 	 * Unpremultiply image alpha.
 	 *
 	 * **Optional parameters**
@@ -6202,7 +6418,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -6284,7 +6499,6 @@ public:
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
-	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
 	 *
 	 * @param source Source to load from.
 	 * @param options Set of options.
@@ -6298,6 +6512,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **exact** -- Preserve color values from transparent pixels, bool.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6326,6 +6541,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **exact** -- Preserve color values from transparent pixels, bool.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6354,6 +6570,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **exact** -- Preserve color values from transparent pixels, bool.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.
@@ -6381,6 +6598,7 @@ public:
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
 	 *   - **lossless** -- Enable lossless compression, bool.
+	 *   - **exact** -- Preserve color values from transparent pixels, bool.
 	 *   - **preset** -- Preset for lossy compression, VipsForeignWebpPreset.
 	 *   - **smart_subsample** -- Enable high quality chroma subsampling, bool.
 	 *   - **near_lossless** -- Enable preprocessing in lossless mode (uses Q), bool.

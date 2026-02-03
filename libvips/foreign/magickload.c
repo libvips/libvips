@@ -156,3 +156,35 @@ vips_magickload_buffer(void *buf, size_t len, VipsImage **out, ...)
 
 	return result;
 }
+
+/**
+ * vips_magickload_source:
+ * @source: source to load
+ * @out: (out): image to write
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Exactly as [ctor@Image.magickload], but read from a source.
+ *
+ * ::: tip "Optional arguments"
+ *     * @page: `gint`, load from this page
+ *     * @n: `gint`, load this many pages
+ *     * @density: `gchararray`, canvas resolution for rendering vector formats
+ *       like SVG
+ *
+ * ::: seealso
+ *     [ctor@Image.magickload].
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_magickload_source(VipsSource *source, VipsImage **out, ...)
+{
+	va_list ap;
+	int result;
+
+	va_start(ap, out);
+	result = vips_call_split("magickload_source", ap, source, out);
+	va_end(ap);
+
+	return result;
+}

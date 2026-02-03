@@ -103,9 +103,12 @@ typedef struct _VipsLinear {
 	 */
 	gboolean uchar;
 
+	/* TRUE if a and b each contain only one unique value.
+	 */
+	gboolean single_element;
+
 	/* Our constants expanded to match arith->ready in size.
 	 */
-	int n;
 	double *a_ready;
 	double *b_ready;
 
@@ -125,80 +128,72 @@ vips_linear_build(VipsObject *object)
 
 	int i;
 
-	/* If we have a three-element vector, we need to bandup the image to
+	/* If we have a $n element vector, we need to bandup the image to
 	 * match.
 	 */
-	linear->n = 1;
+	int n = 1;
 	if (linear->a)
-		linear->n = VIPS_MAX(linear->n, linear->a->n);
+		n = VIPS_MAX(n, linear->a->n);
 	if (linear->b)
-		linear->n = VIPS_MAX(linear->n, linear->b->n);
+		n = VIPS_MAX(n, linear->b->n);
 	if (unary->in) {
 		int bands;
 
 		vips_image_decode_predict(unary->in, &bands, NULL);
-		linear->n = VIPS_MAX(linear->n, bands);
+		n = VIPS_MAX(n, bands);
 	}
-	arithmetic->base_bands = linear->n;
+	arithmetic->base_bands = n;
 
 	if (unary->in &&
 		linear->a &&
 		linear->b) {
-		if (vips_check_vector(class->nickname,
-				linear->a->n, unary->in) ||
-			vips_check_vector(class->nickname,
-				linear->b->n, unary->in))
+		if (vips_check_vector(class->nickname, linear->a->n, unary->in) ||
+			vips_check_vector(class->nickname, linear->b->n, unary->in))
 			return -1;
 	}
 
-	/* If all elements of the constants are equal, we can shrink them down
-	 * to a single element.
+	/* If all elements of the constants are equal, we can treat them as
+	 * a single element.
 	 */
+	int a_n = 1;
 	if (linear->a) {
 		double *ary = (double *) linear->a->data;
-		gboolean all_equal;
 
-		all_equal = TRUE;
 		for (i = 1; i < linear->a->n; i++)
 			if (ary[i] != ary[0]) {
-				all_equal = FALSE;
+				a_n = linear->a->n;
 				break;
 			}
-
-		if (all_equal)
-			linear->a->n = 1;
 	}
+	int b_n = 1;
 	if (linear->b) {
 		double *ary = (double *) linear->b->data;
-		gboolean all_equal;
 
-		all_equal = TRUE;
 		for (i = 1; i < linear->b->n; i++)
 			if (ary[i] != ary[0]) {
-				all_equal = FALSE;
+				b_n = linear->b->n;
 				break;
 			}
-
-		if (all_equal)
-			linear->b->n = 1;
 	}
+
+	linear->single_element = a_n == 1 && b_n == 1;
 
 	/* Make up-banded versions of our constants.
 	 */
-	linear->a_ready = VIPS_ARRAY(linear, linear->n, double);
-	linear->b_ready = VIPS_ARRAY(linear, linear->n, double);
+	linear->a_ready = VIPS_ARRAY(linear, n, double);
+	linear->b_ready = VIPS_ARRAY(linear, n, double);
 
-	for (i = 0; i < linear->n; i++) {
+	for (i = 0; i < n; i++) {
 		if (linear->a) {
 			double *ary = (double *) linear->a->data;
-			int j = VIPS_MIN(i, linear->a->n - 1);
+			int j = VIPS_MIN(i, a_n - 1);
 
 			linear->a_ready[i] = ary[j];
 		}
 
 		if (linear->b) {
 			double *ary = (double *) linear->b->data;
-			int j = VIPS_MIN(i, linear->b->n - 1);
+			int j = VIPS_MIN(i, b_n - 1);
 
 			linear->b_ready[i] = ary[j];
 		}
@@ -241,7 +236,7 @@ vips_linear_build(VipsObject *object)
 
 #define LOOP(IN, OUT) \
 	{ \
-		if (linear->a->n == 1 && linear->b->n == 1) { \
+		if (linear->single_element) { \
 			LOOP1(IN, OUT); \
 		} \
 		else { \
@@ -300,7 +295,7 @@ vips_linear_build(VipsObject *object)
 
 #define LOOPuc(IN) \
 	{ \
-		if (linear->a->n == 1 && linear->b->n == 1) { \
+		if (linear->single_element) { \
 			LOOP1uc(IN); \
 		} \
 		else { \

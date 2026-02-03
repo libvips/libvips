@@ -158,6 +158,10 @@ typedef struct _VipsForeignLoadPdf {
 	 */
 	VipsPel *ink;
 
+	/* Render this page box, currently only crop is supported.
+	 */
+	VipsForeignPdfPageBox page_box;
+
 } VipsForeignLoadPdf;
 
 typedef struct _VipsForeignLoadPdfClass {
@@ -201,10 +205,8 @@ vips_foreign_load_pdf_build(VipsObject *object)
 		return -1;
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_pdf_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_parent_class)
+		->build(object);
 }
 
 static VipsForeignFlags
@@ -314,7 +316,6 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF(load);
 
 	int top;
-	int i;
 
 #ifdef DEBUG
 	printf("vips_foreign_load_pdf_header: %p\n", pdf);
@@ -339,26 +340,36 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	if (!(pdf->pages = VIPS_ARRAY(pdf, pdf->n, VipsRect)))
 		return -1;
 
+	if (pdf->page_box != VIPS_FOREIGN_PDF_PAGE_BOX_CROP)
+		g_warning("only crop page box is supported");
+
 	top = 0;
 	pdf->image.left = 0;
 	pdf->image.top = 0;
 	pdf->image.width = 0;
 	pdf->image.height = 0;
-	for (i = 0; i < pdf->n; i++) {
+	for (int i = 0; i < pdf->n; i++) {
 		double width;
 		double height;
 
 		if (vips_foreign_load_pdf_get_page(pdf, pdf->page_no + i))
 			return -1;
+
 		poppler_page_get_size(pdf->page, &width, &height);
 		pdf->pages[i].left = 0;
 		pdf->pages[i].top = top;
+
 		/* We do round to nearest, in the same way that vips_resize()
 		 * does round to nearest. Without this, things like
 		 * shrink-on-load will break.
 		 */
 		pdf->pages[i].width = rint(width * pdf->total_scale);
 		pdf->pages[i].height = rint(height * pdf->total_scale);
+		if (pdf->pages[i].width <= 0 ||
+			pdf->pages[i].height <= 0) {
+			vips_error(class->nickname, "%s", _("zero-sized image"));
+			return -1;
+		}
 
 		if (pdf->pages[i].width > pdf->image.width)
 			pdf->image.width = pdf->pages[i].width;
@@ -370,7 +381,7 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 	/* If all pages are the same height, we can tag this as a toilet roll
 	 * image.
 	 */
-	for (i = 1; i < pdf->n; i++)
+	for (int i = 1; i < pdf->n; i++)
 		if (pdf->pages[i].height != pdf->pages[0].height)
 			break;
 
@@ -582,6 +593,14 @@ vips_foreign_load_pdf_class_init(VipsForeignLoadPdfClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadPdf, password),
 		NULL);
+
+	VIPS_ARG_ENUM(class, "page_box", 26,
+		_("Page box"),
+		_("The region of the page to render"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadPdf, page_box),
+		VIPS_TYPE_FOREIGN_PDF_PAGE_BOX,
+		VIPS_FOREIGN_PDF_PAGE_BOX_CROP);
 }
 
 static void
@@ -592,6 +611,7 @@ vips_foreign_load_pdf_init(VipsForeignLoadPdf *pdf)
 	pdf->n = 1;
 	pdf->current_page = -1;
 	pdf->background = vips_array_double_newv(1, 255.0);
+	pdf->page_box = VIPS_FOREIGN_PDF_PAGE_BOX_CROP;
 }
 
 typedef struct _VipsForeignLoadPdfFile {
@@ -677,7 +697,7 @@ vips_foreign_load_pdf_file_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload";
-	object_class->description = _("load PDF from file");
+	object_class->description = _("load PDF from file (poppler)");
 	object_class->build = vips_foreign_load_pdf_file_build;
 
 	foreign_class->suffs = vips__pdf_suffs;
@@ -740,7 +760,7 @@ vips_foreign_load_pdf_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_buffer";
-	object_class->description = _("load PDF from buffer");
+	object_class->description = _("load PDF from buffer (poppler)");
 	object_class->build = vips_foreign_load_pdf_buffer_build;
 
 	load_class->is_a_buffer = vips__pdf_is_a_buffer;
@@ -798,7 +818,7 @@ vips_foreign_load_pdf_source_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "pdfload_source";
-	object_class->description = _("load PDF from source");
+	object_class->description = _("load PDF from source (poppler)");
 	object_class->build = vips_foreign_load_pdf_source_build;
 
 	operation_class->flags |= VIPS_OPERATION_NOCACHE;

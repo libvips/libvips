@@ -215,6 +215,8 @@ typedef struct _VipsColourRoute {
 #define RGB16 VIPS_INTERPRETATION_RGB16
 #define GREY16 VIPS_INTERPRETATION_GREY16
 #define YXY VIPS_INTERPRETATION_YXY
+#define OKLAB VIPS_INTERPRETATION_OKLAB
+#define OKLCH VIPS_INTERPRETATION_OKLCH
 
 /* All the routes we know about.
  */
@@ -233,6 +235,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ XYZ, RGB16, { vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
 	{ XYZ, GREY16, { vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
 	{ XYZ, YXY, { vips_XYZ2Yxy, NULL } },
+	{ XYZ, OKLAB, { vips_XYZ2Oklab, NULL } },
+	{ XYZ, OKLCH, { vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ LAB, XYZ, { vips_Lab2XYZ, NULL } },
 	{ LAB, LAB, { vips_cast_float, NULL } },
@@ -248,6 +252,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LAB, RGB16, { vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
 	{ LAB, GREY16, { vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
 	{ LAB, YXY, { vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
+	{ LAB, OKLAB, { vips_Lab2XYZ, vips_XYZ2Oklab, NULL } },
+	{ LAB, OKLCH, { vips_Lab2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ LABQ, XYZ, { vips_LabQ2Lab, vips_Lab2XYZ, NULL } },
 	{ LABQ, LAB, { vips_LabQ2Lab, NULL } },
@@ -263,6 +269,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LABQ, RGB16, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
 	{ LABQ, GREY16, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
 	{ LABQ, YXY, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
+	{ LABQ, OKLAB, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2Oklab, NULL } },
+	{ LABQ, OKLCH, { vips_LabQ2Lab, vips_Lab2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ LCH, XYZ, { vips_LCh2Lab, vips_Lab2XYZ, NULL } },
 	{ LCH, LAB, { vips_LCh2Lab, NULL } },
@@ -278,6 +286,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LCH, RGB16, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
 	{ LCH, GREY16, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
 	{ LCH, YXY, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
+	{ LCH, OKLAB, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2Oklab, NULL } },
+	{ LCH, OKLCH, { vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ CMC, XYZ, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, NULL } },
 	{ CMC, LAB, { vips_CMC2LCh, vips_LCh2Lab, NULL } },
@@ -293,6 +303,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ CMC, RGB16, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
 	{ CMC, GREY16, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
 	{ CMC, YXY, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
+	{ CMC, OKLAB, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2Oklab, NULL } },
+	{ CMC, OKLCH, { vips_CMC2LCh, vips_LCh2Lab, vips_Lab2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ LABS, XYZ, { vips_LabS2Lab, vips_Lab2XYZ, NULL } },
 	{ LABS, LAB, { vips_LabS2Lab, NULL } },
@@ -308,6 +320,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ LABS, RGB16, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
 	{ LABS, GREY16, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
 	{ LABS, YXY, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2Yxy, NULL } },
+	{ LABS, OKLAB, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2Oklab, NULL } },
+	{ LABS, OKLCH, { vips_LabS2Lab, vips_Lab2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ CMYK, XYZ, { vips_CMYK2XYZ, NULL } },
 	{ CMYK, LAB, { vips_CMYK2XYZ, vips_XYZ2Lab, NULL } },
@@ -324,6 +338,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ CMYK, RGB16, { vips_CMYK2XYZ, vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
 	{ CMYK, GREY16, { vips_CMYK2XYZ, vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
 	{ CMYK, YXY, { vips_CMYK2XYZ, vips_XYZ2Yxy, NULL } },
+	{ CMYK, OKLAB, { vips_CMYK2XYZ, vips_XYZ2Oklab, NULL } },
+	{ CMYK, OKLCH, { vips_CMYK2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ scRGB, XYZ, { vips_scRGB2XYZ, NULL } },
 	{ scRGB, LAB, { vips_scRGB2XYZ, vips_XYZ2Lab, NULL } },
@@ -339,6 +355,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ scRGB, RGB16, { vips_scRGB2RGB16, NULL } },
 	{ scRGB, GREY16, { vips_scRGB2BW16, NULL } },
 	{ scRGB, YXY, { vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
+	{ scRGB, OKLAB, { vips_scRGB2XYZ, vips_XYZ2Oklab, NULL } },
+	{ scRGB, OKLCH, { vips_scRGB2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ sRGB, XYZ, { vips_sRGB2scRGB, vips_scRGB2XYZ, NULL } },
 	{ sRGB, LAB, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, NULL } },
@@ -354,6 +372,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ sRGB, RGB16, { vips_sRGB2RGB16, NULL } },
 	{ sRGB, GREY16, { vips_sRGB2scRGB, vips_scRGB2BW16, NULL } },
 	{ sRGB, YXY, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
+	{ sRGB, OKLAB, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, NULL } },
+	{ sRGB, OKLCH, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ HSV, XYZ, { vips_HSV2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, NULL } },
 	{ HSV, LAB, { vips_HSV2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, NULL } },
@@ -369,6 +389,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ HSV, RGB16, { vips_HSV2sRGB, vips_sRGB2RGB16, NULL } },
 	{ HSV, GREY16, { vips_HSV2sRGB, vips_sRGB2scRGB, vips_scRGB2BW16, NULL } },
 	{ HSV, YXY, { vips_HSV2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
+	{ HSV, OKLAB, { vips_HSV2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, NULL } },
+	{ HSV, OKLCH, { vips_HSV2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ BW, XYZ, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, NULL } },
 	{ BW, LAB, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, NULL } },
@@ -384,6 +406,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ BW, RGB16, { vips_BW2sRGB, vips_sRGB2RGB16, NULL } },
 	{ BW, GREY16, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2BW16, NULL } },
 	{ BW, YXY, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
+	{ BW, OKLAB, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, NULL } },
+	{ BW, OKLCH, { vips_BW2sRGB, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ RGB16, XYZ, { vips_sRGB2scRGB, vips_scRGB2XYZ, NULL } },
 	{ RGB16, LAB, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, NULL } },
@@ -399,6 +423,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ RGB16, RGB16, { vips_cast_ushort, NULL } },
 	{ RGB16, GREY16, { vips_sRGB2scRGB, vips_scRGB2BW16, NULL } },
 	{ RGB16, YXY, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
+	{ RGB16, OKLAB, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, NULL } },
+	{ RGB16, OKLCH, { vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ GREY16, XYZ, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, NULL } },
 	{ GREY16, LAB, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Lab, NULL } },
@@ -414,6 +440,8 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ GREY16, RGB16, { vips_GREY162RGB16, NULL } },
 	{ GREY16, GREY16, { vips_cast_ushort, NULL } },
 	{ GREY16, YXY, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
+	{ GREY16, OKLAB, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, NULL } },
+	{ GREY16, OKLCH, { vips_GREY162RGB16, vips_sRGB2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
 
 	{ YXY, XYZ, { vips_Yxy2XYZ, NULL } },
 	{ YXY, LAB, { vips_Yxy2XYZ, vips_XYZ2Lab, NULL } },
@@ -429,6 +457,42 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ YXY, RGB16, { vips_Yxy2XYZ, vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
 	{ YXY, GREY16, { vips_Yxy2XYZ, vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
 	{ YXY, YXY, { vips_cast_float, NULL } },
+	{ YXY, OKLAB, { vips_Yxy2XYZ, vips_XYZ2Oklab, NULL } },
+	{ YXY, OKLCH, { vips_Yxy2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
+
+	{ OKLAB, XYZ, { vips_Oklab2XYZ, NULL } },
+	{ OKLAB, LAB, { vips_Oklab2XYZ, vips_XYZ2Lab, NULL } },
+	{ OKLAB, LABQ, { vips_Oklab2XYZ, vips_XYZ2Lab, vips_Lab2LabQ, NULL } },
+	{ OKLAB, LCH, { vips_Oklab2XYZ, vips_XYZ2Lab, vips_Lab2LCh, NULL } },
+	{ OKLAB, CMC, { vips_Oklab2XYZ, vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ OKLAB, LABS, { vips_Oklab2XYZ, vips_XYZ2Lab, vips_Lab2LabS, NULL } },
+	{ OKLAB, CMYK, { vips_Oklab2XYZ, vips_XYZ2CMYK, NULL } },
+	{ OKLAB, scRGB, { vips_Oklab2XYZ, vips_XYZ2scRGB, NULL } },
+	{ OKLAB, sRGB, { vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, NULL } },
+	{ OKLAB, HSV, { vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, vips_sRGB2HSV, NULL } },
+	{ OKLAB, BW, { vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW, NULL } },
+	{ OKLAB, RGB16, { vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
+	{ OKLAB, GREY16, { vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
+	{ OKLAB, YXY, { vips_Oklab2XYZ, vips_XYZ2Yxy, NULL } },
+	{ OKLAB, OKLAB, { vips_cast_float, NULL } },
+	{ OKLAB, OKLCH, { vips_Oklab2Oklch, NULL } },
+
+	{ OKLCH, XYZ, { vips_Oklch2Oklab, vips_Oklab2XYZ, NULL } },
+	{ OKLCH, LAB, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2Lab, NULL } },
+	{ OKLCH, LABQ, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2Lab, vips_Lab2LabQ, NULL } },
+	{ OKLCH, LCH, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2Lab, vips_Lab2LCh, NULL } },
+	{ OKLCH, CMC, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2Lab, vips_Lab2LCh, vips_LCh2CMC, NULL } },
+	{ OKLCH, LABS, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2Lab, vips_Lab2LabS, NULL } },
+	{ OKLCH, CMYK, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2CMYK, NULL } },
+	{ OKLCH, scRGB, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2scRGB, NULL } },
+	{ OKLCH, sRGB, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, NULL } },
+	{ OKLCH, HSV, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2sRGB, vips_sRGB2HSV, NULL } },
+	{ OKLCH, BW, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW, NULL } },
+	{ OKLCH, RGB16, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2RGB16, NULL } },
+	{ OKLCH, GREY16, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2scRGB, vips_scRGB2BW16, NULL } },
+	{ OKLCH, YXY, { vips_Oklch2Oklab, vips_Oklab2XYZ, vips_XYZ2Yxy, NULL } },
+	{ OKLCH, OKLAB, { vips_Oklch2Oklab, NULL } },
+	{ OKLCH, OKLCH, { vips_cast_float, NULL } },
 
 };
 

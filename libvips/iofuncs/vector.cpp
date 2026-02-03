@@ -36,8 +36,8 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#include <stdlib.h>
-#include <math.h>
+#include <cstdlib>
+#include <cmath>
 
 #include <vips/vips.h>
 #include <vips/vector.h>
@@ -71,7 +71,7 @@
 gboolean vips__vector_enabled = TRUE;
 
 void
-vips__vector_init(void)
+vips__vector_init()
 {
 #ifdef HAVE_ORC
 	orc_init();
@@ -82,7 +82,7 @@ vips__vector_init(void)
 	const char *env;
 	if ((env = g_getenv("VIPS_VECTOR")))
 		return vips_vector_disable_targets(
-			g_ascii_strtoll(env, NULL, 0));
+			g_ascii_strtoll(env, nullptr, 0));
 
 	/* Look for the deprecated IM_NOVECTOR environment variable as well.
 	 */
@@ -95,7 +95,7 @@ vips__vector_init(void)
 }
 
 gboolean
-vips_vector_isenabled(void)
+vips_vector_isenabled()
 {
 #ifdef HAVE_HWY
 	return vips__vector_enabled && vips_vector_get_supported_targets() != 0;
@@ -120,7 +120,7 @@ vips_vector_set_enabled(gboolean enabled)
  * Returns: a bitfield of builtin targets.
  */
 gint64
-vips_vector_get_builtin_targets(void)
+vips_vector_get_builtin_targets()
 {
 #ifdef HAVE_HWY
 	return HWY_TARGETS;
@@ -132,16 +132,16 @@ vips_vector_get_builtin_targets(void)
 /**
  * vips_vector_get_supported_targets:
  *
- * Gets a bitfield of enabled targets that are supported on this CPU. The
+ * Gets a bitfield of builtin targets that are supported on this CPU. The
  * targets returned may change after calling [func@vector_disable_targets].
  *
  * Returns: a bitfield of supported CPU targets.
  */
 gint64
-vips_vector_get_supported_targets(void)
+vips_vector_get_supported_targets()
 {
 #ifdef HAVE_HWY
-	return hwy::SupportedTargets() & ~(HWY_EMU128 | HWY_SCALAR);
+	return hwy::SupportedTargets() & HWY_TARGETS & ~(HWY_EMU128 | HWY_SCALAR);
 #elif defined(HAVE_ORC)
 	return orc_target_get_default_flags(orc_target_get_default());
 #else

@@ -554,43 +554,16 @@ vips_icc_print_profile(const char *name, cmsHPROFILE profile)
 static gboolean
 vips_image_is_profile_compatible(VipsImage *image, int profile_bands)
 {
-	switch (image->Type) {
-	case VIPS_INTERPRETATION_B_W:
-	case VIPS_INTERPRETATION_GREY16:
-		/* The ICC profile needs to be monochrome.
-		 */
-		return profile_bands == 1;
+	int bands = vips_interpretation_bands(image->Type);
 
-	case VIPS_INTERPRETATION_XYZ:
-	case VIPS_INTERPRETATION_LAB:
-	case VIPS_INTERPRETATION_LABQ:
-	case VIPS_INTERPRETATION_RGB:
-	case VIPS_INTERPRETATION_CMC:
-	case VIPS_INTERPRETATION_LCH:
-	case VIPS_INTERPRETATION_LABS:
-	case VIPS_INTERPRETATION_sRGB:
-	case VIPS_INTERPRETATION_YXY:
-	case VIPS_INTERPRETATION_RGB16:
-	case VIPS_INTERPRETATION_scRGB:
-	case VIPS_INTERPRETATION_HSV:
-		/* The band count in the ICC profile must correspond to that of
-		 * the image, with a maximum of 3 bands allowed.
-		 */
-		return VIPS_MIN(3, image->Bands) == profile_bands;
-
-	case VIPS_INTERPRETATION_CMYK:
-		/* CMYK images can only be imported if the ICC-profile has at
-		 * least 4 bands thereby blocking the usage of RGB profiles.
-		 */
+	// CMYK can mean more than 4 bands for eg. hexachrome
+	if (image->Type == VIPS_INTERPRETATION_CMYK)
 		return profile_bands >= 4;
 
-	case VIPS_INTERPRETATION_MULTIBAND:
-	case VIPS_INTERPRETATION_HISTOGRAM:
-	case VIPS_INTERPRETATION_MATRIX:
-	case VIPS_INTERPRETATION_FOURIER:
-	default:
+	if (bands > 0)
+		return bands == profile_bands;
+	else
 		return image->Bands >= profile_bands;
-	}
 }
 
 /* Load a profile from a blob and check compatibility with image, intent and
@@ -1419,8 +1392,7 @@ vips_icc_present(void)
 int
 vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 {
-	vips_error("VipsIcc", "%s",
-		_("libvips configured without lcms support"));
+	vips_error("VipsIcc", "%s", _("libvips configured without lcms support"));
 
 	return -1;
 }

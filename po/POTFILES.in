@@ -115,6 +115,9 @@ libvips/colour/LabS2Lab.c
 libvips/colour/LabS2LabQ.c
 libvips/colour/LCh2Lab.c
 libvips/colour/LCh2UCS.c
+libvips/colour/Oklab2Oklch.c
+libvips/colour/Oklab2XYZ.c
+libvips/colour/Oklch2Oklab.c
 libvips/colour/profile_load.c
 libvips/colour/profiles.c
 libvips/colour/rad2float.c
@@ -124,8 +127,10 @@ libvips/colour/scRGB2XYZ.c
 libvips/colour/sRGB2HSV.c
 libvips/colour/sRGB2scRGB.c
 libvips/colour/UCS2LCh.c
+libvips/colour/uhdr2scRGB.c
 libvips/colour/XYZ2CMYK.c
 libvips/colour/XYZ2Lab.c
+libvips/colour/XYZ2Oklab.c
 libvips/colour/XYZ2scRGB.c
 libvips/colour/XYZ2Yxy.c
 libvips/colour/Yxy2XYZ.c
@@ -234,6 +239,7 @@ libvips/foreign/cairo.c
 libvips/foreign/cgifsave.c
 libvips/foreign/csvload.c
 libvips/foreign/csvsave.c
+libvips/foreign/dcrawload.c
 libvips/foreign/dzsave.c
 libvips/foreign/exif.c
 libvips/foreign/fits.c
@@ -285,6 +291,8 @@ libvips/foreign/tiff2vips.c
 libvips/foreign/tiff.c
 libvips/foreign/tiffload.c
 libvips/foreign/tiffsave.c
+libvips/foreign/uhdrload.c
+libvips/foreign/uhdrsave.c
 libvips/foreign/vips2jpeg.c
 libvips/foreign/vips2magick.c
 libvips/foreign/vips2tiff.c

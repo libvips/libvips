@@ -298,5 +298,6 @@ main(int argc, char **argv)
 
 	vips_shutdown();
 
+	vips__win32_terminate(0);
 	return 0;
 }

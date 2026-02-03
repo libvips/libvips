@@ -68,6 +68,16 @@
 #define VIPS_DEPRECATED_MACRO_FOR(f)
 #endif
 
+#if !defined(VIPS_DISABLE_DEPRECATION_WARNINGS) && \
+	(G_GNUC_CHECK_VERSION(6, 1) || \
+		__clang_major__ > 3 || (__clang_major__ == 3 && __clang_minor__ >= 0))
+#define VIPS_DEPRECATED_ENUMERATOR G_DEPRECATED
+#define VIPS_DEPRECATED_ENUMERATOR_FOR(f) G_DEPRECATED_FOR(f)
+#else
+#define VIPS_DEPRECATED_ENUMERATOR
+#define VIPS_DEPRECATED_ENUMERATOR_FOR(f)
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/
@@ -97,7 +107,7 @@ typedef enum {
 	VIPS_PRECISION_INTEGER,
 	VIPS_PRECISION_FLOAT,
 	VIPS_PRECISION_APPROXIMATE,
-	VIPS_PRECISION_LAST
+	VIPS_PRECISION_LAST	/*< skip >*/
 } VipsPrecision;
 
 #ifndef __GI_SCANNER__

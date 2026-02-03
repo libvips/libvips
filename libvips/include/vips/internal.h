@@ -166,6 +166,7 @@ void vips_threadset_free(VipsThreadset *set);
 
 VIPS_API void vips__worker_lock(GMutex *mutex);
 VIPS_API void vips__worker_cond_wait(GCond *cond, GMutex *mutex);
+gboolean vips__worker_exit(void);
 
 void vips__cache_init(void);
 
@@ -309,6 +310,8 @@ void vips_cimg_operation_init(void);
 guint64 vips__parse_size(const char *size_string);
 /* TODO(kleisauke): VIPS_API is required by vipsthumbnail.
  */
+VIPS_API
+int vips__substitutec(char *buf, size_t len, char c, char *sub);
 VIPS_API
 int vips__substitute(char *buf, size_t len, char *sub);
 

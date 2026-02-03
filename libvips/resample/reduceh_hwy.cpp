@@ -36,9 +36,9 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 
 #include <vips/vips.h>
 #include <vips/vector.h>
@@ -68,6 +68,12 @@ constexpr DI8 di8;
 constexpr DI16 di16;
 constexpr DI32 di32;
 
+#if HWY_IS_BIG_ENDIAN
+#define HWY_ENDIAN_LOHI(lo, hi) hi, lo
+#else
+#define HWY_ENDIAN_LOHI(lo, hi) lo, hi
+#endif
+
 HWY_ATTR void
 vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	int32_t n, int32_t width, int32_t bands,
@@ -82,21 +88,29 @@ vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	 * r0 g0 b0 r1 g1 b1 r2 g2 b2 r3 g3 b3
 	 */
 	const auto shuf3_lo = Dup128VecFromValues(di8,
-		0, -1, 3, -1, 1, -1, 4, -1,
-		2, -1, 5, -1, -1, -1, -1, -1);
+		HWY_ENDIAN_LOHI(0, -1), HWY_ENDIAN_LOHI(3, -1),
+		HWY_ENDIAN_LOHI(1, -1), HWY_ENDIAN_LOHI(4, -1),
+		HWY_ENDIAN_LOHI(2, -1), HWY_ENDIAN_LOHI(5, -1),
+		-1, -1, -1, -1);
 	const auto shuf3_hi = Dup128VecFromValues(di8,
-		6, -1, 9, -1, 7, -1, 10, -1,
-		8, -1, 11, -1, -1, -1, -1, -1);
+		HWY_ENDIAN_LOHI(6, -1), HWY_ENDIAN_LOHI(9, -1),
+		HWY_ENDIAN_LOHI(7, -1), HWY_ENDIAN_LOHI(10, -1),
+		HWY_ENDIAN_LOHI(8, -1), HWY_ENDIAN_LOHI(11, -1),
+		-1, -1, -1, -1);
 
 	/*  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
 	 * r0 g0 b0 a0 r1 g1 b1 a1 r2 g2 b2 a2 r3 g3 b3 a3
 	 */
 	const auto shuf4_lo = Dup128VecFromValues(di8,
-		0, -1, 4, -1, 1, -1, 5, -1,
-		2, -1, 6, -1, 3, -1, 7, -1);
+		HWY_ENDIAN_LOHI(0, -1), HWY_ENDIAN_LOHI(4, -1),
+		HWY_ENDIAN_LOHI(1, -1), HWY_ENDIAN_LOHI(5, -1),
+		HWY_ENDIAN_LOHI(2, -1), HWY_ENDIAN_LOHI(6, -1),
+		HWY_ENDIAN_LOHI(3, -1), HWY_ENDIAN_LOHI(7, -1));
 	const auto shuf4_hi = Dup128VecFromValues(di8,
-		8, -1, 12, -1, 9, -1, 13, -1,
-		10, -1, 14, -1, 11, -1, 15, -1);
+		HWY_ENDIAN_LOHI(8, -1), HWY_ENDIAN_LOHI(12, -1),
+		HWY_ENDIAN_LOHI(9, -1), HWY_ENDIAN_LOHI(13, -1),
+		HWY_ENDIAN_LOHI(10, -1), HWY_ENDIAN_LOHI(14, -1),
+		HWY_ENDIAN_LOHI(11, -1), HWY_ENDIAN_LOHI(15, -1));
 
 	const auto shuf_lo = BitCast(di16, bands == 3 ? shuf3_lo : shuf4_lo);
 	const auto shuf_hi = BitCast(di16, bands == 3 ? shuf3_hi : shuf4_hi);
@@ -105,24 +119,32 @@ vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 	 * r0 g0 b0 r1 g1 b1 r2 g2 b2 r3 g3 b3
 	 */
 	alignas(16) static constexpr int8_t tbl3_lo[16] = {
-		0, -1, 3, -1, 1, -1, 4, -1,
-		2, -1, 5, -1, -1, -1, -1, -1
+		HWY_ENDIAN_LOHI(0, -1), HWY_ENDIAN_LOHI(3, -1),
+		HWY_ENDIAN_LOHI(1, -1), HWY_ENDIAN_LOHI(4, -1),
+		HWY_ENDIAN_LOHI(2, -1), HWY_ENDIAN_LOHI(5, -1),
+		-1, -1, -1, -1
 	};
 	alignas(16) static constexpr int8_t tbl3_hi[16] = {
-		6, -1, 9, -1, 7, -1, 10, -1,
-		8, -1, 11, -1, -1, -1, -1, -1
+		HWY_ENDIAN_LOHI(6, -1), HWY_ENDIAN_LOHI(9, -1),
+		HWY_ENDIAN_LOHI(7, -1), HWY_ENDIAN_LOHI(10, -1),
+		HWY_ENDIAN_LOHI(8, -1), HWY_ENDIAN_LOHI(11, -1),
+		-1, -1 -1, -1
 	};
 
 	/*  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
 	 * r0 g0 b0 a0 r1 g1 b1 a1 r2 g2 b2 a2 r3 g3 b3 a3
 	 */
 	alignas(16) static constexpr int8_t tbl4_lo[16] = {
-		0, -1, 4, -1, 1, -1, 5, -1,
-		2, -1, 6, -1, 3, -1, 7, -1
+		HWY_ENDIAN_LOHI(0, -1), HWY_ENDIAN_LOHI(4, -1),
+		HWY_ENDIAN_LOHI(1, -1), HWY_ENDIAN_LOHI(5, -1),
+		HWY_ENDIAN_LOHI(2, -1), HWY_ENDIAN_LOHI(6, -1),
+		HWY_ENDIAN_LOHI(3, -1), HWY_ENDIAN_LOHI(7, -1)
 	};
 	alignas(16) static constexpr int8_t tbl4_hi[16] = {
-		8, -1, 12, -1, 9, -1, 13, -1,
-		10, -1, 14, -1, 11, -1, 15, -1
+		HWY_ENDIAN_LOHI(8, -1), HWY_ENDIAN_LOHI(12, -1),
+		HWY_ENDIAN_LOHI(9, -1), HWY_ENDIAN_LOHI(13, -1),
+		HWY_ENDIAN_LOHI(10, -1), HWY_ENDIAN_LOHI(14, -1),
+		HWY_ENDIAN_LOHI(11, -1), HWY_ENDIAN_LOHI(15, -1)
 	};
 
 	const auto shuf_lo = BitCast(di16,

@@ -123,7 +123,7 @@ typedef enum {
 	VIPS_FAIL_ON_TRUNCATED,
 	VIPS_FAIL_ON_ERROR,
 	VIPS_FAIL_ON_WARNING,
-	VIPS_FAIL_ON_LAST
+	VIPS_FAIL_ON_LAST	/*< skip >*/
 } VipsFailOn;
 
 #define VIPS_TYPE_FOREIGN_LOAD (vips_foreign_load_get_type())
@@ -362,7 +362,8 @@ typedef enum /*< flags >*/ {
  * @VIPS_FOREIGN_KEEP_XMP: keep XMP metadata
  * @VIPS_FOREIGN_KEEP_IPTC: keep IPTC metadata
  * @VIPS_FOREIGN_KEEP_ICC: keep ICC metadata
- * @VIPS_FOREIGN_KEEP_OTHER: keep other metadata (e.g. PNG comments and some TIFF tags)
+ * @VIPS_FOREIGN_KEEP_OTHER: keep other metadata (e.g. PNG comments)
+ * @VIPS_FOREIGN_KEEP_GAINMAP: keep the gainmap metadata
  * @VIPS_FOREIGN_KEEP_ALL: keep all metadata
  *
  * Which metadata to retain.
@@ -374,12 +375,14 @@ typedef enum /*< flags >*/ {
 	VIPS_FOREIGN_KEEP_IPTC = 1 << 2,
 	VIPS_FOREIGN_KEEP_ICC = 1 << 3,
 	VIPS_FOREIGN_KEEP_OTHER = 1 << 4,
+	VIPS_FOREIGN_KEEP_GAINMAP = 1 << 5,
 
 	VIPS_FOREIGN_KEEP_ALL = (VIPS_FOREIGN_KEEP_EXIF |
 		VIPS_FOREIGN_KEEP_XMP |
 		VIPS_FOREIGN_KEEP_IPTC |
 		VIPS_FOREIGN_KEEP_ICC |
-		VIPS_FOREIGN_KEEP_OTHER)
+		VIPS_FOREIGN_KEEP_OTHER |
+		VIPS_FOREIGN_KEEP_GAINMAP)
 } VipsForeignKeep;
 
 typedef struct _VipsForeignSave {
@@ -495,7 +498,7 @@ typedef enum {
 	VIPS_FOREIGN_SUBSAMPLE_AUTO,
 	VIPS_FOREIGN_SUBSAMPLE_ON,
 	VIPS_FOREIGN_SUBSAMPLE_OFF,
-	VIPS_FOREIGN_SUBSAMPLE_LAST
+	VIPS_FOREIGN_SUBSAMPLE_LAST	/*< skip >*/
 } VipsForeignSubsample;
 
 VIPS_API
@@ -539,7 +542,7 @@ typedef enum {
 	VIPS_FOREIGN_WEBP_PRESET_DRAWING,
 	VIPS_FOREIGN_WEBP_PRESET_ICON,
 	VIPS_FOREIGN_WEBP_PRESET_TEXT,
-	VIPS_FOREIGN_WEBP_PRESET_LAST
+	VIPS_FOREIGN_WEBP_PRESET_LAST	/*< skip >*/
 } VipsForeignWebpPreset;
 
 VIPS_API
@@ -597,7 +600,7 @@ typedef enum {
 	VIPS_FOREIGN_TIFF_COMPRESSION_WEBP,
 	VIPS_FOREIGN_TIFF_COMPRESSION_ZSTD,
 	VIPS_FOREIGN_TIFF_COMPRESSION_JP2K,
-	VIPS_FOREIGN_TIFF_COMPRESSION_LAST
+	VIPS_FOREIGN_TIFF_COMPRESSION_LAST	/*< skip >*/
 } VipsForeignTiffCompression;
 
 /**
@@ -613,7 +616,7 @@ typedef enum {
 	VIPS_FOREIGN_TIFF_PREDICTOR_NONE = 1,
 	VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL = 2,
 	VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT = 3,
-	VIPS_FOREIGN_TIFF_PREDICTOR_LAST
+	VIPS_FOREIGN_TIFF_PREDICTOR_LAST	/*< skip >*/
 } VipsForeignTiffPredictor;
 
 /**
@@ -626,7 +629,7 @@ typedef enum {
 typedef enum {
 	VIPS_FOREIGN_TIFF_RESUNIT_CM,
 	VIPS_FOREIGN_TIFF_RESUNIT_INCH,
-	VIPS_FOREIGN_TIFF_RESUNIT_LAST
+	VIPS_FOREIGN_TIFF_RESUNIT_LAST	/*< skip >*/
 } VipsForeignTiffResunit;
 
 VIPS_API
@@ -716,6 +719,9 @@ VIPS_API
 int vips_magickload_buffer(void *buf, size_t len, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_magickload_source(VipsSource *source, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 int vips_magicksave(VipsImage *in, const char *filename, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
@@ -790,11 +796,14 @@ typedef enum {
 	VIPS_FOREIGN_PPM_FORMAT_PPM,
 	VIPS_FOREIGN_PPM_FORMAT_PFM,
 	VIPS_FOREIGN_PPM_FORMAT_PNM,
-	VIPS_FOREIGN_PPM_FORMAT_LAST
+	VIPS_FOREIGN_PPM_FORMAT_LAST	/*< skip >*/
 } VipsForeignPpmFormat;
 
 VIPS_API
 int vips_ppmload(const char *filename, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_ppmload_buffer(void *buf, size_t len, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_ppmload_source(VipsSource *source, VipsImage **out, ...)
@@ -828,6 +837,29 @@ int vips_radsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 VIPS_API
 int vips_radsave_target(VipsImage *in, VipsTarget *target, ...)
 	G_GNUC_NULL_TERMINATED;
+
+/**
+ * VipsForeignPdfPageBox:
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_MEDIA: media box
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_CROP: crop box
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_TRIM: trim box
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_BLEED: bleed box
+ * @VIPS_FOREIGN_PDF_PAGE_BOX_ART: art box
+ *
+ * Each page of a PDF document can contain multiple page boxes,
+ * also known as boundary boxes or print marks.
+ *
+ * Each page box defines a region of the complete page that
+ * should be rendered. The default region is the crop box.
+ */
+typedef enum {
+	VIPS_FOREIGN_PDF_PAGE_BOX_MEDIA,
+	VIPS_FOREIGN_PDF_PAGE_BOX_CROP,
+	VIPS_FOREIGN_PDF_PAGE_BOX_TRIM,
+	VIPS_FOREIGN_PDF_PAGE_BOX_BLEED,
+	VIPS_FOREIGN_PDF_PAGE_BOX_ART,
+	VIPS_FOREIGN_PDF_PAGE_BOX_LAST /*< skip >*/
+} VipsForeignPdfPageBox;
 
 VIPS_API
 int vips_pdfload(const char *filename, VipsImage **out, ...)
@@ -870,6 +902,36 @@ int vips_gifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
 int vips_gifsave_target(VipsImage *in, VipsTarget *target, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_dcrawload(const char *filename, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_dcrawload_buffer(void *buf, size_t len, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_dcrawload_source(VipsSource *source, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_uhdrload(const char *filename, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_uhdrload_buffer(void *buf, size_t len, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_uhdrload_source(VipsSource *source, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
+int vips_uhdrsave(VipsImage *in, const char *filename, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_uhdrsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_uhdrsave_target(VipsImage *in, VipsTarget *target, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
@@ -955,7 +1017,7 @@ typedef enum {
 	VIPS_FOREIGN_DZ_LAYOUT_GOOGLE,
 	VIPS_FOREIGN_DZ_LAYOUT_IIIF,
 	VIPS_FOREIGN_DZ_LAYOUT_IIIF3,
-	VIPS_FOREIGN_DZ_LAYOUT_LAST
+	VIPS_FOREIGN_DZ_LAYOUT_LAST	/*< skip >*/
 } VipsForeignDzLayout;
 
 /**
@@ -970,7 +1032,7 @@ typedef enum {
 	VIPS_FOREIGN_DZ_DEPTH_ONEPIXEL,
 	VIPS_FOREIGN_DZ_DEPTH_ONETILE,
 	VIPS_FOREIGN_DZ_DEPTH_ONE,
-	VIPS_FOREIGN_DZ_DEPTH_LAST
+	VIPS_FOREIGN_DZ_DEPTH_LAST	/*< skip >*/
 } VipsForeignDzDepth;
 
 /**
@@ -979,13 +1041,13 @@ typedef enum {
  * @VIPS_FOREIGN_DZ_CONTAINER_ZIP: write tiles to a zip file
  * @VIPS_FOREIGN_DZ_CONTAINER_SZI: write to a szi file
  *
- * How many pyramid layers to create.
+ * What container format to use.
  */
 typedef enum {
 	VIPS_FOREIGN_DZ_CONTAINER_FS,
 	VIPS_FOREIGN_DZ_CONTAINER_ZIP,
 	VIPS_FOREIGN_DZ_CONTAINER_SZI,
-	VIPS_FOREIGN_DZ_CONTAINER_LAST
+	VIPS_FOREIGN_DZ_CONTAINER_LAST	/*< skip >*/
 } VipsForeignDzContainer;
 
 VIPS_API
@@ -1014,7 +1076,7 @@ typedef enum {
 	VIPS_FOREIGN_HEIF_COMPRESSION_AVC = 2,
 	VIPS_FOREIGN_HEIF_COMPRESSION_JPEG = 3,
 	VIPS_FOREIGN_HEIF_COMPRESSION_AV1 = 4,
-	VIPS_FOREIGN_HEIF_COMPRESSION_LAST
+	VIPS_FOREIGN_HEIF_COMPRESSION_LAST	/*< skip >*/
 } VipsForeignHeifCompression;
 
 /**
@@ -1036,7 +1098,7 @@ typedef enum {
 	VIPS_FOREIGN_HEIF_ENCODER_RAV1E,
 	VIPS_FOREIGN_HEIF_ENCODER_SVT,
 	VIPS_FOREIGN_HEIF_ENCODER_X265,
-	VIPS_FOREIGN_HEIF_ENCODER_LAST
+	VIPS_FOREIGN_HEIF_ENCODER_LAST	/*< skip >*/
 } VipsForeignHeifEncoder;
 
 #ifdef __cplusplus

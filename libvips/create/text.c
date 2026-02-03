@@ -381,7 +381,7 @@ vips_text_autofit(VipsText *text)
 static void *
 vips_text_init_once(void *client)
 {
-	vips_text_fontmap = pango_cairo_font_map_new();;
+	vips_text_fontmap = pango_cairo_font_map_new();
 	vips_text_fontfiles = g_hash_table_new(g_str_hash, g_str_equal);
 
 	return NULL;
@@ -416,6 +416,15 @@ vips_text_build(VipsObject *object)
 
 	text->context = pango_font_map_create_context(vips_text_fontmap);
 
+	if (text->rgba) {
+		/* Prevent use of subpixel anti-aliasing to avoid artefacts.
+		 */
+		cairo_font_options_t *opts = cairo_font_options_create();
+		cairo_font_options_set_antialias(opts, CAIRO_ANTIALIAS_GRAY);
+		pango_cairo_context_set_font_options(text->context, opts);
+		cairo_font_options_destroy(opts);
+	}
+
 	/* Because we set resolution on vips_text_fontmap and that's shared
 	 * between all vips_text instances, we must lock all the way to the
 	 * end of text rendering.
@@ -424,7 +433,7 @@ vips_text_build(VipsObject *object)
 
 #ifdef HAVE_FONTCONFIG
 	if (text->fontfile &&
-		!g_hash_table_lookup(vips_text_fontfiles, text->fontfile)) {
+		!g_hash_table_contains(vips_text_fontfiles, text->fontfile)) {
 		/* This can fail if you eg. add the same font from two
 		 * different files. Just warn.
 		 */
@@ -433,8 +442,7 @@ vips_text_build(VipsObject *object)
 			g_warning("unable to load fontfile \"%s\"",
 				text->fontfile);
 		g_hash_table_insert(vips_text_fontfiles,
-			text->fontfile,
-			g_strdup(text->fontfile));
+			g_strdup(text->fontfile), NULL);
 
 		/* We need to inform that pango should invalidate its
 		 * fontconfig cache whenever any changes are made.

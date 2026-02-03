@@ -40,9 +40,9 @@
 #endif /*HAVE_CONFIG_H*/
 #include <glib/gi18n-lib.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cmath>
 
 #include <vips/vips.h>
 #include <vips/vector.h>
@@ -66,8 +66,9 @@ using DI32 = ScalableTag<int32_t>;
 using DI16 = ScalableTag<int16_t>;
 using DU8 = ScalableTag<uint8_t>;
 constexpr DU8 du8;
-constexpr Rebind<uint8_t, DI16> du8x16;
+#if HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE)
 constexpr Rebind<uint8_t, DI32> du8x32;
+#endif
 constexpr DI16 di16;
 constexpr DI32 di32;
 
@@ -75,6 +76,17 @@ constexpr DI32 di32;
 	(HWY_ARCH_RVV || (HWY_ARCH_ARM_A64 && HWY_TARGET <= HWY_SVE))
 #define InterleaveLower InterleaveWholeLower
 #define InterleaveUpper InterleaveWholeUpper
+#endif
+
+// Compat for Highway versions < 1.3.0
+#ifndef HWY_LANES_CONSTEXPR
+#define HWY_LANES_CONSTEXPR
+#endif
+
+#if HWY_IS_BIG_ENDIAN
+#define HWY_ENDIAN_LOHI(lo, hi) hi, lo
+#else
+#define HWY_ENDIAN_LOHI(lo, hi) lo, hi
 #endif
 
 HWY_ATTR void
@@ -91,7 +103,7 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 	 */
 	const int32_t N = 16;
 #else
-	const int32_t N = Lanes(du8);
+	HWY_LANES_CONSTEXPR int32_t N = Lanes(du8);
 #endif
 
 	const auto zero = Zero(du8);
@@ -140,24 +152,28 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				auto bottom = LoadU(du8, /* bottom line */
 					p + offsets[i + 1]);
 
-				auto source = InterleaveLower(top, bottom);
-				auto pix = BitCast(di16, InterleaveLower(source, zero));
+				auto source = InterleaveLower(HWY_ENDIAN_LOHI(top, bottom));
+				auto pix = BitCast(di16,
+					InterleaveLower(HWY_ENDIAN_LOHI(source, zero)));
 
 				sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
 					/* byref */ sum1);
 
-				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+				pix = BitCast(di16,
+					InterleaveUpper(du8, HWY_ENDIAN_LOHI(source, zero)));
 
 				sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 					/* byref */ sum3);
 
-				source = InterleaveUpper(du8, top, bottom);
-				pix = BitCast(di16, InterleaveLower(source, zero));
+				source = InterleaveUpper(du8, HWY_ENDIAN_LOHI(top, bottom));
+				pix = BitCast(di16,
+					InterleaveLower(HWY_ENDIAN_LOHI(source, zero)));
 
 				sum4 = ReorderWidenMulAccumulate(di32, pix, mmk, sum4,
 					/* byref */ sum5);
 
-				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+				pix = BitCast(di16,
+					InterleaveUpper(du8, HWY_ENDIAN_LOHI(source, zero)));
 
 				sum6 = ReorderWidenMulAccumulate(di32, pix, mmk, sum6,
 					/* byref */ sum7);
@@ -169,24 +185,28 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 				 */
 				auto top = LoadU(du8, p + offsets[i]);
 
-				auto source = InterleaveLower(top, zero);
-				auto pix = BitCast(di16, InterleaveLower(source, zero));
+				auto source = InterleaveLower(HWY_ENDIAN_LOHI(top, zero));
+				auto pix = BitCast(di16,
+					InterleaveLower(HWY_ENDIAN_LOHI(source, zero)));
 
 				sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
 					/* byref */ sum1);
 
-				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+				pix = BitCast(di16,
+					InterleaveUpper(du8, HWY_ENDIAN_LOHI(source, zero)));
 
 				sum2 = ReorderWidenMulAccumulate(di32, pix, mmk, sum2,
 					/* byref */ sum3);
 
-				source = InterleaveUpper(du8, top, zero);
-				pix = BitCast(di16, InterleaveLower(source, zero));
+				source = InterleaveUpper(du8, HWY_ENDIAN_LOHI(top, zero));
+				pix = BitCast(di16,
+					InterleaveLower(HWY_ENDIAN_LOHI(source, zero)));
 
 				sum4 = ReorderWidenMulAccumulate(di32, pix, mmk, sum4,
 					/* byref */ sum5);
 
-				pix = BitCast(di16, InterleaveUpper(du8, source, zero));
+				pix = BitCast(di16,
+					InterleaveUpper(du8, HWY_ENDIAN_LOHI(source, zero)));
 
 				sum6 = ReorderWidenMulAccumulate(di32, pix, mmk, sum6,
 					/* byref */ sum7);
@@ -242,64 +262,12 @@ vips_convi_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 		 * proceed one by one.
 		 */
 		for (; x < ne; ++x) {
-#if HWY_ARCH_X86 || HWY_ARCH_WASM || HWY_TARGET == HWY_EMU128
-			/* Initialize the sum with the addition on x86 and Wasm,
-			 * avoids an extra add instruction. Should be safe given
-			 * that only one accumulator is used.
-			 */
-			auto sum0 = v_exp;
-#else
-			auto sum0 = Zero(di32);
-#endif
-			auto sum1 = Zero(di32); /* unused on x86 and Wasm */
+			int32_t sum = 1 << (exp - 1);
 
-			int32_t i = 0;
-			for (; i + 2 <= nnz; i += 2) {
-				/* Load two coefficients at once.
-				 */
-				auto mmk = BitCast(di16,
-					Set(di32, *(int32_t *) &mant[i]));
+			for (int32_t i = 0; i < nnz; ++i)
+				sum += p[offsets[i]] * mant[i];
 
-				/* Load with an offset.
-				 */
-				auto top = LoadU(du8x16, /* top line */
-					p + offsets[i]);
-				auto bottom = LoadU(du8x16, /* bottom line */
-					p + offsets[i + 1]);
-
-				auto source = InterleaveLower(top, bottom);
-				auto pix = PromoteTo(di16, source);
-
-				sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
-					/* byref */ sum1);
-			}
-			for (; i < nnz; ++i) {
-				auto mmk = Set(di16, mant[i]);
-
-				/* Load with an offset.
-				 */
-				auto top = LoadU(du8x32, p + offsets[i]);
-
-				auto source = PromoteTo(di32, top);
-				auto pix = BitCast(di16, source);
-
-				sum0 = ReorderWidenMulAccumulate(di32, pix, mmk, sum0,
-					/* byref */ sum1);
-			}
-
-			sum0 = RearrangeToOddPlusEven(sum0, sum1);
-
-#if !(HWY_ARCH_X86 || HWY_ARCH_WASM || HWY_TARGET == HWY_EMU128)
-			sum0 = Add(sum0, v_exp);
-#endif
-
-			/* The final 32->8 conversion.
-			 */
-			sum0 = ShiftRightSame(sum0, exp);
-			sum0 = Add(sum0, v_offset);
-
-			auto demoted = DemoteTo(du8x32, sum0);
-			q[x] = GetLane(demoted);
+			q[x] = VIPS_CLIP(0, (sum >> exp) + offset, UCHAR_MAX);
 			p += 1;
 		}
 	}

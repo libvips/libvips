@@ -480,7 +480,6 @@ class TestCreate:
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
 
-    @skip_if_no("worley")
     def test_worley(self):
         im = pyvips.Image.worley(512, 512)
         assert im.width == 512
@@ -488,7 +487,6 @@ class TestCreate:
         assert im.bands == 1
         assert im.format == pyvips.BandFormat.FLOAT
 
-    @skip_if_no("perlin")
     def test_perlin(self):
         im = pyvips.Image.perlin(512, 512)
         assert im.width == 512

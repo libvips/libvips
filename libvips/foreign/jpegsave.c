@@ -59,6 +59,9 @@
 typedef struct _VipsForeignSaveJpeg {
 	VipsForeignSave parent_object;
 
+	// set by subclasses
+	VipsTarget *target;
+
 	/* Quality factor.
 	 */
 	int Q;
@@ -110,6 +113,16 @@ typedef VipsForeignSaveClass VipsForeignSaveJpegClass;
 G_DEFINE_ABSTRACT_TYPE(VipsForeignSaveJpeg, vips_foreign_save_jpeg,
 	VIPS_TYPE_FOREIGN_SAVE);
 
+static void
+vips_foreign_save_jpeg_dispose(GObject *gobject)
+{
+	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) gobject;
+
+	VIPS_UNREF(jpeg->target);
+
+	G_OBJECT_CLASS(vips_foreign_save_jpeg_parent_class)->dispose(gobject);
+}
+
 #define UC VIPS_FORMAT_UCHAR
 
 /* Type promotion for save ... just always go to uchar.
@@ -122,6 +135,7 @@ static VipsBandFormat bandfmt_jpeg[10] = {
 static int
 vips_foreign_save_jpeg_build(VipsObject *object)
 {
+	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_parent_class)->build(object))
@@ -131,9 +145,42 @@ vips_foreign_save_jpeg_build(VipsObject *object)
 	 * new code should use subsample_mode
 	 */
 	if (vips_object_argument_isset(object, "no_subsample"))
-		jpeg->subsample_mode = jpeg->no_subsample
-			? VIPS_FOREIGN_SUBSAMPLE_OFF
-			: VIPS_FOREIGN_SUBSAMPLE_AUTO;
+		jpeg->subsample_mode = jpeg->no_subsample ?
+			VIPS_FOREIGN_SUBSAMPLE_OFF : VIPS_FOREIGN_SUBSAMPLE_AUTO;
+
+	if (vips_image_get_typeof(save->ready, "gainmap-data") ||
+		save->ready->Type == VIPS_INTERPRETATION_scRGB) {
+		/* Pass on to uhdrsave.
+		 */
+		if (vips_uhdrsave_target(save->ready, jpeg->target,
+			"Q", jpeg->Q,
+			NULL))
+			return -1;
+	}
+	else {
+		/* This is a SAVEABLE_ANY image, we need mono, rgb, cmyk for JPEG
+		 * save.
+		 */
+		VipsImage *x;
+		if (vips__foreign_convert_saveable(save->ready, &x,
+			VIPS_FOREIGN_SAVEABLE_MONO |
+				VIPS_FOREIGN_SAVEABLE_RGB |
+				VIPS_FOREIGN_SAVEABLE_CMYK,
+			bandfmt_jpeg, VIPS_FOREIGN_CODING_NONE, save->background))
+			return -1;
+
+		if (vips__jpeg_write_target(x, jpeg->target,
+				jpeg->Q, save->profile, jpeg->optimize_coding,
+				jpeg->interlace,
+				jpeg->trellis_quant, jpeg->overshoot_deringing,
+				jpeg->optimize_scans, jpeg->quant_table,
+				jpeg->subsample_mode, jpeg->restart_interval)) {
+			VIPS_UNREF(x);
+			return -1;
+		}
+
+		VIPS_UNREF(x);
+	}
 
 	return 0;
 }
@@ -148,20 +195,19 @@ vips_foreign_save_jpeg_class_init(VipsForeignSaveJpegClass *class)
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
+	gobject_class->dispose = vips_foreign_save_jpeg_dispose;
 
 	object_class->nickname = "jpegsave_base";
-	object_class->description = _("save jpeg");
+	object_class->description = _("save as jpeg");
 	object_class->build = vips_foreign_save_jpeg_build;
 
 	foreign_class->suffs = vips__jpeg_suffs;
 
-	/* See also vips_foreign_save_tiff_build() when saving JPEG in TIFF.
+	/* We need to let scRGB through in case this is an scRGB image.
+	 *
+	 * See also vips_foreign_save_tiff_build() when saving JPEG in TIFF.
 	 */
-	save_class->saveable =
-		VIPS_FOREIGN_SAVEABLE_MONO |
-		VIPS_FOREIGN_SAVEABLE_RGB |
-		VIPS_FOREIGN_SAVEABLE_CMYK;
-	save_class->format_table = bandfmt_jpeg;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
 
 	VIPS_ARG_INT(class, "Q", 10,
 		_("Q"),
@@ -257,21 +303,14 @@ G_DEFINE_TYPE(VipsForeignSaveJpegTarget, vips_foreign_save_jpeg_target,
 static int
 vips_foreign_save_jpeg_target_build(VipsObject *object)
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
-	VipsForeignSaveJpegTarget *target =
-		(VipsForeignSaveJpegTarget *) object;
+	VipsForeignSaveJpegTarget *target = (VipsForeignSaveJpegTarget *) object;
+
+	jpeg->target = target->target;
+	g_object_ref(jpeg->target);
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_target_parent_class)
 			->build(object))
-		return -1;
-
-	if (vips__jpeg_write_target(save->ready, target->target,
-			jpeg->Q, save->profile, jpeg->optimize_coding,
-			jpeg->interlace,
-			jpeg->trellis_quant, jpeg->overshoot_deringing,
-			jpeg->optimize_scans, jpeg->quant_table,
-			jpeg->subsample_mode, jpeg->restart_interval))
 		return -1;
 
 	return 0;
@@ -288,7 +327,6 @@ vips_foreign_save_jpeg_target_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "jpegsave_target";
-	object_class->description = _("save image to jpeg target");
 	object_class->build = vips_foreign_save_jpeg_target_build;
 
 	VIPS_ARG_OBJECT(class, "target", 1,
@@ -321,28 +359,15 @@ G_DEFINE_TYPE(VipsForeignSaveJpegFile, vips_foreign_save_jpeg_file,
 static int
 vips_foreign_save_jpeg_file_build(VipsObject *object)
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegFile *file = (VipsForeignSaveJpegFile *) object;
 
-	VipsTarget *target;
+	if (!(jpeg->target = vips_target_new_to_file(file->filename)))
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_file_parent_class)
 			->build(object))
 		return -1;
-
-	if (!(target = vips_target_new_to_file(file->filename)))
-		return -1;
-	if (vips__jpeg_write_target(save->ready, target,
-			jpeg->Q, save->profile, jpeg->optimize_coding,
-			jpeg->interlace,
-			jpeg->trellis_quant, jpeg->overshoot_deringing,
-			jpeg->optimize_scans, jpeg->quant_table,
-			jpeg->subsample_mode, jpeg->restart_interval)) {
-		VIPS_UNREF(target);
-		return -1;
-	}
-	VIPS_UNREF(target);
 
 	return 0;
 }
@@ -357,7 +382,6 @@ vips_foreign_save_jpeg_file_class_init(VipsForeignSaveJpegFileClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "jpegsave";
-	object_class->description = _("save image to jpeg file");
 	object_class->build = vips_foreign_save_jpeg_file_build;
 
 	VIPS_ARG_STRING(class, "filename", 1,
@@ -390,36 +414,20 @@ G_DEFINE_TYPE(VipsForeignSaveJpegBuffer, vips_foreign_save_jpeg_buffer,
 static int
 vips_foreign_save_jpeg_buffer_build(VipsObject *object)
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
-	VipsForeignSaveJpegBuffer *buffer =
-		(VipsForeignSaveJpegBuffer *) object;
+	VipsForeignSaveJpegBuffer *buffer = (VipsForeignSaveJpegBuffer *) object;
 
-	VipsTarget *target;
-	VipsBlob *blob;
+	if (!(jpeg->target = vips_target_new_to_memory()))
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_buffer_parent_class)
 			->build(object))
 		return -1;
 
-	if (!(target = vips_target_new_to_memory()))
-		return -1;
-
-	if (vips__jpeg_write_target(save->ready, target,
-			jpeg->Q, save->profile, jpeg->optimize_coding,
-			jpeg->interlace,
-			jpeg->trellis_quant, jpeg->overshoot_deringing,
-			jpeg->optimize_scans, jpeg->quant_table,
-			jpeg->subsample_mode, jpeg->restart_interval)) {
-		VIPS_UNREF(target);
-		return -1;
-	}
-
-	g_object_get(target, "blob", &blob, NULL);
+	VipsBlob *blob;
+	g_object_get(jpeg->target, "blob", &blob, NULL);
 	g_object_set(buffer, "buffer", blob, NULL);
 	vips_area_unref(VIPS_AREA(blob));
-
-	VIPS_UNREF(target);
 
 	return 0;
 }
@@ -435,7 +443,6 @@ vips_foreign_save_jpeg_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "jpegsave_buffer";
-	object_class->description = _("save image to jpeg buffer");
 	object_class->build = vips_foreign_save_jpeg_buffer_build;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,
@@ -464,33 +471,20 @@ G_DEFINE_TYPE(VipsForeignSaveJpegMime, vips_foreign_save_jpeg_mime,
 static int
 vips_foreign_save_jpeg_mime_build(VipsObject *object)
 {
-	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 
-	VipsTarget *target;
-	VipsBlob *blob;
-	const unsigned char *obuf;
-	size_t olen;
+	if (!(jpeg->target = vips_target_new_to_memory()))
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_mime_parent_class)
 			->build(object))
 		return -1;
 
-	if (!(target = vips_target_new_to_memory()))
-		return -1;
+	VipsBlob *blob;
+	g_object_get(jpeg->target, "blob", &blob, NULL);
 
-	if (vips__jpeg_write_target(save->ready, target,
-			jpeg->Q, save->profile, jpeg->optimize_coding,
-			jpeg->interlace,
-			jpeg->trellis_quant, jpeg->overshoot_deringing,
-			jpeg->optimize_scans, jpeg->quant_table,
-			jpeg->subsample_mode, jpeg->restart_interval)) {
-		VIPS_UNREF(target);
-		return -1;
-	}
-
-	g_object_get(target, "blob", &blob, NULL);
-
+	const unsigned char *obuf;
+	size_t olen;
 	obuf = vips_blob_get(blob, &olen);
 	printf("Content-length: %zu\r\n", olen);
 	printf("Content-type: image/jpeg\r\n");
@@ -499,8 +493,6 @@ vips_foreign_save_jpeg_mime_build(VipsObject *object)
 	fflush(stdout);
 
 	vips_area_unref(VIPS_AREA(blob));
-
-	VIPS_UNREF(target);
 
 	return 0;
 }

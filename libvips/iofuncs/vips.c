@@ -178,10 +178,9 @@ vips__open_image_write(const char *filename, gboolean temp)
 		g_info("vips__open_image_write: opening with O_TMPFILE");
 		dirname = g_path_get_dirname(filename);
 		fd = vips_tracked_open(dirname, O_TMPFILE | O_RDWR, 0644);
-		g_free(dirname);
-
 		if (fd < 0)
 			g_info("vips__open_image_write: O_TMPFILE failed!");
+		g_free(dirname);
 	}
 #endif /*O_TMPFILE*/
 
@@ -359,13 +358,11 @@ vips__read_header_bytes(VipsImage *im, unsigned char *from)
 	 */
 	value = g_enum_get_value(g_type_class_ref(VIPS_TYPE_INTERPRETATION),
 		im->Type);
-	if (!value ||
-		strcmp(value->value_nick, "last") == 0)
+	if (!value)
 		im->Type = VIPS_INTERPRETATION_ERROR;
 	value = g_enum_get_value(g_type_class_ref(VIPS_TYPE_CODING),
 		im->Coding);
-	if (!value ||
-		strcmp(value->value_nick, "last") == 0)
+	if (!value)
 		im->Coding = VIPS_CODING_ERROR;
 
 	/* Offset, Res, etc. don't affect vips file layout, just
@@ -1024,8 +1021,7 @@ vips_image_open_input(VipsImage *image)
 			VIPS_SIZEOF_HEADER ||
 		vips__read_header_bytes(image, header)) {
 		vips_error_system(errno, "VipsImage",
-			_("unable to read header for \"%s\""),
-			image->filename);
+			_("unable to read header for \"%s\""), image->filename);
 		return -1;
 	}
 
@@ -1050,8 +1046,7 @@ vips_image_open_input(VipsImage *image)
 	 * harmless.
 	 */
 	if (readhist(image)) {
-		g_warning("error reading vips image metadata: %s",
-			vips_error_buffer());
+		g_warning("error reading vips image metadata: %s", vips_error_buffer());
 		vips_error_clear();
 	}
 

@@ -54,8 +54,12 @@ API docs each function links to for more details.
 | `LabQ2sRGB` | Convert a labq image to srgb | [method@Image.LabQ2sRGB] |
 | `LabS2Lab` | Transform signed short lab to float | [method@Image.LabS2Lab] |
 | `LabS2LabQ` | Transform short lab to labq coding | [method@Image.LabS2LabQ] |
+| `Oklab2Oklch` | Transform oklab to oklch | [method@Image.Oklab2Oklch] |
+| `Oklab2XYZ` | Transform oklab to xyz | [method@Image.Oklab2XYZ] |
+| `Oklch2Oklab` | Transform oklch to oklab | [method@Image.Oklch2Oklab] |
 | `XYZ2CMYK` | Transform xyz to cmyk | [method@Image.XYZ2CMYK] |
 | `XYZ2Lab` | Transform xyz to lab | [method@Image.XYZ2Lab] |
+| `XYZ2Oklab` | Transform xyz to oklab | [method@Image.XYZ2Oklab] |
 | `XYZ2Yxy` | Transform xyz to yxy | [method@Image.XYZ2Yxy] |
 | `XYZ2scRGB` | Transform xyz to scrgb | [method@Image.XYZ2scRGB] |
 | `Yxy2XYZ` | Transform yxy to xyz | [method@Image.Yxy2XYZ] |
@@ -106,6 +110,9 @@ API docs each function links to for more details.
 | `dE00` | Calculate de00 | [method@Image.dE00] |
 | `dE76` | Calculate de76 | [method@Image.dE76] |
 | `dECMC` | Calculate decmc | [method@Image.dECMC] |
+| `dcrawload` | Load raw camera files | [ctor@Image.dcrawload] |
+| `dcrawload_buffer` | Load raw camera files | [ctor@Image.dcrawload_buffer] |
+| `dcrawload_source` | Load raw camera files | [ctor@Image.dcrawload_source] |
 | `deviate` | Find image standard deviation | [method@Image.deviate] |
 | `divide` | Divide two images | [method@Image.divide] |
 | `draw_circle` | Draw a circle on an image | [method@Image.draw_circle], [method@Image.draw_circle1] |
@@ -188,10 +195,10 @@ API docs each function links to for more details.
 | `jpegload` | Load jpeg from file | [ctor@Image.jpegload] |
 | `jpegload_buffer` | Load jpeg from buffer | [ctor@Image.jpegload_buffer] |
 | `jpegload_source` | Load image from jpeg source | [ctor@Image.jpegload_source] |
-| `jpegsave` | Save image to jpeg file | [method@Image.jpegsave] |
-| `jpegsave_buffer` | Save image to jpeg buffer | [method@Image.jpegsave_buffer] |
+| `jpegsave` | Save as jpeg | [method@Image.jpegsave] |
+| `jpegsave_buffer` | Save as jpeg | [method@Image.jpegsave_buffer] |
 | `jpegsave_mime` | Save image to jpeg mime | [method@Image.jpegsave_mime] |
-| `jpegsave_target` | Save image to jpeg target | [method@Image.jpegsave_target] |
+| `jpegsave_target` | Save as jpeg | [method@Image.jpegsave_target] |
 | `jxlload` | Load jpeg-xl image | [ctor@Image.jxlload] |
 | `jxlload_buffer` | Load jpeg-xl image | [ctor@Image.jxlload_buffer] |
 | `jxlload_source` | Load jpeg-xl image | [ctor@Image.jxlload_source] |
@@ -204,6 +211,7 @@ API docs each function links to for more details.
 | `logmat` | Make a laplacian of gaussian image | [ctor@Image.logmat] |
 | `magickload` | Load file with imagemagick | [ctor@Image.magickload] |
 | `magickload_buffer` | Load buffer with imagemagick | [ctor@Image.magickload_buffer] |
+| `magickload_source` | Load source with imagemagick | [ctor@Image.magickload_source] |
 | `magicksave` | Save file with imagemagick | [method@Image.magicksave] |
 | `magicksave_buffer` | Save image to magick buffer | [method@Image.magicksave_buffer] |
 | `mapim` | Resample with a map image | [method@Image.mapim] |
@@ -260,7 +268,8 @@ API docs each function links to for more details.
 | `pngsave_buffer` | Save image to buffer as png | [method@Image.pngsave_buffer] |
 | `pngsave_target` | Save image to target as png | [method@Image.pngsave_target] |
 | `ppmload` | Load ppm from file | [ctor@Image.ppmload] |
-| `ppmload_source` | Load ppm base class | [ctor@Image.ppmload_source] |
+| `ppmload_buffer` | Load ppm from buffer | [ctor@Image.ppmload_buffer] |
+| `ppmload_source` | Load ppm from source | [ctor@Image.ppmload_source] |
 | `ppmsave` | Save image to ppm file | [method@Image.ppmsave] |
 | `ppmsave_target` | Save to ppm | [method@Image.ppmsave_target] |
 | `premultiply` | Premultiply image alpha | [method@Image.premultiply] |
@@ -340,6 +349,13 @@ API docs each function links to for more details.
 | `tilecache` | Cache an image as a set of tiles | [method@Image.tilecache] |
 | `tonelut` | Build a look-up table | [ctor@Image.tonelut] |
 | `transpose3d` | Transpose3d an image | [method@Image.transpose3d] |
+| `uhdr2scRGB` | Transform uhdr to scrgb | [method@Image.uhdr2scRGB] |
+| `uhdrload` | Load a uhdr image | [ctor@Image.uhdrload] |
+| `uhdrload_buffer` | Load a uhdr image | [ctor@Image.uhdrload_buffer] |
+| `uhdrload_source` | Load a uhdr image | [ctor@Image.uhdrload_source] |
+| `uhdrsave` | Save image in ultrahdr format | [method@Image.uhdrsave] |
+| `uhdrsave_buffer` | Save image in ultrahdr format | [method@Image.uhdrsave_buffer] |
+| `uhdrsave_target` | Save image in ultrahdr format | [method@Image.uhdrsave_target] |
 | `unpremultiply` | Unpremultiply image alpha | [method@Image.unpremultiply] |
 | `vipsload` | Load vips from file | [ctor@Image.vipsload] |
 | `vipsload_source` | Load vips from source | [ctor@Image.vipsload_source] |

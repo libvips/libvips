@@ -1,124 +1,276 @@
+## The suppressions below match only the top frame of report stacks
+
+# using thread-local regions in generate functions is fine
+race_top:vips_*_gen
+
+# these helpers are used by the above generate functions
+race_top:make_firstlast
+race_top:reduce_sum
+race_top:vips_combine_pixels3
+race_top:vips_composite_base_select
+race_top:vips_convi_uchar_hwy
+race_top:vips_embed_base_find_edge
+race_top:vips_embed_base_paint_edge
+race_top:vips_rect_includesrect
+race_top:vips_rect_intersectrect
+race_top:vips_reduceh_uchar_hwy
+race_top:vips_reducev_uchar_hwy
+race_top:vips_region_paint_pel
+race_top:vips__transform_invert_point
+
+# unlocked access to image/region fields, which is fine
+race_top:buffer_move
+race_top:vips_buffer_unref_ref
+race_top:vips_image_decode_predict
+race_top:vips_image_iskilled
+race_top:vips_region_buffer
+race_top:vips_region_copy
+race_top:vips_region_image
+race_top:vips_region_prepare
+race_top:vips__image_copy_fields_array
+race_top:vips__region_check_ownership
+
+# unlocked access/assignment to ->read_position, which is fine
+race_top:vips_source_read
+race_top:vips_source_seek
+
 # an unlocked FALSE/TRUE assignment, which is fine
-race:vips_region_prepare_to
-race:render_kill
-race:render_reschedule
+race_top:vips_image_set_kill
+race_top:vips_object_set_property
+race_top:vips_region_region
+race_top:vips_source_decode
+race_top:vips_source_rewind
+race_top:vips__demand_hint_array
 
 # an unlocked NULL assignment, which is fine
-race:render_thread
+race_top:vips_image_pio_input
+race_top:vips_image_wio_input
 
-# unlocked read of pixels-processed-so-far, which is fine
-race:vips_sink_base_progress
-race:wbuffer_allocate_fn
-race:sink_memory_area_allocate_fn
+# an unlocked singleton init of ->argument_table, which is fine
+race_top:vips_argument_init
 
-# use of *stop from generate funcs is unlocked, but fine
-race:vips_threadpool_run
+# an unlocked increment of ->local_memory, which is fine
+race_top:vips_malloc
+
+# buffers are thread-local (held in a GPrivate), so non-racy
+race_top:vips_buffer_free
+race_top:vips_buffer_undone
+
+# local static variables ought to be non-racy
+race_top:vips_getpagesize
+race_top:vips_get_disc_threshold
+
+# callers are expected to call this once during startup, so non-racy
+race_top:vips_cache_set_max
+race_top:vips_cache_set_max_files
+race_top:vips_cache_set_max_mem
+race_top:vips_concurrency_set
+race_top:vips_vector_set_enabled
 
 # guarded with vips_tracked_mutex, so it should be fine
-race:vips_tracked_mem
-race:vips_tracked_allocs
-race:vips_tracked_files
+race_top:vips_tracked_aligned_alloc
+race_top:vips_tracked_aligned_free
+race_top:vips_tracked_close
+race_top:vips_tracked_get_files
+race_top:vips_tracked_get_mem
+race_top:vips_tracked_malloc
+race_top:vips_tracked_open
 
-# guarded with set->lock, so it should be fine
-race:vips_threadset_work
-race:vips_threadset_add
+# guarded with vips__meta_lock, so it should be fine
+race_top:meta_init
+race_top:meta_new
 
-# guarded with vips_cache_lock, so it should be fine
-race:vips_cache_table
-race:vips_cache_drop_all
-race:vips_cache_get_first
-race:vips_cache_get_lru_cb
-race:vips_cache_remove
-race:vips_cache_trim
+# guarded with g_async_queue_lock(), so it should be fine
+race_top:vips_threadset_add_thread
+race_top:vips_threadset_reuse_wait
+
+# task is popped from the queue locked, then executed and freed
+# unlocked, which is fine
+race_top:vips_threadset_work
 
 # guarded with vips__global_lock, so it should be fine
-race:vips_error_freeze_count
-race:vips__link_make
-race:vips__link_map
-race:vips__link_break_all
-race:tile_name
-race:vips_image_sanity
+race_top:vips_area_new
+race_top:vips_buf_all
+race_top:vips_buf_rewind
+race_top:vips_buf_vappendf
+race_top:vips_error_freeze
+race_top:vips_image_sanity
+race_top:vips__link_make
+race_top:vips__link_map
+race_top:vips__region_count_pixels
 
-# guarded with vips_text_lock, so it should be fine
-race:vips_text_build
+# guarded with vips_cache_lock, so it should be fine
+race_top:vips_cache_drop_all
+race_top:vips_cache_get_lru
+race_top:vips_cache_insert
+race_top:vips_cache_trim
+race_top:vips_entry_ref
+race_top:vips_entry_touch
+race_top:vips_object_ref_arg
+race_top:vips_operation_equal
+race_top:vips_operation_hash
 
-# the double-buffered output and write-behind thread are non-racy
-race:wbuffer_new
-race:wbuffer_write
-race:wbuffer_work_fn
-race:wbuffer_free
-race:write_thread_state_new
+# use of pool->stop is unlocked, but fine
+race_top:vips_thread_main_loop
 
-# thread-local variables (i.e. GPrivate) are harmless
-race:vips_thread_profile_key
-race:buffer_thread_key
+# quarks (i.e. GQuark) are likely non-racy
+race_top:vips_reorder_free
+race_top:vips_reorder_prepare_many
+race_top:vips__reorder_set_input
 
-# glib signals are probably non-racy
-race:vips_image_preeval
-race:vips_image_eval
-race:vips_image_posteval
-race:vips_image_written
-race:vips_image_real_written
-race:vips_image_save_cb
-race:render_close_cb
-race:readjpeg_close_cb
+# attaching/updating the time struct of an image is likely safe
+race_top:vips_progress_add
+race_top:vips_progress_update
 
-# semaphores are probably non-racy
-race:vips_semaphore_*
+# semaphores are likely non-racy
+race_top:vips_*semaphore_*
+
+# pool->exit is atomically updated, so it should be fine
+race_top:vips_worker_work_unit
+
+# guarded with area->lock, so it should be fine
+race_top:vips_area_copy
+race_top:vips_area_free
+race_top:vips_area_unref
+
+# guarded with cache->lock, so it should be fine
+race_top:vips_rect_equal
+race_top:vips_rect_hash
+race_top:vips_tile_cache_ref
+race_top:vips_tile_find
+race_top:vips_tile_new
+race_top:vips_tile_ref
+race_top:vips_tile_search
+race_top:vips_tile_unref
 
 # guarded with pool->allocate_lock, so it should be fine
-race:vips_worker_work_unit
-race:sink_call_start
-race:sink_call_stop
-race:vips_hist_find_start
-race:vips_hist_find_indexed_start
-race:vips_hist_find_stop
-race:vips_hough_new_accumulator
-race:vips_statistic_scan_start
-race:vips_statistic_scan_stop
-race:vips_max_stop
-race:vips_values_add
-race:vips_deviate_stop
-race:vips_arithmetic_start
-race:histogram_new
+race_top:direct_strip_allocate
+race_top:image_strip_allocate
+race_top:sink_area_allocate_fn
+race_top:sink_area_position
+race_top:sink_memory_area_allocate_fn
+race_top:sink_memory_area_position
+race_top:vips_maplut_stop
+race_top:vips_worker_allocate
+race_top:wbuffer_allocate_fn
+race_top:wtiff_layer_row_allocate
 
-# per-thread state allocate/dispose functions are non-racy
-race:sink_thread_state_class_init
-race:vips_thread_state_init
-race:vips_thread_state_build
-race:vips_thread_state_set
-race:vips_thread_state_dispose
-race:write_thread_state_new
-race:vips_sink_base_init
-race:vips_sink_thread_state_new
-race:sink_memory_init
-race:sink_memory_thread_state_new
-race:sink_memory_free
-race:sink_thread_state_build
-race:sink_thread_state_dispose
-race:buffer_cache_free
-race:sink_init
-race:sink_free
-race:vips_sequential_dispose
-race:vips_block_cache_dispose
-race:vips_image_init
-race:vips_image_build
-race:vips_image_finalize
-race:vips_image_dispose
-race:vips_threadset_free
+# thread-local state work functions are non-racy
+race_top:sink_memory_area_work_fn
+race_top:sink_work
+race_top:wbuffer_work_fn
 
 # guarded with image->sslock, so it should be fine
-race:vips__region_start
-race:vips__region_stop
-race:vips_region_dispose
-race:vips__region_take_ownership
+race_top:rtiff_seq_start
+race_top:vips_arithmetic_start
+race_top:vips_bandary_start
+race_top:vips_composite_start
+race_top:vips_convasep_start
+race_top:vips_convf_start
+race_top:vips_convi_start
+race_top:vips_foreign_load_start
+race_top:vips_foreign_load_temp
+race_top:vips_hist_local_start
+race_top:vips_morph_start
+race_top:vips_rank_start
+race_top:vips_region_build
+race_top:vips_region_dispose
+race_top:vips_shrinkv_start
+race_top:vips_start_many
+race_top:vips_window_find
+race_top:vips_window_fits
+race_top:vips_window_new
+race_top:vips_window_set
+race_top:vips_window_take
+race_top:vips_window_unref
+race_top:vips__region_start
+race_top:vips__region_stop
+race_top:vips__start_merge
 
-# is fine now, see: https://github.com/libvips/libvips/pull/1211
-race:vips_image_temp_name
+## The suppressions below match all frames of report stacks
 
-# is fine now, see: https://github.com/libvips/libvips/pull/1483
-race:meta_new
-race:meta_cp
-race:vips_image_set
-race:vips__image_copy_fields_array
-race:vips__image_meta_copy
+# foreign generate functions ought to be non-racy
+race:direct_strip_work
+race:image_strip_work
+race:png2vips_generate
+race:rad2vips_generate
+race:read_jpeg_generate
+race:read_webp_generate
+race:rtiff_fill_region
+race:rtiff_stripwise_generate
+race:vips_fits_generate
+race:vips_foreign_load_heif_generate
+race:vips_foreign_load_jp2k_generate_tiled
+race:vips_foreign_load_jp2k_generate_untiled
+race:vips_foreign_load_jxl_generate
+race:vips_foreign_load_magick7_fill_region
+race:vips_foreign_load_magick_fill_region
+race:vips_foreign_load_nsgif_generate
+race:vips_foreign_load_pdf_generate
+race:vips_foreign_load_png_generate
+race:vips_foreign_load_ppm_generate_1bit_ascii
+race:vips_foreign_load_ppm_generate_1bit_binary
+race:vips_foreign_load_ppm_generate_ascii_int
+race:vips_foreign_load_ppm_generate_binary
+race:vips_foreign_load_svg_generate
+race:vips__openexr_generate
+race:vips__openslide_generate
+race:wtiff_layer_row_work
+
+# TSan may produce false positives for callbacks invoked from
+# non-instrumented code. Such callbacks should be listed below.
+race:readjpeg_emit_message
+race:source_fill_input_buffer
+race:source_fill_input_buffer_mappable
+race:vips_foreign_load_heif_read
+race:vips_foreign_load_heif_wait_for_file_size
+race:vips_foreign_load_jp2k_read_source
+race:vips_foreign_load_jp2k_seek_source
+race:vips_foreign_load_jp2k_skip_source
+race:vips_foreign_load_png_stream
+race:vips_png_read_source
+
+# g_object_get*() is uninstrumented, but likely non-racy
+race:g_object_get
+race:g_object_get_property
+race:g_object_get_valist
+
+# using thread-local regions in generate functions is fine
+# this also catches all ->correlation, ->point, ->process_line and
+# ->scan subclass functions
+race:vips_arithmetic_gen
+race:vips_bandary_gen
+race:vips_colour_gen
+race:vips_correlation_gen
+race:vips_statistic_scan
+race:vips_point_gen
+race:vips_sdf_gen
+
+# guarded with vips__minimise_lock, so it should be fine
+race:vips_image_minimise_all
+
+# guarded with vips_cache_lock, so it should be fine
+race:vips_cache_free_cb
+
+# finalize() is only called once by a single thread, so non-racy
+race:vips_image_finalize
+
+# only called optionally when the whole program is done, so non-racy
+race:vips_shutdown
+
+# dispose() may run multiple times, but always serially, so non-racy
+race:vips_image_dispose
+race:vips_operation_dispose
+
+# thread-local state allocate/dispose functions ought to be non-racy
+race:sink_memory_thread_state_new
+race:sink_thread_state_dispose
+race:vips_sink_thread_state_new
+race:write_thread_state_new
+
+# the double-buffered output and write-behind threads are non-racy
+race:wbuffer_flush
+race:wbuffer_new
+race:wbuffer_position
+race:wbuffer_write
+race:write_free

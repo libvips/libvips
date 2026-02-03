@@ -8,9 +8,11 @@ jobs:
   cpp-linter:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: cpp-linter/cpp-linter-action@v2
         id: linter
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: file
           version: 19 # Ubuntu 24.04 provides clang-format-19

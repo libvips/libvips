@@ -1,6 +1,86 @@
-master
+date-tbd 8.19.0
 
-8.17.0
+date-tbd 8.18.1
+
+- vector: mask supported Highway targets by builtin targets [kleisauke]
+- fix Highway paths on big-endian targets [kleisauke]
+
+17/12/25 8.18.0
+
+- add dcrawload, dcrawload_source, dcrawload_buffer: load raw camera files
+  using libraw [lxsameer]
+- add magickload_source: load from a source with imagemagick
+- add vips__worker_exit(): enables fast threadpool shutdown
+- larger mmap windows on 64-bit machines improve random access mode for many
+  file formats
+- pdfload: control region to be rendered via `page_box` [lovell]
+- system: add "cache" argument
+- add vips_image_get_tile_width(), vips_image_get_tile_height(): get tile
+  cache geometry hints [jbaiter]
+- add vips_uhdrload(), vips_uhdrload_buffer(), vips_uhdrload_source(): load an
+  UltraHDR image
+- add vips_uhdrsave(), vips_uhdrsave_buffer(), vips_uhdrsave_target(): save an
+  UltraHDR image
+- fix cpp binding leak [VivitionDeveloper]
+- add "gainmap" to VipsKeep
+- add vips_image_get_gainmap()
+- thumbnail updates gainmaps
+- add "bitdepth" to jxlsave
+- add "path" option to vipsthumbnail, deprecate "output" option [zjturner]
+- add "exact" to webpsave
+- add "uhdr2scRGB"
+- dzsave has gainmap support
+- cpp: add .gainmap(), .set(VImage)
+- add support for Oklab and Oklch colourspaces
+- add vips_Oklab2XYZ(), vips_XYZ2Oklab()
+- add vips_Oklab2Oklch(), vips_OKlch2Oklab()
+- add vips_interpretation_bands()
+- heifsave: add "tune" parameter
+- require C++14 as a minimum standard [kleisauke]
+- prefer libpng over spng
+
+8.17.4
+
+- vipsthumbnail: fix pyramidal image layer selection [esiqveland]
+- tools: fix possible deadlock during process exit on win32
+- fix temp dir handling on win32 with Unicode usernames [kleisauke]
+- pngsave, ppmsave: support for more image interpretations [gcsideal]
+
+30/10/25 8.17.3
+
+- tiffsave: fix saved resolution with a non-default resolution-unit metadata
+  item [machur]
+- svgload: ensure short/malformed compressed input is ignored [kleisauke,lovell]
+- dzsave: Zoomify: ensure correct tile count in ImageProperties.xml [kleisauke]
+- VipsSaveable: reimplement with macros to help C++ compat [jcupitt]
+
+13/9/25 8.17.2
+
+- rank: fix an off-by-one error [larsmaxfield]
+- popplerload, svgload: validate page size [Yang Luo]
+- pdfiumload: allow both dpi and scale to be set [kleisauke]
+- svgload: honor DPI when scaling elements with non-pixel units [kleisauke]
+- disable redundant Highway AVX512 targets [kleisauke]
+- openslideload_source: flag operation as "nocache" [kleisauke]
+- remove `vipsprofile.1` man page from install [kleisauke]
+- tiffload: ensure processing halts for memory-related errors [lovell]
+- tiffload: increase memory limit from 20MB to 50MB [lovell]
+- fix vapi build [stydxm]
+- tiffsave: include sample format when copying tiff data [manthey]
+
+7/7/25 8.17.1
+
+- fix API docs build with meson < 0.60 [lovell]
+- improve function checks in meson [kleisauke]
+- tiff: use correct log domain in threadsafe warning handlers [kleisauke]
+- shift 16-bit output down to 8-bit when unsupported by saver [kleisauke]
+- text: prevent use of rgba subpixel anti-aliasing [lovell]
+- tiffsave: always apply resolution unit conversion [kleisauke]
+- cache: suppress invalidation errors in release builds [kleisauke]
+- dzsave: IIIF: use named region of 'full' when no crop takes place [lovell]
+- pdfload: fix potential crash with pdfium < 6633 [zhifengzhuang]
+
+5/6/25 8.17.0
 
 - gifsave: add `keep_duplicate_frames` flag [dloebl]
 - add Magic Kernel support [akimon658]
@@ -29,15 +109,16 @@ master
 - deprecate VipsSaveable, add VipsForeignSaveable
 - move vips_image_preeval(), vips_image_eval(), vips_image_posteval() into the
   public API
-- jxlsave writes in chunks, for lower memory use on large images (but we now
-  need libjxl 0.11 at minimum)
-- increase minimum version of libheif dependency to 1.11.0
+- jxlsave: add support for chunked save (requires libjxl 0.9.0+)
+- increase minimum version of libjxl dependency to 0.7.0
+- increase minimum version of libheif dependency to 1.7.0
 - improve scaling of hough_line feature space [ecbypi]
 - heifload: limit per-image memory usage to 2GB (requires libheif 1.20.0+)
 - svgload: add support for scRGB output via `high_bitdepth` flag [kstanikviacbs]
 - remove vipsprofile from default install
+- add ppmload_buffer [kleisauke]
 
-8.16.1
+12/3/25 8.16.1
 
 - support multipage JXL
 - fix PFM byte order on big-endian machines [agoode]

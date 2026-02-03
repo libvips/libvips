@@ -59,16 +59,14 @@ vips_semaphore_init(VipsSemaphore *s, int v, char *name)
 	s->v = v;
 	s->name = name;
 	g_mutex_init(&s->mutex);
-	s->cond = g_new(GCond, 1);
-	g_cond_init(s->cond);
+	g_cond_init(&s->cond);
 }
 
 void
 vips_semaphore_destroy(VipsSemaphore *s)
 {
 	g_mutex_clear(&s->mutex);
-	g_cond_clear(s->cond);
-	g_free(s->cond);
+	g_cond_clear(&s->cond);
 }
 
 /* Add n to the semaphore and signal any threads that are blocked waiting
@@ -87,9 +85,9 @@ vips_semaphore_upn(VipsSemaphore *s, int n)
 	 * thread. If we are incrementing by a lot, we must wake all threads.
 	 */
 	if (n == 1)
-		g_cond_signal(s->cond);
+		g_cond_signal(&s->cond);
 	else
-		g_cond_broadcast(s->cond);
+		g_cond_broadcast(&s->cond);
 	g_mutex_unlock(&s->mutex);
 
 #ifdef DEBUG_IO
@@ -124,8 +122,8 @@ vips__semaphore_downn_until(VipsSemaphore *s, int n, gint64 end_time)
 
 	while (s->v < n) {
 		if (end_time == -1)
-			vips__worker_cond_wait(s->cond, &s->mutex);
-		else if (!g_cond_wait_until(s->cond, &s->mutex, end_time)) {
+			vips__worker_cond_wait(&s->cond, &s->mutex);
+		else if (!g_cond_wait_until(&s->cond, &s->mutex, end_time)) {
 			/* timeout has passed.
 			 */
 			g_mutex_unlock(&s->mutex);
