@@ -129,6 +129,7 @@
 #include <glib/gi18n-lib.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -356,6 +357,89 @@ read_new(VipsSource *source, VipsImage *out,
 	return read;
 }
 
+static uint8_t *
+vips__hex_string_to_bytes(const char *hex_string, size_t hex_length)
+{
+	const char *src = hex_string;
+	size_t actual_length = 0;
+	uint8_t *const raw_data = (uint8_t *) g_malloc(hex_length);
+
+	if (raw_data == NULL) {
+		return NULL;
+	}
+
+	for (uint8_t *dst = raw_data; actual_length < hex_length && *src != '\0'; src++) {
+		char *end;
+		char val[3];
+		if (*src == '\n')
+			continue;
+		val[0] = *src++;
+		val[1] = *src;
+		val[2] = '\0';
+		*dst++ = (uint8_t) strtol(val, &end, 16);
+		if (end != val + 2)
+			break;
+		actual_length++;
+	}
+
+	if (actual_length != hex_length) {
+		g_warning("Failed to decode hex string");
+		g_free(raw_data);
+		return NULL;
+	}
+
+	return raw_data;
+}
+
+/* Parse a "Raw profile type exif" text chunk and extract binary EXIF data.
+ * Returns a newly allocated buffer with the EXIF data, or NULL on failure.
+ * The caller must g_free() the returned buffer.
+ *
+ * The format is (after zlib decompression by libpng):
+ * - A line with the profile type (e.g., "exif")
+ * - A line with the byte count in decimal
+ * - Hex-encoded binary data (may contain whitespace)
+ * source: https://clanmills.com/exiv2/book/ -> "PNG and the Zlib compression library"
+ */
+static uint8_t *
+vips__parse_raw_profile(const char *text, size_t *data_size)
+{
+	const char *p = text;
+	char *hex_payload;
+	int expected_length;
+	unsigned char *exif_data;
+
+	if (text == NULL || data_size == NULL)
+		return NULL;
+
+	// Raw profile should start with w new line
+	if (*p != '\n') {
+		g_warning("Malformed raw profile");
+		return NULL;
+	}
+	p++;
+
+	// Skip profile type (e.g. "exif")
+	while (*p != '\0' && *p != '\n')
+		p++;
+	// Extract EXIF data length
+	expected_length = (int) strtol(p, &hex_payload, 10);
+	if (*hex_payload != '\n') {
+		g_warning("Malformed raw profile");
+		return NULL;
+	}
+	hex_payload++;
+
+	// Decode EXIF payload hex string
+	exif_data = vips__hex_string_to_bytes(hex_payload, expected_length);
+	if (exif_data == NULL) {
+		return NULL;
+	}
+	*data_size = expected_length;
+
+	return exif_data;
+}
+
 /* Set the png text data as metadata on the vips image. These are always
  * null-terminated strings.
  */
@@ -373,6 +457,21 @@ vips__set_text(VipsImage *out, int i, const char *key, const char *text)
 		 */
 		vips_image_set_blob_copy(out,
 			VIPS_META_XMP_NAME, text, strlen(text));
+	}
+	else if (strcmp(key, "Raw profile type exif") == 0 ||
+		strcmp(key, "Raw profile type APP1") == 0) {
+		/* EXIF data stored in ImageMagick/exiftool format.
+		 * Only set if we don't already have EXIF from eXIf chunk.
+		 */
+		if (!vips_image_get_typeof(out, VIPS_META_EXIF_NAME)) {
+			size_t exif_length;
+			uint8_t *exif_data = vips__parse_raw_profile(text, &exif_length);
+			if (exif_data) {
+				vips_image_set_blob(out, VIPS_META_EXIF_NAME,
+					(VipsCallbackFn) g_free,
+					exif_data, exif_length);
+			}
+		}
 	}
 	else {
 		/* Save as a string comment. Some PNGs have EXIF data as
@@ -570,6 +669,17 @@ png2vips_header(Read *read, VipsImage *out)
 	if (interlace_type != PNG_INTERLACE_NONE)
 		vips_image_set_int(out, "interlaced", 1);
 
+#ifdef PNG_eXIf_SUPPORTED
+	{
+		png_uint_32 num_exif;
+		png_bytep exif;
+
+		if (png_get_eXIf_1(read->pPng, read->pInfo, &num_exif, &exif))
+			vips_image_set_blob_copy(out, VIPS_META_EXIF_NAME,
+				exif, num_exif);
+	}
+#endif /*PNG_eXIf_SUPPORTED*/
+
 	if (png_get_text(read->pPng, read->pInfo,
 			&text_ptr, &num_text) > 0) {
 		int i;
@@ -644,17 +754,6 @@ png2vips_header(Read *read, VipsImage *out)
 		}
 	}
 #endif /*PNG_bKGD_SUPPORTED*/
-
-#ifdef PNG_eXIf_SUPPORTED
-	{
-		png_uint_32 num_exif;
-		png_bytep exif;
-
-		if (png_get_eXIf_1(read->pPng, read->pInfo, &num_exif, &exif))
-			vips_image_set_blob_copy(out, VIPS_META_EXIF_NAME,
-				exif, num_exif);
-	}
-#endif /*PNG_eXIf_SUPPORTED*/
 
 	return 0;
 }
