@@ -563,6 +563,8 @@ if libjxl_found
         external_deps += libjxl_threads_dep
     endif
     cfg_var.set('HAVE_LIBJXL', true)
+    # need v0.8+ for bitdepth support
+    cfg_var.set('HAVE_LIBJXL_0_8', libjxl_dep.version().version_compare('>=0.8'))
     # need v0.9+ for chunked write
     cfg_var.set('HAVE_LIBJXL_0_9', libjxl_dep.version().version_compare('>=0.9'))
 endif
