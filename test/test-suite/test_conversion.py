@@ -440,6 +440,112 @@ class TestConversion:
         assert_almost_equal_objects(comp(0, 0), [51.8, 52.8, 53.8, 255],
                                     threshold=0.1)
 
+    def _lum(self, c):
+        return 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2]
+
+    def _sat(self, c):
+        return max(c) - min(c)
+
+    def _clip_color(self, c):
+        l = self._lum(c)
+        n = min(c)
+        x = max(c)
+
+        if n < 0:
+            for i in range(3):
+                c[i] = l + (c[i] - l) * l / (l - n)
+
+        if x > 1:
+            for i in range(3):
+                c[i] = l + (c[i] - l) * (1 - l) / (x - l)
+
+    def _set_lum(self, c, l):
+        d = l - self._lum(c)
+        for i in range(3):
+            c[i] += d
+        self._clip_color(c)
+
+    def _set_sat(self, c, s):
+        n = min(c)
+        x = max(c)
+        if x > n:
+            for i in range(3):
+                if c[i] == x:
+                    c[i] = s
+                elif c[i] == n:
+                    c[i] = 0
+                else:
+                    c[i] = (c[i] - n) * s / (x - n)
+        else:
+            c[0] = 0
+            c[1] = 0
+            c[2] = 0
+
+    def _unpremultiply(self, c, a):
+        if a > 0:
+            return [c[i] / a for i in range(3)]
+        return [0, 0, 0]
+
+    def _expected_non_separable(self, base_rgb, base_a, over_rgb, over_a, mode):
+        max_band = 255.0
+        B = [c / max_band for c in base_rgb] + [base_a / max_band]
+        A = [c / max_band for c in over_rgb] + [over_a / max_band]
+        aA = A[3]
+        aB = B[3]
+
+        A = [A[i] * aA for i in range(3)] + [aA]
+        B = [B[i] * aB for i in range(3)] + [aB]
+
+        As = self._unpremultiply(A, aA)
+        Bb = self._unpremultiply(B, aB)
+
+        if mode == "hue":
+            f = As[:]
+            self._set_sat(f, self._sat(Bb))
+            self._set_lum(f, self._lum(Bb))
+        elif mode == "saturation":
+            f = Bb[:]
+            self._set_sat(f, self._sat(As))
+            self._set_lum(f, self._lum(Bb))
+        elif mode == "colour":
+            f = As[:]
+            self._set_lum(f, self._lum(Bb))
+        elif mode == "luminosity":
+            f = Bb[:]
+            self._set_lum(f, self._lum(As))
+        else:
+            raise ValueError("unknown mode")
+
+        aR = aA + aB * (1 - aA)
+        t1 = 1 - aB
+        t2 = 1 - aA
+        t3 = aA * aB
+        out = [t1 * A[i] + t2 * B[i] + t3 * f[i] for i in range(3)]
+
+        if aR == 0:
+            out = [0, 0, 0]
+        else:
+            out = [v / aR for v in out]
+
+        return [v * max_band for v in out] + [aR * max_band]
+
+    def test_composite_non_separable(self):
+        base_rgb = [64.0, 128.0, 192.0]
+        base_a = 200.0
+        over_rgb = [200.0, 30.0, 80.0]
+        over_a = 160.0
+
+        base = (pyvips.Image.black(1, 1, bands=3) + base_rgb) \
+            .bandjoin(base_a).copy(interpretation="srgb").cast("float")
+        overlay = (pyvips.Image.black(1, 1, bands=3) + over_rgb) \
+            .bandjoin(over_a).copy(interpretation="srgb").cast("float")
+
+        for mode in ["hue", "saturation", "colour", "luminosity"]:
+            comp = base.composite(overlay, mode)
+            expected = self._expected_non_separable(
+                base_rgb, base_a, over_rgb, over_a, mode)
+            assert_almost_equal_objects(comp(0, 0), expected, threshold=0.6)
+
     def test_unpremultiply(self):
         for fmt in unsigned_formats + [pyvips.BandFormat.SHORT,
                                        pyvips.BandFormat.INT] + float_formats:

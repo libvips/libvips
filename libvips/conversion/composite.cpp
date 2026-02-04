@@ -463,6 +463,190 @@ vips_composite_base_select(VipsCompositeSequence *seq, VipsRect *r)
  * xB	colour band of source B
  */
 
+/* Non-separable blend helpers from the Cairo/PDF definitions.
+ */
+static inline double
+vips_composite_lum(const double *c)
+{
+	return 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2];
+}
+
+static inline double
+vips_composite_min3(double a, double b, double c)
+{
+	return VIPS_MIN(VIPS_MIN(a, b), c);
+}
+
+static inline double
+vips_composite_max3(double a, double b, double c)
+{
+	return VIPS_MAX(VIPS_MAX(a, b), c);
+}
+
+static inline double
+vips_composite_sat(const double *c)
+{
+	return vips_composite_max3(c[0], c[1], c[2]) -
+		vips_composite_min3(c[0], c[1], c[2]);
+}
+
+static inline void
+vips_composite_clip_color(double *c)
+{
+	double l = vips_composite_lum(c);
+	double n = vips_composite_min3(c[0], c[1], c[2]);
+	double x = vips_composite_max3(c[0], c[1], c[2]);
+
+	if (n < 0) {
+		for (int i = 0; i < 3; i++)
+			c[i] = l + (c[i] - l) * l / (l - n);
+	}
+
+	if (x > 1) {
+		for (int i = 0; i < 3; i++)
+			c[i] = l + (c[i] - l) * (1 - l) / (x - l);
+	}
+}
+
+static inline void
+vips_composite_set_lum(double *c, double l)
+{
+	double d = l - vips_composite_lum(c);
+
+	for (int i = 0; i < 3; i++)
+		c[i] += d;
+	vips_composite_clip_color(c);
+}
+
+static inline void
+vips_composite_set_sat(double *c, double s)
+{
+	double n = vips_composite_min3(c[0], c[1], c[2]);
+	double x = vips_composite_max3(c[0], c[1], c[2]);
+
+	if (x > n) {
+		for (int i = 0; i < 3; i++) {
+			if (c[i] == x)
+				c[i] = s;
+			else if (c[i] == n)
+				c[i] = 0;
+			else
+				c[i] = (c[i] - n) * s / (x - n);
+		}
+	}
+	else {
+		c[0] = 0;
+		c[1] = 0;
+		c[2] = 0;
+	}
+}
+
+static inline void
+vips_composite_unpremultiply(double *out, const double *in, double a)
+{
+	if (a > 0) {
+		for (int i = 0; i < 3; i++)
+			out[i] = in[i] / a;
+	}
+	else {
+		out[0] = 0;
+		out[1] = 0;
+		out[2] = 0;
+	}
+}
+
+#ifdef HAVE_VECTOR_ARITH
+static inline float
+vips_composite_lum(const float *c)
+{
+	return 0.3f * c[0] + 0.59f * c[1] + 0.11f * c[2];
+}
+
+static inline float
+vips_composite_min3(float a, float b, float c)
+{
+	return VIPS_MIN(VIPS_MIN(a, b), c);
+}
+
+static inline float
+vips_composite_max3(float a, float b, float c)
+{
+	return VIPS_MAX(VIPS_MAX(a, b), c);
+}
+
+static inline float
+vips_composite_sat(const float *c)
+{
+	return vips_composite_max3(c[0], c[1], c[2]) -
+		vips_composite_min3(c[0], c[1], c[2]);
+}
+
+static inline void
+vips_composite_clip_color(float *c)
+{
+	float l = vips_composite_lum(c);
+	float n = vips_composite_min3(c[0], c[1], c[2]);
+	float x = vips_composite_max3(c[0], c[1], c[2]);
+
+	if (n < 0) {
+		for (int i = 0; i < 3; i++)
+			c[i] = l + (c[i] - l) * l / (l - n);
+	}
+
+	if (x > 1) {
+		for (int i = 0; i < 3; i++)
+			c[i] = l + (c[i] - l) * (1 - l) / (x - l);
+	}
+}
+
+static inline void
+vips_composite_set_lum(float *c, float l)
+{
+	float d = l - vips_composite_lum(c);
+
+	for (int i = 0; i < 3; i++)
+		c[i] += d;
+	vips_composite_clip_color(c);
+}
+
+static inline void
+vips_composite_set_sat(float *c, float s)
+{
+	float n = vips_composite_min3(c[0], c[1], c[2]);
+	float x = vips_composite_max3(c[0], c[1], c[2]);
+
+	if (x > n) {
+		for (int i = 0; i < 3; i++) {
+			if (c[i] == x)
+				c[i] = s;
+			else if (c[i] == n)
+				c[i] = 0;
+			else
+				c[i] = (c[i] - n) * s / (x - n);
+		}
+	}
+	else {
+		c[0] = 0;
+		c[1] = 0;
+		c[2] = 0;
+	}
+}
+
+static inline void
+vips_composite_unpremultiply(float *out, const float *in, float a)
+{
+	if (a > 0) {
+		for (int i = 0; i < 3; i++)
+			out[i] = in[i] / a;
+	}
+	else {
+		out[0] = 0;
+		out[1] = 0;
+		out[2] = 0;
+	}
+}
+#endif /*HAVE_VECTOR_ARITH*/
+
 /* A is the new pixel coming in, of any non-complex type T.
  *
  * We must scale incoming pixels to 0 - 1 by dividing by the scale[] vector.
@@ -688,6 +872,48 @@ vips_composite_base_blend(VipsCompositeBase *composite,
 			for (int b = 0; b < bands; b++)
 				f[b] = A[b] + B[b] - 2 * A[b] * B[b];
 			break;
+
+		case VIPS_BLEND_MODE_HUE:
+		case VIPS_BLEND_MODE_SATURATION:
+		case VIPS_BLEND_MODE_COLOUR:
+		case VIPS_BLEND_MODE_LUMINOSITY: {
+			double As[3];
+			double Bb[3];
+
+			vips_composite_unpremultiply(As, A, aA);
+			vips_composite_unpremultiply(Bb, B, aB);
+
+			switch (mode) {
+			case VIPS_BLEND_MODE_HUE:
+				for (int b = 0; b < 3; b++)
+					f[b] = As[b];
+				vips_composite_set_sat(f, vips_composite_sat(Bb));
+				vips_composite_set_lum(f, vips_composite_lum(Bb));
+				break;
+
+			case VIPS_BLEND_MODE_SATURATION:
+				for (int b = 0; b < 3; b++)
+					f[b] = Bb[b];
+				vips_composite_set_sat(f, vips_composite_sat(As));
+				vips_composite_set_lum(f, vips_composite_lum(Bb));
+				break;
+
+			case VIPS_BLEND_MODE_COLOUR:
+				for (int b = 0; b < 3; b++)
+					f[b] = As[b];
+				vips_composite_set_lum(f, vips_composite_lum(Bb));
+				break;
+
+			case VIPS_BLEND_MODE_LUMINOSITY:
+				for (int b = 0; b < 3; b++)
+					f[b] = Bb[b];
+				vips_composite_set_lum(f, vips_composite_lum(As));
+				break;
+
+			default:
+				g_assert_not_reached();
+			}
+		} break;
 
 		default:
 			g_assert_not_reached();
@@ -917,6 +1143,56 @@ vips_composite_base_blend3(VipsCompositeSequence *seq,
 		case VIPS_BLEND_MODE_EXCLUSION:
 			f = A + B - 2 * A * B;
 			break;
+
+		case VIPS_BLEND_MODE_HUE:
+		case VIPS_BLEND_MODE_SATURATION:
+		case VIPS_BLEND_MODE_COLOUR:
+		case VIPS_BLEND_MODE_LUMINOSITY: {
+			float As[3];
+			float Bb[3];
+			float ff[3];
+			float A3[3] = { A[0], A[1], A[2] };
+			float B3[3] = { B[0], B[1], B[2] };
+
+			vips_composite_unpremultiply(As, A3, aA);
+			vips_composite_unpremultiply(Bb, B3, aB);
+
+			switch (mode) {
+			case VIPS_BLEND_MODE_HUE:
+				for (int b = 0; b < 3; b++)
+					ff[b] = As[b];
+				vips_composite_set_sat(ff, vips_composite_sat(Bb));
+				vips_composite_set_lum(ff, vips_composite_lum(Bb));
+				break;
+
+			case VIPS_BLEND_MODE_SATURATION:
+				for (int b = 0; b < 3; b++)
+					ff[b] = Bb[b];
+				vips_composite_set_sat(ff, vips_composite_sat(As));
+				vips_composite_set_lum(ff, vips_composite_lum(Bb));
+				break;
+
+			case VIPS_BLEND_MODE_COLOUR:
+				for (int b = 0; b < 3; b++)
+					ff[b] = As[b];
+				vips_composite_set_lum(ff, vips_composite_lum(Bb));
+				break;
+
+			case VIPS_BLEND_MODE_LUMINOSITY:
+				for (int b = 0; b < 3; b++)
+					ff[b] = Bb[b];
+				vips_composite_set_lum(ff, vips_composite_lum(As));
+				break;
+
+			default:
+				g_assert_not_reached();
+			}
+
+			f[0] = ff[0];
+			f[1] = ff[1];
+			f[2] = ff[2];
+			f[3] = 0;
+		} break;
 
 		default:
 			g_assert_not_reached();
@@ -1272,6 +1548,21 @@ vips_composite_mode_skippable(VipsBlendMode mode)
 	}
 }
 
+static gboolean
+vips_composite_mode_non_separable(VipsBlendMode mode)
+{
+	switch (mode) {
+	case VIPS_BLEND_MODE_HUE:
+	case VIPS_BLEND_MODE_SATURATION:
+	case VIPS_BLEND_MODE_COLOUR:
+	case VIPS_BLEND_MODE_LUMINOSITY:
+		return TRUE;
+
+	default:
+		return FALSE;
+	}
+}
+
 static int
 vips_composite_base_build(VipsObject *object)
 {
@@ -1426,6 +1717,15 @@ vips_composite_base_build(VipsObject *object)
 	}
 
 	composite->bands = in[0]->Bands - 1;
+
+	if (composite->bands != 3) {
+		for (int i = 0; i < composite->mode->area.n; i++)
+			if (vips_composite_mode_non_separable(mode[i])) {
+				vips_error(klass->nickname, "%s",
+					_("non-separable blend modes require 3-band images"));
+				return -1;
+			}
+	}
 
 	/* Set the max for each band now we know bands and compositing space.
 	 */
