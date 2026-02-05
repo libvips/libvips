@@ -442,6 +442,8 @@ class TestForeign:
             value = im.get(name)
             assert isinstance(value, (int, float))
 
+        assert im.get("gainmap-downsample-factor") == 4
+
         value = im.get("gainmap-data")
         assert len(value) > 10000
 

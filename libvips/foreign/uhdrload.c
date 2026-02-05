@@ -475,6 +475,12 @@ vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 			"gainmap-use-base-cg", gainmap_metadata->use_base_cg);
 	}
 
+	const int gainmap_width = uhdr_dec_get_gainmap_width(uhdr->dec);
+	if (gainmap_width > 0) {
+		vips_image_set_int(out, "gainmap-downsample-factor", VIPS_MAX(1,
+			uhdr_dec_get_image_width(uhdr->dec) / gainmap_width));
+	}
+
 	return 0;
 }
 
