@@ -481,6 +481,18 @@ class TestForeign:
 
         assert (im2 - im).abs().avg() < 0.05
 
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave_gainmap_scale_factor(self):
+        scrgb = self.colour.colourspace("scrgb")
+
+        data = scrgb.uhdrsave_buffer()
+        im = pyvips.Image.uhdrload_buffer(data)
+        assert im.get("gainmap-scale-factor") == 2
+
+        data = scrgb.uhdrsave_buffer(gainmap_scale_factor=4)
+        im = pyvips.Image.uhdrload_buffer(data)
+        assert im.get("gainmap-scale-factor") == 4
+
     @skip_if_no("uhdrload")
     def test_uhdr_thumbnail(self):
         im = pyvips.Image.uhdrload(UHDR_FILE)

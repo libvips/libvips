@@ -8,6 +8,7 @@ date-tbd 8.18.1
 - improve vips7 JPEG load compatibility [kleisauke]
 - fix saving 3-band MATRIX images [kleisauke]
 - uhdrload: expose original gainmap scale factor [lovell]
+- uhdrsave: control generated gainmap scale factor [lovell]
 
 17/12/25 8.18.0
 
