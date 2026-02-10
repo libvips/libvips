@@ -9,6 +9,7 @@ date-tbd 8.18.1
 - fix saving 3-band MATRIX images [kleisauke]
 - uhdrload: expose original gainmap scale factor [lovell]
 - uhdrsave: control generated gainmap scale factor [lovell]
+- source: guard against length truncation [Niebelungen-D]
 
 17/12/25 8.18.0
 
