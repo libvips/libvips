@@ -1,4 +1,5 @@
 date-tbd 8.19.0
+- cpp: add orientation() to VImage [pszemus]
 
 date-tbd 8.18.1
 

@@ -530,6 +530,16 @@ public:
 	}
 
 	/**
+	 * Return the orientation of the image, or 1 (no rotate, no flip) if
+	 * not present or crazy.
+	 */
+	int
+	orientation() const
+	{
+		return vips_image_get_orientation(get_image());
+	}
+
+	/**
 	 * TRUE if the image has an alpha channel.
 	 */
 	bool
