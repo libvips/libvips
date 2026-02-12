@@ -362,11 +362,10 @@ vips__hex_string_to_bytes(const char *hex_string, size_t hex_length)
 {
 	const char *src = hex_string;
 	size_t actual_length = 0;
-	uint8_t *const raw_data = (uint8_t *) g_malloc(hex_length);
+	uint8_t *const raw_data = VIPS_ARRAY(NULL, hex_length, uint8_t);
 
-	if (raw_data == NULL) {
+	if (!raw_data)
 		return NULL;
-	}
 
 	for (uint8_t *dst = raw_data; actual_length < hex_length && *src != '\0'; src++) {
 		char *end;
