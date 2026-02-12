@@ -1,5 +1,6 @@
 date-tbd 8.19.0
 - cpp: add orientation() to VImage [pszemus]
+- pngload: support for EXIF data in zTXt chunks [pszemus]
 
 date-tbd 8.18.1
 
