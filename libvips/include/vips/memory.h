@@ -41,7 +41,7 @@ extern "C" {
 	G_STMT_START \
 	{ \
 		if (S) { \
-			(void) F((S)); \
+			(void) (F((S))); \
 			(S) = 0; \
 		} \
 	} \

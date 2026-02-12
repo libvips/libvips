@@ -442,6 +442,8 @@ class TestForeign:
             value = im.get(name)
             assert isinstance(value, (int, float))
 
+        assert im.get("gainmap-scale-factor") == 4
+
         value = im.get("gainmap-data")
         assert len(value) > 10000
 
@@ -478,6 +480,18 @@ class TestForeign:
         im2 = pyvips.Image.uhdrload_buffer(data).uhdr2scRGB()
 
         assert (im2 - im).abs().avg() < 0.05
+
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave_gainmap_scale_factor(self):
+        scrgb = self.colour.colourspace("scrgb")
+
+        data = scrgb.uhdrsave_buffer()
+        im = pyvips.Image.uhdrload_buffer(data)
+        assert im.get("gainmap-scale-factor") == 2
+
+        data = scrgb.uhdrsave_buffer(gainmap_scale_factor=4)
+        im = pyvips.Image.uhdrload_buffer(data)
+        assert im.get("gainmap-scale-factor") == 4
 
     @skip_if_no("uhdrload")
     def test_uhdr_thumbnail(self):
@@ -657,6 +671,27 @@ class TestForeign:
             # ... and check if it was correctly shifted down
             # https://github.com/libvips/libvips/issues/4568
             assert (self.colour - rgb).abs().max() == 0
+
+        # sanity-check MULTIBAND save, this will be remapped
+        # to its standard RGB-like or greyscale equivalent
+        for i in range(1, 5):
+            im = pyvips.Image.black(16, 16, bands=i)
+            im.pngsave_buffer()
+
+        # https://github.com/libvips/lua-vips/issues/93
+        im = pyvips.Image.new_from_array([1, 2, 3, 4])
+        buf = im.pngsave_buffer()
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+
+        assert im.avg() == im2.avg()
+
+        # https://github.com/libvips/ruby-vips/issues/431
+        im = pyvips.Image.new_from_array([1, 2, 3, 4])
+        im = im.bandjoin([im, im]).cast("uchar")
+        buf = im.pngsave_buffer(bitdepth=1)
+        im2 = pyvips.Image.new_from_buffer(buf, "")
+
+        assert im.avg() == im2.avg()
 
     @skip_if_no("tiffload")
     def test_tiff(self):

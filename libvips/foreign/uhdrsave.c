@@ -77,6 +77,8 @@ typedef struct _VipsForeignSaveUhdr {
 
 	int Q;
 
+	int gainmap_scale_factor;
+
 	uhdr_codec_private_t *enc;
 
 } VipsForeignSaveUhdr;
@@ -373,7 +375,7 @@ vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 	g_info("saving scRGB as UltraHDR");
 
 	uhdr_enc_set_output_format(uhdr->enc, UHDR_CODEC_JPG);
-	uhdr_enc_set_gainmap_scale_factor(uhdr->enc, 2);
+	uhdr_enc_set_gainmap_scale_factor(uhdr->enc, uhdr->gainmap_scale_factor);
 	uhdr_enc_set_using_multi_channel_gainmap(uhdr->enc, 0);
 
 	// attach the gainmap, if we have one
@@ -542,12 +544,20 @@ vips_foreign_save_uhdr_class_init(VipsForeignSaveUhdrClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, Q),
 		1, 100, 75);
 
+	VIPS_ARG_INT(class, "gainmap_scale_factor", 11,
+		_("Gainmap scale factor"),
+		_("The scale factor of base image to gainmap image"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, gainmap_scale_factor),
+		1, 128, 2);
+
 }
 
 static void
 vips_foreign_save_uhdr_init(VipsForeignSaveUhdr *uhdr)
 {
 	uhdr->Q = 75;
+	uhdr->gainmap_scale_factor = 2;
 }
 
 typedef struct _VipsForeignSaveUhdrFile {
@@ -742,8 +752,13 @@ vips_foreign_save_uhdr_target_init(VipsForeignSaveUhdrTarget *target)
  * If the image is scRGB and has a gainmap, a base image will be computed
  * and it will be saved as UltraHDR.
  *
- * If the image is scRGB and has no gainmap, one will be computed.
+ * If the image is scRGB and has no gainmap, one will be computed at a
+ * `gainmap_scale_factor` of the base image.
  * This is slow and takes a lot of memory.
+ *
+ * ::: tip "Optional arguments"
+ *     * @Q: `gint`, quality factor
+ *     * @gainmap_scale_factor: `gint`, scale factor of base image to gainmap
  *
  * ::: seealso
  *     [method@Image.write_to_file], [ctor@Image.uhdrload].
@@ -771,6 +786,10 @@ vips_uhdrsave(VipsImage *in, const char *filename, ...)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.uhdrsave], but save to a memory buffer.
+ *
+ * ::: tip "Optional arguments"
+ *     * @Q: `gint`, quality factor
+ *     * @gainmap_scale_factor: `gint`, scale factor of base image to gainmap
  *
  * ::: seealso
  *     [method@Image.uhdrsave], [method@Image.write_to_file].
@@ -812,6 +831,10 @@ vips_uhdrsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.uhdrsave], but save to a target.
+ *
+ * ::: tip "Optional arguments"
+ *     * @Q: `gint`, quality factor
+ *     * @gainmap_scale_factor: `gint`, scale factor of base image to gainmap
  *
  * ::: seealso
  *     [method@Image.uhdrsave], [method@Image.write_to_target].

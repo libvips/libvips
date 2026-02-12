@@ -58,12 +58,12 @@ jpeg2vips(const char *name, IMAGE *out, gboolean header_only)
 	char *p, *q;
 	int shrink;
 	int seq;
-	gboolean fail_on_warn;
+	VipsFailOn fail_on;
 
 	/* By default, we ignore any warnings. We want to get as much of
 	 * the user's data as we can.
 	 */
-	fail_on_warn = FALSE;
+	fail_on = VIPS_FAIL_ON_NONE;
 
 	/* Parse the filename.
 	 */
@@ -83,7 +83,7 @@ jpeg2vips(const char *name, IMAGE *out, gboolean header_only)
 	}
 	if ((q = im_getnextoption(&p))) {
 		if (im_isprefix("fail", q))
-			fail_on_warn = TRUE;
+			fail_on = VIPS_FAIL_ON_WARNING;
 	}
 	if ((q = im_getnextoption(&p))) {
 		if (im_isprefix("seq", q))
@@ -116,7 +116,7 @@ jpeg2vips(const char *name, IMAGE *out, gboolean header_only)
 		if (!(source = vips_source_new_from_file(filename)))
 			return -1;
 		if (vips__jpeg_read_source(source, out,
-				header_only, shrink, fail_on_warn, FALSE, FALSE)) {
+				header_only, shrink, fail_on, FALSE, FALSE)) {
 			VIPS_UNREF(source);
 			return -1;
 		}
