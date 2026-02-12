@@ -357,37 +357,60 @@ read_new(VipsSource *source, VipsImage *out,
 	return read;
 }
 
-static uint8_t *
-vips__hex_string_to_bytes(const char *hex_string, size_t hex_length)
+static const char *
+skip_line(const char *p)
 {
-	const char *src = hex_string;
-	size_t actual_length = 0;
-	uint8_t *const raw_data = VIPS_ARRAY(NULL, hex_length, uint8_t);
+	if (!p)
+		return NULL;
+	while (*p && *p != '\n')
+		p++;
+	if (*p == '\n')
+		p++;
+	return p;
+}
 
-	if (!raw_data)
+static const char *
+read_length(const char *p, size_t *length)
+{
+	if (!p)
 		return NULL;
 
-	for (uint8_t *dst = raw_data; actual_length < hex_length && *src != '\0'; src++) {
-		char *end;
-		char val[3];
-		if (*src == '\n')
-			continue;
-		val[0] = *src++;
-		val[1] = *src;
-		val[2] = '\0';
-		*dst++ = (uint8_t) strtol(val, &end, 16);
-		if (end != val + 2)
-			break;
-		actual_length++;
-	}
-
-	if (actual_length != hex_length) {
-		g_warning("Failed to decode hex string");
-		g_free(raw_data);
+	char *q;
+	errno = 0;
+	gint64 i = g_ascii_strtoll(p, &q, 10);
+	// limit the length to 10MB for sanity
+	if (errno || q == p || i <= 0 || i > 10 * 1024 * 1024)
 		return NULL;
-	}
 
-	return raw_data;
+	*length = i;
+	return q;
+}
+
+static const char *
+skip_whitespace(const char *p)
+{
+	if (p)
+		p += strspn(p, " \n");
+
+	return p;
+}
+
+static const char *
+read_hex_pair(const char *p, uint8_t *value)
+{
+	if (!p || !p[0] || !p[1])
+		return NULL;
+
+	const char val[3] = {p[0], p[1], '\0'};
+	char *q;
+	errno = 0;
+	uint8_t i = (uint8_t) g_ascii_strtoll(val, &q, 16);
+	if (errno || q == val)
+		return NULL;
+
+	*value = i;
+	return p + 2;
+
 }
 
 /* Parse a "Raw profile type exif" text chunk and extract binary EXIF data.
@@ -404,39 +427,50 @@ static uint8_t *
 vips__parse_raw_profile(const char *text, size_t *data_size)
 {
 	const char *p = text;
-	char *hex_payload;
-	int expected_length;
-	unsigned char *exif_data;
 
-	if (text == NULL || data_size == NULL)
-		return NULL;
-
-	// Raw profile should start with w new line
-	if (*p != '\n') {
-		g_warning("Malformed raw profile");
+	// Raw profile should start with a new line
+	p = skip_line(p);
+	if (!p) {
+		g_warning("pngload: malformed raw profile");
 		return NULL;
 	}
-	p++;
 
 	// Skip profile type (e.g. "exif")
-	while (*p != '\0' && *p != '\n')
-		p++;
-	// Extract EXIF data length
-	expected_length = (int) strtol(p, &hex_payload, 10);
-	if (*hex_payload != '\n') {
-		g_warning("Malformed raw profile");
+	p = skip_line(p);
+
+	// number of hex pairs to read
+	size_t length;
+	p = read_length(p, &length);
+	if (!p) {
+		g_warning("pngload: malformed raw profile");
 		return NULL;
 	}
-	hex_payload++;
 
-	// Decode EXIF payload hex string
-	exif_data = vips__hex_string_to_bytes(hex_payload, expected_length);
-	if (exif_data == NULL) {
+	// Decode EXIF hex string
+	uint8_t *data = VIPS_ARRAY(NULL, length, uint8_t);
+	if (!data)
+		return NULL;
+
+	size_t i;
+	for (i = 0; i < length; i++) {
+		uint8_t value;
+
+		p = skip_whitespace(p);
+		p = read_hex_pair(p, &value);
+		if (!p) {
+			break;
+		}
+		data[i] = value;
+	}
+
+	if (i < length) {
+		g_warning("pngload: malformed raw profile");
+		VIPS_FREE(data);
 		return NULL;
 	}
-	*data_size = expected_length;
 
-	return exif_data;
+	*data_size = length;
+	return data;
 }
 
 /* Set the png text data as metadata on the vips image. These are always
