@@ -14,8 +14,10 @@
  * 	- rename "speed" as "effort" for consistency with other savers
  * 22/12/21
  * 	- add >8 bit support
- * 22/10/11
- *      - improve rules for 16-bit write [johntrunc]
+ * 10/11/22
+ *  - improve rules for 16-bit write [johntrunc]
+ * xx/01/26 [Starbix]
+ *  - write nclx tag if in CICP colour space
  */
 
 /*
@@ -292,10 +294,33 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	options->save_alpha_channel = save->ready->Bands > 3;
 
 #ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
+
+	int colour_primaries;
+	int transfer_characteristics;
+	int matrix_coefficients;
+	int full_range_flag;
+
+	if (vips_image_get_int(save->ready, "cicp-colour-primaries", &colour_primaries) == 0 &&
+		vips_image_get_int(save->ready, "cicp-transfer-characteristics", &transfer_characteristics) == 0 &&
+		vips_image_get_int(save->ready, "cicp-matrix-coefficients", &matrix_coefficients) == 0 &&
+		vips_image_get_int(save->ready, "cicp-full-range-flag", &full_range_flag) == 0) {
+
+		if (!(nclx = heif_nclx_color_profile_alloc())) {
+			heif_encoding_options_free(options);
+			return -1;
+		}
+
+		nclx->color_primaries = colour_primaries;
+		nclx->transfer_characteristics = transfer_characteristics;
+		nclx->matrix_coefficients = matrix_coefficients;
+		nclx->full_range_flag = full_range_flag;
+
+		options->output_nclx_profile = nclx;
+	}
 	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless
 	 * mode.
 	 */
-	if (heif->lossless) {
+	else if (heif->lossless) {
 		if (!(nclx = heif_nclx_color_profile_alloc())) {
 			heif_encoding_options_free(options);
 			return -1;
@@ -400,6 +425,10 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
 				save->ready->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
+		if (save->ready->Type == VIPS_INTERPRETATION_CICP)
+			// TODO: check type
+			vips_bitdepth = 16;
+
 		int shift = vips_bitdepth - heif->bitdepth;
 
 		for (i = 0; i < ne; i++) {
@@ -417,6 +446,9 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
 				save->ready->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
+		if (save->ready->Type == VIPS_INTERPRETATION_CICP)
+			// TODO: check type
+			vips_bitdepth = 16;
 		int shift = vips_bitdepth - heif->bitdepth;
 
 		for (i = 0; i < ne; i++) {
@@ -776,7 +808,7 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 	object_class->build = vips_foreign_save_heif_build;
 
 	save_class->saveable =
-		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA;
+		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA | VIPS_FOREIGN_SAVEABLE_CICP;
 	save_class->format_table = vips_heif_bandfmt;
 
 	VIPS_ARG_INT(class, "Q", 10,

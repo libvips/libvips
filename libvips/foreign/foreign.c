@@ -1473,6 +1473,16 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
+	/*If the saver supports CICP,  */
+	if (saveable & VIPS_FOREIGN_SAVEABLE_CICP) {
+		// only if input is in CICP
+		if (vips_image_guess_interpretation(in) == VIPS_INTERPRETATION_CICP){
+			interpretation = VIPS_INTERPRETATION_CICP;
+			*ready = in;
+			return 0;
+		}
+	}
+
 	/* If the saver supports RGB, go to RGB, or RGB16 if this is a ushort
 	 * source.
 	 */
