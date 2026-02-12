@@ -200,6 +200,7 @@
  * @VIPS_INTERESTING_LOW: position the crop towards the low coordinate
  * @VIPS_INTERESTING_HIGH: position the crop towards the high coordinate
  * @VIPS_INTERESTING_ALL: everything is interesting
+ * @VIPS_INTERESTING_SPECIFIC: use the specified point of interest
  *
  * Pick the algorithm vips uses to decide image "interestingness". This is used
  * by [method@Image.smartcrop], for example, to decide what parts of the image to

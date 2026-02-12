@@ -129,6 +129,7 @@
 #include <glib/gi18n-lib.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -356,6 +357,122 @@ read_new(VipsSource *source, VipsImage *out,
 	return read;
 }
 
+static const char *
+skip_line(const char *p)
+{
+	if (!p)
+		return NULL;
+	while (*p && *p != '\n')
+		p++;
+	if (*p == '\n')
+		p++;
+	return p;
+}
+
+static const char *
+read_length(const char *p, size_t *length)
+{
+	if (!p)
+		return NULL;
+
+	char *q;
+	errno = 0;
+	gint64 i = g_ascii_strtoll(p, &q, 10);
+	// limit the length to 10MB for sanity
+	if (errno || q == p || i <= 0 || i > 10 * 1024 * 1024)
+		return NULL;
+
+	*length = i;
+	return q;
+}
+
+static const char *
+skip_whitespace(const char *p)
+{
+	if (p)
+		p += strspn(p, " \n");
+
+	return p;
+}
+
+static const char *
+read_hex_pair(const char *p, uint8_t *value)
+{
+	if (!p || !p[0] || !p[1])
+		return NULL;
+
+	const char val[3] = {p[0], p[1], '\0'};
+	char *q;
+	errno = 0;
+	uint8_t i = (uint8_t) g_ascii_strtoll(val, &q, 16);
+	if (errno || q == val)
+		return NULL;
+
+	*value = i;
+	return p + 2;
+
+}
+
+/* Parse a "Raw profile type exif" text chunk and extract binary EXIF data.
+ * Returns a newly allocated buffer with the EXIF data, or NULL on failure.
+ * The caller must g_free() the returned buffer.
+ *
+ * The format is (after zlib decompression by libpng):
+ * - A line with the profile type (e.g., "exif")
+ * - A line with the byte count in decimal
+ * - Hex-encoded binary data (may contain whitespace)
+ * source: https://clanmills.com/exiv2/book/ -> "PNG and the Zlib compression library"
+ */
+static uint8_t *
+vips__parse_raw_profile(const char *text, size_t *data_size)
+{
+	const char *p = text;
+
+	// Raw profile should start with a new line
+	p = skip_line(p);
+	if (!p) {
+		g_warning("pngload: malformed raw profile");
+		return NULL;
+	}
+
+	// Skip profile type (e.g. "exif")
+	p = skip_line(p);
+
+	// number of hex pairs to read
+	size_t length;
+	p = read_length(p, &length);
+	if (!p) {
+		g_warning("pngload: malformed raw profile");
+		return NULL;
+	}
+
+	// Decode EXIF hex string
+	uint8_t *data = VIPS_ARRAY(NULL, length, uint8_t);
+	if (!data)
+		return NULL;
+
+	size_t i;
+	for (i = 0; i < length; i++) {
+		uint8_t value;
+
+		p = skip_whitespace(p);
+		p = read_hex_pair(p, &value);
+		if (!p) {
+			break;
+		}
+		data[i] = value;
+	}
+
+	if (i < length) {
+		g_warning("pngload: malformed raw profile");
+		VIPS_FREE(data);
+		return NULL;
+	}
+
+	*data_size = length;
+	return data;
+}
+
 /* Set the png text data as metadata on the vips image. These are always
  * null-terminated strings.
  */
@@ -373,6 +490,21 @@ vips__set_text(VipsImage *out, int i, const char *key, const char *text)
 		 */
 		vips_image_set_blob_copy(out,
 			VIPS_META_XMP_NAME, text, strlen(text));
+	}
+	else if (strcmp(key, "Raw profile type exif") == 0 ||
+		strcmp(key, "Raw profile type APP1") == 0) {
+		/* EXIF data stored in ImageMagick/exiftool format.
+		 * Only set if we don't already have EXIF from eXIf chunk.
+		 */
+		if (!vips_image_get_typeof(out, VIPS_META_EXIF_NAME)) {
+			size_t exif_length;
+			uint8_t *exif_data = vips__parse_raw_profile(text, &exif_length);
+			if (exif_data) {
+				vips_image_set_blob(out, VIPS_META_EXIF_NAME,
+					(VipsCallbackFn) g_free,
+					exif_data, exif_length);
+			}
+		}
 	}
 	else {
 		/* Save as a string comment. Some PNGs have EXIF data as
@@ -570,6 +702,17 @@ png2vips_header(Read *read, VipsImage *out)
 	if (interlace_type != PNG_INTERLACE_NONE)
 		vips_image_set_int(out, "interlaced", 1);
 
+#ifdef PNG_eXIf_SUPPORTED
+	{
+		png_uint_32 num_exif;
+		png_bytep exif;
+
+		if (png_get_eXIf_1(read->pPng, read->pInfo, &num_exif, &exif))
+			vips_image_set_blob_copy(out, VIPS_META_EXIF_NAME,
+				exif, num_exif);
+	}
+#endif /*PNG_eXIf_SUPPORTED*/
+
 	if (png_get_text(read->pPng, read->pInfo,
 			&text_ptr, &num_text) > 0) {
 		int i;
@@ -644,17 +787,6 @@ png2vips_header(Read *read, VipsImage *out)
 		}
 	}
 #endif /*PNG_bKGD_SUPPORTED*/
-
-#ifdef PNG_eXIf_SUPPORTED
-	{
-		png_uint_32 num_exif;
-		png_bytep exif;
-
-		if (png_get_eXIf_1(read->pPng, read->pInfo, &num_exif, &exif))
-			vips_image_set_blob_copy(out, VIPS_META_EXIF_NAME,
-				exif, num_exif);
-	}
-#endif /*PNG_eXIf_SUPPORTED*/
 
 	return 0;
 }
