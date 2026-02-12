@@ -72,6 +72,8 @@ typedef struct _VipsSmartcrop {
 	int width;
 	int height;
 	VipsInteresting interesting;
+	int interesting_x;
+	int interesting_y;
 	gboolean premultiplied;
 
 	int attention_x;
@@ -378,6 +380,13 @@ vips_smartcrop_build(VipsObject *object)
 			return -1;
 		break;
 
+	case VIPS_INTERESTING_SPECIFIC:
+		left = VIPS_CLIP(0, smartcrop->interesting_x - smartcrop->width / 2,
+			in->Xsize - smartcrop->width);
+		top = VIPS_CLIP(0, smartcrop->interesting_y - smartcrop->height / 2,
+			in->Ysize - smartcrop->height);
+		break;
+
 	case VIPS_INTERESTING_HIGH:
 		left = in->Xsize - smartcrop->width;
 		top = in->Ysize - smartcrop->height;
@@ -456,6 +465,20 @@ vips_smartcrop_class_init(VipsSmartcropClass *class)
 		G_STRUCT_OFFSET(VipsSmartcrop, interesting),
 		VIPS_TYPE_INTERESTING, VIPS_INTERESTING_ATTENTION);
 
+	VIPS_ARG_INT(class, "interesting_x", 7,
+		_("Interesting x"),
+		_("Horizontal position of the specific point of interest"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsSmartcrop, interesting_x),
+		0, VIPS_MAX_COORD, 0);
+
+	VIPS_ARG_INT(class, "interesting_y", 8,
+		_("Interesting y"),
+		_("Vertical position of the specific point of interest"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsSmartcrop, interesting_y),
+		0, VIPS_MAX_COORD, 0);
+
 	VIPS_ARG_INT(class, "attention_x", 2,
 		_("Attention x"),
 		_("Horizontal position of attention centre"),
@@ -470,7 +493,7 @@ vips_smartcrop_class_init(VipsSmartcropClass *class)
 		G_STRUCT_OFFSET(VipsSmartcrop, attention_y),
 		0, VIPS_MAX_COORD, 0);
 
-	VIPS_ARG_BOOL(class, "premultiplied", 7,
+	VIPS_ARG_BOOL(class, "premultiplied", 9,
 		_("Premultiplied"),
 		_("Input image already has premultiplied alpha"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -504,6 +527,10 @@ vips_smartcrop_init(VipsSmartcrop *smartcrop)
  * ::: tip "Optional arguments"
  *     * @interesting: [enum@Interesting] to use to find interesting areas
  *       (default: [enum@Vips.Interesting.ATTENTION])
+ *     * @interesting_x: `gint`, horizontal position of the specific point of
+ *       interest when using [enum@Vips.Interesting.SPECIFIC])
+ *     * @interesting_y: `gint`, vertical position of the specific point of
+ *       interest when using [enum@Vips.Interesting.SPECIFIC])
  *     * @premultiplied: `gboolean`, input image already has premultiplied alpha
  *     * @attention_x: `gint`, output, horizontal position of attention centre when
  *       using attention based cropping
