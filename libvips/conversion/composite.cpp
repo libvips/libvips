@@ -465,37 +465,42 @@ vips_composite_base_select(VipsCompositeSequence *seq, VipsRect *r)
 
 /* Non-separable blend helpers from the Cairo/PDF definitions.
  */
-static inline double
-vips_composite_lum(const double *c)
+template <typename T>
+static inline T
+vips_composite_lum(const T *c)
 {
-	return 0.3 * c[0] + 0.59 * c[1] + 0.11 * c[2];
+	return T(0.3) * c[0] + T(0.59) * c[1] + T(0.11) * c[2];
 }
 
-static inline double
-vips_composite_min3(double a, double b, double c)
+template <typename T>
+static inline T
+vips_composite_min3(T a, T b, T c)
 {
 	return VIPS_MIN(VIPS_MIN(a, b), c);
 }
 
-static inline double
-vips_composite_max3(double a, double b, double c)
+template <typename T>
+static inline T
+vips_composite_max3(T a, T b, T c)
 {
 	return VIPS_MAX(VIPS_MAX(a, b), c);
 }
 
-static inline double
-vips_composite_sat(const double *c)
+template <typename T>
+static inline T
+vips_composite_sat(const T *c)
 {
 	return vips_composite_max3(c[0], c[1], c[2]) -
 		vips_composite_min3(c[0], c[1], c[2]);
 }
 
+template <typename T>
 static inline void
-vips_composite_clip_color(double *c)
+vips_composite_clip_color(T *c)
 {
-	double l = vips_composite_lum(c);
-	double n = vips_composite_min3(c[0], c[1], c[2]);
-	double x = vips_composite_max3(c[0], c[1], c[2]);
+	T l = vips_composite_lum(c);
+	T n = vips_composite_min3(c[0], c[1], c[2]);
+	T x = vips_composite_max3(c[0], c[1], c[2]);
 
 	if (n < 0) {
 		for (int i = 0; i < 3; i++)
@@ -508,21 +513,23 @@ vips_composite_clip_color(double *c)
 	}
 }
 
+template <typename T>
 static inline void
-vips_composite_set_lum(double *c, double l)
+vips_composite_set_lum(T *c, T l)
 {
-	double d = l - vips_composite_lum(c);
+	T d = l - vips_composite_lum(c);
 
 	for (int i = 0; i < 3; i++)
 		c[i] += d;
 	vips_composite_clip_color(c);
 }
 
+template <typename T>
 static inline void
-vips_composite_set_sat(double *c, double s)
+vips_composite_set_sat(T *c, T s)
 {
-	double n = vips_composite_min3(c[0], c[1], c[2]);
-	double x = vips_composite_max3(c[0], c[1], c[2]);
+	T n = vips_composite_min3(c[0], c[1], c[2]);
+	T x = vips_composite_max3(c[0], c[1], c[2]);
 
 	if (x > n) {
 		for (int i = 0; i < 3; i++) {
@@ -541,8 +548,9 @@ vips_composite_set_sat(double *c, double s)
 	}
 }
 
+template <typename T>
 static inline void
-vips_composite_unpremultiply(double *out, const double *in, double a)
+vips_composite_unpremultiply(T *out, const T *in, T a)
 {
 	if (a > 0) {
 		for (int i = 0; i < 3; i++)
@@ -554,98 +562,6 @@ vips_composite_unpremultiply(double *out, const double *in, double a)
 		out[2] = 0;
 	}
 }
-
-#ifdef HAVE_VECTOR_ARITH
-static inline float
-vips_composite_lum(const float *c)
-{
-	return 0.3f * c[0] + 0.59f * c[1] + 0.11f * c[2];
-}
-
-static inline float
-vips_composite_min3(float a, float b, float c)
-{
-	return VIPS_MIN(VIPS_MIN(a, b), c);
-}
-
-static inline float
-vips_composite_max3(float a, float b, float c)
-{
-	return VIPS_MAX(VIPS_MAX(a, b), c);
-}
-
-static inline float
-vips_composite_sat(const float *c)
-{
-	return vips_composite_max3(c[0], c[1], c[2]) -
-		vips_composite_min3(c[0], c[1], c[2]);
-}
-
-static inline void
-vips_composite_clip_color(float *c)
-{
-	float l = vips_composite_lum(c);
-	float n = vips_composite_min3(c[0], c[1], c[2]);
-	float x = vips_composite_max3(c[0], c[1], c[2]);
-
-	if (n < 0) {
-		for (int i = 0; i < 3; i++)
-			c[i] = l + (c[i] - l) * l / (l - n);
-	}
-
-	if (x > 1) {
-		for (int i = 0; i < 3; i++)
-			c[i] = l + (c[i] - l) * (1 - l) / (x - l);
-	}
-}
-
-static inline void
-vips_composite_set_lum(float *c, float l)
-{
-	float d = l - vips_composite_lum(c);
-
-	for (int i = 0; i < 3; i++)
-		c[i] += d;
-	vips_composite_clip_color(c);
-}
-
-static inline void
-vips_composite_set_sat(float *c, float s)
-{
-	float n = vips_composite_min3(c[0], c[1], c[2]);
-	float x = vips_composite_max3(c[0], c[1], c[2]);
-
-	if (x > n) {
-		for (int i = 0; i < 3; i++) {
-			if (c[i] == x)
-				c[i] = s;
-			else if (c[i] == n)
-				c[i] = 0;
-			else
-				c[i] = (c[i] - n) * s / (x - n);
-		}
-	}
-	else {
-		c[0] = 0;
-		c[1] = 0;
-		c[2] = 0;
-	}
-}
-
-static inline void
-vips_composite_unpremultiply(float *out, const float *in, float a)
-{
-	if (a > 0) {
-		for (int i = 0; i < 3; i++)
-			out[i] = in[i] / a;
-	}
-	else {
-		out[0] = 0;
-		out[1] = 0;
-		out[2] = 0;
-	}
-}
-#endif /*HAVE_VECTOR_ARITH*/
 
 /* A is the new pixel coming in, of any non-complex type T.
  *
