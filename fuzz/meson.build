@@ -1,3 +1,7 @@
+if not get_option('fuzz')
+    subdir_done()
+endif
+
 fuzz_deps = libvips_deps
 fuzz_ldflags = []
 

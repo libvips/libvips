@@ -1,3 +1,7 @@
+if not get_option('tools')
+    subdir_done()
+endif
+
 tools = [
     'vips',
     'vipsedit',
