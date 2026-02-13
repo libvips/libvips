@@ -374,6 +374,7 @@ vips_shrinkh_build(VipsObject *object)
 	 */
 #ifdef HAVE_HWY
 	if (in->BandFmt == VIPS_FORMAT_UCHAR &&
+		in->Bands <= 4 &&
 		vips_vector_isenabled()) {
 		generate = vips_shrinkh_uchar_vector_gen;
 		g_info("shrinkh: using vector path");
