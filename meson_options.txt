@@ -10,6 +10,16 @@ option('examples',
   value: true,
   description: 'Build example programs')
 
+option('tests',
+  type: 'boolean',
+  value: true,
+  description: 'Build tests')
+
+option('tools',
+  type: 'boolean',
+  value: true,
+  description: 'Build tools')
+
 option('cplusplus',
   type: 'boolean',
   value: true,
@@ -262,6 +272,11 @@ option('radiance',
   description: 'Build with radiance')
 
 # fuzzing options
+
+option('fuzz',
+  type: 'boolean',
+  value: true,
+  description: 'Build fuzz targets')
 
 option('fuzzing_engine',
     type: 'combo',
