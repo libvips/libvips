@@ -117,6 +117,8 @@ typedef struct _VipsThumbnail {
 	gboolean auto_rotate;
 	gboolean no_rotate;
 	VipsInteresting crop;
+	int interesting_x;
+	int interesting_y;
 	gboolean linear;
 	char *output_profile;
 	char *input_profile;
@@ -990,6 +992,8 @@ vips_thumbnail_build(VipsObject *object)
 		if (!(t[13] = vips_image_copy_memory(in)) ||
 			vips_smartcrop(t[13], &t[14], crop_width, crop_height,
 				"interesting", thumbnail->crop,
+				"interesting_x", VIPS_ROUND_UINT(thumbnail->interesting_x / vshrink),
+				"interesting_y", VIPS_ROUND_UINT(thumbnail->interesting_y / hshrink),
 				NULL))
 			return -1;
 		in = t[14];
@@ -1084,35 +1088,49 @@ vips_thumbnail_class_init(VipsThumbnailClass *class)
 		G_STRUCT_OFFSET(VipsThumbnail, crop),
 		VIPS_TYPE_INTERESTING, VIPS_INTERESTING_NONE);
 
-	VIPS_ARG_BOOL(class, "linear", 117,
+	VIPS_ARG_INT(class, "interesting_x", 117,
+		_("Interesting x"),
+		_("Horizontal position of the specific point of interest for cropping"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsThumbnail, interesting_x),
+		0, VIPS_MAX_COORD, 0);
+
+	VIPS_ARG_INT(class, "interesting_y", 118,
+		_("Interesting y"),
+		_("Vertical position of the specific point of interest for cropping"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsThumbnail, interesting_y),
+		0, VIPS_MAX_COORD, 0);
+
+	VIPS_ARG_BOOL(class, "linear", 119,
 		_("Linear"),
 		_("Reduce in linear light"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsThumbnail, linear),
 		FALSE);
 
-	VIPS_ARG_STRING(class, "input_profile", 118,
+	VIPS_ARG_STRING(class, "input_profile", 120,
 		_("Input profile"),
 		_("Fallback input profile"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsThumbnail, input_profile),
 		NULL);
 
-	VIPS_ARG_STRING(class, "output_profile", 119,
+	VIPS_ARG_STRING(class, "output_profile", 121,
 		_("Output profile"),
 		_("Fallback output profile"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsThumbnail, output_profile),
 		NULL);
 
-	VIPS_ARG_ENUM(class, "intent", 120,
+	VIPS_ARG_ENUM(class, "intent", 122,
 		_("Intent"),
 		_("Rendering intent"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsThumbnail, intent),
 		VIPS_TYPE_INTENT, VIPS_INTENT_RELATIVE);
 
-	VIPS_ARG_ENUM(class, "fail_on", 121,
+	VIPS_ARG_ENUM(class, "fail_on", 123,
 		_("Fail on"),
 		_("Error level to fail on"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -1333,7 +1351,9 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  *
  * If you set @crop, then the output image will fill the whole of the @width x
  * @height rectangle, with any excess cropped away. See [method@Image.smartcrop] for
- * details on the cropping strategy.
+ * details on the cropping strategy. To use a specific point of interest for
+ * cropping use [enum@Vips.Interesting.SPECIFIC] and set @interesting_x and
+ * @interesting_y.
  *
  * Normally the operation will upsize or downsize as required to fit the image
  * inside or outside the target size. If @size is set to [enum@Vips.Size.UP],
@@ -1369,6 +1389,10 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  *     * @size: [enum@Size], upsize, downsize, both or force
  *     * @no_rotate: `gboolean`, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
+ *     * @interesting_x: `gint`, horizontal position of the specific point of
+ *       interest when cropping with [enum@Vips.Interesting.SPECIFIC])
+ *     * @interesting_y: `gint`, vertical position of the specific point of
+ *       interest when cropping with [enum@Vips.Interesting.SPECIFIC])
  *     * @linear: `gboolean`, perform shrink in linear light
  *     * @input_profile: `gchararray`, fallback input ICC profile
  *     * @output_profile: `gchararray`, output ICC profile
@@ -1578,6 +1602,10 @@ vips_thumbnail_buffer_init(VipsThumbnailBuffer *buffer)
  *     * @size: [enum@Size], upsize, downsize, both or force
  *     * @no_rotate: `gboolean`, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
+ *     * @interesting_x: `gint`, horizontal position of the specific point of
+ *       interest when cropping with [enum@Vips.Interesting.SPECIFIC])
+ *     * @interesting_y: `gint`, vertical position of the specific point of
+ *       interest when cropping with [enum@Vips.Interesting.SPECIFIC])
  *     * @linear: `gboolean`, perform shrink in linear light
  *     * @input_profile: `gchararray`, fallback input ICC profile
  *     * @output_profile: `gchararray`, output ICC profile
@@ -1792,6 +1820,10 @@ vips_thumbnail_source_init(VipsThumbnailSource *source)
  *     * @size: [enum@Size], upsize, downsize, both or force
  *     * @no_rotate: `gboolean`, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
+ *     * @interesting_x: `gint`, horizontal position of the specific point of
+ *       interest when cropping with [enum@Vips.Interesting.SPECIFIC])
+ *     * @interesting_y: `gint`, vertical position of the specific point of
+ *       interest when cropping with [enum@Vips.Interesting.SPECIFIC])
  *     * @linear: `gboolean`, perform shrink in linear light
  *     * @input_profile: `gchararray`, fallback input ICC profile
  *     * @output_profile: `gchararray`, output ICC profile
@@ -1906,6 +1938,10 @@ vips_thumbnail_image_init(VipsThumbnailImage *image)
  *     * @size: [enum@Size], upsize, downsize, both or force
  *     * @no_rotate: `gboolean`, don't rotate upright using orientation tag
  *     * @crop: [enum@Interesting], shrink and crop to fill target
+ *     * @interesting_x: `gint`, horizontal position of the specific point of
+ *       interest when cropping with [enum@Vips.Interesting.SPECIFIC])
+ *     * @interesting_y: `gint`, vertical position of the specific point of
+ *       interest when cropping with [enum@Vips.Interesting.SPECIFIC])
  *     * @linear: `gboolean`, perform shrink in linear light
  *     * @input_profile: `gchararray`, fallback input ICC profile
  *     * @output_profile: `gchararray`, output ICC profile
