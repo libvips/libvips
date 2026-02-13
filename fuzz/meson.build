@@ -18,7 +18,8 @@ fuzz_progs = [
     'sharpen_fuzzer',
     'thumbnail_fuzzer',
     'smartcrop_fuzzer',
-    'mosaic_fuzzer'
+    'mosaic_fuzzer',
+    'vips_fuzzer'
 ]
 
 if libjpeg_dep.found()
