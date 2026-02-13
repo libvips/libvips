@@ -70,6 +70,7 @@ vips_shrinkh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 #if HWY_TARGET != HWY_SCALAR
 	const auto multiplier = Set(du32, max_uint32 / (max_bits * hshrink));
 	const auto amend = Set(du32, hshrink / 2);
+	const auto mask = FirstN(du8x32, bands);
 
 	int32_t ix = 0;
 
@@ -81,16 +82,16 @@ vips_shrinkh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 
 		int32_t xx = 0;
 		for (; xx + 2 <= hshrink; xx += 2) {
-			auto pix0 = PromoteTo(du32, LoadU(du8x32, p));
+			auto pix0 = PromoteTo(du32, MaskedLoad(mask, du8x32, p));
 			p += bands;
-			auto pix1 = PromoteTo(du32, LoadU(du8x32, p));
+			auto pix1 = PromoteTo(du32, MaskedLoad(mask, du8x32, p));
 			p += bands;
 
 			pix0 = Add(pix0, pix1);
 			sum0 = Add(sum0, pix0);
 		}
 		for (; xx < hshrink; ++xx) {
-			auto pix0 = PromoteTo(du32, LoadU(du8x32, p));
+			auto pix0 = PromoteTo(du32, MaskedLoad(mask, du8x32, p));
 			p += bands;
 
 			sum0 = Add(sum0, pix0);
