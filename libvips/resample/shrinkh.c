@@ -299,7 +299,10 @@ vips_shrinkh_uchar_vector_gen(VipsRegion *out_region,
 
 		s.left = r->left * shrink->hshrink;
 		s.top = r->top + y;
-		s.width = r->width * shrink->hshrink;
+		/* Request one extra input pixel on the right so the Highway path can
+		 * safely process a full SIMD vector.
+		 */
+		s.width = (r->width + 1) * shrink->hshrink;
 		s.height = chunk_height;
 #ifdef DEBUG
 		printf("vips_shrinkh_uchar_vector_gen: requesting %d lines from %d\n",
