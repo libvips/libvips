@@ -321,6 +321,12 @@ vips_fwfft_build(VipsObject *object)
 
 	in = freqfilt->in;
 
+	if (in->Xsize < 2 || in->Ysize < 2) {
+		vips_error(VIPS_OBJECT_GET_CLASS(object)->nickname,
+			"%s", _("image too small for 2D FFT"));
+		return -1;
+	}
+
 	if (vips_image_decode(in, &t[0]))
 		return -1;
 	in = t[0];
