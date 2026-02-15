@@ -216,7 +216,6 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 {
 	VipsOperation *operation;
 	VipsOperationClass *oclass;
-	GType op_type, foreign_load, foreign_save;
 	FuzzCtx ctx = {};
 	char *op_name;
 	int i;
@@ -237,17 +236,6 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	if (VIPS_OBJECT_CLASS(oclass)->deprecated ||
 		(oclass->flags & VIPS_OPERATION_DEPRECATED) ||
 		(oclass->flags & VIPS_OPERATION_BLOCKED)) {
-		g_object_unref(operation);
-		return 0;
-	}
-
-	/* Skip foreign load/save -- already covered by existing fuzz targets.
-	 */
-	op_type = G_TYPE_FROM_INSTANCE(operation);
-	foreign_load = g_type_from_name("VipsForeignLoad");
-	foreign_save = g_type_from_name("VipsForeignSave");
-	if ((foreign_load && g_type_is_a(op_type, foreign_load)) ||
-		(foreign_save && g_type_is_a(op_type, foreign_save))) {
 		g_object_unref(operation);
 		return 0;
 	}
