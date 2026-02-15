@@ -1,21 +1,19 @@
 /* Fuzz the complete libvips operation API.
  *
  * This exercises the operation dispatch, argument parsing, and execution
- * paths for all non-deprecated processing operations, similar to the
- * standalone vips CLI tool.
+ * paths for all operations, similar to the standalone vips CLI tool.
  *
  * Input format:
  *   Line 1: operation name (e.g. "invert", "add", "embed")
- *   Lines 2..N: non-image argument strings, one per line
+ *   Lines 2..N: required non-image argument strings, one per line
+ *   Lines N+1..M: optional arguments as "--name=value", one per line
  *   Remaining bytes: raw image data (decoded via vips_image_new_from_buffer)
- *
- * Foreign load/save operations are skipped since they are already covered
- * by existing fuzz targets.
  */
 
 #include <vips/vips.h>
 
 #define MAX_LINE_LEN 4096 // =VIPS_PATH_MAX
+#define MAX_OPTIONAL_ARGS 16
 
 extern "C" int
 LLVMFuzzerInitialize(int *argc, char ***argv)
@@ -258,6 +256,40 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		}
 	}
 
+	/* Parse optional arguments (lines starting with "--"). */
+	char *opt_names[MAX_OPTIONAL_ARGS];
+	char *opt_values[MAX_OPTIONAL_ARGS];
+	int n_optional = 0;
+
+	while (n_optional < MAX_OPTIONAL_ARGS) {
+		/* Peek at the next line without consuming it. */
+		const guint8 *save_data = data;
+		size_t save_size = size;
+		char *line = ExtractLine(&data, &size);
+
+		if (!line)
+			break;
+
+		if (line[0] != '-' || line[1] != '-') {
+			/* Not an optional arg -- put the data back. */
+			g_free(line);
+			data = save_data;
+			size = save_size;
+			break;
+		}
+
+		/* Split "--name=value" */
+		char *eq = strchr(line + 2, '=');
+		if (eq) {
+			*eq = '\0';
+			opt_names[n_optional] = g_strdup(line + 2);
+			opt_values[n_optional] = g_strdup(eq + 1);
+			n_optional++;
+		}
+
+		g_free(line);
+	}
+
 	/* Try to load an image from the remaining data. */
 	ctx.image = nullptr;
 	if (size > 0) {
@@ -280,6 +312,11 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	vips_argument_map(VIPS_OBJECT(operation),
 		SetRequiredInput, &ctx, nullptr);
 
+	/* Set optional arguments (ignore failures). */
+	for (i = 0; i < n_optional; i++)
+		vips_object_set_argument_from_string(VIPS_OBJECT(operation),
+			opt_names[i], opt_values[i]);
+
 	if (!ctx.failed) {
 		/* Build (execute) the operation. */
 		if (!vips_object_build(VIPS_OBJECT(operation))) {
@@ -298,6 +335,10 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	for (i = 0; i < ctx.n_string_args; i++)
 		g_free(ctx.string_args[i]);
 	g_free(ctx.string_args);
+	for (i = 0; i < n_optional; i++) {
+		g_free(opt_names[i]);
+		g_free(opt_values[i]);
+	}
 
 	vips_error_clear();
 
