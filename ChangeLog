@@ -12,6 +12,7 @@ date-tbd 8.18.1
 - source: guard against length truncation [Niebelungen-D]
 - string_to_array_double: ensure delimiter list is consistent [dloebl] [lovell]
 - fix loading/saving of non-8-bit JXL images [DarthSim]
+- invertlut: check height before interpolating values [dloebl] [lovell]
 
 17/12/25 8.18.0
 
