@@ -36,6 +36,17 @@ class TestDraw:
         diff = (im - im2).abs().max()
         assert diff == 0
 
+    def test_draw_flood_out_of_bounds(self):
+        im = pyvips.Image.black(100, 100)
+        with pytest.raises(pyvips.error.Error):
+            im.draw_flood(100, 200, 50)
+        with pytest.raises(pyvips.error.Error):
+            im.draw_flood(100, 50, 200)
+        with pytest.raises(pyvips.error.Error):
+            im.draw_flood(100, -1, 50)
+        with pytest.raises(pyvips.error.Error):
+            im.draw_flood(100, 50, -1)
+
     def test_draw_image(self):
         im = pyvips.Image.black(51, 51)
         im = im.draw_circle(100, 25, 25, 25, fill=True)
