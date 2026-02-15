@@ -941,7 +941,7 @@ transform_g_string_array_int(const GValue *src_value, GValue *dest_value)
 	str = g_value_dup_string(src_value);
 
 	i = 0;
-	for (p = str; (q = vips_break_token(p, "\t; ")); p = q) {
+	for (p = str; (q = vips_break_token(p, "\t;, ")); p = q) {
 		if (sscanf(p, "%d", &array[i]) != 1) {
 			/* Set array to length zero to indicate an error.
 			 */
@@ -1184,7 +1184,7 @@ string_to_array_double(const char *input, GValue *dest_value)
 	str = g_strdup(input);
 
 	i = 0;
-	for (p = str; (q = vips_break_token(p, "\t; ")); p = q) {
+	for (p = str; (q = vips_break_token(p, "\t;, ")); p = q) {
 		// this is locale-independent
 		if (vips_strtod(p, &array[i])) {
 			/* Set array to length zero to indicate an error.
