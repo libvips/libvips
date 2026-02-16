@@ -163,8 +163,21 @@ SetRequiredInput(VipsObject *object,
 			ctx->failed = TRUE;
 			return pspec;
 		}
+		const char *value = ctx->string_args[ctx->string_idx++];
+
+		/* Prevent file-based save operations from writing to
+		 * fuzzer-controlled paths.
+		 */
+		if (strcmp(name, "filename") == 0) {
+			GType foreign_save = g_type_from_name("VipsForeignSave");
+			if (foreign_save &&
+				g_type_is_a(G_TYPE_FROM_INSTANCE(object),
+					foreign_save))
+				value = "/dev/null";
+		}
+
 		if (vips_object_set_argument_from_string(object, name,
-				ctx->string_args[ctx->string_idx++])) {
+				value)) {
 			ctx->failed = TRUE;
 			return pspec;
 		}
