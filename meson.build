@@ -772,10 +772,18 @@ endif
 if get_option('cplusplus')
   subdir('cplusplus')
 endif
-
-# these lines removed by a regexp for oss-fuzz builds, don't touch!
-subdir('man')
-subdir('po')
-subdir('tools')
-subdir('test')
-subdir('fuzz')
+if get_option('man') and get_option('tools')
+  subdir('man')
+endif
+if get_option('po')
+  subdir('po')
+endif
+if get_option('tools')
+  subdir('tools')
+endif
+if get_option('tests')
+    subdir('test')
+endif
+if get_option('fuzz')
+  subdir('fuzz')
+endif

@@ -10,6 +10,16 @@ option('examples',
   value: true,
   description: 'Build example programs')
 
+option('man',
+  type: 'boolean',
+  value: true,
+  description: 'Build man pages')
+
+option('po',
+  type: 'boolean',
+  value: true,
+  description: 'Build gettext po files')
+
 option('tests',
   type: 'boolean',
   value: true,
@@ -275,7 +285,7 @@ option('radiance',
 
 option('fuzz',
   type: 'boolean',
-  value: true,
+  value: false,
   description: 'Build fuzz targets')
 
 option('fuzzing_engine',

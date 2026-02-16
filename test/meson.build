@@ -1,7 +1,3 @@
-if not get_option('tests')
-    subdir_done()
-endif
-
 variables_data = configuration_data()
 variables_data.set('abs_top_srcdir', project_source_root)
 variables_data.set('abs_top_builddir', project_build_root)
