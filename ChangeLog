@@ -15,6 +15,7 @@ date-tbd 8.18.1
 - invertlut: check height before interpolating values [dloebl] [lovell]
 - extract: check bounds using unsigned arithmetic [Niebelungen-D] [lovell]
 - matrixload: guard against empty and very large inputs [Niebelungen-D] [lovell]
+- unpremultiply: check `alpha_band` is in range [Niebelungen-D] [lovell]
 
 17/12/25 8.18.0
 
