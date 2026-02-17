@@ -125,7 +125,7 @@ parse_matrix_header(char *line,
 
 	for (i = 0, p = line; (q = vips_break_token(p, " \t")) && i < 4; i++, p = q)
 		if (vips_strtod(p, &header[i])) {
-			vips_error("matload", _("bad number \"%s\""), p);
+			vips_error("matrixload", _("bad number \"%s\""), p);
 			return -1;
 		}
 
@@ -134,13 +134,13 @@ parse_matrix_header(char *line,
 	if (i < 3)
 		header[2] = 1.0;
 	if (i < 2) {
-		vips_error("matload", "%s", _("no width / height"));
+		vips_error("matrixload", "%s", _("no width / height"));
 		return -1;
 	}
 
 	if (floor(header[0]) != header[0] ||
 		floor(header[1]) != header[1]) {
-		vips_error("mask2vips", "%s", _("width / height not int"));
+		vips_error("matrixload", "%s", _("width / height not int"));
 		return -1;
 	}
 
@@ -152,11 +152,11 @@ parse_matrix_header(char *line,
 		*width > 100000 ||
 		*height <= 0 ||
 		*height > 100000) {
-		vips_error("mask2vips", "%s", _("width / height out of range"));
+		vips_error("matrixload", "%s", _("width / height out of range"));
 		return -1;
 	}
 	if (header[2] == 0.0) {
-		vips_error("mask2vips", "%s", _("zero scale"));
+		vips_error("matrixload", "%s", _("zero scale"));
 		return -1;
 	}
 
@@ -184,7 +184,10 @@ vips_foreign_load_matrix_header(VipsForeignLoad *load)
 	if (vips_source_rewind(matrix->source))
 		return -1;
 
-	line = vips_sbuf_get_line_copy(matrix->sbuf);
+	if (!(line = vips_sbuf_get_line_copy(matrix->sbuf))) {
+		vips_error("matrixload", "%s", _("invalid header"));
+		return -1;
+	}
 	result = parse_matrix_header(line, &width, &height, &scale, &offset);
 	g_free(line);
 	if (result)
@@ -326,7 +329,7 @@ static gboolean
 vips_foreign_load_matrix_file_is_a(const char *filename)
 {
 	unsigned char line[80];
-	guint64 bytes;
+	gint64 bytes;
 	int width;
 	int height;
 	double scale;
