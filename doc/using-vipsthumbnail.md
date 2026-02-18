@@ -169,7 +169,7 @@ $ ls -l tn_42-32157534.jpg
 `keep=none` almost halves the size of the thumbnail:
 
 ```console
-$ vipsthumbnail 42-32157534.jpg -path x.jpg[optimize_coding,keep=none]
+$ vipsthumbnail 42-32157534.jpg --path x.jpg[optimize_coding,keep=none]
 $ ls -l x.jpg
 -rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
 ```
