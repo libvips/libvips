@@ -764,26 +764,26 @@ endforeach
 
 subdir('libvips')
 if get_option('docs')
-  subdir('doc')
+    subdir('doc')
 endif
 if get_option('examples')
-  subdir('examples')
+    subdir('examples')
 endif
 if get_option('cplusplus')
-  subdir('cplusplus')
+    subdir('cplusplus')
 endif
 if get_option('man') and get_option('tools')
-  subdir('man')
+    subdir('man')
 endif
 if get_option('po')
-  subdir('po')
+    subdir('po')
 endif
 if get_option('tools')
-  subdir('tools')
+    subdir('tools')
 endif
 if get_option('tests')
     subdir('test')
 endif
 if get_option('fuzz')
-  subdir('fuzz')
+    subdir('fuzz')
 endif
