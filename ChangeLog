@@ -3,7 +3,8 @@ date-tbd 8.19.0
 - smartcrop: introduce cropping by a specific point of interest [pszemus]
 - pngload: support for EXIF data in zTXt chunks [pszemus]
 - meson: options for building `man`, `po`, `test`, `tools`; disable building
-  `fuzz` by default [pszemus]
+- `fuzz` by default [pszemus]
+- conversion: non-separable blending modes added [kstanikviacbs]
 
 date-tbd 8.18.1
 
