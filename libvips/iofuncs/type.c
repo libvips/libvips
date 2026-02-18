@@ -917,6 +917,8 @@ transform_array_int_save_string(const GValue *src_value, GValue *dest_value)
 static void
 transform_g_string_array_int(const GValue *src_value, GValue *dest_value)
 {
+	static const char *delimiters = "\t;, ";
+
 	char *str;
 	int n;
 	char *p, *q;
@@ -930,7 +932,7 @@ transform_g_string_array_int(const GValue *src_value, GValue *dest_value)
 	str = g_value_dup_string(src_value);
 
 	n = 0;
-	for (p = str; (q = vips_break_token(p, "\t;, ")); p = q)
+	for (p = str; (q = vips_break_token(p, delimiters)); p = q)
 		n += 1;
 
 	g_free(str);
@@ -941,7 +943,7 @@ transform_g_string_array_int(const GValue *src_value, GValue *dest_value)
 	str = g_value_dup_string(src_value);
 
 	i = 0;
-	for (p = str; (q = vips_break_token(p, "\t;, ")); p = q) {
+	for (p = str; (q = vips_break_token(p, delimiters)); p = q) {
 		if (sscanf(p, "%d", &array[i]) != 1) {
 			/* Set array to length zero to indicate an error.
 			 */
@@ -1164,6 +1166,8 @@ transform_array_double_save_string(const GValue *src_value, GValue *dest_value)
 static void
 string_to_array_double(const char *input, GValue *dest_value)
 {
+	static const char *delimiters = "\t;, ";
+
 	char *str;
 	int n;
 	char *p, *q;
@@ -1173,7 +1177,7 @@ string_to_array_double(const char *input, GValue *dest_value)
 	str = g_strdup(input);
 
 	n = 0;
-	for (p = str; (q = vips_break_token(p, "\t;, ")); p = q)
+	for (p = str; (q = vips_break_token(p, delimiters)); p = q)
 		n += 1;
 
 	g_free(str);
@@ -1184,7 +1188,7 @@ string_to_array_double(const char *input, GValue *dest_value)
 	str = g_strdup(input);
 
 	i = 0;
-	for (p = str; (q = vips_break_token(p, "\t;, ")); p = q) {
+	for (p = str; (q = vips_break_token(p, delimiters)); p = q) {
 		// this is locale-independent
 		if (vips_strtod(p, &array[i])) {
 			/* Set array to length zero to indicate an error.
@@ -1382,6 +1386,8 @@ vips_array_image_newv(int n, ...)
 VipsArrayImage *
 vips_array_image_new_from_string(const char *string, VipsAccess access)
 {
+	static const char *delimiters = " \n\t\r";
+
 	char *str;
 	int n;
 	VipsArea *area;
@@ -1395,7 +1401,7 @@ vips_array_image_new_from_string(const char *string, VipsAccess access)
 	str = g_strdup(string);
 
 	n = 0;
-	for (p = str; (q = vips_break_token(p, " \n\t\r")); p = q)
+	for (p = str; (q = vips_break_token(p, delimiters)); p = q)
 		n += 1;
 
 	g_free(str);
@@ -1408,7 +1414,7 @@ vips_array_image_new_from_string(const char *string, VipsAccess access)
 	str = g_strdup(string);
 
 	i = 0;
-	for (p = str; (q = vips_break_token(p, " \n\t\r")); p = q) {
+	for (p = str; (q = vips_break_token(p, delimiters)); p = q) {
 		if (!(array[i] = vips_image_new_from_file(p,
 				  "access", access,
 				  NULL))) {
