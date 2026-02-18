@@ -480,13 +480,21 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 
 	switch (in->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
+#ifdef HAVE_LIBJXL_0_8
 		jxl->info.bits_per_sample = VIPS_MIN(jxl->bitdepth, 8);
+#else
+		jxl->info.bits_per_sample = 8;
+#endif
 		jxl->info.exponent_bits_per_sample = 0;
 		jxl->format.data_type = JXL_TYPE_UINT8;
 		break;
 
 	case VIPS_FORMAT_USHORT:
+#ifdef HAVE_LIBJXL_0_8
 		jxl->info.bits_per_sample = jxl->bitdepth;
+#else
+		jxl->info.bits_per_sample = 16;
+#endif
 		jxl->info.exponent_bits_per_sample = 0;
 		jxl->format.data_type = JXL_TYPE_UINT16;
 		break;
@@ -812,6 +820,13 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
 	JxlEncoderSetFrameLossless(frame_settings, jxl->lossless);
 
+#ifdef HAVE_LIBJXL_0_8
+	const JxlBitDepth bitdepth = {
+		.type = JXL_BIT_DEPTH_FROM_CODESTREAM,
+	};
+	JxlEncoderSetFrameBitDepth(frame_settings, &bitdepth);
+#endif
+
 	if (jxl->info.have_animation) {
 		JxlFrameHeader header = { 0 };
 
@@ -964,19 +979,15 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		format == VIPS_FORMAT_USHORT)
 		jxl->bitdepth = 16;
 
-	if (vips_cast(in, &t[0], format, NULL))
-		return -1;
-	in = t[0];
-
 	/* Mimics VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA.
 	 * FIXME: add support encoding images with > 4 bands.
 	 */
 	if (in->Bands > 4) {
-		if (vips_extract_band(in, &t[1], 0,
+		if (vips_extract_band(in, &t[0], 0,
 				"n", 4,
 				NULL))
 			return -1;
-		in = t[1];
+		in = t[0];
 	}
 
 	/* The user can set bitdepth to size the number of bits down for int
@@ -987,12 +998,28 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		format == VIPS_FORMAT_USHORT) {
 		int image_bits_per_sample = format == VIPS_FORMAT_UCHAR ? 8 : 16;
 		int bits_per_sample = VIPS_MIN(jxl->bitdepth, image_bits_per_sample);
+#ifndef HAVE_LIBJXL_0_8
+		/* libjxl < 0.8 does not support setting input buffer bitdepth, so clamp to 8 or 16.
+		 */
+		bits_per_sample = bits_per_sample > 8 ? 16 : 8;
+#endif
 		int shift = image_bits_per_sample - bits_per_sample;
 
-		if (vips_rshift_const1(in, &t[2], shift, NULL))
+		if (vips_rshift_const1(in, &t[1], shift, NULL))
 			return -1;
-		in = t[2];
+		in = t[1];
 	}
+
+	/* libjxl throws an error if we give it ushort data with <= 8 bitdepth.
+	 */
+	if (format == VIPS_FORMAT_USHORT && jxl->bitdepth <= 8)
+		format = VIPS_FORMAT_UCHAR;
+
+	/* Cast the image to conform to the format we will give to libjxl.
+	 */
+	if (vips_cast(in, &t[2], format, NULL))
+		return -1;
+	in = t[2];
 
 	/* We need to cache a complete line of jxl 2k x 2k tiles, plus a bit.
 	 * We don't need to allow threaded access -- libjxl will never try to
