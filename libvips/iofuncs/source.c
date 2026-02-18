@@ -954,6 +954,12 @@ vips_source_read_to_memory(VipsSource *source)
 	g_assert(!source->header_bytes);
 	g_assert(source->length >= 0);
 
+	if (G_UNLIKELY(source->length > UINT_MAX)) {
+		vips_error(vips_connection_nick(VIPS_CONNECTION(source)),
+			"%s", _("length overflow"));
+		return -1;
+	}
+
 	if (vips_source_rewind(source))
 		return -1;
 
@@ -961,7 +967,7 @@ vips_source_read_to_memory(VipsSource *source)
 	 * directly to it.
 	 */
 	byte_array = g_byte_array_new();
-	g_byte_array_set_size(byte_array, source->length);
+	g_byte_array_set_size(byte_array, (guint) source->length);
 
 	read_position = 0;
 	q = byte_array->data;
@@ -1343,13 +1349,19 @@ vips_source_sniff_at_most(VipsSource *source,
 
 	VIPS_DEBUG_MSG("vips_source_sniff_at_most: %zd bytes\n", length);
 
+	if (G_UNLIKELY(length > UINT_MAX)) {
+		vips_error(vips_connection_nick(VIPS_CONNECTION(source)),
+			"%s", _("length overflow"));
+		return -1;
+	}
+
 	SANITY(source);
 
 	if (vips_source_test_features(source) ||
 		vips_source_rewind(source))
 		return -1;
 
-	g_byte_array_set_size(source->sniff, length);
+	g_byte_array_set_size(source->sniff, (guint) length);
 
 	read_position = 0;
 	q = source->sniff->data;

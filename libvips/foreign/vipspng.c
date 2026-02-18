@@ -522,7 +522,7 @@ vips__set_text(VipsImage *out, int i, const char *key, const char *text)
 /* Read a png header.
  */
 static int
-png2vips_header(Read *read, VipsImage *out)
+png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 {
 	png_uint_32 width, height;
 	int bitdepth, color_type;
@@ -688,13 +688,18 @@ png2vips_header(Read *read, VipsImage *out)
 #endif
 
 	/* Sanity-check line size.
+	 *
+	 * Don't do this for header read, since we don't want to force a
+	 * malloc if all we are doing is looking at fields.
 	 */
-	png_read_update_info(read->pPng, read->pInfo);
-	if (png_get_rowbytes(read->pPng, read->pInfo) !=
-		VIPS_IMAGE_SIZEOF_LINE(out)) {
-		vips_error("vipspng",
-			"%s", _("unable to read PNG header"));
-		return -1;
+	if (!header_only) {
+		png_read_update_info(read->pPng, read->pInfo);
+		if (png_get_rowbytes(read->pPng, read->pInfo) !=
+			VIPS_IMAGE_SIZEOF_LINE(out)) {
+			vips_error("vipspng",
+				"%s", _("unable to read PNG header"));
+			return -1;
+		}
 	}
 
 	/* Let our caller know. These are very expensive to decode.
@@ -908,14 +913,14 @@ png2vips_image(Read *read, VipsImage *out)
 		 * buffer, then copy to out.
 		 */
 		t[0] = vips_image_new_memory();
-		if (png2vips_header(read, t[0]) ||
+		if (png2vips_header(read, t[0], FALSE) ||
 			png2vips_interlace(read, t[0]) ||
 			vips_image_write(t[0], out))
 			return -1;
 	}
 	else {
 		t[0] = vips_image_new();
-		if (png2vips_header(read, t[0]) ||
+		if (png2vips_header(read, t[0], FALSE) ||
 			vips_image_generate(t[0],
 				NULL, png2vips_generate, NULL,
 				read, NULL) ||
@@ -947,8 +952,8 @@ vips__png_header_source(VipsSource *source, VipsImage *out,
 {
 	Read *read;
 
-	if (!(read = read_new(source, out, TRUE, unlimited)) ||
-		png2vips_header(read, out))
+	if (!(read = read_new(source, out, VIPS_FAIL_ON_NONE, unlimited)) ||
+		png2vips_header(read, out, TRUE))
 		return -1;
 
 	vips_source_minimise(source);
@@ -982,7 +987,7 @@ vips__png_isinterlaced_source(VipsSource *source)
 
 	image = vips_image_new();
 
-	if (!(read = read_new(source, image, TRUE, FALSE))) {
+	if (!(read = read_new(source, image, VIPS_FAIL_ON_NONE, FALSE))) {
 		g_object_unref(image);
 		return -1;
 	}
