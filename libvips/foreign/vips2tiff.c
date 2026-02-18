@@ -448,7 +448,7 @@ embed_profile_meta(TIFF *tif, VipsImage *im)
 }
 
 static int
-wtiff_handler_error(TIFF *tiff, void* user_data,
+wtiff_handler_error(TIFF *tiff, void *user_data,
 	const char *module, const char *fmt, va_list ap)
 {
 	vips_verror("vips2tiff", fmt, ap);
@@ -456,7 +456,7 @@ wtiff_handler_error(TIFF *tiff, void* user_data,
 }
 
 static int
-wtiff_handler_warning(TIFF *tiff, void* user_data,
+wtiff_handler_warning(TIFF *tiff, void *user_data,
 	const char *module, const char *fmt, va_list ap)
 {
 	g_logv(G_LOG_DOMAIN, G_LOG_LEVEL_WARNING, fmt, ap);

@@ -753,7 +753,7 @@ vips_foreign_save_uhdr_target_init(VipsForeignSaveUhdrTarget *target)
  * and it will be saved as UltraHDR.
  *
  * If the image is scRGB and has no gainmap, one will be computed at a
- * `gainmap_scale_factor` of the base image.
+ * @gainmap_scale_factor of the base image.
  * This is slow and takes a lot of memory.
  *
  * ::: tip "Optional arguments"

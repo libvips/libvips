@@ -46,7 +46,7 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-typedef int (*VipsTiffErrorHandler)(TIFF *tiff, void* user_data,
+typedef int (*VipsTiffErrorHandler)(TIFF *tiff, void *user_data,
 	const char *module, const char *fmt, va_list ap);
 
 TIFF *vips__tiff_openin_source(VipsSource *source,

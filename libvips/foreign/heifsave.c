@@ -516,7 +516,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 #endif
 	gboolean has_alpha;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)-> build(object))
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)->build(object))
 		return -1;
 
 	/* If the old, deprecated "speed" param is being used and the new

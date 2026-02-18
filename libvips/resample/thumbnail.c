@@ -1633,7 +1633,7 @@ vips_thumbnail_source_get_info(VipsThumbnail *thumbnail)
 
 	g_info("thumbnailing source");
 
-	if (!(thumbnail->loader = vips_foreign_find_load_source( source->source)) ||
+	if (!(thumbnail->loader = vips_foreign_find_load_source(source->source)) ||
 		!(image = vips_image_new_from_source(source->source,
 			  source->option_string, NULL)))
 		return -1;
