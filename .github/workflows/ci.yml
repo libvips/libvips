@@ -116,6 +116,7 @@ jobs:
             -Dmagick=disabled
             -Ddocs=${{ matrix.build.docs || 'false' }}
             -Dintrospection=${{ matrix.build.docs && 'enabled' || 'disabled' }}
+            -Dfuzz=${{ matrix.build.sanitize && 'true' || 'false' }}
             -Db_sanitize=${{ matrix.build.sanitize || 'none' }}
             -Db_lundef=${{ matrix.build.sanitize && 'false' || 'true' }}
           || (cat build/meson-logs/meson-log.txt && exit 1)
