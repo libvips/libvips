@@ -490,9 +490,7 @@ vips_draw_flood_build(VipsObject *object)
 			drawflood->test, draw->image))
 		return -1;
 
-	if (drawflood->x < 0 ||
-		drawflood->x >= draw->image->Xsize ||
-		drawflood->y < 0 ||
+	if (drawflood->x >= draw->image->Xsize ||
 		drawflood->y >= draw->image->Ysize) {
 		vips_error(class->nickname,
 			"%s", _("start point out of image"));
