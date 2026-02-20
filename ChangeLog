@@ -17,6 +17,7 @@ date-tbd 8.18.1
 - matrixload: guard against empty and very large inputs [Niebelungen-D] [lovell]
 - unpremultiply: check `alpha_band` is in range [Niebelungen-D] [lovell]
 - maplut: ensure lookup table index is unsigned [dloebl] [lovell]
+- draw_flood: reject out-of-bounds start point [dloebl]
 
 17/12/25 8.18.0
 
