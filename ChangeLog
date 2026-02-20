@@ -10,6 +10,7 @@ date-tbd 8.18.1
 - uhdrload: expose original gainmap scale factor [lovell]
 - uhdrsave: control generated gainmap scale factor [lovell]
 - source: guard against length truncation [Niebelungen-D]
+- shrinkh: fix possible OOB read in Highway path [dloebl] [kleisauke]
 - string_to_array_double: ensure delimiter list is consistent [dloebl] [lovell]
 - fix loading/saving of non-8-bit JXL images [DarthSim]
 - invertlut: check height before interpolating values [dloebl] [lovell]

@@ -151,6 +151,15 @@ class TestResample:
         assert im2.height == int(im.height / 2.5 + 0.5)
         assert abs(im.avg() - im2.avg()) < 1
 
+        # https://github.com/libvips/libvips/issues/4864
+        if have("ppmload"):
+            im = pyvips.Image.new_from_buffer(b'P6\n2 2\n255\n'
+                                              b'\xff\x00\x00' b'\x00\xff\x00'
+                                              b'\x00\x00\xff' b'\xff\xff\x00', "")
+            im2 = im.shrinkh(2)
+            assert im2.width == 1
+            assert abs(im.avg() - im2.avg()) < 1
+
     def test_thumbnail(self):
         im = pyvips.Image.thumbnail(JPEG_FILE, 100)
 
