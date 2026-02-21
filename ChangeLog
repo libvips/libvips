@@ -19,6 +19,7 @@ date-tbd 8.18.1
 - unpremultiply: check `alpha_band` is in range [Niebelungen-D] [lovell]
 - maplut: ensure lookup table index is unsigned [dloebl] [lovell]
 - draw_flood: reject out-of-bounds start point [dloebl]
+- conva: guard against divide by zero [kleisauke]
 
 17/12/25 8.18.0
 

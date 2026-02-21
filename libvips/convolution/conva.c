@@ -744,7 +744,7 @@ vips_conva_decompose_boxes(VipsConva *conva)
 	for (z = 0; z < size; z++)
 		sum += fabs(coeff[z]);
 
-	conva->divisor = rint(area * scale / sum);
+	conva->divisor = VIPS_MAX(1, rint(area * scale / sum));
 	conva->rounding = (conva->divisor + 1) / 2;
 	conva->offset = offset;
 
@@ -1081,8 +1081,7 @@ vips_conva_horizontal(VipsConva *conva, VipsImage *in, VipsImage **out)
 				seq_sum[z] = 0; \
 				for (k = conva->vline[z].start; \
 					 k < conva->vline[z].end; k++) \
-					seq_sum[z] += p[k * istride + \
-						conva->vline[z].band]; \
+					seq_sum[z] += p[k * istride + conva->vline[z].band]; \
 				sum += conva->vline[z].factor * seq_sum[z]; \
 			} \
 			sum = (sum + conva->rounding) / conva->divisor + conva->offset; \
@@ -1164,29 +1163,23 @@ vips_conva_vgenerate(VipsRegion *out_region,
 	switch (convolution->in->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
 		if (conva->max_line < 256)
-			VCONV(unsigned int,
-				unsigned short, unsigned char, CLIP_UCHAR);
+			VCONV(unsigned int, unsigned short, unsigned char, CLIP_UCHAR);
 		else
-			VCONV(unsigned int,
-				unsigned int, unsigned char, CLIP_UCHAR);
+			VCONV(unsigned int, unsigned int, unsigned char, CLIP_UCHAR);
 		break;
 
 	case VIPS_FORMAT_CHAR:
 		if (conva->max_line < 256)
-			VCONV(signed int,
-				signed short, signed char, CLIP_CHAR);
+			VCONV(signed int, signed short, signed char, CLIP_CHAR);
 		else
-			VCONV(signed int,
-				signed int, signed char, CLIP_CHAR);
+			VCONV(signed int, signed int, signed char, CLIP_CHAR);
 		break;
 
 	case VIPS_FORMAT_USHORT:
 		if (conva->max_line < 256)
-			VCONV(unsigned int,
-				unsigned short, unsigned short, CLIP_USHORT);
+			VCONV(unsigned int, unsigned short, unsigned short, CLIP_USHORT);
 		else
-			VCONV(unsigned int,
-				unsigned int, unsigned short, CLIP_USHORT);
+			VCONV(unsigned int, unsigned int, unsigned short, CLIP_USHORT);
 		break;
 
 	case VIPS_FORMAT_SHORT:
