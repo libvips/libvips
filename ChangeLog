@@ -20,6 +20,7 @@ date-tbd 8.18.1
 - maplut: ensure lookup table index is unsigned [dloebl] [lovell]
 - draw_flood: reject out-of-bounds start point [dloebl]
 - csvload: check whitespace and separator are ASCII [Niebelungen-D] [lovell]
+- bandrank: check `index` is in range [Niebelungen-D] [lovell]
 
 17/12/25 8.18.0
 
