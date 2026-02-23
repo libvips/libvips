@@ -18,9 +18,17 @@ date-tbd 8.18.1
 - uhdrload: expose original gainmap scale factor [lovell]
 - uhdrsave: control generated gainmap scale factor [lovell]
 - source: guard against length truncation [Niebelungen-D]
+- shrinkh: fix possible OOB read in Highway path [dloebl] [kleisauke]
 - string_to_array_double: ensure delimiter list is consistent [dloebl] [lovell]
 - fix loading/saving of non-8-bit JXL images [DarthSim]
 - invertlut: check height before interpolating values [dloebl] [lovell]
+- extract: check bounds using unsigned arithmetic [Niebelungen-D] [lovell]
+- matrixload: guard against empty and very large inputs [Niebelungen-D] [lovell]
+- unpremultiply: check `alpha_band` is in range [Niebelungen-D] [lovell]
+- maplut: ensure lookup table index is unsigned [dloebl] [lovell]
+- draw_flood: reject out-of-bounds start point [dloebl]
+- csvload: check whitespace and separator are ASCII [Niebelungen-D] [lovell]
+- bandrank: check `index` is in range [Niebelungen-D] [lovell]
 
 17/12/25 8.18.0
 

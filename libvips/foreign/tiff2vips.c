@@ -609,16 +609,17 @@ rtiff_minimise_cb(VipsImage *image, Rtiff *rtiff)
 }
 
 static int
-rtiff_handler_error(TIFF *tiff, void* user_data,
+rtiff_handler_error(TIFF *tiff, void *user_data,
 	const char *module, const char *fmt, va_list ap)
 {
 	if (user_data) {
-		Rtiff *rtiff = (Rtiff*) user_data;
+		Rtiff *rtiff = (Rtiff *) user_data;
 		if (rtiff->fail_on >= VIPS_FAIL_ON_ERROR) {
 			rtiff->failed = TRUE;
-		} else if (fmt) {
+		}
+		else if (fmt) {
 			/* Inspect message for always-fatal errors.
-			*/
+			 */
 			if (strncmp(fmt, "Cumulated memory", 16) == 0) {
 				rtiff->failed = TRUE;
 			}
@@ -630,11 +631,11 @@ rtiff_handler_error(TIFF *tiff, void* user_data,
 }
 
 static int
-rtiff_handler_warning(TIFF *tiff, void* user_data,
+rtiff_handler_warning(TIFF *tiff, void *user_data,
 	const char *module, const char *fmt, va_list ap)
 {
 	if (user_data) {
-		Rtiff *rtiff = (Rtiff*) user_data;
+		Rtiff *rtiff = (Rtiff *) user_data;
 		if (rtiff->fail_on >= VIPS_FAIL_ON_WARNING) {
 			rtiff->failed = TRUE;
 		}

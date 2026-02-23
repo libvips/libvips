@@ -44,7 +44,7 @@
 
 #include "pforeign.h"
 
-#if defined(HAVE_POPPLER) || defined (HAVE_PDFIUM)
+#if defined(HAVE_POPPLER) || defined(HAVE_PDFIUM)
 
 const char *vips__pdf_suffs[] = {
 	".pdf",
