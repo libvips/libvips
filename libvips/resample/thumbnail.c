@@ -992,8 +992,8 @@ vips_thumbnail_build(VipsObject *object)
 		if (!(t[13] = vips_image_copy_memory(in)) ||
 			vips_smartcrop(t[13], &t[14], crop_width, crop_height,
 				"interesting", thumbnail->crop,
-				"interesting_x", VIPS_ROUND_UINT(thumbnail->interesting_x / vshrink),
-				"interesting_y", VIPS_ROUND_UINT(thumbnail->interesting_y / hshrink),
+				"interesting_x", VIPS_ROUND_UINT((double) thumbnail->interesting_x * in->Xsize / thumbnail->input_width),
+				"interesting_y", VIPS_ROUND_UINT((double) thumbnail->interesting_y * in->Ysize / thumbnail->input_height),
 				NULL))
 			return -1;
 		in = t[14];
