@@ -278,7 +278,7 @@ vips_remainder_const_build(VipsObject *object)
 \
 		for (i = 0, x = 0; x < width; x++) \
 			for (b = 0; b < bands; b++, i++) \
-				q[i] = p[i] % c[b]; \
+				q[i] = c[b] ? p[i] % c[b] : -1; \
 	}
 
 /* Float remainder-after-divide, per-band constant.
