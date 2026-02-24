@@ -1338,6 +1338,10 @@ vips_source_length(VipsSource *source)
  * read is returned -- it may be less than @length if the file is shorter than
  * @length. A negative number indicates a read error.
  *
+ * Do not use it if @length is greater than `UINT_MAX`.
+ * [struct@GLib.ByteArray] stores the length of its data in `guint`, which
+ * may be shorter than `size_t`.
+ *
  * Returns: number of bytes read, or -1 on error.
  */
 gint64
@@ -1349,12 +1353,7 @@ vips_source_sniff_at_most(VipsSource *source,
 
 	VIPS_DEBUG_MSG("vips_source_sniff_at_most: %zd bytes\n", length);
 
-	if (G_UNLIKELY(length > UINT_MAX)) {
-		vips_error(vips_connection_nick(VIPS_CONNECTION(source)),
-			"%s", _("length overflow"));
-		return -1;
-	}
-
+	g_assert(length <= UINT_MAX);
 	SANITY(source);
 
 	if (vips_source_test_features(source) ||
