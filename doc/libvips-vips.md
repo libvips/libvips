@@ -20,6 +20,8 @@ world. See [func@init] and [func@guess_prefix].
 * [func@thread_shutdown]
 * [func@add_option_entries]
 * [func@leak_set]
+* [func@unlimited_set]
+* [func@unlimited_get]
 * [func@block_untrusted_set]
 * [func@version_string]
 * [func@version]
