@@ -23,6 +23,7 @@ date-tbd 8.18.1
 - conva: guard against divide by zero [kleisauke]
 - csvload: check whitespace and separator are ASCII [Niebelungen-D] [lovell]
 - bandrank: check `index` is in range [Niebelungen-D] [lovell]
+- vips_window_take: prevent int underflow for small mapped images [jcupitt]
 
 17/12/25 8.18.0
 
