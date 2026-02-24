@@ -121,6 +121,13 @@ vips_foreign_load_csv_build(VipsObject *object)
 	int i;
 	const char *p;
 
+	if (!g_str_is_ascii(csv->whitespace) ||
+		!g_str_is_ascii(csv->separator)) {
+		vips_error("csvload", "%s",
+			_("whitespace and separator must be ASCII"));
+		return -1;
+	}
+
 	if (!(csv->sbuf = vips_sbuf_new_from_source(csv->source)))
 		return -1;
 

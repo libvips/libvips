@@ -202,15 +202,21 @@ vips_atan2_init(void *null)
 	int i;
 
 	for (i = 0; i < 256; i++) {
-		/* Use the bottom 4 bits for x, the top 4 for y. The double
-		 * shift does sign extension, assuming 2s complement.
+		/* Use the bottom 4 bits for x, the top 4 for y. Interpret the
+		 * 4-bit values as signed 2s complement and sign-extend to int.
 		 */
-		int bits = sizeof(int) * 8 - 4;
-		int x = ((i & 0xf) << bits) >> bits;
-		int y = ((i >> 4) & 0x0f) << bits >> bits;
+		int x = i & 0xF;
+		if (x & 0x8)
+			x -= 0x10;
+		int y = (i >> 4) & 0xF;
+		if (y & 0x8)
+			y -= 0x10;
 		double theta = VIPS_DEG(atan2(x, y)) + 360;
 
-		vips_canny_polar_atan2[i] = 256 * theta / 360;
+		/* Map angle to 0–255 with wraparound.
+		 */
+		int value = 256 * theta / 360;
+		vips_canny_polar_atan2[i] = value & 0xFF;
 	}
 
 	return NULL;
