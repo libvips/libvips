@@ -251,7 +251,8 @@ vips_foreign_load_csv_fetch_item(VipsForeignLoadCsv *csv)
 
 	/* We've (probably) read the end of item character. Push it back.
 	 */
-	if (ch == '\n' ||
+	if (ch == -1 ||
+		ch == '\n' ||
 		csv->whitemap[ch] ||
 		csv->sepmap[ch])
 		VIPS_SBUF_UNGETC(csv->sbuf);
