@@ -1,9 +1,10 @@
 date-tbd 8.19.0
+
 - cpp: add orientation() to VImage [pszemus]
 - smartcrop: introduce cropping by a specific point of interest [pszemus]
 - pngload: support for EXIF data in zTXt chunks [pszemus]
 - meson: options for building `man`, `po`, `test`, `tools`; disable building
-- `fuzz` by default [pszemus]
+  `fuzz` by default [pszemus]
 - conversion: non-separable blending modes added [kstanikviacbs]
 
 date-tbd 8.18.1
@@ -18,6 +19,9 @@ date-tbd 8.18.1
 - uhdrload: expose original gainmap scale factor [lovell]
 - uhdrsave: control generated gainmap scale factor [lovell]
 - source: guard against length truncation [Niebelungen-D]
+- string_to_array_double: ensure delimiter list is consistent [dloebl] [lovell]
+- fix loading/saving of non-8-bit JXL images [DarthSim]
+- invertlut: check height before interpolating values [dloebl] [lovell]
 
 17/12/25 8.18.0
 
