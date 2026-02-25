@@ -162,11 +162,13 @@ read_new(const char *filename, VipsImage *out)
 		EXR image?
 
 	 */
-	if (!(read->tiles = ImfOpenTiledInputFile(read->filename))) {
-		if (!(read->lines = ImfOpenInputFile(read->filename))) {
-			get_imf_error();
-			return NULL;
-		}
+	if (!(read->tiles = ImfOpenTiledInputFile(read->filename)) &&
+		!(read->lines = ImfOpenInputFile(read->filename))) {
+		get_imf_error();
+		if (!out)
+			read_destroy(NULL, read);
+
+		return NULL;
 	}
 
 #ifdef DEBUG
