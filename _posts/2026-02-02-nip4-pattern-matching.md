@@ -53,7 +53,7 @@ time.
 ## It's now **snip**
 
 And finally the programming language is officially renamed as **snip**, and
-the old `nip54-batch` program is now installed as `snip`. You can use it to
+the old `nip4-batch` program is now installed as `snip`. You can use it to
 write scripts with a shebang, perhaps:
 
 ```

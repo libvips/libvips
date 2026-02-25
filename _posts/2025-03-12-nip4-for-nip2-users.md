@@ -30,6 +30,8 @@ nip4 is a rewrite of nip2 with the following aims:
 
 - can load and process all nip2 workspaces
 
+- add some missing language features
+
 - use the modern gtk-4 user-interface toolkit
 
 - a cleaner, simpler interface
@@ -79,6 +81,11 @@ Most other things are the same, so number keys for zoom levels, **i**
 and **o** for zoom in and out, **Ctrl-drag** to mark regions, cursor keys to
 pan, and so on.
 
+There are two new region create gestures: hold down Ctrl and drag down and
+left to great a horizontal guide, and drag up and right to make a vertical
+guide.  Regions, arrows and points snap to guides, so they are handy for
+lining up groups of annotations.
+
 ## Toolkit bar
 
 The big change in the main window is the new toolkit bar down the left,
@@ -101,22 +108,23 @@ Searching is fuzzy, so you don't need to be exact.
 ## Workspace drag animations
 
 The main workspace view has fancy animations for column and row dragging,
-which can help make it easier to see what's going on. The big change from nip2
-is that you can now (finally!) drag rows between columns.
+which can help make it easier to see what's going on. 
+
+You now need to hold down Ctrl before dragging a row, to make it harder to
+make accidental changes. You can now (finally!) drag rows between columns.
 
 You can also left-drag on the workspace background to pan, phew.
 
-## No region context menu
+## No object edit dialogs
 
-In nip2 there was a right-click menu in image view windows you could use to
-delete or edit region properties. This is gone in nip4, you're supposed to go
-back to the workspace and right-click on the row for that region. You can
-change region properties by opening the row a few times and editing the
+In nip2 there was a right-click menu with an Edit option on most objects. You
+couldf select this to edit basic object properties.
+
+This is gone in nip4, you're supposed to 
+change properties by opening the row a few times and editing the
 members:
 
 ![nip4](/assets/images/nip4-region.png)
-
-This works for all objects: open the row, edit the members. 
 
 ## Recover after crash
 

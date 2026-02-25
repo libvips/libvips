@@ -55,7 +55,7 @@ The whole systems is lazy and demand-driven. You can load enormous images
 pixels needed to update the screen actually get processed. When you do a final
 save operation, it will take a while, of course.
 
-nip4 comes with a separate program called `nip4-batch`. This is a batch-mode
+nip4 comes with a separate program called `snip`. This is a batch-mode
 processor that can load nip4 workspace files and execute them on a set of
 inputs. You can use to apply a workspace you've developed in nip4 to a big
 collection of images.
@@ -101,7 +101,7 @@ scale widget called `A3` to the workspace. Now edit the formula to be
 `A3 - A1` and try dragging the slider. 
 
 It looks a bit awkward with the result row `A2` positioned before the scale.
-You can reorder columns by dragging on the row label. 
+You can reorder columns by holding down Ctrl and dragging on the row label. 
 
 ![nip4](/assets/images/nip4-scale.png)
 
@@ -175,6 +175,10 @@ and colour management.
 You can also mark features on images. If you hold down Ctrl and drag down and
 right, you'll create a rectangular region, if you drag up and left you'll mark
 an arrow, if you just Ctrl-click you'll mark a point.
+
+If you drag down and left you'll mark a horizontal guide, if you drag up and
+right you'll mark a vertical guide. Regions, arrows and points snap to guides,
+so they are handy for lining up groups of annotations.
 
 ![nip4](/assets/images/nip4-regions.png)
 
