@@ -266,6 +266,9 @@ for fuzzer in $OUT/*_fuzzer; do
   ln -sf "seed_corpus.zip" "$OUT/${target}_seed_corpus.zip"
 done
 
-# Copy options and dictionary files to $OUT
+# Generate dictionary for vips_fuzzer from the just-built vips binary
+fuzz/generate_vips_dict.sh "$WORK/bin/vips" > "$OUT/vips_fuzzer.dict"
+
+# Copy options and remaining dictionary files to $OUT
 find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT \;
 find fuzz -name '*_fuzzer.options' -exec cp -v '{}' $OUT \;
