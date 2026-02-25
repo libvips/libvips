@@ -970,13 +970,6 @@ vips_thumbnail_build(VipsObject *object)
 		}
 	}
 
-
-	printf("vips_thumbnail_build:\n");
-	printf("\tvshrink = %g\n", vshrink);
-	printf("\thshrink = %g\n", hshrink);
-	printf("\tinput_width = %d\n", thumbnail->input_width);
-	printf("\tinput_height = %d\n", thumbnail->input_height);
-
 	/* Crop after rotate so we don't need to rotate the crop box.
 	 */
 	if (thumbnail->crop != VIPS_INTERESTING_NONE) {
