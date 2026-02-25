@@ -1982,12 +1982,11 @@ class TestForeign:
         lossless = self.colour.jxlsave_buffer(lossless=True)
         assert len(lossy) < len(lossless) / 5
 
-        # bitdepth=1 should be smaller
-        buf8 = self.colour.jxlsave_buffer()
-        buf1 = self.colour.jxlsave_buffer(bitdepth=1)
-        assert len(buf1) < len(buf8)
-        im = pyvips.Image.jxlload_buffer(buf1)
-        assert im.get("bits-per-sample") == 1
+        # bitdepth=8 should be saved as uchar
+        buf = rgb16.jxlsave_buffer(bitdepth=8)
+        im = pyvips.Image.jxlload_buffer(buf)
+        assert im.format == "uchar"
+        assert im.get("bits-per-sample") == 8
 
     @skip_if_no("gifload")
     @skip_if_no("gifsave")

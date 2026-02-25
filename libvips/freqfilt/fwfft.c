@@ -161,7 +161,7 @@ rfwfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 		return -1;
 	(*out)->BandFmt = VIPS_FORMAT_DPCOMPLEX;
 	(*out)->Type = VIPS_INTERPRETATION_FOURIER;
-	if (!(buf = VIPS_ARRAY(fwfft, VIPS_IMAGE_N_PELS(*out), double)))
+	if (!(buf = VIPS_ARRAY(fwfft, (*out)->Xsize * 2, double)))
 		return -1;
 
 	/* Copy and normalise. The right half is the up/down and
@@ -282,7 +282,7 @@ cfwfft1(VipsObject *object, VipsImage *in, VipsImage **out)
 		return -1;
 	(*out)->BandFmt = VIPS_FORMAT_DPCOMPLEX;
 	(*out)->Type = VIPS_INTERPRETATION_FOURIER;
-	if (!(buf = VIPS_ARRAY(fwfft, VIPS_IMAGE_N_PELS(*out), double)))
+	if (!(buf = VIPS_ARRAY(fwfft, (*out)->Xsize * 2, double)))
 		return -1;
 
 	/* Copy to out, normalise.

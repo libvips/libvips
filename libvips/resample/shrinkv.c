@@ -473,7 +473,7 @@ vips_shrinkv_build(VipsObject *object)
 
 	VipsImage *in;
 	VipsGenerateFn generate;
-	size_t acc_size; 
+	size_t acc_size;
 
 	if (VIPS_OBJECT_CLASS(vips_shrinkv_parent_class)->build(object))
 		return -1;

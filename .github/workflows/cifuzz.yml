@@ -4,22 +4,26 @@ permissions: {}
 jobs:
   Fuzzing:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sanitizer: [address, undefined]
     steps:
     - name: Build Fuzzers
       id: build
       uses: google/oss-fuzz/infra/cifuzz/actions/build_fuzzers@master
       with:
         oss-fuzz-project-name: 'libvips'
-        dry-run: false
+        sanitizer: ${{ matrix.sanitizer }}
     - name: Run Fuzzers
       uses: google/oss-fuzz/infra/cifuzz/actions/run_fuzzers@master
       with:
         oss-fuzz-project-name: 'libvips'
+        sanitizer: ${{ matrix.sanitizer }}
         fuzz-seconds: 600
-        dry-run: false
     - name: Upload Crash
       uses: actions/upload-artifact@v6
       if: failure() && steps.build.outcome == 'success'
       with:
-        name: artifacts
+        name: artifacts-${{ matrix.sanitizer }}
         path: ./out/artifacts

@@ -1280,7 +1280,7 @@ vips_composite_base_build(VipsObject *object)
 	VipsCompositeBase *composite = (VipsCompositeBase *) object;
 
 	int n;
-	VipsBlendMode *mode;
+	int *mode;
 	VipsImage **in;
 	VipsImage **decode;
 	VipsImage **compositing;
@@ -1301,7 +1301,7 @@ vips_composite_base_build(VipsObject *object)
 			n - 1);
 		return -1;
 	}
-	mode = (VipsBlendMode *) composite->mode->area.data;
+	mode = (int *) composite->mode->area.data;
 	composite->skippable = TRUE;
 	for (int i = 0; i < composite->mode->area.n; i++) {
 		if (mode[i] < 0 ||
@@ -1312,7 +1312,7 @@ vips_composite_base_build(VipsObject *object)
 			return -1;
 		}
 
-		if (!vips_composite_mode_skippable(mode[i]))
+		if (!vips_composite_mode_skippable((VipsBlendMode) mode[i]))
 			composite->skippable = FALSE;
 	}
 
