@@ -988,8 +988,8 @@ vips_thumbnail_build(VipsObject *object)
 		gboolean rotated = thumbnail->swap && thumbnail->auto_rotate;
 		int rotated_input_width = rotated ? thumbnail->input_height : thumbnail->input_width;
 		int rotated_input_height = rotated ? thumbnail->input_width : thumbnail->input_height;
-		double overall_hshrink = (double) in->Xsize / rotated_input_width;
-		double overall_vshrink = (double) in->Ysize / rotated_input_height;
+		double overall_hshrink = (double) rotated_input_width / in->Xsize;
+		double overall_vshrink = (double) rotated_input_height / in->Ysize;
 
 		/* Need to copy to memory, we have to stay seq.
 		 *
@@ -998,8 +998,8 @@ vips_thumbnail_build(VipsObject *object)
 		if (!(t[13] = vips_image_copy_memory(in)) ||
 			vips_smartcrop(t[13], &t[14], crop_width, crop_height,
 				"interesting", thumbnail->crop,
-				"interesting_x", VIPS_ROUND_UINT((double) thumbnail->interesting_x * overall_vshrink),
-				"interesting_y", VIPS_ROUND_UINT((double) thumbnail->interesting_y * overall_hshrink),
+				"interesting_x", VIPS_ROUND_UINT((double) thumbnail->interesting_x / overall_vshrink),
+				"interesting_y", VIPS_ROUND_UINT((double) thumbnail->interesting_y / overall_hshrink),
 				NULL))
 			return -1;
 		in = t[14];
