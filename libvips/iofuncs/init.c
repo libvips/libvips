@@ -595,7 +595,9 @@ vips_init(const char *argv0)
 
 	/* Start up packages.
 	 */
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	vips_system_get_type();
+#endif
 	vips_arithmetic_operation_init();
 	vips_conversion_operation_init();
 	vips_create_operation_init();
