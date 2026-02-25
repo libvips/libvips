@@ -108,7 +108,7 @@ vips_dilate_uchar_hwy(VipsRegion *out_region, VipsRegion *ir, VipsRect *r,
 		for (; x < sz; ++x) {
 			int32_t sum = 0;
 
-			for (int32_t i = 0; i < nn128; ++i) 
+			for (int32_t i = 0; i < nn128; ++i)
 				sum |= !coeff[i] ? ~p[offsets[i]] : p[offsets[i]];
 
 			q[x] = sum;

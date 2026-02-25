@@ -291,8 +291,8 @@ vips_foreign_save_jxl_data_at(void *opaque,
 }
 
 static const void *
-vips_foreign_save_jxl_extra_data_at(void* opaque, size_t ec_index,
-	size_t xpos, size_t ypos, size_t xsize, size_t ysize, size_t* row_offset)
+vips_foreign_save_jxl_extra_data_at(void *opaque, size_t ec_index,
+	size_t xpos, size_t ypos, size_t xsize, size_t ysize, size_t *row_offset)
 {
 #ifdef DEBUG
 	printf("vips_foreign_save_jxl_extra_data_at:\n");

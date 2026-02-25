@@ -224,6 +224,10 @@ vips_bandrank_build(VipsObject *object)
 
 		if (bandrank->index == -1)
 			bandrank->index = bandary->n / 2; // FIXME: Invalidates operation cache
+		else if (bandrank->index >= bandary->n) {
+			vips_error(class->nickname, _("index out of range"));
+			return -1;
+		}
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_bandrank_parent_class)->build(object))

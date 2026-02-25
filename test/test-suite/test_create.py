@@ -73,6 +73,11 @@ class TestCreate:
         assert im.min() == 0.0
 
     @skip_if_no("fwfft")
+    def test_fwfft_small_image(self):
+        im = pyvips.Image.black(2, 1)
+        im.fwfft()
+
+    @skip_if_no("fwfft")
     def test_fractsurf(self):
         im = pyvips.Image.fractsurf(100, 90, 2.5)
         assert im.width == 100
