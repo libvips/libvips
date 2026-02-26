@@ -28,7 +28,11 @@ date-tbd 8.18.1
 - vips_window_take: prevent int underflow for small mapped images [jcupitt]
 - composite: fix UB (invalid-enum-value) in `->build()` [kleisauke]
 - multiply: prevent possible int overflow [kleisauke]
+- convasep: prevent possible int overflow [kleisauke]
+- conva: prevent possible int overflow [kleisauke]
+- convi: prevent possible int overflow [kleisauke]
 - csvload: guard against negative index access [kleisauke]
+- convi: guard against invalid shift [kleisauke]
 - nary: guard against empty input [kleisauke]
 
 17/12/25 8.18.0
