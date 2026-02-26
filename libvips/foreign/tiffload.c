@@ -236,7 +236,7 @@ vips_foreign_load_tiff_init(VipsForeignLoadTiff *tiff)
 	tiff->page = 0;
 	tiff->n = 1;
 	tiff->subifd = -1;
-	tiff->unlimited = FALSE;
+	tiff->unlimited = vips_unlimited_get();
 }
 
 typedef struct _VipsForeignLoadTiffSource {

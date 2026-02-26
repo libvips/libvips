@@ -837,6 +837,7 @@ vips_foreign_load_svg_init(VipsForeignLoadSvg *svg)
 {
 	svg->dpi = 72.0;
 	svg->scale = 1.0;
+	svg->unlimited = vips_unlimited_get();
 }
 
 typedef struct _VipsForeignLoadSvgSource {

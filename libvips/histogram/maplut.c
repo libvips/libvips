@@ -485,10 +485,11 @@ vips_maplut_gen(VipsRegion *out_region,
 		return -1;
 
 	/* clang-format off */
-	if (maplut->nb == 1)
+	if (maplut->nb == 1) {
 		/* One band lut.
 		 */
 		outer_switch(loop1, loop1c, loop1g, loop1cg)
+    }
 	else
 		/* Many band lut.
 		 */

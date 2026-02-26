@@ -183,6 +183,11 @@ VIPS_API
 void vips_leak_set(gboolean leak);
 
 VIPS_API
+void vips_unlimited_set(gboolean unlimited);
+VIPS_API
+gboolean vips_unlimited_get(void);
+
+VIPS_API
 void vips_block_untrusted_set(gboolean state);
 
 VIPS_API
