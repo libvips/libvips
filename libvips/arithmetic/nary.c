@@ -53,12 +53,18 @@ G_DEFINE_ABSTRACT_TYPE(VipsNary, vips_nary, VIPS_TYPE_ARITHMETIC);
 static int
 vips_nary_build(VipsObject *object)
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsArithmetic *arithmetic = VIPS_ARITHMETIC(object);
 	VipsNary *nary = VIPS_NARY(object);
 
 	if (nary->in) {
 		arithmetic->in = nary->in->data;
 		arithmetic->n = nary->in->n;
+	}
+
+	if (arithmetic->n <= 0) {
+		vips_error(class->nickname, "%s", _("no input images"));
+		return -1;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_nary_parent_class)->build(object))
