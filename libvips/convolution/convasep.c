@@ -186,10 +186,8 @@ vips_convasep_decompose(VipsConvasep *convasep)
 	max = 0;
 	min = 0;
 	for (x = 0; x < convasep->width; x++) {
-		if (coeff[x] > max)
-			max = coeff[x];
-		if (coeff[x] < min)
-			min = coeff[x];
+		max = VIPS_MAX(max, coeff[x]);
+		min = VIPS_MIN(min, coeff[x]);
 	}
 
 	/* The zero axis must fall on a layer boundary. Estimate the
@@ -200,7 +198,7 @@ vips_convasep_decompose(VipsConvasep *convasep)
 	layers_above = ceil(max / depth);
 	depth = max / layers_above;
 	layers_below = floor(min / depth);
-	layers = layers_above - layers_below;
+	layers = VIPS_CLIP(1, (int64_t) layers_above - layers_below, 1000);
 
 	VIPS_DEBUG_MSG("depth = %g, layers = %d\n", depth, layers);
 
@@ -303,9 +301,7 @@ vips_convasep_decompose(VipsConvasep *convasep)
 	for (z = 0; z < convasep->width; z++)
 		sum += coeff[z];
 
-	convasep->divisor = rint(sum * area / scale);
-	if (convasep->divisor == 0)
-		convasep->divisor = 1;
+	convasep->divisor = VIPS_MAX(1, rint(sum * area / scale));
 	convasep->rounding = (convasep->divisor + 1) / 2;
 	convasep->offset = offset;
 
