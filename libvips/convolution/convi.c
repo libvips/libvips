@@ -700,12 +700,12 @@ vips_convi_gen_vector(VipsRegion *out_region,
 		int *restrict offsets = seq->offsets; \
 \
 		for (x = 0; x < sz; x++) { \
-			int sum; \
+			int64_t sum; \
 			int i; \
 \
 			sum = 0; \
 			for (i = 0; i < nnz; i++) \
-				sum += t[i] * p[offsets[i]]; \
+				sum += (int64_t) t[i] * p[offsets[i]]; \
 \
 			sum = CLIP(((sum + rounding) / scale) + offset); \
 \
