@@ -35,6 +35,7 @@ date-tbd 8.18.1
 - convi: guard against invalid shift [kleisauke]
 - nary: guard against empty input [kleisauke]
 - maplut: add missing overflow checks [kleisauke]
+- jpegsave: fix assert fail when saving 2-band image [kleisauke]
 
 17/12/25 8.18.0
 
