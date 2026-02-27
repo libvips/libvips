@@ -40,6 +40,7 @@ date-tbd 8.18.1
 - composite: fix UB (invalid-enum-value) in `->build()` [kleisauke]
 - multiply: prevent possible int overflow [kleisauke]
 - csvload: guard against negative index access [kleisauke]
+- convi: guard against invalid shift [kleisauke]
 
 17/12/25 8.18.0
 
