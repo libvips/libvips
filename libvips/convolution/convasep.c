@@ -342,8 +342,7 @@ typedef struct {
 	/* The sums for each line. int for integer types, double for floating
 	 * point types.
 	 */
-	int *isum;
-	double *dsum;
+	void *sum;
 
 	int last_stride; /* Avoid recalcing offsets, if we can */
 } VipsConvasepSeq;
@@ -358,8 +357,7 @@ vips_convasep_stop(void *vseq, void *a, void *b)
 	VIPS_UNREF(seq->ir);
 	VIPS_FREE(seq->start);
 	VIPS_FREE(seq->end);
-	VIPS_FREE(seq->isum);
-	VIPS_FREE(seq->dsum);
+	VIPS_FREE(seq->sum);
 
 	return 0;
 }
@@ -383,18 +381,17 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 	seq->ir = vips_region_new(in);
 	seq->start = VIPS_ARRAY(NULL, convasep->n_lines, int);
 	seq->end = VIPS_ARRAY(NULL, convasep->n_lines, int);
-	seq->isum = NULL;
-	seq->dsum = NULL;
+
 	if (vips_band_format_isint(out->BandFmt))
-		seq->isum = VIPS_ARRAY(NULL, convasep->n_lines, int);
+		seq->sum = VIPS_ARRAY(NULL, convasep->n_lines, int);
 	else
-		seq->dsum = VIPS_ARRAY(NULL, convasep->n_lines, double);
+		seq->sum = VIPS_ARRAY(NULL, convasep->n_lines, double);
 	seq->last_stride = -1;
 
 	if (!seq->ir ||
 		!seq->start ||
 		!seq->end ||
-		(!seq->isum && !seq->dsum)) {
+		!seq->sum) {
 		vips_convasep_stop(seq, in, convasep);
 		return NULL;
 	}
@@ -450,14 +447,14 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
  * them separate for easy debugging.
  */
 
-#define HCONV_INT(TYPE, CLIP) \
+#define HCONV_INT(ACC, TYPE, CLIP) \
 	{ \
 		for (i = 0; i < bands; i++) { \
-			int *isum = seq->isum; \
+			ACC *isum = (ACC *) seq->sum; \
 \
 			TYPE *q; \
 			TYPE *p; \
-			int sum; \
+			ACC sum; \
 \
 			p = i + (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top + y); \
 			q = i + (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top + y); \
@@ -497,7 +494,7 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 #define HCONV_FLOAT(TYPE) \
 	{ \
 		for (i = 0; i < bands; i++) { \
-			double *dsum = seq->dsum; \
+			double *dsum = (double *) seq->sum; \
 \
 			TYPE *q; \
 			TYPE *p; \
@@ -592,27 +589,27 @@ vips_convasep_generate_horizontal(VipsRegion *out_region,
 	for (y = 0; y < r->height; y++) {
 		switch (in->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			HCONV_INT(unsigned char, CLIP_UCHAR);
+			HCONV_INT(unsigned int, unsigned char, CLIP_UCHAR);
 			break;
 
 		case VIPS_FORMAT_CHAR:
-			HCONV_INT(signed char, CLIP_CHAR);
+			HCONV_INT(signed int, signed char, CLIP_CHAR);
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			HCONV_INT(unsigned short, CLIP_USHORT);
+			HCONV_INT(unsigned int, unsigned short, CLIP_USHORT);
 			break;
 
 		case VIPS_FORMAT_SHORT:
-			HCONV_INT(signed short, CLIP_SHORT);
+			HCONV_INT(signed int, signed short, CLIP_SHORT);
 			break;
 
 		case VIPS_FORMAT_UINT:
-			HCONV_INT(unsigned int, CLIP_NONE);
+			HCONV_INT(unsigned int, unsigned int, CLIP_NONE);
 			break;
 
 		case VIPS_FORMAT_INT:
-			HCONV_INT(signed int, CLIP_NONE);
+			HCONV_INT(signed int, signed int, CLIP_NONE);
 			break;
 
 		case VIPS_FORMAT_FLOAT:
@@ -633,14 +630,14 @@ vips_convasep_generate_horizontal(VipsRegion *out_region,
 	return 0;
 }
 
-#define VCONV_INT(TYPE, CLIP) \
+#define VCONV_INT(ACC, TYPE, CLIP) \
 	{ \
 		for (x = 0; x < sz; x++) { \
-			int *isum = seq->isum; \
+			ACC *isum = (ACC *) seq->sum; \
 \
 			TYPE *q; \
 			TYPE *p; \
-			int sum; \
+			ACC sum; \
 \
 			p = x + (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top); \
 			q = x + (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top); \
@@ -678,7 +675,7 @@ vips_convasep_generate_horizontal(VipsRegion *out_region,
 #define VCONV_FLOAT(TYPE) \
 	{ \
 		for (x = 0; x < sz; x++) { \
-			double *dsum = seq->dsum; \
+			double *dsum = (double *) seq->sum; \
 \
 			TYPE *q; \
 			TYPE *p; \
@@ -768,27 +765,27 @@ vips_convasep_generate_vertical(VipsRegion *out_region,
 
 	switch (in->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
-		VCONV_INT(unsigned char, CLIP_UCHAR);
+		VCONV_INT(unsigned int, unsigned char, CLIP_UCHAR);
 		break;
 
 	case VIPS_FORMAT_CHAR:
-		VCONV_INT(signed char, CLIP_CHAR);
+		VCONV_INT(signed int, signed char, CLIP_CHAR);
 		break;
 
 	case VIPS_FORMAT_USHORT:
-		VCONV_INT(unsigned short, CLIP_USHORT);
+		VCONV_INT(unsigned int, unsigned short, CLIP_USHORT);
 		break;
 
 	case VIPS_FORMAT_SHORT:
-		VCONV_INT(signed short, CLIP_SHORT);
+		VCONV_INT(signed int, signed short, CLIP_SHORT);
 		break;
 
 	case VIPS_FORMAT_UINT:
-		VCONV_INT(unsigned int, CLIP_NONE);
+		VCONV_INT(unsigned int, unsigned int, CLIP_NONE);
 		break;
 
 	case VIPS_FORMAT_INT:
-		VCONV_INT(signed int, CLIP_NONE);
+		VCONV_INT(signed int, signed int, CLIP_NONE);
 		break;
 
 	case VIPS_FORMAT_FLOAT:
