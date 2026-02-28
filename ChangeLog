@@ -37,6 +37,7 @@ date-tbd 8.18.1
 - maplut: add missing overflow checks [kleisauke]
 - jpegsave: fix assert fail when saving 2-band image [kleisauke]
 - LabS2LabQ: fix UB (undefined-shift) [kleisauke]
+- convasep: use unsigned accumulator where appropriate [kleisauke]
 
 17/12/25 8.18.0
 
