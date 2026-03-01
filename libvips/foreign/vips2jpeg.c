@@ -736,9 +736,6 @@ write_vips(Write *write, VipsImage *in, int Q, const char *profile,
 	 */
 	g_assert(in->BandFmt == VIPS_FORMAT_UCHAR);
 	g_assert(in->Coding == VIPS_CODING_NONE);
-	g_assert(in->Bands == 1 ||
-		in->Bands == 3 ||
-		in->Bands == 4);
 
 	/* Check input image.
 	 */
