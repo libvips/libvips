@@ -114,6 +114,18 @@ G_DEFINE_TYPE(VipsMultiply, vips_multiply, VIPS_TYPE_BINARY);
 			q[x] = (OUT) left[x] * right[x]; \
 	}
 
+/* Special case for VIPS_FORMAT_INT, to prevent UB.
+ */
+#define RLOOP_INT64(IN, OUT) \
+	{ \
+		IN *restrict left = (IN *) in[0]; \
+		IN *restrict right = (IN *) in[1]; \
+		OUT *restrict q = (OUT *) out; \
+\
+		for (x = 0; x < sz; x++) \
+			q[x] = (int64_t) left[x] * right[x]; \
+	}
+
 static void
 vips_multiply_buffer(VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width)
@@ -140,7 +152,7 @@ vips_multiply_buffer(VipsArithmetic *arithmetic,
 		RLOOP(unsigned short, unsigned int);
 		break;
 	case VIPS_FORMAT_INT:
-		RLOOP(signed int, signed int);
+		RLOOP_INT64(signed int, signed int);
 		break;
 	case VIPS_FORMAT_UINT:
 		RLOOP(unsigned int, unsigned int);
