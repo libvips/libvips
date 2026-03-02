@@ -84,11 +84,7 @@ typedef struct _VipsForeignSaveJxl {
 	gboolean lossless;
 	int Q;
 	int bitdepth;
-	int progressive_dc;
-	int progressive_ac;
-	int qprogressive_ac;
-	int responsive;
-	int group_order;
+	gboolean progressive;
 
 #ifdef HAVE_LIBJXL_0_9
 	gboolean error;
@@ -724,16 +720,16 @@ vips_foreign_save_jxl_save_page(VipsForeignSaveJxl *jxl,
 		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
 	JxlEncoderSetFrameLossless(frame_settings,
 		jxl->lossless);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, jxl->progressive_dc);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_PROGRESSIVE_AC, jxl->progressive_ac);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, jxl->qprogressive_ac);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_RESPONSIVE, jxl->responsive);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_GROUP_ORDER, jxl->group_order);
+	if (jxl->progressive) {
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_RESPONSIVE, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_GROUP_ORDER, 1);
+	}
 
 	if (jxl->info.have_animation) {
 		JxlFrameHeader header = { 0 };
@@ -834,16 +830,16 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 	JxlEncoderFrameSettingsSetOption(frame_settings,
 		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
 	JxlEncoderSetFrameLossless(frame_settings, jxl->lossless);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, jxl->progressive_dc);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_PROGRESSIVE_AC, jxl->progressive_ac);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, jxl->qprogressive_ac);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_RESPONSIVE, jxl->responsive);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_GROUP_ORDER, jxl->group_order);
+	if (jxl->progressive) {
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_RESPONSIVE, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_GROUP_ORDER, 1);
+	}
 
 #ifdef HAVE_LIBJXL_0_8
 	const JxlBitDepth bitdepth = {
@@ -1095,11 +1091,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	printf("    distance = %g\n", jxl->distance);
 	printf("    effort = %d\n", jxl->effort);
 	printf("    lossless = %d\n", jxl->lossless);
-	printf("    progressive_dc = %d\n", jxl->progressive_dc);
-	printf("    progressive_ac = %d\n", jxl->progressive_ac);
-	printf("    qprogressive_ac = %d\n", jxl->qprogressive_ac);
-	printf("    responsive = %d\n", jxl->responsive);
-	printf("    group_order = %d\n", jxl->group_order);
+	printf("    progressive = %d\n", jxl->progressive);
 #endif /*DEBUG*/
 
 #ifdef HAVE_LIBJXL_0_9
@@ -1209,42 +1201,12 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, bitdepth),
 		1, 16, 8);
 
-	VIPS_ARG_INT(class, "progressive-dc", 16,
-		_("Progressive DC"),
-		_("Progressive DC: 0 disable, 1 extra 64x64 pass, "
-			"2 extra 512x512 and 64x64 passes"),
+	VIPS_ARG_BOOL(class, "progressive", 16,
+		_("Progressive"),
+		_("Enable progressive encoding"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveJxl, progressive_dc),
-		0, 2, 0);
-
-	VIPS_ARG_INT(class, "progressive-ac", 17,
-		_("Progressive AC"),
-		_("Progressive AC: 0 disable, 1 enable spectral progression"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveJxl, progressive_ac),
-		0, 1, 0);
-
-	VIPS_ARG_INT(class, "qprogressive-ac", 18,
-		_("Quantized progressive AC"),
-		_("Quantized progressive AC: 0 disable, 1 enable "
-			"(generally preferred over progressive-ac)"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveJxl, qprogressive_ac),
-		0, 1, 0);
-
-	VIPS_ARG_INT(class, "responsive", 19,
-		_("Responsive"),
-		_("Squeeze transform for modular progressive: 0 disable, 1 enable"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveJxl, responsive),
-		0, 1, 0);
-
-	VIPS_ARG_INT(class, "group-order", 20,
-		_("Group order"),
-		_("Group order: 0 scanline, 1 center-first"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveJxl, group_order),
-		0, 1, 0);
+		G_STRUCT_OFFSET(VipsForeignSaveJxl, progressive),
+		FALSE);
 
 }
 
@@ -1255,11 +1217,7 @@ vips_foreign_save_jxl_init(VipsForeignSaveJxl *jxl)
 	jxl->effort = 7;
 	jxl->Q = 75;
 	jxl->bitdepth = 8;
-	jxl->progressive_dc = 0;
-	jxl->progressive_ac = 0;
-	jxl->qprogressive_ac = 0;
-	jxl->responsive = 0;
-	jxl->group_order = 0;
+	jxl->progressive = FALSE;
 #ifdef HAVE_LIBJXL_0_9
 	g_mutex_init(&jxl->tile_lock);
 #endif

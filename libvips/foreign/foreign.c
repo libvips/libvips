@@ -2611,19 +2611,7 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  *
  * Set @lossless to enable lossless compression.
  *
- * Use @progressive_dc to enable progressive DC encoding for VarDCT mode.
- * 0 disables, 1 adds an extra 64x64 low-resolution pass, 2 adds 512x512
- * and 64x64 passes.
- *
- * Use @progressive_ac to enable spectral AC progression for VarDCT mode.
- * Use @qprogressive_ac for quantized AC progression, which is generally
- * preferred.
- *
- * Use @responsive to enable the Squeeze transform for modular mode
- * progressive decoding.
- *
- * Use @group_order to control the bitstream group ordering. 0 for scanline
- * order, 1 for center-first order.
+ * Set @progressive to enable progressive encoding.
  *
  * ::: tip "Optional arguments"
  *     * @tier: `gint`, decode speed tier
@@ -2632,11 +2620,7 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  *     * @lossless: `gboolean`, enables lossless compression
  *     * @Q: `gint`, quality setting
  *     * @bitdepth: `gint`, image bitdepth
- *     * @progressive_dc: `gint`, progressive DC encoding
- *     * @progressive_ac: `gint`, spectral progressive AC encoding
- *     * @qprogressive_ac: `gint`, quantized progressive AC encoding
- *     * @responsive: `gint`, Squeeze transform for modular progressive
- *     * @group_order: `gint`, group ordering (scanline or center-first)
+ *     * @progressive: `gboolean`, enables progressive encoding
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2668,11 +2652,7 @@ vips_jxlsave(VipsImage *in, const char *filename, ...)
  *     * @effort: `gint`, encoding effort
  *     * @lossless: `gboolean`, enables lossless compression
  *     * @Q: `gint`, quality setting
- *     * @progressive_dc: `gint`, progressive DC encoding
- *     * @progressive_ac: `gint`, spectral progressive AC encoding
- *     * @qprogressive_ac: `gint`, quantized progressive AC encoding
- *     * @responsive: `gint`, Squeeze transform for modular progressive
- *     * @group_order: `gint`, group ordering (scanline or center-first)
+ *     * @progressive: `gboolean`, enables progressive encoding
  *
  * ::: seealso
  *     [method@Image.jxlsave], [method@Image.write_to_target].
@@ -2721,11 +2701,7 @@ vips_jxlsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  *     * @effort: `gint`, encoding effort
  *     * @lossless: `gboolean`, enables lossless compression
  *     * @Q: `gint`, quality setting
- *     * @progressive_dc: `gint`, progressive DC encoding
- *     * @progressive_ac: `gint`, spectral progressive AC encoding
- *     * @qprogressive_ac: `gint`, quantized progressive AC encoding
- *     * @responsive: `gint`, Squeeze transform for modular progressive
- *     * @group_order: `gint`, group ordering (scanline or center-first)
+ *     * @progressive: `gboolean`, enables progressive encoding
  *
  * ::: seealso
  *     [method@Image.jxlsave], [method@Image.write_to_target].
