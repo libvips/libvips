@@ -1211,42 +1211,40 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 
 	VIPS_ARG_INT(class, "progressive-dc", 16,
 		_("Progressive DC"),
-		_("Progressive DC: -1 default, 0 disable, 1 extra 64x64 pass, "
+		_("Progressive DC: 0 disable, 1 extra 64x64 pass, "
 			"2 extra 512x512 and 64x64 passes"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, progressive_dc),
-		-1, 2, -1);
+		0, 2, 0);
 
 	VIPS_ARG_INT(class, "progressive-ac", 17,
 		_("Progressive AC"),
-		_("Progressive AC: -1 default, 0 disable, 1 enable spectral "
-			"progression"),
+		_("Progressive AC: 0 disable, 1 enable spectral progression"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, progressive_ac),
-		-1, 1, -1);
+		0, 1, 0);
 
 	VIPS_ARG_INT(class, "qprogressive-ac", 18,
 		_("Quantized progressive AC"),
-		_("Quantized progressive AC: -1 default, 0 disable, 1 enable "
-			"quantized progression (generally preferred over progressive-ac)"),
+		_("Quantized progressive AC: 0 disable, 1 enable "
+			"(generally preferred over progressive-ac)"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, qprogressive_ac),
-		-1, 1, -1);
+		0, 1, 0);
 
 	VIPS_ARG_INT(class, "responsive", 19,
 		_("Responsive"),
-		_("Squeeze transform for modular progressive: "
-			"-1 default, 0 disable, 1 enable"),
+		_("Squeeze transform for modular progressive: 0 disable, 1 enable"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, responsive),
-		-1, 1, -1);
+		0, 1, 0);
 
 	VIPS_ARG_INT(class, "group-order", 20,
 		_("Group order"),
-		_("Group order: -1 default, 0 scanline, 1 center-first"),
+		_("Group order: 0 scanline, 1 center-first"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, group_order),
-		-1, 1, -1);
+		0, 1, 0);
 
 }
 
@@ -1257,11 +1255,11 @@ vips_foreign_save_jxl_init(VipsForeignSaveJxl *jxl)
 	jxl->effort = 7;
 	jxl->Q = 75;
 	jxl->bitdepth = 8;
-	jxl->progressive_dc = -1;
-	jxl->progressive_ac = -1;
-	jxl->qprogressive_ac = -1;
-	jxl->responsive = -1;
-	jxl->group_order = -1;
+	jxl->progressive_dc = 0;
+	jxl->progressive_ac = 0;
+	jxl->qprogressive_ac = 0;
+	jxl->responsive = 0;
+	jxl->group_order = 0;
 #ifdef HAVE_LIBJXL_0_9
 	g_mutex_init(&jxl->tile_lock);
 #endif

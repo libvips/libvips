@@ -2613,17 +2613,17 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  *
  * Use @progressive_dc to enable progressive DC encoding for VarDCT mode.
  * 0 disables, 1 adds an extra 64x64 low-resolution pass, 2 adds 512x512
- * and 64x64 passes. Use -1 for the encoder default (disabled).
+ * and 64x64 passes.
  *
  * Use @progressive_ac to enable spectral AC progression for VarDCT mode.
  * Use @qprogressive_ac for quantized AC progression, which is generally
- * preferred. Use -1 for the encoder default.
+ * preferred.
  *
  * Use @responsive to enable the Squeeze transform for modular mode
- * progressive decoding. Use -1 for the encoder default.
+ * progressive decoding.
  *
  * Use @group_order to control the bitstream group ordering. 0 for scanline
- * order, 1 for center-first order. Use -1 for the encoder default.
+ * order, 1 for center-first order.
  *
  * ::: tip "Optional arguments"
  *     * @tier: `gint`, decode speed tier
