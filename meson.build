@@ -563,6 +563,8 @@ if libjxl_found
         external_deps += libjxl_threads_dep
     endif
     cfg_var.set('HAVE_LIBJXL', true)
+    # need v0.8+ for bitdepth support
+    cfg_var.set('HAVE_LIBJXL_0_8', libjxl_dep.version().version_compare('>=0.8'))
     # need v0.9+ for chunked write
     cfg_var.set('HAVE_LIBJXL_0_9', libjxl_dep.version().version_compare('>=0.9'))
 endif
@@ -764,18 +766,26 @@ endforeach
 
 subdir('libvips')
 if get_option('docs')
-  subdir('doc')
+    subdir('doc')
 endif
 if get_option('examples')
-  subdir('examples')
+    subdir('examples')
 endif
 if get_option('cplusplus')
-  subdir('cplusplus')
+    subdir('cplusplus')
 endif
-
-# these lines removed by a regexp for oss-fuzz builds, don't touch!
-subdir('man')
-subdir('po')
-subdir('tools')
-subdir('test')
-subdir('fuzz')
+if get_option('man') and get_option('tools')
+    subdir('man')
+endif
+if get_option('po')
+    subdir('po')
+endif
+if get_option('tools')
+    subdir('tools')
+endif
+if get_option('tests')
+    subdir('test')
+endif
+if get_option('fuzz')
+    subdir('fuzz')
+endif

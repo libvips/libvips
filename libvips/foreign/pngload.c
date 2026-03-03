@@ -179,6 +179,7 @@ vips_foreign_load_png_class_init(VipsForeignLoadPngClass *class)
 static void
 vips_foreign_load_png_init(VipsForeignLoadPng *png)
 {
+	png->unlimited = vips_unlimited_get();
 }
 
 typedef struct _VipsForeignLoadPngSource {

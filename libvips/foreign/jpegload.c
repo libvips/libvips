@@ -212,6 +212,7 @@ static void
 vips_foreign_load_jpeg_init(VipsForeignLoadJpeg *jpeg)
 {
 	jpeg->shrink = 1;
+	jpeg->unlimited = vips_unlimited_get();
 }
 
 typedef struct _VipsForeignLoadJpegSource {
