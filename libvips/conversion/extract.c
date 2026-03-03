@@ -147,8 +147,8 @@ vips_extract_area_build(VipsObject *object)
 
 	in = extract->in;
 
-	if (extract->left + extract->width > in->Xsize ||
-		extract->top + extract->height > in->Ysize ||
+	if ((guint64) extract->left + extract->width > in->Xsize ||
+		(guint64) extract->top + extract->height > in->Ysize ||
 		extract->left < 0 || extract->top < 0 ||
 		extract->width <= 0 || extract->height <= 0) {
 		vips_error(class->nickname, "%s", _("bad extract area"));
@@ -399,7 +399,7 @@ vips_extract_band_build(VipsObject *object)
 		bandary->in = &extract->in;
 		bandary->out_bands = extract->n;
 
-		if (extract->band + extract->n > bands) {
+		if ((guint64) extract->band + extract->n > bands) {
 			vips_error(class->nickname,
 				"%s", _("bad extract band"));
 			return -1;

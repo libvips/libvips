@@ -139,7 +139,7 @@ typedef struct _VipsForeignLoadHeif {
 	 */
 	gboolean autorotate;
 
-	/* remove all denial of service limits.
+	/* Remove all denial of service limits.
 	 */
 	gboolean unlimited;
 
@@ -1193,6 +1193,7 @@ static void
 vips_foreign_load_heif_init(VipsForeignLoadHeif *heif)
 {
 	heif->n = 1;
+	heif->unlimited = vips_unlimited_get();
 
 	heif->reader = VIPS_ARRAY(NULL, 1, struct heif_reader);
 

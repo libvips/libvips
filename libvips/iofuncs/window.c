@@ -392,7 +392,8 @@ vips_window_take(VipsWindow *window, VipsImage *im, int top, int height)
 	gint64 window_bytes = height * line_bytes;
 	gint64 margin_bytes =
 		(VIPS_MAX(window_bytes, vips__window_bytes) - window_bytes) / 2;
-	gint64 margin_lines = VIPS_MAX(0, margin_bytes / line_bytes);
+	gint64 margin_lines =
+		VIPS_CLIP(0, margin_bytes / line_bytes, VIPS_MAX_COORD);
 
 	top -= margin_lines;
 	height += margin_lines * 2;
