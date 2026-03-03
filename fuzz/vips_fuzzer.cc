@@ -24,6 +24,18 @@ LLVMFuzzerInitialize(int *argc, char ***argv)
 	vips_concurrency_set(1);
 	vips_cache_set_max(0);
 
+	/* Avoid possible timeout errors, e.g.:
+	 * $ vips fractsurf x.v 9999 9999 3
+	 * $ vips worley x.v 9999 9999
+	 * is likely taking more than 60 seconds.
+	 */
+	const char *blocklist[] = {
+		"VipsWorley",
+		"VipsFractsurf",
+	};
+	for (const char *operation : blocklist)
+		vips_operation_block_set(operation, TRUE);
+
 	return 0;
 }
 
