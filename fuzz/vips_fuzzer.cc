@@ -24,14 +24,20 @@ LLVMFuzzerInitialize(int *argc, char ***argv)
 	vips_concurrency_set(1);
 	vips_cache_set_max(0);
 
-	/* Avoid possible timeout errors, e.g.:
-	 * $ vips fractsurf x.v 9999 9999 3
-	 * $ vips worley x.v 9999 9999
-	 * is likely taking more than 60 seconds.
-	 */
 	const char *blocklist[] = {
+		/* Avoid possible timeout errors, e.g.:
+		 * $ vips fractsurf x.v 9999 9999 3
+		 * $ vips worley x.v 9999 9999
+		 * is likely taking more than 60 seconds.
+		 */
 		"VipsWorley",
 		"VipsFractsurf",
+		/* Block matrixprint and {jpeg,webp}save_mime to prevent image data
+		 * from being written to stdout and cluttering the output.
+		 */
+		"VipsForeignPrintMatrix",
+		"VipsForeignSaveJpegMime",
+		"VipsForeignSaveWebpMime",
 	};
 	for (const char *operation : blocklist)
 		vips_operation_block_set(operation, TRUE);
