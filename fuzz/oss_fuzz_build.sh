@@ -267,7 +267,8 @@ for fuzzer in $OUT/*_fuzzer; do
 done
 
 # Generate dictionary for vips_fuzzer from the just-built vips binary
-fuzz/generate_vips_dict.sh "build/tools/vips" > "$OUT/vips_fuzzer.dict"
+LD_LIBRARY_PATH="$OUT/lib" \
+  ./fuzz/generate_vips_dict.sh "build/tools/vips" > "$OUT/vips_fuzzer.dict"
 
 # Copy options and remaining dictionary files to $OUT
 find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT \;
