@@ -324,9 +324,20 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		SetRequiredInput, &ctx, nullptr);
 
 	// Set optional arguments (ignore failures).
-	for (i = 0; i < n_optional; i++)
+	for (i = 0; i < n_optional; i++) {
+		VipsArgumentFlags flags =
+			vips_object_get_argument_flags(VIPS_OBJECT(operation),
+				opt_names[i]);
+
+		if ((flags & VIPS_ARGUMENT_REQUIRED) ||
+			!(flags & VIPS_ARGUMENT_CONSTRUCT) ||
+			!(flags & VIPS_ARGUMENT_INPUT) ||
+			(flags & VIPS_ARGUMENT_DEPRECATED))
+			continue;
+
 		vips_object_set_argument_from_string(VIPS_OBJECT(operation),
 			opt_names[i], opt_values[i]);
+	}
 
 	if (!ctx.failed) {
 		// Build (execute) the operation.
