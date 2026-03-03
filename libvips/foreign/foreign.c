@@ -2654,6 +2654,7 @@ vips_jxlsave(VipsImage *in, const char *filename, ...)
  *     * @lossless: `gboolean`, enables lossless compression
  *     * @Q: `gint`, quality setting
  *     * @interlace: `gboolean`, enables progressive encoding
+ *     * @progressive: `gboolean`, alias of @interlace
  *
  * ::: seealso
  *     [method@Image.jxlsave], [method@Image.write_to_target].
@@ -2703,6 +2704,7 @@ vips_jxlsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  *     * @lossless: `gboolean`, enables lossless compression
  *     * @Q: `gint`, quality setting
  *     * @interlace: `gboolean`, enables progressive encoding
+ *     * @progressive: `gboolean`, alias of @interlace
  *
  * ::: seealso
  *     [method@Image.jxlsave], [method@Image.write_to_target].
