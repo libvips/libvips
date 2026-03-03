@@ -2611,7 +2611,7 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  *
  * Set @lossless to enable lossless compression.
  *
- * Set @progressive to enable progressive encoding.
+ * Set @interlace or @progressive to enable progressive encoding.
  *
  * ::: tip "Optional arguments"
  *     * @tier: `gint`, decode speed tier
@@ -2620,7 +2620,8 @@ vips_jxlload_source(VipsSource *source, VipsImage **out, ...)
  *     * @lossless: `gboolean`, enables lossless compression
  *     * @Q: `gint`, quality setting
  *     * @bitdepth: `gint`, image bitdepth
- *     * @progressive: `gboolean`, enables progressive encoding
+ *     * @interlace: `gboolean`, enables progressive encoding
+ *     * @progressive: `gboolean`, alias of @interlace
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -2652,7 +2653,7 @@ vips_jxlsave(VipsImage *in, const char *filename, ...)
  *     * @effort: `gint`, encoding effort
  *     * @lossless: `gboolean`, enables lossless compression
  *     * @Q: `gint`, quality setting
- *     * @progressive: `gboolean`, enables progressive encoding
+ *     * @interlace: `gboolean`, enables progressive encoding
  *
  * ::: seealso
  *     [method@Image.jxlsave], [method@Image.write_to_target].
@@ -2701,7 +2702,7 @@ vips_jxlsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  *     * @effort: `gint`, encoding effort
  *     * @lossless: `gboolean`, enables lossless compression
  *     * @Q: `gint`, quality setting
- *     * @progressive: `gboolean`, enables progressive encoding
+ *     * @interlace: `gboolean`, enables progressive encoding
  *
  * ::: seealso
  *     [method@Image.jxlsave], [method@Image.write_to_target].
