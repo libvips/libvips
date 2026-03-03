@@ -62,9 +62,8 @@ ExtractLine(const guint8 **data, size_t *size)
 
 // Context passed through vips_argument_map callbacks.
 typedef struct _FuzzCtx {
-	VipsImage *image;  // Pre-loaded input image, may be NULL
-	const guint8 *buf; // Raw fuzzer data (for source/blob args)
-	size_t buf_size;
+	VipsSource *source; // Input source, may be NULL
+	VipsImage *image;	// Input image, may be NULL
 	char **string_args; // Pre-parsed string arguments
 	int n_string_args;
 	int string_idx; // Next string argument to consume
@@ -135,18 +134,11 @@ SetRequiredInput(VipsObject *object,
 		vips_area_unref(VIPS_AREA(array));
 	}
 	else if (g_type_is_a(type, VIPS_TYPE_SOURCE)) {
-		if (ctx->buf_size == 0) {
+		if (!ctx->source) {
 			ctx->failed = TRUE;
 			return pspec;
 		}
-		VipsSource *source =
-			vips_source_new_from_memory(ctx->buf, ctx->buf_size);
-		if (!source) {
-			ctx->failed = TRUE;
-			return pspec;
-		}
-		g_object_set(object, name, source, nullptr);
-		g_object_unref(source);
+		g_object_set(object, name, ctx->source, nullptr);
 	}
 	else if (g_type_is_a(type, VIPS_TYPE_TARGET)) {
 		VipsTarget *target = vips_target_new_to_memory();
@@ -158,17 +150,11 @@ SetRequiredInput(VipsObject *object,
 		g_object_unref(target);
 	}
 	else if (g_type_is_a(type, VIPS_TYPE_BLOB)) {
-		if (ctx->buf_size == 0) {
+		if (!ctx->source) {
 			ctx->failed = TRUE;
 			return pspec;
 		}
-		VipsBlob *blob = vips_blob_copy(ctx->buf, ctx->buf_size);
-		if (!blob) {
-			ctx->failed = TRUE;
-			return pspec;
-		}
-		g_object_set(object, name, blob, nullptr);
-		vips_area_unref(VIPS_AREA(blob));
+		g_object_set(object, name, ctx->source->blob, nullptr);
 	}
 	else {
 		if (ctx->string_idx >= ctx->n_string_args) {
@@ -264,7 +250,6 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	}
 
 	// Count how many string-valued required input args we need.
-	ctx.n_string_args = 0;
 	vips_argument_map(VIPS_OBJECT(operation),
 		CountStringArgs, &ctx.n_string_args, nullptr);
 
@@ -316,22 +301,23 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	}
 
 	// Try to load an image from the remaining data.
-	ctx.image = nullptr;
-	if (size > 0) {
-		ctx.image = vips_image_new_from_buffer(data, size, "", nullptr);
-		if (ctx.image &&
-			(ctx.image->Xsize > 100 ||
-				ctx.image->Ysize > 100 ||
-				ctx.image->Bands > 4)) {
-			g_object_unref(ctx.image);
-			ctx.image = nullptr;
-		}
+	if (size > 0 &&
+		((ctx.source = vips_source_new_from_memory(data, size))) &&
+		(!(ctx.image = vips_image_new_from_source(ctx.source, "", nullptr)))) {
+		g_object_unref(ctx.source);
+		ctx.source = nullptr;
 	}
 
-	ctx.buf = data;
-	ctx.buf_size = size;
-	ctx.string_idx = 0;
-	ctx.failed = FALSE;
+	if (ctx.image &&
+		(ctx.image->Xsize > 100 ||
+			ctx.image->Ysize > 100 ||
+			ctx.image->Bands > 4)) {
+		g_object_unref(ctx.image);
+		ctx.image = nullptr;
+
+		g_object_unref(ctx.source);
+		ctx.source = nullptr;
+	}
 
 	// Set all required input arguments.
 	vips_argument_map(VIPS_OBJECT(operation),
@@ -357,6 +343,8 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 
 	if (ctx.image)
 		g_object_unref(ctx.image);
+	if (ctx.source)
+		g_object_unref(ctx.source);
 	for (i = 0; i < ctx.n_string_args; i++)
 		g_free(ctx.string_args[i]);
 	g_free(ctx.string_args);
