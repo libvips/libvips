@@ -735,6 +735,21 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 		break;
 	}
 
+	gboolean is_standard_srgb =
+		jxl->color_encoding.primaries == JXL_PRIMARIES_SRGB &&
+		(jxl->color_encoding.transfer_function == JXL_TRANSFER_FUNCTION_SRGB ||
+			jxl->color_encoding.transfer_function == JXL_TRANSFER_FUNCTION_709 ||
+			jxl->color_encoding.transfer_function == JXL_TRANSFER_FUNCTION_LINEAR);
+
+	/* If the JXL stream uses non-sRGB primaries or an HDR transfer,
+	 * override to CICP so the colour pipeline applies the correct conversion.
+	 */
+	if (jxl->color_encoding.color_space == JXL_COLOR_SPACE_RGB &&
+		jxl->info.num_color_channels == 3 &&
+		jxl->color_encoding.primaries != JXL_PRIMARIES_CUSTOM &&
+		!is_standard_srgb)
+		interpretation = VIPS_INTERPRETATION_CICP;
+
 	if (jxl->frame_count > 1) {
 		if (jxl->n == -1)
 			jxl->n = jxl->frame_count - jxl->page; // FIXME: Invalidates operation cache
@@ -801,31 +816,31 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 		jxl->icc_size = 0;
 	}
 
-	// CICP only covers RGB
+	/* CICP only covers RGB. */
 	if (jxl->color_encoding.color_space == JXL_COLOR_SPACE_RGB) {
 
 		double gamma = jxl->color_encoding.gamma;
 
 		switch (jxl->color_encoding.primaries) {
 			case JXL_PRIMARIES_SRGB:
-				vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_BT709);
+				vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_BT709);
 				break;
 			case JXL_PRIMARIES_2100:
-				vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_BT2020);
+				vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_BT2020);
 				break;
 			case JXL_PRIMARIES_P3:
 				if (jxl->color_encoding.white_point == JXL_WHITE_POINT_D65) {
-					// Display P3
-					vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_SMPTE432);
+					/* Display P3 */
+					vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_SMPTE432);
 				} else if (jxl->color_encoding.white_point == JXL_WHITE_POINT_DCI) {
-					// DCI-P3
-					vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_SMPTE431);
+					/* DCI-P3 */
+					vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_SMPTE431);
 				} else {
-					vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED);
+					vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED);
 				}
 				break;
 			default:
-				vips_image_set_int(out, "cicp-colour-primaires", VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED);
+				vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED);
 				break;
 		}
 		switch (jxl->color_encoding.transfer_function) {
@@ -1011,6 +1026,23 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 			break;
 
 		case JXL_DEC_COLOR_ENCODING:
+			/* Try to get the structured color encoding first.
+			 * This may fail if the image has an attached ICC
+			 * profile instead.
+			 */
+			if (JxlDecoderGetColorAsEncodedProfile(jxl->decoder,
+#ifndef HAVE_LIBJXL_0_9
+					&jxl->format,
+#endif
+					JXL_COLOR_PROFILE_TARGET_DATA,
+					&jxl->color_encoding) != JXL_DEC_SUCCESS)
+				/* Mark as unknown so we don't use it.
+				 * JXL_COLOR_SPACE_RGB is 0, so a plain memset
+				 * would incorrectly look like valid RGB.
+				 */
+				jxl->color_encoding.color_space =
+					JXL_COLOR_SPACE_UNKNOWN;
+
 			if (JxlDecoderGetICCProfileSize(jxl->decoder,
 #ifndef HAVE_LIBJXL_0_9
 					&jxl->format,

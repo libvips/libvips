@@ -150,41 +150,64 @@ vips_pq_eotf(float E)
 		return 0.0f;
 
 	float linear = powf(numerator / denominator, 1.0f / m1);
-	return linear * SDR_WHITE;
+
+	/* linear is in [0, 1] representing [0, 10000] nits.
+	 * scRGB: 1.0 = 80 nits, so multiply by 10000/80.
+	 */
+	return linear * (10000.0f / SDR_WHITE);
 }
 
 static inline float
-vips_hlg_eotf(float E)
+vips_hlg_inverse_oetf(float E)
 {
+	/* Constants from H.273 Table 3, value 18 (ARIB STD-B67). */
+	const float a = 0.17883277f;
+	const float b = 0.28466892f;
+	const float c = 0.55991073f;
+
+	if (E <= 0.0f)
+		return 0.0f;
+
+	if (E <= 0.5f)
+		return E * E / 3.0f;
+	else
+		return (expf((E - c) / a) + b) / 12.0f;
+}
+
+static inline float
+vips_bt709_inverse_oetf(float E)
+{
+	/* BT.709 / BT.601 / BT.2020 share the same curve.
+	 * Analytical constants for C0/C1 continuity.
+	 */
+	const float alpha = 1.09929682680944f;
+	const float linear_beta = 0.018053968510807f;
+	const float signal_beta = 4.5f * linear_beta;
 
 	if (E < 0.0f)
 		return 0.0f;
 
-	if (E <= 1.0f / 12) {
-		return sqrtf(3 * E);
-	}
-	else { // assuming E <=1
-		const float a = 0.17883277f;
-		const float b = 1 - 4 * a;
-		const float c = 0.5f - a * logf(4 * a);
-
-		return a * logf(12 * E - b) + c;
-	}
-}
-
-static inline float
-vips_bt2020_eotf(float E)
-{
-	const float alpha = 1.0993f;
-	const float beta = 0.0181f;
-
-	if (E < 0.0f)
-		return 0.0f;
-
-	if (E < beta)
+	if (E < signal_beta)
 		return E / 4.5f;
 	else
 		return powf((E + (alpha - 1.0f)) / alpha, 1.0f / 0.45f);
+}
+
+static inline float
+vips_sRGB_inverse_oetf(float E)
+{
+	const float signal_beta = 0.04045f;
+	const float slope = 12.92f;
+	const float alpha = 1.055f;
+	const float gamma = 2.4f;
+
+	if (E < 0.0f)
+		return 0.0f;
+
+	if (E <= signal_beta)
+		return E / slope;
+	else
+		return powf((E + (alpha - 1.0f)) / alpha, gamma);
 }
 
 static inline float
@@ -194,14 +217,32 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 	case VIPS_CICP_TRANSFER_PQ:
 		return vips_pq_eotf(in);
 	case VIPS_CICP_TRANSFER_HLG:
-		return vips_hlg_eotf(in);
+		return vips_hlg_inverse_oetf(in);
 	case VIPS_CICP_TRANSFER_BT709:
+	case VIPS_CICP_TRANSFER_BT601:
 	case VIPS_CICP_TRANSFER_BT2020_10BIT:
 	case VIPS_CICP_TRANSFER_BT2020_12BIT:
-		return vips_bt2020_eotf(in);
+		return vips_bt709_inverse_oetf(in);
+	case VIPS_CICP_TRANSFER_SMPTE240: {
+		const float alpha = 1.1115f;
+		const float linear_beta = 0.0228f;
+		const float slope = 4.0f;
 
+		if (in < slope * linear_beta)
+			return in / slope;
+		else
+			return powf((in + (alpha - 1.0f)) / alpha, 1.0f / 0.45f);
+	}
+	case VIPS_CICP_TRANSFER_SRGB:
+		return vips_sRGB_inverse_oetf(in);
+	case VIPS_CICP_TRANSFER_BT470M:
+		return powf(fmaxf(in, 0.0f), 2.2f); /* Gamma 2.2 */
+	case VIPS_CICP_TRANSFER_BT470BG:
+		return powf(fmaxf(in, 0.0f), 2.8f); /* Gamma 2.8 */
+	case VIPS_CICP_TRANSFER_LINEAR:
+		return in;
 	default:
-		// identity
+		/* Unknown transfer -- pass through unchanged */
 		return in;
 	}
 }

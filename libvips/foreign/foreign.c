@@ -1412,7 +1412,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 
 	/* ANY? we are done.
 	 */
-	if (saveable == VIPS_FOREIGN_SAVEABLE_ANY) {
+	if ((saveable & ~VIPS_FOREIGN_SAVEABLE_CICP) == VIPS_FOREIGN_SAVEABLE_ANY) {
 		*ready = in;
 		return 0;
 	}
@@ -1572,7 +1572,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 * format, we have nothing to do.
 	 */
 	if (in->Coding == VIPS_CODING_NONE &&
-		(saveable == VIPS_FOREIGN_SAVEABLE_ANY) &&
+		((saveable & ~VIPS_FOREIGN_SAVEABLE_CICP) == VIPS_FOREIGN_SAVEABLE_ANY) &&
 		format[in->BandFmt] == in->BandFmt) {
 		*ready = in;
 		return 0;
@@ -1616,7 +1616,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		int bands;
 
 		bands = vips_interpretation_bands(interpretation);
-		if (saveable == VIPS_FOREIGN_SAVEABLE_ANY)
+		if ((saveable & ~VIPS_FOREIGN_SAVEABLE_CICP) == VIPS_FOREIGN_SAVEABLE_ANY)
 			bands = in->Bands;
 		else if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
 			bands += 1;

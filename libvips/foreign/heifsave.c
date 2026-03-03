@@ -424,10 +424,10 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		 */
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
-				save->ready->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
-		if (save->ready->Type == VIPS_INTERPRETATION_CICP)
-			// TODO: check type
-			vips_bitdepth = 16;
+				save->ready->Type == VIPS_INTERPRETATION_GREY16 ||
+				save->ready->Type == VIPS_INTERPRETATION_CICP
+			? 16
+			: 8;
 
 		int shift = vips_bitdepth - heif->bitdepth;
 
@@ -445,10 +445,11 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		 */
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
-				save->ready->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
-		if (save->ready->Type == VIPS_INTERPRETATION_CICP)
-			// TODO: check type
-			vips_bitdepth = 16;
+				save->ready->Type == VIPS_INTERPRETATION_GREY16 ||
+				save->ready->Type == VIPS_INTERPRETATION_CICP
+			? 16
+			: 8;
+
 		int shift = vips_bitdepth - heif->bitdepth;
 
 		for (i = 0; i < ne; i++) {
@@ -563,14 +564,30 @@ vips_foreign_save_heif_build(VipsObject *object)
 	if (heif->lossless)
 		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
 
-	/* Default 12 bit save for 16-bit images.
+	/* Identity matrix coefficients (RGB) require 4:4:4 -- chroma
+	 * subsampling is only valid for YCbCr.
 	 */
-	if (!vips_object_argument_isset(object, "bitdepth"))
-		heif->bitdepth =
-			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
-				save->ready->Type == VIPS_INTERPRETATION_GREY16
-			? 12
-			: 8;
+	int matrix_coefficients;
+	if (vips_image_get_int(save->ready,
+			"cicp-matrix-coefficients", &matrix_coefficients) == 0 &&
+		matrix_coefficients == 0)
+		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
+
+	/* Default bitdepth: use bits-per-sample metadata if available,
+	 * otherwise 12 for 16-bit images, 8 for everything else.
+	 */
+	if (!vips_object_argument_isset(object, "bitdepth")) {
+		int bits_per_sample;
+
+		if (vips_image_get_int(save->ready,
+				VIPS_META_BITS_PER_SAMPLE, &bits_per_sample) == 0)
+			heif->bitdepth = bits_per_sample;
+		else if (save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
+			save->ready->Type == VIPS_INTERPRETATION_GREY16)
+			heif->bitdepth = 12;
+		else
+			heif->bitdepth = 8;
+	}
 
 	/* HEIC and AVIF only implements 8 / 10 / 12 bit depth.
 	 */

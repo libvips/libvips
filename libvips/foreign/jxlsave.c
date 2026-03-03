@@ -153,6 +153,184 @@ typedef VipsForeignSaveClass VipsForeignSaveJxlClass;
 G_DEFINE_ABSTRACT_TYPE(VipsForeignSaveJxl, vips_foreign_save_jxl,
 	VIPS_TYPE_FOREIGN_SAVE);
 
+/* Build a JxlColorEncoding from CICP metadata on a VipsImage.
+ * Primaries xy coordinates are from ITU-T H.273.
+ */
+static gboolean
+vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
+	JxlColorEncoding *enc)
+{
+	int colour_primaries;
+	int transfer_characteristics;
+	int matrix_coefficients;
+	int full_range_flag;
+
+	if (vips_image_get_int(image,
+			"cicp-colour-primaries", &colour_primaries) ||
+		vips_image_get_int(image,
+			"cicp-transfer-characteristics", &transfer_characteristics) ||
+		vips_image_get_int(image,
+			"cicp-matrix-coefficients", &matrix_coefficients) ||
+		vips_image_get_int(image,
+			"cicp-full-range-flag", &full_range_flag))
+		return FALSE;
+
+	/* JXL pixel data is always RGB, so we only need identity matrix
+	 * and full range. Ignore the metadata MC value since the actual
+	 * pixel data has already been converted to RGB by the loader.
+	 */
+	if (full_range_flag != 1)
+		return FALSE;
+
+	memset(enc, 0, sizeof(*enc));
+	enc->color_space = JXL_COLOR_SPACE_RGB;
+	enc->rendering_intent = JXL_RENDERING_INTENT_RELATIVE;
+
+	/* Map H.273 colour primaries to JXL primaries + white point.
+	 */
+	switch (colour_primaries) {
+	case 1: /* BT.709 / sRGB */
+		enc->primaries = JXL_PRIMARIES_SRGB;
+		enc->white_point = JXL_WHITE_POINT_D65;
+		break;
+
+	case 4: /* BT.470M */
+		enc->primaries = JXL_PRIMARIES_CUSTOM;
+		enc->primaries_red_xy[0] = 0.67;
+		enc->primaries_red_xy[1] = 0.33;
+		enc->primaries_green_xy[0] = 0.21;
+		enc->primaries_green_xy[1] = 0.71;
+		enc->primaries_blue_xy[0] = 0.14;
+		enc->primaries_blue_xy[1] = 0.08;
+		enc->white_point = JXL_WHITE_POINT_CUSTOM;
+		enc->white_point_xy[0] = 0.310;
+		enc->white_point_xy[1] = 0.316;
+		break;
+
+	case 5: /* BT.470BG (PAL/SECAM) */
+		enc->primaries = JXL_PRIMARIES_CUSTOM;
+		enc->primaries_red_xy[0] = 0.64;
+		enc->primaries_red_xy[1] = 0.33;
+		enc->primaries_green_xy[0] = 0.29;
+		enc->primaries_green_xy[1] = 0.60;
+		enc->primaries_blue_xy[0] = 0.15;
+		enc->primaries_blue_xy[1] = 0.06;
+		enc->white_point = JXL_WHITE_POINT_D65;
+		break;
+
+	case 6: /* BT.601 / SMPTE 170M */
+	case 7: /* SMPTE 240M */
+		enc->primaries = JXL_PRIMARIES_CUSTOM;
+		enc->primaries_red_xy[0] = 0.630;
+		enc->primaries_red_xy[1] = 0.340;
+		enc->primaries_green_xy[0] = 0.310;
+		enc->primaries_green_xy[1] = 0.595;
+		enc->primaries_blue_xy[0] = 0.155;
+		enc->primaries_blue_xy[1] = 0.070;
+		enc->white_point = JXL_WHITE_POINT_D65;
+		break;
+
+	case 8: /* Generic film (Illuminant C) */
+		enc->primaries = JXL_PRIMARIES_CUSTOM;
+		enc->primaries_red_xy[0] = 0.681;
+		enc->primaries_red_xy[1] = 0.319;
+		enc->primaries_green_xy[0] = 0.243;
+		enc->primaries_green_xy[1] = 0.692;
+		enc->primaries_blue_xy[0] = 0.145;
+		enc->primaries_blue_xy[1] = 0.049;
+		enc->white_point = JXL_WHITE_POINT_CUSTOM;
+		enc->white_point_xy[0] = 0.310;
+		enc->white_point_xy[1] = 0.316;
+		break;
+
+	case 9: /* BT.2020 / BT.2100 */
+		enc->primaries = JXL_PRIMARIES_2100;
+		enc->white_point = JXL_WHITE_POINT_D65;
+		break;
+
+	case 10: /* CIE 1931 XYZ */
+		enc->primaries = JXL_PRIMARIES_CUSTOM;
+		enc->primaries_red_xy[0] = 1.0;
+		enc->primaries_red_xy[1] = 0.0;
+		enc->primaries_green_xy[0] = 0.0;
+		enc->primaries_green_xy[1] = 1.0;
+		enc->primaries_blue_xy[0] = 0.0;
+		enc->primaries_blue_xy[1] = 0.0;
+		enc->white_point = JXL_WHITE_POINT_E;
+		break;
+
+	case 11: /* DCI-P3 (SMPTE 431) */
+		enc->primaries = JXL_PRIMARIES_P3;
+		enc->white_point = JXL_WHITE_POINT_DCI;
+		break;
+
+	case 12: /* Display P3 (SMPTE 432) */
+		enc->primaries = JXL_PRIMARIES_P3;
+		enc->white_point = JXL_WHITE_POINT_D65;
+		break;
+
+	case 22: /* EBU Tech. 3213 */
+		enc->primaries = JXL_PRIMARIES_CUSTOM;
+		enc->primaries_red_xy[0] = 0.630;
+		enc->primaries_red_xy[1] = 0.340;
+		enc->primaries_green_xy[0] = 0.295;
+		enc->primaries_green_xy[1] = 0.605;
+		enc->primaries_blue_xy[0] = 0.155;
+		enc->primaries_blue_xy[1] = 0.077;
+		enc->white_point = JXL_WHITE_POINT_D65;
+		break;
+
+	default:
+		return FALSE;
+	}
+
+	/* Map H.273 transfer characteristics to JXL transfer function.
+	 */
+	switch (transfer_characteristics) {
+	case 1: /* BT.709 */
+	case 6: /* BT.601 */
+	case 14: /* BT.2020 10-bit */
+	case 15: /* BT.2020 12-bit */
+		enc->transfer_function = JXL_TRANSFER_FUNCTION_709;
+		break;
+
+	case 4: /* BT.470M (gamma 2.2) */
+		enc->transfer_function = JXL_TRANSFER_FUNCTION_GAMMA;
+		enc->gamma = 1.0 / 2.2;
+		break;
+
+	case 5: /* BT.470BG (gamma 2.8) */
+		enc->transfer_function = JXL_TRANSFER_FUNCTION_GAMMA;
+		enc->gamma = 1.0 / 2.8;
+		break;
+
+	case 8: /* Linear */
+		enc->transfer_function = JXL_TRANSFER_FUNCTION_LINEAR;
+		break;
+
+	case 13: /* sRGB */
+		enc->transfer_function = JXL_TRANSFER_FUNCTION_SRGB;
+		break;
+
+	case 16: /* PQ */
+		enc->transfer_function = JXL_TRANSFER_FUNCTION_PQ;
+		break;
+
+	case 17: /* SMPTE 428 */
+		enc->transfer_function = JXL_TRANSFER_FUNCTION_DCI;
+		break;
+
+	case 18: /* HLG */
+		enc->transfer_function = JXL_TRANSFER_FUNCTION_HLG;
+		break;
+
+	default:
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 #ifdef HAVE_LIBJXL_0_9
 static void *
 vips_foreign_save_jxl_get_buffer(void *opaque, size_t *size)
@@ -591,6 +769,17 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 			return -1;
 		}
 	}
+	else if (vips_foreign_save_jxl_cicp_to_color_encoding(in,
+		&jxl->color_encoding)) {
+#ifdef DEBUG
+		printf("setting CICP colourspace\n");
+#endif /*DEBUG*/
+
+		if (JxlEncoderSetColorEncoding(jxl->encoder, &jxl->color_encoding)) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
+			return -1;
+		}
+	}
 	else {
 		/* If there's no ICC profile, we must set the colour encoding
 		 * ourselves.
@@ -968,7 +1157,9 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	if (in->Type == VIPS_INTERPRETATION_scRGB)
 		format = VIPS_FORMAT_FLOAT;
 	else if (in->Type == VIPS_INTERPRETATION_RGB16 ||
-		in->Type == VIPS_INTERPRETATION_GREY16)
+		in->Type == VIPS_INTERPRETATION_GREY16 ||
+		(in->Type == VIPS_INTERPRETATION_CICP &&
+			in->BandFmt == VIPS_FORMAT_USHORT))
 		format = VIPS_FORMAT_USHORT;
 	else
 		format = VIPS_FORMAT_UCHAR;
@@ -1134,7 +1325,7 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 
 	foreign_class->suffs = vips__jxl_suffs;
 
-	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
+	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY | VIPS_FOREIGN_SAVEABLE_CICP;
 	save_class->format_table = bandfmt_jxl;
 
 	VIPS_ARG_INT(class, "tier", 10,

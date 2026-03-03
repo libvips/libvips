@@ -748,7 +748,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 
 		vips_image_set_int(out, "cicp-colour-primaries", nclx->color_primaries);
 		vips_image_set_int(out, "cicp-transfer-characteristics", nclx->transfer_characteristics);
-		vips_image_set_int(out, "cicp-matrix-coefficients", 0); // converted to RGB by libheif already
+		vips_image_set_int(out, "cicp-matrix-coefficients", nclx->matrix_coefficients);
 		vips_image_set_int(out, "cicp-full-range-flag", nclx->full_range_flag);
 
 		heif_nclx_color_profile_free(nclx);

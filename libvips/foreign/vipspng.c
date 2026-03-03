@@ -1387,10 +1387,10 @@ write_vips(Write *write,
 				vips_image_get_int(in, "cicp-matrix-coefficients", &matrix_coefficients) == 0 &&
 				vips_image_get_int(in, "cicp-full-range-flag", &full_range_flag) == 0) {
 
-				png_set_cICP(write->pPng, write->pInfo,
+			png_set_cICP(write->pPng, write->pInfo,
 					(png_byte) colour_primaries,
 					(png_byte) transfer_characteristics,
-					(png_byte) matrix_coefficients,
+					0, /* PNG pixel data is always RGB */
 					(png_byte) full_range_flag);
 			}
 		}
