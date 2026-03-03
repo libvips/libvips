@@ -235,10 +235,10 @@ cmake --build . --target install
 popd
 
 # libvips
-# Disable building man pages, gettext po files, tools, and tests
+# Disable building man pages, gettext po files, and tests
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debugoptimized \
   -Dbackend_max_links=4 -Ddeprecated=false -Dexamples=false -Dman=false -Dpo=false \
-  -Dtests=false -Dtools=false -Dcplusplus=false -Dmodules=disabled -Dfuzz=true \
+  -Dtests=false -Dcplusplus=false -Dmodules=disabled -Dfuzz=true \
   -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE" \
   -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
 meson install -C build --tag devel
@@ -267,7 +267,7 @@ for fuzzer in $OUT/*_fuzzer; do
 done
 
 # Generate dictionary for vips_fuzzer from the just-built vips binary
-fuzz/generate_vips_dict.sh "$WORK/bin/vips" > "$OUT/vips_fuzzer.dict"
+fuzz/generate_vips_dict.sh "build/tools/vips" > "$OUT/vips_fuzzer.dict"
 
 # Copy options and remaining dictionary files to $OUT
 find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT \;
