@@ -48,14 +48,14 @@ ExtractLine(const guint8 **data, size_t *size)
 	return line;
 }
 
-/* Context passed through vips_argument_map callbacks. */
+// Context passed through vips_argument_map callbacks.
 typedef struct _FuzzCtx {
-	VipsImage *image;     /* Pre-loaded input image, may be NULL */
-	const guint8 *buf;    /* Raw fuzzer data (for source/blob args) */
+	VipsImage *image;  // Pre-loaded input image, may be NULL
+	const guint8 *buf; // Raw fuzzer data (for source/blob args)
 	size_t buf_size;
-	char **string_args;   /* Pre-parsed string arguments */
+	char **string_args; // Pre-parsed string arguments
 	int n_string_args;
-	int string_idx;       /* Next string argument to consume */
+	int string_idx; // Next string argument to consume
 	gboolean failed;
 } FuzzCtx;
 
@@ -88,7 +88,7 @@ CountStringArgs(VipsObject *object,
 	return nullptr;
 }
 
-/* Set all required input arguments from the fuzz context. */
+// Set all required input arguments from the fuzz context.
 static void *
 SetRequiredInput(VipsObject *object,
 	GParamSpec *pspec,
@@ -186,7 +186,7 @@ SetRequiredInput(VipsObject *object,
 	return nullptr;
 }
 
-/* Force evaluation of required output images. */
+// Force evaluation of required output images.
 static void *
 EvalRequiredOutput(VipsObject *object,
 	GParamSpec *pspec,
@@ -208,7 +208,7 @@ EvalRequiredOutput(VipsObject *object,
 
 		g_object_get(object, name, &out, nullptr);
 		if (out) {
-			/* Sanity-check output dimensions to avoid OOM. */
+			// Sanity-check output dimensions to avoid OOM.
 			if (out->Xsize <= 10000 &&
 				out->Ysize <= 10000 &&
 				out->Bands <= 256) {
@@ -231,18 +231,18 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	char *op_name;
 	int i;
 
-	/* Extract the operation name from the first line. */
+	// Extract the operation name from the first line.
 	op_name = ExtractLine(&data, &size);
 	if (!op_name)
 		return 0;
 
-	/* Create the operation. */
+	// Create the operation.
 	operation = vips_operation_new(op_name);
 	g_free(op_name);
 	if (!operation)
 		return 0;
 
-	/* Skip deprecated or blocked operations. */
+	// Skip deprecated or blocked operations.
 	oclass = VIPS_OPERATION_GET_CLASS(operation);
 	if (VIPS_OBJECT_CLASS(oclass)->deprecated ||
 		(oclass->flags & VIPS_OPERATION_DEPRECATED) ||
@@ -251,12 +251,12 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		return 0;
 	}
 
-	/* Count how many string-valued required input args we need. */
+	// Count how many string-valued required input args we need.
 	ctx.n_string_args = 0;
 	vips_argument_map(VIPS_OBJECT(operation),
 		CountStringArgs, &ctx.n_string_args, nullptr);
 
-	/* Parse that many lines from the fuzzer data. */
+	// Parse that many lines from the fuzzer data.
 	ctx.string_args = g_new0(char *, VIPS_MAX(ctx.n_string_args, 1));
 	for (i = 0; i < ctx.n_string_args; i++) {
 		ctx.string_args[i] = ExtractLine(&data, &size);
@@ -269,13 +269,13 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		}
 	}
 
-	/* Parse optional arguments (lines starting with "--"). */
+	// Parse optional arguments (lines starting with "--").
 	char *opt_names[MAX_OPTIONAL_ARGS];
 	char *opt_values[MAX_OPTIONAL_ARGS];
 	int n_optional = 0;
 
 	while (n_optional < MAX_OPTIONAL_ARGS) {
-		/* Peek at the next line without consuming it. */
+		// Peek at the next line without consuming it.
 		const guint8 *save_data = data;
 		size_t save_size = size;
 		char *line = ExtractLine(&data, &size);
@@ -284,14 +284,14 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 			break;
 
 		if (line[0] != '-' || line[1] != '-') {
-			/* Not an optional arg -- put the data back. */
+			// Not an optional arg -- put the data back.
 			g_free(line);
 			data = save_data;
 			size = save_size;
 			break;
 		}
 
-		/* Split "--name=value" */
+		// Split "--name=value"
 		char *eq = strchr(line + 2, '=');
 		if (eq) {
 			*eq = '\0';
@@ -303,7 +303,7 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		g_free(line);
 	}
 
-	/* Try to load an image from the remaining data. */
+	// Try to load an image from the remaining data.
 	ctx.image = nullptr;
 	if (size > 0) {
 		ctx.image = vips_image_new_from_buffer(data, size, "", nullptr);
@@ -321,25 +321,25 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	ctx.string_idx = 0;
 	ctx.failed = FALSE;
 
-	/* Set all required input arguments. */
+	// Set all required input arguments.
 	vips_argument_map(VIPS_OBJECT(operation),
 		SetRequiredInput, &ctx, nullptr);
 
-	/* Set optional arguments (ignore failures). */
+	// Set optional arguments (ignore failures).
 	for (i = 0; i < n_optional; i++)
 		vips_object_set_argument_from_string(VIPS_OBJECT(operation),
 			opt_names[i], opt_values[i]);
 
 	if (!ctx.failed) {
-		/* Build (execute) the operation. */
+		// Build (execute) the operation.
 		if (!vips_object_build(VIPS_OBJECT(operation))) {
-			/* Evaluate output images to force computation. */
+			// Evaluate output images to force computation.
 			vips_argument_map(VIPS_OBJECT(operation),
 				EvalRequiredOutput, nullptr, nullptr);
 		}
 	}
 
-	/* Clean up. */
+	// Clean up.
 	vips_object_unref_outputs(VIPS_OBJECT(operation));
 	g_object_unref(operation);
 
