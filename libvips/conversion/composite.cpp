@@ -1636,7 +1636,8 @@ vips_composite_base_build(VipsObject *object)
 
 	if (composite->bands != 3) {
 		for (int i = 0; i < composite->mode->area.n; i++)
-			if (vips_composite_mode_non_separable(mode[i])) {
+			if (vips_composite_mode_non_separable(
+					(VipsBlendMode) mode[i])) {
 				vips_error(klass->nickname, "%s",
 					_("non-separable blend modes require 3-band images"));
 				return -1;
