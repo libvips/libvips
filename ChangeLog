@@ -30,6 +30,7 @@ date-tbd 8.18.1
 - add: prevent possible int overflow [kleisauke]
 - multiply: prevent possible int overflow [kleisauke]
 - subtract: prevent possible int overflow [kleisauke]
+- hist_cum: prevent possible int overflow [kleisauke]
 - convasep: prevent possible int overflow [kleisauke]
 - conva: prevent possible int overflow [kleisauke]
 - convi: prevent possible int overflow [kleisauke]
