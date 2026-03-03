@@ -224,7 +224,8 @@ extern "C" int
 LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 {
 	VipsOperation *operation;
-	VipsOperationClass *oclass;
+	VipsOperationFlags op_flags;
+	VipsAccess access;
 	FuzzCtx ctx = {};
 	char *op_name;
 	int i;
@@ -240,14 +241,18 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	if (!operation)
 		return 0;
 
+	op_flags = vips_operation_get_flags(operation);
+
 	// Skip deprecated or blocked operations.
-	oclass = VIPS_OPERATION_GET_CLASS(operation);
-	if (VIPS_OBJECT_CLASS(oclass)->deprecated ||
-		(oclass->flags & VIPS_OPERATION_DEPRECATED) ||
-		(oclass->flags & VIPS_OPERATION_BLOCKED)) {
+	if ((op_flags & VIPS_OPERATION_DEPRECATED) ||
+		(op_flags & VIPS_OPERATION_BLOCKED)) {
 		g_object_unref(operation);
 		return 0;
 	}
+
+	access = op_flags & VIPS_OPERATION_SEQUENTIAL
+		? VIPS_ACCESS_SEQUENTIAL
+		: VIPS_ACCESS_RANDOM;
 
 	// Count how many string-valued required input args we need.
 	vips_argument_map(VIPS_OBJECT(operation),
@@ -303,7 +308,9 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	// Try to load an image from the remaining data.
 	if (size > 0 &&
 		((ctx.source = vips_source_new_from_memory(data, size))) &&
-		(!(ctx.image = vips_image_new_from_source(ctx.source, "", nullptr)))) {
+		(!(ctx.image = vips_image_new_from_source(ctx.source, "",
+			"access", access,
+			nullptr)))) {
 		g_object_unref(ctx.source);
 		ctx.source = nullptr;
 	}
