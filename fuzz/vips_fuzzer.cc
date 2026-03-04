@@ -311,23 +311,25 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		g_free(line);
 	}
 
-	// Create source from remaining bytes.
-	if (size > 0)
-		ctx.source = vips_source_new_from_memory(data, size);
-
-	// Probe-load image independently so source-only/blob-only ops remain reachable.
-	if (size > 0)
-		ctx.image = vips_image_new_from_buffer(data, size, "",
+	// Try to load an image from the remaining data.
+	if (size > 0 &&
+		((ctx.source = vips_source_new_from_memory(data, size))) &&
+		(!(ctx.image = vips_image_new_from_source(ctx.source, "",
 			"access", access,
-			nullptr);
+			nullptr)))) {
+		g_object_unref(ctx.source);
+		ctx.source = nullptr;
+	}
 
-	// Keep source even if image is too large.
 	if (ctx.image &&
 		(ctx.image->Xsize > 100 ||
 			ctx.image->Ysize > 100 ||
 			ctx.image->Bands > 4)) {
 		g_object_unref(ctx.image);
 		ctx.image = nullptr;
+
+		g_object_unref(ctx.source);
+		ctx.source = nullptr;
 	}
 
 	// Set all required input arguments.
