@@ -13,7 +13,7 @@
 #include <vips/vips.h>
 
 #define MAX_LINE_LEN 4096 // =VIPS_PATH_MAX
-#define MAX_OPTIONAL_ARGS 16
+#define MAX_OPTIONAL_ARGS 32
 
 extern "C" int
 LLVMFuzzerInitialize(int *argc, char ***argv)
