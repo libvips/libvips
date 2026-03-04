@@ -344,6 +344,32 @@ class TestCICP:
                 f"got {out.get('cicp-transfer-characteristics')}, expected {transfer}"
 
     @skip_if_no("jxlsave")
+    def test_jxl_hdr_cicp_over_icc(self):
+        """HDR CICP encoding must be used over ICC on save, since ICC
+        cannot describe PQ or HLG transfer functions."""
+        # Get a valid ICC profile
+        srgb = (pyvips.Image.black(64, 64, bands=3) + 128).cast("uchar")
+        srgb = srgb.copy(interpretation="srgb")
+        with_icc = srgb.colourspace("lab").icc_export(output_profile="sRGB")
+        icc_profile = with_icc.get("icc-profile-data")
+
+        # Create a CICP HDR image and attach the ICC profile
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=TRANSFER_PQ)
+        im.set_type(pyvips.GValue.blob_type,
+                     "icc-profile-data", icc_profile)
+
+        buf = im.jxlsave_buffer()
+        out = pyvips.Image.new_from_buffer(buf, "")
+
+        # The structured CICP encoding must survive, not the ICC profile
+        assert out.interpretation == "cicp", \
+            f"HDR JXL with ICC loaded as {out.interpretation}, expected cicp"
+        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
+
+    @skip_if_no("jxlsave")
     def test_jxl_cicp_metadata_roundtrip(self):
         im = make_cicp_image(128, 128, 128,
                              primaries=PRIMARIES_BT2020,
@@ -426,6 +452,32 @@ class TestCICP:
         out = pyvips.Image.new_from_buffer(buf, "")
         assert out.get("cicp-matrix-coefficients") == 6, \
             f"MC={out.get('cicp-matrix-coefficients')}, expected 6 (BT.601)"
+
+    @skip_if_no("heifsave")
+    def test_heif_hdr_nclx_with_icc(self):
+        """HDR NCLX metadata must be extracted even when an ICC profile
+        is also present, since ICC cannot describe PQ or HLG."""
+        # Get a valid ICC profile via icc_export
+        srgb = (pyvips.Image.black(64, 64, bands=3) + 128).cast("uchar")
+        srgb = srgb.copy(interpretation="srgb")
+        with_icc = srgb.colourspace("lab").icc_export(output_profile="sRGB")
+        icc_profile = with_icc.get("icc-profile-data")
+
+        # Create a CICP HDR image and attach the ICC profile
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=TRANSFER_PQ)
+        im.set_type(pyvips.GValue.blob_type,
+                     "icc-profile-data", icc_profile)
+
+        buf = im.heifsave_buffer()
+        out = pyvips.Image.new_from_buffer(buf, "")
+
+        # The loader must use CICP despite ICC being present
+        assert out.interpretation == "cicp", \
+            f"HDR HEIF with ICC loaded as {out.interpretation}, expected cicp"
+        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
 
     # -- PNG regression tests --
 

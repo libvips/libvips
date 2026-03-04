@@ -717,14 +717,13 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		vips_image_set_blob(out, VIPS_META_ICC_NAME,
 			(VipsCallbackFn) vips_area_free_cb, data, length);
 	}
-	/* is only set if no ICC profile is present
-	* TODO: also set if ICC is present, but describes HDR transfer characteristics
-	* as ICC profiles cannot describe PQ or HLG apart from "cicp" tag as of 2025
-	* and the "cicp" tag in ICC is ignored by lcms2
-	*/
-	if (profile_type == heif_color_profile_type_nclx) {
-		g_info("heifload: setting CICP from nclx");
-
+	/* Always try to fetch the NCLX profile, even when ICC is present.
+	 * ICC profiles cannot describe PQ or HLG transfer functions (the
+	 * ICC v4.4 "cicp" tag exists but lcms2 ignores it), so for HDR
+	 * content the CICP metadata from NCLX is the authoritative color
+	 * space description.
+	 */
+	{
 		struct heif_color_profile_nclx *nclx = heif_nclx_color_profile_alloc();
 		if (!nclx) {
 			vips_error("heifload", "%s", _("unable to allocate nclx"));
@@ -732,24 +731,32 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		}
 
 		error = heif_image_handle_get_nclx_color_profile(heif->handle, &nclx);
-		if (error.code) {
-			heif_nclx_color_profile_free(nclx);
-			vips__heif_error(&error);
-			return -1;
-		}
+		if (error.code == 0) {
+			gboolean is_hdr =
+				nclx->transfer_characteristics == 16 || /* PQ */
+				nclx->transfer_characteristics == 18;   /* HLG */
 
 #ifdef DEBUG
-		printf("\tnclx: %p\n", nclx);
-		printf("\tnclx->color_primaries: %d\n", nclx->color_primaries);
-		printf("\tnclx->transfer_characteristics: %d\n", nclx->transfer_characteristics);
-		printf("\tnclx->matrix_coefficients: %d\n", nclx->matrix_coefficients);
-		printf("\tnclx->full_range_flag: %d\n", nclx->full_range_flag);
+			printf("\tnclx: %p\n", nclx);
+			printf("\tnclx->color_primaries: %d\n", nclx->color_primaries);
+			printf("\tnclx->transfer_characteristics: %d\n", nclx->transfer_characteristics);
+			printf("\tnclx->matrix_coefficients: %d\n", nclx->matrix_coefficients);
+			printf("\tnclx->full_range_flag: %d\n", nclx->full_range_flag);
 #endif
 
-		vips_image_set_int(out, "cicp-colour-primaries", nclx->color_primaries);
-		vips_image_set_int(out, "cicp-transfer-characteristics", nclx->transfer_characteristics);
-		vips_image_set_int(out, "cicp-matrix-coefficients", nclx->matrix_coefficients);
-		vips_image_set_int(out, "cicp-full-range-flag", nclx->full_range_flag);
+			/* For HDR transfers, CICP is the complete authority
+			 * (primaries + transfer together). For SDR, only use
+			 * CICP when no ICC profile is available.
+			 */
+			if (is_hdr || profile_type == heif_color_profile_type_nclx) {
+				g_info("heifload: setting CICP from nclx");
+
+				vips_image_set_int(out, "cicp-colour-primaries", nclx->color_primaries);
+				vips_image_set_int(out, "cicp-transfer-characteristics", nclx->transfer_characteristics);
+				vips_image_set_int(out, "cicp-matrix-coefficients", nclx->matrix_coefficients);
+				vips_image_set_int(out, "cicp-full-range-flag", nclx->full_range_flag);
+			}
+		}
 
 		heif_nclx_color_profile_free(nclx);
 	}
@@ -794,11 +801,12 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		format = VIPS_FORMAT_UCHAR;
 	}
 
-	/* If we have no ICC profile but CICP, set interpretation to CICP
+	/* Use CICP interpretation when CICP metadata was set -- either
+	 * because NCLX was the only profile, or because NCLX indicates
+	 * an HDR transfer that ICC cannot represent.
 	 */
-	if (profile_type == heif_color_profile_type_nclx) {
+	if (vips_image_get_typeof(out, "cicp-transfer-characteristics"))
 		interpretation = VIPS_INTERPRETATION_CICP;
-	}
 
 	/* FIXME .. we always decode to RGB in generate. We should check for
 	 * all grey images, perhaps.

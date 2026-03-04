@@ -316,6 +316,17 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 		nclx->full_range_flag = full_range_flag;
 
 		options->output_nclx_profile = nclx;
+
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_SAVE_TWO_COLR_BOXES
+		/* When we have both ICC and NCLX with an HDR transfer function,
+		 * write both colr boxes so the NCLX is preserved. ICC alone
+		 * cannot describe PQ or HLG.
+		 */
+		if (vips_image_get_typeof(save->ready, VIPS_META_ICC_NAME) &&
+			(transfer_characteristics == 16 || /* PQ */
+				transfer_characteristics == 18)) /* HLG */
+			options->save_two_colr_boxes_when_ICC_and_nclx_available = 1;
+#endif
 	}
 	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless
 	 * mode.

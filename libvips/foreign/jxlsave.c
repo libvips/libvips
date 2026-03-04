@@ -752,9 +752,26 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 		return -1;
 	}
 
-	/* Set any ICC profile.
+	/* For HDR transfers (PQ, HLG), prefer the structured CICP encoding
+	 * over ICC since ICC profiles cannot describe these transfer
+	 * functions. For SDR, ICC takes priority as it may be more precise.
 	 */
-	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+	if (vips_foreign_save_jxl_cicp_to_color_encoding(in,
+		&jxl->color_encoding) &&
+		(jxl->color_encoding.transfer_function ==
+				JXL_TRANSFER_FUNCTION_PQ ||
+			jxl->color_encoding.transfer_function ==
+				JXL_TRANSFER_FUNCTION_HLG)) {
+#ifdef DEBUG
+		printf("setting HDR CICP colourspace\n");
+#endif /*DEBUG*/
+
+		if (JxlEncoderSetColorEncoding(jxl->encoder, &jxl->color_encoding)) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
+			return -1;
+		}
+	}
+	else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
 		const void *data;
 		size_t length;
 
@@ -765,7 +782,7 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 		printf("attaching %zd bytes of ICC\n", length);
 #endif /*DEBUG*/
 		if (JxlEncoderSetICCProfile(jxl->encoder, (guint8 *) data, length)) {
-			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetICCProfile");
 			return -1;
 		}
 	}
@@ -781,8 +798,8 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 		}
 	}
 	else {
-		/* If there's no ICC profile, we must set the colour encoding
-		 * ourselves.
+		/* No ICC profile and no usable CICP -- fall back to
+		 * sRGB or linear sRGB based on interpretation.
 		 */
 		if (in->Type == VIPS_INTERPRETATION_scRGB) {
 #ifdef DEBUG
