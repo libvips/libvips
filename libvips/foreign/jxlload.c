@@ -868,22 +868,12 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 	 */
 	if (jxl->color_encoding.color_space == JXL_COLOR_SPACE_RGB &&
 		jxl->info.num_color_channels == 3 &&
-		!is_standard_srgb) {
-		gboolean primaries_known =
-			jxl->color_encoding.primaries != JXL_PRIMARIES_CUSTOM;
-
-		if (!primaries_known) {
-			/* Check if set_cicp (called later) will match these
-			 * custom primaries. Peek at the encoding directly.
-			 */
-			int cp = vips_foreign_load_jxl_match_custom_primaries(
-				&jxl->color_encoding);
-			primaries_known = cp != VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED;
-		}
-
-		if (primaries_known)
-			interpretation = VIPS_INTERPRETATION_CICP;
-	}
+		!is_standard_srgb &&
+		(jxl->color_encoding.primaries != JXL_PRIMARIES_CUSTOM ||
+			vips_foreign_load_jxl_match_custom_primaries(
+				&jxl->color_encoding) !=
+				VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED))
+		interpretation = VIPS_INTERPRETATION_CICP;
 
 	if (jxl->frame_count > 1) {
 		if (jxl->n == -1)
