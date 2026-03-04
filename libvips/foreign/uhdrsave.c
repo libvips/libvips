@@ -429,66 +429,100 @@ vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 	return 0;
 }
 
-/* Compute 99th-percentile luminance in nits from an scRGB image
- * (1.0 = 80 nits), clamped to the [203, 10000] range libuhdr accepts.
+/* Single-pass 99th-percentile luminance estimation.
  *
- * Uses BT.709 luminance (Y = 0.2126*R + 0.7152*G + 0.0722*B) rather
- * than per-channel max, because out-of-gamut colours after primaries
- * conversion can have individual channels far above the actual brightness.
- * The 99th percentile avoids letting specular-highlight pixels inflate
- * the peak, which would set hdr_capacity_max too high and reduce
- * display-side gain.
+ * Computes BT.709 luminance (Y = 0.2126*R + 0.7152*G + 0.0722*B) and
+ * accumulates a fixed-range histogram in one scan via vips_sink.
+ * Each thread gets its own histogram, merged at the end.
+ *
+ * We use luminance rather than per-channel max because out-of-gamut
+ * colours after primaries conversion can have individual channels far
+ * above the actual brightness.
  */
+
+/* 1024 bins covering [0, 130] scRGB = [0, 10400] nits.
+ * Resolution: ~10 nits per bin, more than enough for hdr_capacity_max.
+ */
+#define PEAK_NITS_BINS 1024
+#define PEAK_NITS_MAX_SCRGB 130.0f
+
+typedef struct _PeakNitsAccum {
+	guint64 bins[PEAK_NITS_BINS];
+	guint64 count;
+} PeakNitsAccum;
+
+static void *
+peak_nits_start(VipsImage *image, void *a, void *b)
+{
+	return g_new0(PeakNitsAccum, 1);
+}
+
+static int
+peak_nits_scan(VipsRegion *region, void *seq,
+	void *a, void *b, gboolean *stop)
+{
+	PeakNitsAccum *accum = (PeakNitsAccum *) seq;
+	VipsRect *r = &region->valid;
+	const float scale = (float) PEAK_NITS_BINS / PEAK_NITS_MAX_SCRGB;
+
+	for (int y = 0; y < r->height; y++) {
+		float *p = (float *)
+			VIPS_REGION_ADDR(region, r->left, r->top + y);
+
+		for (int x = 0; x < r->width; x++) {
+			float Y = 0.2126f * p[0] + 0.7152f * p[1] + 0.0722f * p[2];
+			int bin = (int) (Y * scale);
+			bin = VIPS_CLIP(0, bin, PEAK_NITS_BINS - 1);
+			accum->bins[bin]++;
+			accum->count++;
+			p += 3;
+		}
+	}
+
+	return 0;
+}
+
+static int
+peak_nits_stop(void *seq, void *a, void *b)
+{
+	PeakNitsAccum *thread = (PeakNitsAccum *) seq;
+	PeakNitsAccum *total = (PeakNitsAccum *) a;
+
+	for (int i = 0; i < PEAK_NITS_BINS; i++)
+		total->bins[i] += thread->bins[i];
+	total->count += thread->count;
+
+	g_free(thread);
+	return 0;
+}
+
 static int
 vips_foreign_save_uhdr_peak_nits(VipsImage *image, float *out)
 {
-	VipsImage *Y = NULL;
-	VipsImage *Y_us = NULL;
-	VipsImage *Y_cast = NULL;
-	double bt709[] = { 0.2126, 0.7152, 0.0722 };
-	VipsImage *mat = vips_image_new_matrixv(3, 1,
-		bt709[0], bt709[1], bt709[2]);
+	PeakNitsAccum accum = { { 0 }, 0 };
 
-	if (vips_recomb(image, &Y, mat, NULL)) {
-		g_object_unref(mat);
+	if (vips_image_pio_input(image))
 		return -1;
-	}
-	g_object_unref(mat);
 
-	/* Find the max so we can scale to ushort for vips_percent,
-	 * which needs integer input.
+	if (vips_sink(image,
+			peak_nits_start, peak_nits_scan, peak_nits_stop,
+			&accum, NULL))
+		return -1;
+
+	/* Walk histogram to find 99th percentile.
 	 */
-	double max_Y;
-	if (vips_max(Y, &max_Y, NULL)) {
-		g_object_unref(Y);
-		return -1;
+	guint64 target = (guint64) (accum.count * 0.99);
+	guint64 cumul = 0;
+	int bin;
+	for (bin = 0; bin < PEAK_NITS_BINS; bin++) {
+		cumul += accum.bins[bin];
+		if (cumul >= target)
+			break;
 	}
 
-	if (max_Y <= 0.0 ||
-		vips_linear1(Y, &Y_us, 65535.0 / max_Y, 0.0, NULL)) {
-		g_object_unref(Y);
-		return -1;
-	}
-	g_object_unref(Y);
-
-	if (vips_cast(Y_us, &Y_cast, VIPS_FORMAT_USHORT, NULL)) {
-		g_object_unref(Y_us);
-		return -1;
-	}
-	g_object_unref(Y_us);
-
-	int threshold;
-	if (vips_percent(Y_cast, 99.0, &threshold, NULL)) {
-		g_object_unref(Y_cast);
-		return -1;
-	}
-	g_object_unref(Y_cast);
-
-	float peak_nits = (threshold / 65535.0) * max_Y * 80.0;
-	if (peak_nits < 203.0f)
-		peak_nits = 203.0f;
-	if (peak_nits > 10000.0f)
-		peak_nits = 10000.0f;
+	float peak_nits =
+		(bin + 0.5f) * (PEAK_NITS_MAX_SCRGB / PEAK_NITS_BINS) * 80.0f;
+	peak_nits = VIPS_CLIP(203.0f, peak_nits, 10000.0f);
 
 	*out = peak_nits;
 	return 0;
