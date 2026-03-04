@@ -436,7 +436,8 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
 				save->ready->Type == VIPS_INTERPRETATION_GREY16 ||
-				save->ready->Type == VIPS_INTERPRETATION_CICP
+				(save->ready->Type == VIPS_INTERPRETATION_CICP &&
+					save->ready->BandFmt != VIPS_FORMAT_UCHAR)
 			? 16
 			: 8;
 
@@ -457,7 +458,8 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
 				save->ready->Type == VIPS_INTERPRETATION_GREY16 ||
-				save->ready->Type == VIPS_INTERPRETATION_CICP
+				(save->ready->Type == VIPS_INTERPRETATION_CICP &&
+					save->ready->BandFmt != VIPS_FORMAT_UCHAR)
 			? 16
 			: 8;
 

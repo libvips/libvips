@@ -1176,7 +1176,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	else if (in->Type == VIPS_INTERPRETATION_RGB16 ||
 		in->Type == VIPS_INTERPRETATION_GREY16 ||
 		(in->Type == VIPS_INTERPRETATION_CICP &&
-			in->BandFmt == VIPS_FORMAT_USHORT))
+			in->BandFmt != VIPS_FORMAT_UCHAR))
 		format = VIPS_FORMAT_USHORT;
 	else
 		format = VIPS_FORMAT_UCHAR;

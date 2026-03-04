@@ -115,12 +115,11 @@ vips_foreign_save_png_build(VipsObject *object)
 	if (!vips_object_argument_isset(object, "bitdepth")) {
 		png->bitdepth =
 			in->Type == VIPS_INTERPRETATION_RGB16 ||
-				in->Type == VIPS_INTERPRETATION_GREY16
+				in->Type == VIPS_INTERPRETATION_GREY16 ||
+				(in->Type == VIPS_INTERPRETATION_CICP && 
+					in->BandFmt != VIPS_FORMAT_UCHAR)
 			? 16
 			: 8;
-		if (in->Type == VIPS_INTERPRETATION_CICP)
-			//TODO: look at format
-			png->bitdepth = 16;
 	}
 
 	/* Deprecated "colours" arg just sets bitdepth large enough to hold
@@ -145,16 +144,9 @@ vips_foreign_save_png_build(VipsObject *object)
 		   interpretation = VIPS_INTERPRETATION_B_W;
 	}
 
-		if (in->Type == VIPS_INTERPRETATION_CICP) {
-			VipsBandFormat target_format =
-				png->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-
-			if (vips_cast(in, &x, target_format, NULL)) {
-				g_object_unref(in);
-				return -1;
-			}
-		}
-		else if (vips_colourspace(in, &x, interpretation, NULL)) {
+	if (vips_colourspace_issupported(in) &&
+		in->Type != VIPS_INTERPRETATION_CICP) {
+		if (vips_colourspace(in, &x, interpretation, NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
