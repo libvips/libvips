@@ -37,14 +37,25 @@ TRANSFER_LINEAR = 8
 TRANSFER_SRGB = 13
 TRANSFER_BT2020_10BIT = 14
 TRANSFER_BT2020_12BIT = 15
+TRANSFER_LOG_100 = 9
+TRANSFER_LOG_100_SQRT10 = 10
+TRANSFER_IEC61966 = 11
+TRANSFER_BT1361 = 12
 TRANSFER_PQ = 16
+TRANSFER_SMPTE428 = 17
 TRANSFER_HLG = 18
 
 # CICP colour primaries codes
 PRIMARIES_BT709 = 1
+PRIMARIES_BT470M = 4
+PRIMARIES_BT470BG = 5
+PRIMARIES_BT601 = 6
+PRIMARIES_SMPTE240 = 7
+PRIMARIES_GENERIC_FILM = 8
 PRIMARIES_BT2020 = 9
 PRIMARIES_DCI_P3 = 11
 PRIMARIES_DISPLAY_P3 = 12
+PRIMARIES_EBU3213 = 22
 
 
 @skip_if_no("CICP2scRGB")
@@ -190,6 +201,53 @@ class TestCICP:
             (255, 1.0),
         ], tolerance=0.0001)
 
+    def test_log_100_transfer(self):
+        # Logarithmic 100:1 range: Lc = 10^(2*(V-1))
+        self._check(TRANSFER_LOG_100, [
+            (0, 0.0),
+            (1, 0.010182),
+            (128, 0.100907),
+            (255, 1.0),
+        ])
+
+    def test_log_100_sqrt10_transfer(self):
+        # Logarithmic 100*sqrt(10):1 range: Lc = 10^(2.5*(V-1))
+        self._check(TRANSFER_LOG_100_SQRT10, [
+            (0, 0.0),
+            (1, 0.003234),
+            (128, 0.056872),
+            (255, 1.0),
+        ])
+
+    def test_iec61966_transfer(self):
+        # IEC 61966-2-4 (xvYCC): BT.709 curve with negative value support.
+        # For positive 8-bit values, identical to BT.709.
+        self._check(TRANSFER_IEC61966, [
+            (0, 0.0),
+            (10, 0.008715),
+            (128, 0.261482),
+            (255, 1.0),
+        ])
+
+    def test_bt1361_transfer(self):
+        # BT.1361: same curve as IEC 61966-2-4
+        self._check(TRANSFER_BT1361, [
+            (0, 0.0),
+            (10, 0.008715),
+            (128, 0.261482),
+            (255, 1.0),
+        ])
+
+    def test_smpte428_transfer(self):
+        # SMPTE 428-1: V = (48*Lo/52.37)^(1/2.6)
+        # Inverse: Lo = (52.37/48)*V^2.6, scaled by 48/80 for scRGB
+        self._check(TRANSFER_SMPTE428, [
+            (0, 0.0),
+            (64, 0.017991),
+            (128, 0.109077),
+            (255, 0.654625),
+        ])
+
     # -- Primaries conversion tests --
 
     def test_bt709_primaries_identity(self):
@@ -221,6 +279,64 @@ class TestCICP:
                              transfer=TRANSFER_LINEAR)
         pixel = im.CICP2scRGB()(0, 0)
         # All channels should be very close to each other
+        assert abs(pixel[0] - pixel[1]) < 0.001
+        assert abs(pixel[1] - pixel[2]) < 0.001
+
+    def test_bt470m_primaries_matrix(self):
+        # BT.470M -> BT.709 with Bradford adaptation (Illuminant C -> D65)
+        im = make_cicp_image(200, 100, 50, primaries=PRIMARIES_BT470M,
+                             transfer=TRANSFER_LINEAR)
+        pixel = im.CICP2scRGB()(0, 0)
+        assert abs(pixel[0] - 0.991160) < 0.001
+        assert abs(pixel[1] - 0.368377) < 0.001
+        assert abs(pixel[2] - 0.171418) < 0.001
+
+    def test_bt470bg_primaries_grey(self):
+        # BT.470BG (D65 white) should preserve grey
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT470BG,
+                             transfer=TRANSFER_LINEAR)
+        pixel = im.CICP2scRGB()(0, 0)
+        assert abs(pixel[0] - pixel[1]) < 0.001
+        assert abs(pixel[1] - pixel[2]) < 0.001
+
+    def test_bt601_primaries_matrix(self):
+        # BT.601 -> BT.709
+        im = make_cicp_image(200, 100, 50, primaries=PRIMARIES_BT601,
+                             transfer=TRANSFER_LINEAR)
+        pixel = im.CICP2scRGB()(0, 0)
+        assert abs(pixel[0] - 0.758590) < 0.001
+        assert abs(pixel[1] - 0.395904) < 0.001
+        assert abs(pixel[2] - 0.194268) < 0.001
+
+    def test_smpte240_primaries_same_as_bt601(self):
+        # SMPTE 240M shares primaries with BT.601
+        im601 = make_cicp_image(200, 100, 50, primaries=PRIMARIES_BT601,
+                                transfer=TRANSFER_LINEAR)
+        im240 = make_cicp_image(200, 100, 50, primaries=PRIMARIES_SMPTE240,
+                                transfer=TRANSFER_LINEAR)
+        p601 = im601.CICP2scRGB()(0, 0)
+        p240 = im240.CICP2scRGB()(0, 0)
+        assert abs(p601[0] - p240[0]) < 0.0001
+        assert abs(p601[1] - p240[1]) < 0.0001
+        assert abs(p601[2] - p240[2]) < 0.0001
+
+    def test_generic_film_primaries_matrix(self):
+        # Generic film -> BT.709 with Bradford adaptation (Illuminant C -> D65)
+        im = make_cicp_image(200, 100, 50,
+                             primaries=PRIMARIES_GENERIC_FILM,
+                             transfer=TRANSFER_LINEAR)
+        pixel = im.CICP2scRGB()(0, 0)
+        assert abs(pixel[0] - 0.921438) < 0.001
+        assert abs(pixel[1] - 0.377255) < 0.001
+        assert abs(pixel[2] - 0.171312) < 0.001
+
+    def test_ebu3213_primaries_grey(self):
+        # EBU 3213 (D65 white) should preserve grey
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_EBU3213,
+                             transfer=TRANSFER_LINEAR)
+        pixel = im.CICP2scRGB()(0, 0)
         assert abs(pixel[0] - pixel[1]) < 0.001
         assert abs(pixel[1] - pixel[2]) < 0.001
 

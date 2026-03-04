@@ -90,6 +90,39 @@ static const float Display_P3_to_BT709[9] = {
     -0.0196375546f, -0.0786360456f, 1.09827360f
 };
 
+/* Bradford chromatic adaptation (Illuminant C -> D65) */
+static const float BT470M_to_BT709[9] = {
+    1.48615685f, -0.40355491f, -0.08260194f,
+    -0.02510111f, 0.95402469f, 0.07107642f,
+    -0.02722400f, -0.04409523f, 1.07131924f
+};
+
+static const float BT470BG_to_BT709[9] = {
+    1.04404321f, -0.04404321f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 0.01179338f, 0.98820662f
+};
+
+/* BT.601 / SMPTE 170M / SMPTE 240M share the same primaries */
+static const float BT601_to_BT709[9] = {
+    0.93954206f, 0.05018136f, 0.01027658f,
+    0.01777222f, 0.96579286f, 0.01643491f,
+    -0.00162160f, -0.00436975f, 1.00599135f
+};
+
+/* Bradford chromatic adaptation (Illuminant C -> D65) */
+static const float GenericFilm_to_BT709[9] = {
+    1.34617592f, -0.33919507f, -0.00698084f,
+    -0.04735102f, 1.06605153f, -0.01870051f,
+    -0.02166498f, -0.06131310f, 1.08297808f
+};
+
+static const float EBU3213_to_BT709[9] = {
+    1.02525246f, -0.02654753f, 0.00129508f,
+    0.01939351f, 0.94802801f, 0.03257848f,
+    -0.00176953f, -0.00144232f, 1.00321185f
+};
+
 static void
 vips_CICP2scRGB_init_matrix(VipsCICP2scRGB *cicp)
 {
@@ -110,6 +143,27 @@ vips_CICP2scRGB_init_matrix(VipsCICP2scRGB *cicp)
 
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE432:
 		matrix = Display_P3_to_BT709;
+		break;
+
+	case VIPS_CICP_COLOUR_PRIMARIES_BT470M:
+		matrix = BT470M_to_BT709;
+		break;
+
+	case VIPS_CICP_COLOUR_PRIMARIES_BT470BG:
+		matrix = BT470BG_to_BT709;
+		break;
+
+	case VIPS_CICP_COLOUR_PRIMARIES_BT601:
+	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE240:
+		matrix = BT601_to_BT709;
+		break;
+
+	case VIPS_CICP_COLOUR_PRIMARIES_GENERIC_FILM:
+		matrix = GenericFilm_to_BT709;
+		break;
+
+	case VIPS_CICP_COLOUR_PRIMARIES_EBU3213:
+		matrix = EBU3213_to_BT709;
 		break;
 
 	default:
@@ -277,6 +331,35 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 		return powf(fmaxf(in, 0.0f), 2.8f); /* Gamma 2.8 */
 	case VIPS_CICP_TRANSFER_LINEAR:
 		return in;
+	case VIPS_CICP_TRANSFER_LOG_100:
+		/* V = 1.0 + Log10(Lc) / 2.0 for Lc >= 0.01, else 0.
+		 * Inverse: Lc = 10^(2*(V-1)) for V > 0, else 0.
+		 */
+		return in > 0.0f ? powf(10.0f, 2.0f * (in - 1.0f)) : 0.0f;
+	case VIPS_CICP_TRANSFER_LOG_100_SQRT10:
+		/* V = 1.0 + Log10(Lc) / 2.5 for Lc >= Sqrt(10)/1000, else 0.
+		 * Inverse: Lc = 10^(2.5*(V-1)) for V > 0, else 0.
+		 */
+		return in > 0.0f ? powf(10.0f, 2.5f * (in - 1.0f)) : 0.0f;
+	case VIPS_CICP_TRANSFER_IEC61966:
+	case VIPS_CICP_TRANSFER_BT1361: {
+		/* BT.709 curve extended to negative values via odd symmetry.
+		 * IEC 61966-2-4 (xvYCC) and BT.1361 both use this form.
+		 */
+		if (in >= 0.0f)
+			return vips_bt709_inverse_oetf(in);
+		else
+			return -vips_bt709_inverse_oetf(-in);
+	}
+	case VIPS_CICP_TRANSFER_SMPTE428: {
+		/* SMPTE ST 428-1: V = (48 * Lo / 52.37)^(1/2.6)
+		 * Inverse: Lo = (52.37/48) * V^2.6
+		 * Lo is display-referred (48 cd/m² reference projector).
+		 * Scale to scRGB: 1.0 = 80 nits -> multiply by 48/80.
+		 */
+		float Lo = (52.37f / 48.0f) * powf(fmaxf(in, 0.0f), 2.6f);
+		return Lo * (48.0f / SDR_WHITE);
+	}
 	default:
 		/* Unknown transfer -- pass through unchanged */
 		return in;
