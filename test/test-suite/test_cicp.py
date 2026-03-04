@@ -124,25 +124,34 @@ class TestCICP:
         assert abs(pixel[0] - 125.0) < 0.5
 
     def test_hlg_transfer(self):
-        # BT.2100 Table 5 HLG inverse OETF
+        # BT.2100 Table 5 HLG: inverse OETF + OOTF (1000-nit reference).
+        # Output is display-referred scRGB (1.0 = 80 nits).
+        # For grey pixels: result = (1000/80) * InvOETF(v/255)^1.2
         self._check(TRANSFER_HLG, [
             (0, 0.0),
-            (64, 0.020997),   # quadratic segment (E' <= 0.5)
-            (127, 0.082681),  # just below transition
-            (128, 0.083991),  # just above transition (exponential segment)
-            (192, 0.268963),
-            (255, 1.0),
-        ])
+            (64, 0.121199),   # quadratic segment (E' <= 0.5)
+            (127, 0.627765),  # just below transition
+            (128, 0.639715),  # just above transition (exponential segment)
+            (192, 2.585478),
+            (255, 12.5),      # 1000/80 nits
+        ], tolerance=0.01)
 
     def test_hlg_boundary(self):
-        # HLG transition at E' = 0.5 (signal 127.5/255) must be continuous
+        # HLG transition at E' = 0.5 (signal 127.5/255) must be continuous.
+        # With OOTF applied, values are larger but the gap stays small.
         im_lo = make_cicp_image(127, 127, 127, transfer=TRANSFER_HLG)
         im_hi = make_cicp_image(128, 128, 128, transfer=TRANSFER_HLG)
         lo = im_lo.CICP2scRGB()(0, 0)[0]
         hi = im_hi.CICP2scRGB()(0, 0)[0]
-        assert abs(hi - lo) < 0.01
-        assert abs(lo - 0.082681) < 0.001
-        assert abs(hi - 0.083991) < 0.001
+        assert abs(hi - lo) < 0.02
+        assert abs(lo - 0.627765) < 0.01
+        assert abs(hi - 0.639715) < 0.01
+
+    def test_hlg_peak(self):
+        # HLG signal 1.0 must map to 1000/80 = 12.5 (1000-nit peak)
+        im = make_cicp_image(255, 255, 255, transfer=TRANSFER_HLG)
+        pixel = im.CICP2scRGB()(0, 0)
+        assert abs(pixel[0] - 12.5) < 0.1
 
     def test_smpte240_transfer(self):
         # SMPTE 240M: alpha=1.1115, beta=0.0228, slope=4.0

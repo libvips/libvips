@@ -160,7 +160,11 @@ vips_pq_eotf(float E)
 static inline float
 vips_hlg_inverse_oetf(float E)
 {
-	/* Constants from H.273 Table 3, value 18 (ARIB STD-B67). */
+	/* Constants from H.273 Table 3, value 18 (ARIB STD-B67).
+	 * This is only the inverse OETF (signal -> scene-linear).
+	 * The full HLG EOTF also requires the OOTF, applied separately
+	 * via vips_hlg_ootf() since it is a cross-channel operation.
+	 */
 	const float a = 0.17883277f;
 	const float b = 0.28466892f;
 	const float c = 0.55991073f;
@@ -172,6 +176,38 @@ vips_hlg_inverse_oetf(float E)
 		return E * E / 3.0f;
 	else
 		return (expf((E - c) / a) + b) / 12.0f;
+}
+
+/* BT.2100-2 Table 5: HLG OOTF for a 1000-nit reference display.
+ * Converts scene-linear RGB to display-linear, scaled to scRGB units.
+ *
+ * OOTF: F_d = alpha * Y_s^(gamma-1) * E_s
+ *   alpha = L_W = 1000 nits (HLG nominal peak luminance)
+ *   gamma = 1.2 (for L_W = 1000 nits)
+ *   Y_s = BT.2020 luminance = 0.2627*R + 0.6780*G + 0.0593*B
+ *
+ * Output scaled by 1/SDR_WHITE so that 1.0 = 80 nits.
+ */
+static inline void
+vips_hlg_ootf(float *r, float *g, float *b)
+{
+	const float gamma_minus_1 = 0.2f;
+	const float scale = 1000.0f / SDR_WHITE;
+
+	float Y_s = 0.2627f * *r + 0.6780f * *g + 0.0593f * *b;
+
+	if (Y_s <= 0.0f) {
+		*r = 0.0f;
+		*g = 0.0f;
+		*b = 0.0f;
+		return;
+	}
+
+	float factor = scale * powf(Y_s, gamma_minus_1);
+
+	*r *= factor;
+	*g *= factor;
+	*b *= factor;
 }
 
 static inline float
@@ -269,6 +305,9 @@ vips_CICP2scRGB_uchar(VipsCICP2scRGB *cicp,
 		g = vips_CICP2scRGB_transfer(transfer, g);
 		b = vips_CICP2scRGB_transfer(transfer, b);
 
+		if (transfer == VIPS_CICP_TRANSFER_HLG)
+			vips_hlg_ootf(&r, &g, &b);
+
 		vips_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]);
 
 		q += 3;
@@ -293,6 +332,9 @@ vips_CICP2scRGB_ushort(VipsCICP2scRGB *cicp,
 		r = vips_CICP2scRGB_transfer(transfer, r);
 		g = vips_CICP2scRGB_transfer(transfer, g);
 		b = vips_CICP2scRGB_transfer(transfer, b);
+
+		if (transfer == VIPS_CICP_TRANSFER_HLG)
+			vips_hlg_ootf(&r, &g, &b);
 
 		vips_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]);
 
