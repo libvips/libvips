@@ -149,14 +149,16 @@
  * @VIPS_BLEND_MODE_SOFT_LIGHT: darken or lighten, depending on lightness
  * @VIPS_BLEND_MODE_DIFFERENCE: difference of the two
  * @VIPS_BLEND_MODE_EXCLUSION: somewhat like DIFFERENCE, but lower-contrast
+ * @VIPS_BLEND_MODE_HUE: hue of the second, saturation and luminosity of the first
+ * @VIPS_BLEND_MODE_SATURATION: saturation of the second, hue and luminosity of the first
+ * @VIPS_BLEND_MODE_COLOUR: hue and saturation of the second, luminosity of the first
+ * @VIPS_BLEND_MODE_LUMINOSITY: luminosity of the second, hue and saturation of the first
  *
  * The various Porter-Duff and PDF blend modes. See [func@Image.composite],
  * for example.
  *
  * The Cairo docs have [a nice explanation of all the blend
  * modes](https://www.cairographics.org/operators).
- *
- * The non-separable modes are not implemented.
  */
 
 /**
