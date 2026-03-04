@@ -429,6 +429,71 @@ vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 	return 0;
 }
 
+/* Compute 99th-percentile luminance in nits from an scRGB image
+ * (1.0 = 80 nits), clamped to the [203, 10000] range libuhdr accepts.
+ *
+ * Uses BT.709 luminance (Y = 0.2126*R + 0.7152*G + 0.0722*B) rather
+ * than per-channel max, because out-of-gamut colours after primaries
+ * conversion can have individual channels far above the actual brightness.
+ * The 99th percentile avoids letting specular-highlight pixels inflate
+ * the peak, which would set hdr_capacity_max too high and reduce
+ * display-side gain.
+ */
+static int
+vips_foreign_save_uhdr_peak_nits(VipsImage *image, float *out)
+{
+	VipsImage *Y = NULL;
+	VipsImage *Y_us = NULL;
+	VipsImage *Y_cast = NULL;
+	double bt709[] = { 0.2126, 0.7152, 0.0722 };
+	VipsImage *mat = vips_image_new_matrixv(3, 1,
+		bt709[0], bt709[1], bt709[2]);
+
+	if (vips_recomb(image, &Y, mat, NULL)) {
+		g_object_unref(mat);
+		return -1;
+	}
+	g_object_unref(mat);
+
+	/* Find the max so we can scale to ushort for vips_percent,
+	 * which needs integer input.
+	 */
+	double max_Y;
+	if (vips_max(Y, &max_Y, NULL)) {
+		g_object_unref(Y);
+		return -1;
+	}
+
+	if (max_Y <= 0.0 ||
+		vips_linear1(Y, &Y_us, 65535.0 / max_Y, 0.0, NULL)) {
+		g_object_unref(Y);
+		return -1;
+	}
+	g_object_unref(Y);
+
+	if (vips_cast(Y_us, &Y_cast, VIPS_FORMAT_USHORT, NULL)) {
+		g_object_unref(Y_us);
+		return -1;
+	}
+	g_object_unref(Y_us);
+
+	int threshold;
+	if (vips_percent(Y_cast, 99.0, &threshold, NULL)) {
+		g_object_unref(Y_cast);
+		return -1;
+	}
+	g_object_unref(Y_cast);
+
+	float peak_nits = (threshold / 65535.0) * max_Y * 80.0;
+	if (peak_nits < 203.0f)
+		peak_nits = 203.0f;
+	if (peak_nits > 10000.0f)
+		peak_nits = 10000.0f;
+
+	*out = peak_nits;
+	return 0;
+}
+
 static int
 vips_foreign_save_uhdr_build(VipsObject *object)
 {
@@ -492,81 +557,11 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 		VIPS_UNREF(image);
 		image = x;
 
-		/* Compute 99th-percentile luminance in nits from scRGB
-		 * (1.0 = 80 nits).
-		 * BT.709 luminance: Y = 0.2126*R + 0.7152*G + 0.0722*B
-		 *
-		 * We use luminance, not the max of any single channel,
-		 * because out-of-gamut colours after primaries conversion
-		 * can have individual channels far above the actual
-		 * brightness.  The 99th percentile avoids letting a few
-		 * specular-highlight pixels inflate the peak, which would
-		 * set hdr_capacity_max too high and reduce display-side
-		 * gain.
-		 * 
-		 * TODO: make this more efficient.
-		 */
 		float peak_nits;
-		{
-			VipsImage *Y;
-			VipsImage *Y_us;
-			double bt709[] = { 0.2126, 0.7152, 0.0722 };
-			VipsImage *mat = vips_image_new_matrixv(3, 1,
-				bt709[0], bt709[1], bt709[2]);
-
-			if (vips_recomb(image, &Y, mat, NULL)) {
-				g_object_unref(mat);
-				VIPS_UNREF(image);
-				return -1;
-			}
-			g_object_unref(mat);
-
-			/* Find the max so we can scale to ushort for
-			 * vips_percent, which needs integer input.
-			 */
-			double max_Y;
-			if (vips_max(Y, &max_Y, NULL)) {
-				g_object_unref(Y);
-				VIPS_UNREF(image);
-				return -1;
-			}
-
-			if (max_Y <= 0.0 ||
-				vips_linear1(Y, &Y_us,
-					65535.0 / max_Y, 0.0, NULL)) {
-				g_object_unref(Y);
-				VIPS_UNREF(image);
-				return -1;
-			}
-			g_object_unref(Y);
-
-			VipsImage *Y_cast;
-			if (vips_cast(Y_us, &Y_cast,
-					VIPS_FORMAT_USHORT, NULL)) {
-				g_object_unref(Y_us);
-				VIPS_UNREF(image);
-				return -1;
-			}
-			g_object_unref(Y_us);
-
-			int threshold;
-			if (vips_percent(Y_cast, 99.0, &threshold, NULL)) {
-				g_object_unref(Y_cast);
-				VIPS_UNREF(image);
-				return -1;
-			}
-			g_object_unref(Y_cast);
-
-			peak_nits =
-				(threshold / 65535.0) * max_Y * 80.0;
+		if (vips_foreign_save_uhdr_peak_nits(image, &peak_nits)) {
+			VIPS_UNREF(image);
+			return -1;
 		}
-
-		/* Clamp to the range libuhdr accepts: [203, 10000] nits.
-		 */
-		if (peak_nits < 203.0f)
-			peak_nits = 203.0f;
-		if (peak_nits > 10000.0f)
-			peak_nits = 10000.0f;
 
 		/* Rescale from scRGB (1.0 = 80 nits) to libuhdr's UHDR_CT_LINEAR
 		 * convention (1.0 = 203 nits, the ITU-R BT.2408 reference white).

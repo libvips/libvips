@@ -662,6 +662,84 @@ vips_foreign_load_jxl_fix_exif(VipsForeignLoadJxl *jxl)
 	return 0;
 }
 
+/* Map a JxlColorEncoding to CICP metadata on a VipsImage.
+ * Only covers RGB colour spaces; returns without setting anything
+ * for greyscale or XYB.
+ */
+static void
+vips_foreign_load_jxl_set_cicp(const JxlColorEncoding *enc, VipsImage *out)
+{
+	/* JXL primaries -> H.273 colour primaries.
+	 */
+	static const struct {
+		JxlPrimaries jxl;
+		int cicp;
+	} primaries_map[] = {
+		{ JXL_PRIMARIES_SRGB, VIPS_CICP_COLOUR_PRIMARIES_BT709 },
+		{ JXL_PRIMARIES_2100, VIPS_CICP_COLOUR_PRIMARIES_BT2020 },
+	};
+
+	/* JXL transfer function -> H.273 transfer characteristics.
+	 */
+	static const struct {
+		JxlTransferFunction jxl;
+		int cicp;
+	} transfer_map[] = {
+		{ JXL_TRANSFER_FUNCTION_709, VIPS_CICP_TRANSFER_BT709 },
+		{ JXL_TRANSFER_FUNCTION_UNKNOWN, VIPS_CICP_TRANSFER_UNSPECIFIED },
+		{ JXL_TRANSFER_FUNCTION_LINEAR, VIPS_CICP_TRANSFER_LINEAR },
+		{ JXL_TRANSFER_FUNCTION_SRGB, VIPS_CICP_TRANSFER_SRGB },
+		{ JXL_TRANSFER_FUNCTION_PQ, VIPS_CICP_TRANSFER_PQ },
+		{ JXL_TRANSFER_FUNCTION_DCI, VIPS_CICP_TRANSFER_SMPTE428 },
+		{ JXL_TRANSFER_FUNCTION_HLG, VIPS_CICP_TRANSFER_HLG },
+	};
+
+	if (enc->color_space != JXL_COLOR_SPACE_RGB)
+		return;
+
+	/* Primaries: P3 needs white-point disambiguation.
+	 */
+	int cp = VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED;
+	if (enc->primaries == JXL_PRIMARIES_P3) {
+		if (enc->white_point == JXL_WHITE_POINT_D65)
+			cp = VIPS_CICP_COLOUR_PRIMARIES_SMPTE432;
+		else if (enc->white_point == JXL_WHITE_POINT_DCI)
+			cp = VIPS_CICP_COLOUR_PRIMARIES_SMPTE431;
+	}
+	else {
+		for (int i = 0; i < G_N_ELEMENTS(primaries_map); i++)
+			if (primaries_map[i].jxl == enc->primaries) {
+				cp = primaries_map[i].cicp;
+				break;
+			}
+	}
+	vips_image_set_int(out, "cicp-colour-primaries", cp);
+
+	/* Transfer function: gamma needs special handling.
+	 */
+	int tc = VIPS_CICP_TRANSFER_UNSPECIFIED;
+	if (enc->transfer_function == JXL_TRANSFER_FUNCTION_GAMMA) {
+		/* libjxl stores gamma as the OETF exponent (1/display_gamma).
+		 * BT.470M = 1/2.2, BT.470BG = 1/2.8.
+		 */
+		if (fabs(enc->gamma - 1.0 / 2.2) < 1e-6)
+			tc = VIPS_CICP_TRANSFER_BT470M;
+		else if (fabs(enc->gamma - 1.0 / 2.8) < 1e-6)
+			tc = VIPS_CICP_TRANSFER_BT470BG;
+	}
+	else {
+		for (int i = 0; i < G_N_ELEMENTS(transfer_map); i++)
+			if (transfer_map[i].jxl == enc->transfer_function) {
+				tc = transfer_map[i].cicp;
+				break;
+			}
+	}
+	vips_image_set_int(out, "cicp-transfer-characteristics", tc);
+
+	vips_image_set_int(out, "cicp-matrix-coefficients", 0);
+	vips_image_set_int(out, "cicp-full-range-flag", 1);
+}
+
 static int
 vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 {
@@ -816,75 +894,7 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 		jxl->icc_size = 0;
 	}
 
-	/* CICP only covers RGB. */
-	if (jxl->color_encoding.color_space == JXL_COLOR_SPACE_RGB) {
-
-		double gamma = jxl->color_encoding.gamma;
-
-		switch (jxl->color_encoding.primaries) {
-			case JXL_PRIMARIES_SRGB:
-				vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_BT709);
-				break;
-			case JXL_PRIMARIES_2100:
-				vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_BT2020);
-				break;
-			case JXL_PRIMARIES_P3:
-				if (jxl->color_encoding.white_point == JXL_WHITE_POINT_D65) {
-					/* Display P3 */
-					vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_SMPTE432);
-				} else if (jxl->color_encoding.white_point == JXL_WHITE_POINT_DCI) {
-					/* DCI-P3 */
-					vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_SMPTE431);
-				} else {
-					vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED);
-				}
-				break;
-			default:
-				vips_image_set_int(out, "cicp-colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED);
-				break;
-		}
-		switch (jxl->color_encoding.transfer_function) {
-			case JXL_TRANSFER_FUNCTION_709:
-				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_BT709);
-				break;
-			case JXL_TRANSFER_FUNCTION_UNKNOWN:
-				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_UNSPECIFIED);
-				break;
-			case JXL_TRANSFER_FUNCTION_LINEAR:
-				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_LINEAR);
-				break;
-			case JXL_TRANSFER_FUNCTION_SRGB:
-				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_SRGB);
-				break;
-			case JXL_TRANSFER_FUNCTION_PQ:
-				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_PQ);
-				break;
-			case JXL_TRANSFER_FUNCTION_DCI:
-				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_SMPTE428);
-				break;
-			case JXL_TRANSFER_FUNCTION_HLG:
-				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_HLG);
-				break;
-			case JXL_TRANSFER_FUNCTION_GAMMA:
-				/* libjxl stores gamma as the OETF exponent (1/display_gamma).
-				 * BT.470M = 1/2.2, BT.470BG = 1/2.8.
-				 */
-				if (fabs(gamma - 1.0 / 2.2) < 1e-6)
-					vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_BT470M);
-				else if (fabs(gamma - 1.0 / 2.8) < 1e-6)
-					vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_BT470BG);
-				else
-					vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_UNSPECIFIED);
-				break;
-			default:
-				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_UNSPECIFIED);
-				break;
-
-		}
-
-		vips_image_set_int(out, "cicp-matrix-coefficients", 0); // RGB, identity
-		vips_image_set_int(out, "cicp-full-range-flag", 1);
-	}
+	vips_foreign_load_jxl_set_cicp(&jxl->color_encoding, out);
 
 	if (jxl->exif_data &&
 		jxl->exif_size > 0) {
