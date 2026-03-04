@@ -639,5 +639,7 @@ class TestCICP:
         assert pixel[0] == 37888
         assert pixel[1] == 22272
         assert pixel[2] == 12544
-        assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
-        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        # cICP chunk requires libpng >= 1.6.45
+        if out.get_typeof("cicp-colour-primaries"):
+            assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
+            assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
