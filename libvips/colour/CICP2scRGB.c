@@ -62,6 +62,14 @@ typedef struct _VipsCICP2scRGB {
 	 */
 	float luminance_coeffs[3];
 
+	/* Pre-computed transfer function LUT. Maps integer sample
+	 * values directly to linear-light floats, combining
+	 * normalisation and inverse transfer in one lookup.
+	 * 256 entries for uchar, 65536 for ushort.
+	 */
+	float *transfer_lut;
+	int lut_size;
+
 } VipsCICP2scRGB;
 
 #define SDR_WHITE 80.0f
@@ -424,26 +432,39 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 	}
 }
 
-#define CICP2SCRGB_LOOP(TYPE, SCALE) \
+/* Build a transfer function LUT that maps integer sample values
+ * directly to linear-light floats. Combines normalisation (divide
+ * by max_val) and inverse transfer into one table lookup.
+ */
+static float *
+vips_CICP2scRGB_build_lut(VipsCICPTransferCharacteristics transfer, int n)
+{
+	float *lut = g_new(float, n);
+	const float scale = 1.0f / (n - 1);
+
+	for (int i = 0; i < n; i++)
+		lut[i] = vips_CICP2scRGB_transfer(transfer, i * scale);
+
+	return lut;
+}
+
+#define CICP2SCRGB_LOOP(TYPE) \
 { \
 	TYPE *restrict p = (TYPE *) in[0]; \
 	float *restrict q = (float *) out; \
-	const VipsCICPTransferCharacteristics transfer = \
-		cicp->transfer_characteristics; \
+	const float *restrict lut = cicp->transfer_lut; \
 	const float *matrix = cicp->conversion_matrix; \
 	const float *luminance = cicp->luminance_coeffs; \
+	const gboolean is_hlg = \
+		cicp->transfer_characteristics == VIPS_CICP_TRANSFER_HLG; \
 \
 	for (int i = 0; i < width; i++) { \
-		float r = p[0] * (SCALE); \
-		float g = p[1] * (SCALE); \
-		float b = p[2] * (SCALE); \
+		float r = lut[p[0]]; \
+		float g = lut[p[1]]; \
+		float b = lut[p[2]]; \
 		p += 3; \
 \
-		r = vips_CICP2scRGB_transfer(transfer, r); \
-		g = vips_CICP2scRGB_transfer(transfer, g); \
-		b = vips_CICP2scRGB_transfer(transfer, b); \
-\
-		if (transfer == VIPS_CICP_TRANSFER_HLG) \
+		if (is_hlg) \
 			vips_hlg_ootf(&r, &g, &b, luminance); \
 \
 		vips_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]); \
@@ -458,9 +479,9 @@ vips_CICP2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) colour;
 
 	if (cicp->in->BandFmt == VIPS_FORMAT_UCHAR)
-		CICP2SCRGB_LOOP(VipsPel, 1.0f / 255.0f)
+		CICP2SCRGB_LOOP(VipsPel)
 	else
-		CICP2SCRGB_LOOP(unsigned short, 1.0f / 65535.0f)
+		CICP2SCRGB_LOOP(unsigned short)
 }
 
 static int
@@ -499,6 +520,11 @@ vips_CICP2scRGB_build(VipsObject *object)
 
 		vips_CICP2scRGB_init_matrix(cicp);
 
+		cicp->lut_size = cicp->in->BandFmt == VIPS_FORMAT_UCHAR
+			? 256 : 65536;
+		cicp->transfer_lut = vips_CICP2scRGB_build_lut(
+			cicp->transfer_characteristics, cicp->lut_size);
+
 		colour->in[0] = cicp->in;
 		g_object_ref(cicp->in);
 	}
@@ -510,12 +536,23 @@ vips_CICP2scRGB_build(VipsObject *object)
 }
 
 static void
+vips_CICP2scRGB_dispose(GObject *gobject)
+{
+	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) gobject;
+
+	g_clear_pointer(&cicp->transfer_lut, g_free);
+
+	G_OBJECT_CLASS(vips_CICP2scRGB_parent_class)->dispose(gobject);
+}
+
+static void
 vips_CICP2scRGB_class_init(VipsCICP2scRGBClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
+	gobject_class->dispose = vips_CICP2scRGB_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
