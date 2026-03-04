@@ -153,6 +153,59 @@ typedef VipsForeignSaveClass VipsForeignSaveJxlClass;
 G_DEFINE_ABSTRACT_TYPE(VipsForeignSaveJxl, vips_foreign_save_jxl,
 	VIPS_TYPE_FOREIGN_SAVE);
 
+/* H.273 colour primaries to JXL primaries + white point + custom xy.
+ * Entries with JXL_PRIMARIES_CUSTOM need the xy coordinates from H.273.
+ */
+typedef struct _CICPPrimariesEntry {
+	int cicp_code;
+	JxlPrimaries primaries;
+	JxlWhitePoint white_point;
+	double red_xy[2], green_xy[2], blue_xy[2], wp_xy[2];
+} CICPPrimariesEntry;
+
+static const CICPPrimariesEntry cicp_primaries_table[] = {
+	{ 1, JXL_PRIMARIES_SRGB, JXL_WHITE_POINT_D65, {0}, {0}, {0}, {0} },
+	{ 4, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_CUSTOM,
+		{0.67, 0.33}, {0.21, 0.71}, {0.14, 0.08}, {0.310, 0.316} },
+	{ 5, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_D65,
+		{0.64, 0.33}, {0.29, 0.60}, {0.15, 0.06}, {0} },
+	{ 6, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_D65,
+		{0.630, 0.340}, {0.310, 0.595}, {0.155, 0.070}, {0} },
+	{ 7, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_D65,
+		{0.630, 0.340}, {0.310, 0.595}, {0.155, 0.070}, {0} },
+	{ 8, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_CUSTOM,
+		{0.681, 0.319}, {0.243, 0.692}, {0.145, 0.049}, {0.310, 0.316} },
+	{ 9, JXL_PRIMARIES_2100, JXL_WHITE_POINT_D65, {0}, {0}, {0}, {0} },
+	{ 10, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_E,
+		{1.0, 0.0}, {0.0, 1.0}, {0.0, 0.0}, {0} },
+	{ 11, JXL_PRIMARIES_P3, JXL_WHITE_POINT_DCI, {0}, {0}, {0}, {0} },
+	{ 12, JXL_PRIMARIES_P3, JXL_WHITE_POINT_D65, {0}, {0}, {0}, {0} },
+	{ 22, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_D65,
+		{0.630, 0.340}, {0.295, 0.605}, {0.155, 0.077}, {0} },
+};
+
+/* H.273 transfer characteristics to JXL transfer function + gamma.
+ */
+typedef struct _CICPTransferEntry {
+	int cicp_code;
+	JxlTransferFunction transfer_function;
+	double gamma;
+} CICPTransferEntry;
+
+static const CICPTransferEntry cicp_transfer_table[] = {
+	{ 1, JXL_TRANSFER_FUNCTION_709, 0 },
+	{ 4, JXL_TRANSFER_FUNCTION_GAMMA, 1.0 / 2.2 },
+	{ 5, JXL_TRANSFER_FUNCTION_GAMMA, 1.0 / 2.8 },
+	{ 6, JXL_TRANSFER_FUNCTION_709, 0 },
+	{ 8, JXL_TRANSFER_FUNCTION_LINEAR, 0 },
+	{ 13, JXL_TRANSFER_FUNCTION_SRGB, 0 },
+	{ 14, JXL_TRANSFER_FUNCTION_709, 0 },
+	{ 15, JXL_TRANSFER_FUNCTION_709, 0 },
+	{ 16, JXL_TRANSFER_FUNCTION_PQ, 0 },
+	{ 17, JXL_TRANSFER_FUNCTION_DCI, 0 },
+	{ 18, JXL_TRANSFER_FUNCTION_HLG, 0 },
+};
+
 /* Build a JxlColorEncoding from CICP metadata on a VipsImage.
  * Primaries xy coordinates are from ITU-T H.273.
  */
@@ -164,6 +217,7 @@ vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
 	int transfer_characteristics;
 	int matrix_coefficients;
 	int full_range_flag;
+	int i;
 
 	if (vips_image_get_int(image,
 			"cicp-colour-primaries", &colour_primaries) ||
@@ -188,145 +242,39 @@ vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
 
 	/* Map H.273 colour primaries to JXL primaries + white point.
 	 */
-	switch (colour_primaries) {
-	case 1: /* BT.709 / sRGB */
-		enc->primaries = JXL_PRIMARIES_SRGB;
-		enc->white_point = JXL_WHITE_POINT_D65;
-		break;
-
-	case 4: /* BT.470M */
-		enc->primaries = JXL_PRIMARIES_CUSTOM;
-		enc->primaries_red_xy[0] = 0.67;
-		enc->primaries_red_xy[1] = 0.33;
-		enc->primaries_green_xy[0] = 0.21;
-		enc->primaries_green_xy[1] = 0.71;
-		enc->primaries_blue_xy[0] = 0.14;
-		enc->primaries_blue_xy[1] = 0.08;
-		enc->white_point = JXL_WHITE_POINT_CUSTOM;
-		enc->white_point_xy[0] = 0.310;
-		enc->white_point_xy[1] = 0.316;
-		break;
-
-	case 5: /* BT.470BG (PAL/SECAM) */
-		enc->primaries = JXL_PRIMARIES_CUSTOM;
-		enc->primaries_red_xy[0] = 0.64;
-		enc->primaries_red_xy[1] = 0.33;
-		enc->primaries_green_xy[0] = 0.29;
-		enc->primaries_green_xy[1] = 0.60;
-		enc->primaries_blue_xy[0] = 0.15;
-		enc->primaries_blue_xy[1] = 0.06;
-		enc->white_point = JXL_WHITE_POINT_D65;
-		break;
-
-	case 6: /* BT.601 / SMPTE 170M */
-	case 7: /* SMPTE 240M */
-		enc->primaries = JXL_PRIMARIES_CUSTOM;
-		enc->primaries_red_xy[0] = 0.630;
-		enc->primaries_red_xy[1] = 0.340;
-		enc->primaries_green_xy[0] = 0.310;
-		enc->primaries_green_xy[1] = 0.595;
-		enc->primaries_blue_xy[0] = 0.155;
-		enc->primaries_blue_xy[1] = 0.070;
-		enc->white_point = JXL_WHITE_POINT_D65;
-		break;
-
-	case 8: /* Generic film (Illuminant C) */
-		enc->primaries = JXL_PRIMARIES_CUSTOM;
-		enc->primaries_red_xy[0] = 0.681;
-		enc->primaries_red_xy[1] = 0.319;
-		enc->primaries_green_xy[0] = 0.243;
-		enc->primaries_green_xy[1] = 0.692;
-		enc->primaries_blue_xy[0] = 0.145;
-		enc->primaries_blue_xy[1] = 0.049;
-		enc->white_point = JXL_WHITE_POINT_CUSTOM;
-		enc->white_point_xy[0] = 0.310;
-		enc->white_point_xy[1] = 0.316;
-		break;
-
-	case 9: /* BT.2020 / BT.2100 */
-		enc->primaries = JXL_PRIMARIES_2100;
-		enc->white_point = JXL_WHITE_POINT_D65;
-		break;
-
-	case 10: /* CIE 1931 XYZ */
-		enc->primaries = JXL_PRIMARIES_CUSTOM;
-		enc->primaries_red_xy[0] = 1.0;
-		enc->primaries_red_xy[1] = 0.0;
-		enc->primaries_green_xy[0] = 0.0;
-		enc->primaries_green_xy[1] = 1.0;
-		enc->primaries_blue_xy[0] = 0.0;
-		enc->primaries_blue_xy[1] = 0.0;
-		enc->white_point = JXL_WHITE_POINT_E;
-		break;
-
-	case 11: /* DCI-P3 (SMPTE 431) */
-		enc->primaries = JXL_PRIMARIES_P3;
-		enc->white_point = JXL_WHITE_POINT_DCI;
-		break;
-
-	case 12: /* Display P3 (SMPTE 432) */
-		enc->primaries = JXL_PRIMARIES_P3;
-		enc->white_point = JXL_WHITE_POINT_D65;
-		break;
-
-	case 22: /* EBU Tech. 3213 */
-		enc->primaries = JXL_PRIMARIES_CUSTOM;
-		enc->primaries_red_xy[0] = 0.630;
-		enc->primaries_red_xy[1] = 0.340;
-		enc->primaries_green_xy[0] = 0.295;
-		enc->primaries_green_xy[1] = 0.605;
-		enc->primaries_blue_xy[0] = 0.155;
-		enc->primaries_blue_xy[1] = 0.077;
-		enc->white_point = JXL_WHITE_POINT_D65;
-		break;
-
-	default:
+	const CICPPrimariesEntry *pe = NULL;
+	for (i = 0; i < G_N_ELEMENTS(cicp_primaries_table); i++)
+		if (cicp_primaries_table[i].cicp_code == colour_primaries) {
+			pe = &cicp_primaries_table[i];
+			break;
+		}
+	if (!pe)
 		return FALSE;
+
+	enc->primaries = pe->primaries;
+	enc->white_point = pe->white_point;
+	if (pe->primaries == JXL_PRIMARIES_CUSTOM) {
+		memcpy(enc->primaries_red_xy, pe->red_xy, sizeof(pe->red_xy));
+		memcpy(enc->primaries_green_xy, pe->green_xy, sizeof(pe->green_xy));
+		memcpy(enc->primaries_blue_xy, pe->blue_xy, sizeof(pe->blue_xy));
 	}
+	if (pe->white_point == JXL_WHITE_POINT_CUSTOM)
+		memcpy(enc->white_point_xy, pe->wp_xy, sizeof(pe->wp_xy));
 
 	/* Map H.273 transfer characteristics to JXL transfer function.
 	 */
-	switch (transfer_characteristics) {
-	case 1: /* BT.709 */
-	case 6: /* BT.601 */
-	case 14: /* BT.2020 10-bit */
-	case 15: /* BT.2020 12-bit */
-		enc->transfer_function = JXL_TRANSFER_FUNCTION_709;
-		break;
-
-	case 4: /* BT.470M (gamma 2.2) */
-		enc->transfer_function = JXL_TRANSFER_FUNCTION_GAMMA;
-		enc->gamma = 1.0 / 2.2;
-		break;
-
-	case 5: /* BT.470BG (gamma 2.8) */
-		enc->transfer_function = JXL_TRANSFER_FUNCTION_GAMMA;
-		enc->gamma = 1.0 / 2.8;
-		break;
-
-	case 8: /* Linear */
-		enc->transfer_function = JXL_TRANSFER_FUNCTION_LINEAR;
-		break;
-
-	case 13: /* sRGB */
-		enc->transfer_function = JXL_TRANSFER_FUNCTION_SRGB;
-		break;
-
-	case 16: /* PQ */
-		enc->transfer_function = JXL_TRANSFER_FUNCTION_PQ;
-		break;
-
-	case 17: /* SMPTE 428 */
-		enc->transfer_function = JXL_TRANSFER_FUNCTION_DCI;
-		break;
-
-	case 18: /* HLG */
-		enc->transfer_function = JXL_TRANSFER_FUNCTION_HLG;
-		break;
-
-	default:
+	const CICPTransferEntry *te = NULL;
+	for (i = 0; i < G_N_ELEMENTS(cicp_transfer_table); i++)
+		if (cicp_transfer_table[i].cicp_code == transfer_characteristics) {
+			te = &cicp_transfer_table[i];
+			break;
+		}
+	if (!te)
 		return FALSE;
-	}
+
+	enc->transfer_function = te->transfer_function;
+	if (te->transfer_function == JXL_TRANSFER_FUNCTION_GAMMA)
+		enc->gamma = te->gamma;
 
 	return TRUE;
 }
