@@ -326,6 +326,24 @@ class TestCICP:
             f"JXL output is {out.format}, expected ushort"
 
     @skip_if_no("jxlsave")
+    def test_jxl_gamma_roundtrip(self):
+        # libjxl stores gamma as the OETF exponent (1/display_gamma).
+        # Verify BT.470M (gamma 2.2) and BT.470BG (gamma 2.8) survive
+        # a JXL save/load round-trip.
+        for transfer, name in [
+            (TRANSFER_BT470M, "BT.470M"),
+            (TRANSFER_BT470BG, "BT.470BG"),
+        ]:
+            im = make_cicp_image(128, 128, 128,
+                                 primaries=PRIMARIES_BT709,
+                                 transfer=transfer)
+            buf = im.jxlsave_buffer()
+            out = pyvips.Image.new_from_buffer(buf, "")
+            assert out.get("cicp-transfer-characteristics") == transfer, \
+                f"{name} transfer lost in JXL round-trip: " \
+                f"got {out.get('cicp-transfer-characteristics')}, expected {transfer}"
+
+    @skip_if_no("jxlsave")
     def test_jxl_cicp_metadata_roundtrip(self):
         im = make_cicp_image(128, 128, 128,
                              primaries=PRIMARIES_BT2020,

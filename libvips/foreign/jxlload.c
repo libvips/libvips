@@ -866,9 +866,12 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 				vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_HLG);
 				break;
 			case JXL_TRANSFER_FUNCTION_GAMMA:
-				if (gamma == 2.2)
+				/* libjxl stores gamma as the OETF exponent (1/display_gamma).
+				 * BT.470M = 1/2.2, BT.470BG = 1/2.8.
+				 */
+				if (fabs(gamma - 1.0 / 2.2) < 1e-6)
 					vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_BT470M);
-				else if (gamma == 2.8)
+				else if (fabs(gamma - 1.0 / 2.8) < 1e-6)
 					vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_BT470BG);
 				else
 					vips_image_set_int(out, "cicp-transfer-characteristics", VIPS_CICP_TRANSFER_UNSPECIFIED);
