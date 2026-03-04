@@ -1383,6 +1383,16 @@ vips_foreign_save_new_from_string(const char *string)
 	return VIPS_OBJECT(save);
 }
 
+/* Mask out capability flags (like CICP) that are orthogonal to the
+ * MONO/RGB/CMYK band-type taxonomy, then check for ANY.
+ */
+static inline gboolean
+vips_foreign_saveable_is_any(VipsForeignSaveable saveable)
+{
+	return (saveable & ~VIPS_FOREIGN_SAVEABLE_CICP) ==
+		VIPS_FOREIGN_SAVEABLE_ANY;
+}
+
 /* Apply a set of saveable flags.
  *
  *  - unpack rad and labq
@@ -1410,13 +1420,9 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 */
 	g_object_ref(in);
 
-	/* ANY? we are done. Mask out capability flags (like CICP) that are
-	 * orthogonal to the MONO/RGB/CMYK band-type taxonomy.
+	/* ANY? we are done.
 	 */
-#define VIPS_FOREIGN_SAVEABLE_IS_ANY(s) \
-	(((s) & ~VIPS_FOREIGN_SAVEABLE_CICP) == VIPS_FOREIGN_SAVEABLE_ANY)
-
-	if (VIPS_FOREIGN_SAVEABLE_IS_ANY(saveable)) {
+	if (vips_foreign_saveable_is_any(saveable)) {
 		*ready = in;
 		return 0;
 	}
@@ -1583,7 +1589,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 * format, we have nothing to do.
 	 */
 	if (in->Coding == VIPS_CODING_NONE &&
-		VIPS_FOREIGN_SAVEABLE_IS_ANY(saveable) &&
+		vips_foreign_saveable_is_any(saveable) &&
 		format[in->BandFmt] == in->BandFmt) {
 		*ready = in;
 		return 0;
@@ -1627,7 +1633,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		int bands;
 
 		bands = vips_interpretation_bands(interpretation);
-		if (VIPS_FOREIGN_SAVEABLE_IS_ANY(saveable))
+		if (vips_foreign_saveable_is_any(saveable))
 			bands = in->Bands;
 		else if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
 			bands += 1;
