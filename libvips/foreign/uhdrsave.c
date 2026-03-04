@@ -368,7 +368,8 @@ vips_foreign_save_uhdr_set_compressed_base(VipsForeignSaveUhdr *uhdr,
 
 // save hdr
 static int
-vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
+vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image,
+	float peak_nits)
 {
 	uhdr_error_info_t error_info;
 
@@ -377,6 +378,18 @@ vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 	uhdr_enc_set_output_format(uhdr->enc, UHDR_CODEC_JPG);
 	uhdr_enc_set_gainmap_scale_factor(uhdr->enc, uhdr->gainmap_scale_factor);
 	uhdr_enc_set_using_multi_channel_gainmap(uhdr->enc, 0);
+
+	/* Tell libuhdr the actual content peak so it sizes
+	 * hdr_capacity_max correctly. Without this it defaults to
+	 * 10 000 nits (PQ maximum) which wastes gainmap precision
+	 * and under-boosts on real displays.
+	 */
+	error_info =
+		uhdr_enc_set_target_display_peak_brightness(uhdr->enc, peak_nits);
+	if (error_info.error_code) {
+		vips__uhdr_error(&error_info);
+		return -1;
+	}
 
 	// attach the gainmap, if we have one
 	if (vips_image_get_typeof(image, "gainmap-data") &&
@@ -479,6 +492,92 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 		VIPS_UNREF(image);
 		image = x;
 
+		/* Compute 99th-percentile luminance in nits from scRGB
+		 * (1.0 = 80 nits).
+		 * BT.709 luminance: Y = 0.2126*R + 0.7152*G + 0.0722*B
+		 *
+		 * We use luminance, not the max of any single channel,
+		 * because out-of-gamut colours after primaries conversion
+		 * can have individual channels far above the actual
+		 * brightness.  The 99th percentile avoids letting a few
+		 * specular-highlight pixels inflate the peak, which would
+		 * set hdr_capacity_max too high and reduce display-side
+		 * gain.
+		 * 
+		 * TODO: make this more efficient.
+		 */
+		float peak_nits;
+		{
+			VipsImage *Y;
+			VipsImage *Y_us;
+			double bt709[] = { 0.2126, 0.7152, 0.0722 };
+			VipsImage *mat = vips_image_new_matrixv(3, 1,
+				bt709[0], bt709[1], bt709[2]);
+
+			if (vips_recomb(image, &Y, mat, NULL)) {
+				g_object_unref(mat);
+				VIPS_UNREF(image);
+				return -1;
+			}
+			g_object_unref(mat);
+
+			/* Find the max so we can scale to ushort for
+			 * vips_percent, which needs integer input.
+			 */
+			double max_Y;
+			if (vips_max(Y, &max_Y, NULL)) {
+				g_object_unref(Y);
+				VIPS_UNREF(image);
+				return -1;
+			}
+
+			if (max_Y <= 0.0 ||
+				vips_linear1(Y, &Y_us,
+					65535.0 / max_Y, 0.0, NULL)) {
+				g_object_unref(Y);
+				VIPS_UNREF(image);
+				return -1;
+			}
+			g_object_unref(Y);
+
+			VipsImage *Y_cast;
+			if (vips_cast(Y_us, &Y_cast,
+					VIPS_FORMAT_USHORT, NULL)) {
+				g_object_unref(Y_us);
+				VIPS_UNREF(image);
+				return -1;
+			}
+			g_object_unref(Y_us);
+
+			int threshold;
+			if (vips_percent(Y_cast, 99.0, &threshold, NULL)) {
+				g_object_unref(Y_cast);
+				VIPS_UNREF(image);
+				return -1;
+			}
+			g_object_unref(Y_cast);
+
+			peak_nits =
+				(threshold / 65535.0) * max_Y * 80.0;
+		}
+
+		/* Clamp to the range libuhdr accepts: [203, 10000] nits.
+		 */
+		if (peak_nits < 203.0f)
+			peak_nits = 203.0f;
+		if (peak_nits > 10000.0f)
+			peak_nits = 10000.0f;
+
+		/* Rescale from scRGB (1.0 = 80 nits) to libuhdr's UHDR_CT_LINEAR
+		 * convention (1.0 = 203 nits, the ITU-R BT.2408 reference white).
+		 */
+		if (vips_linear1(image, &x, 80.0 / 203.0, 0.0, NULL)) {
+			VIPS_UNREF(image);
+			return -1;
+		}
+		VIPS_UNREF(image);
+		image = x;
+
 		// libuhdr needs RGBA
 		if (!vips_image_hasalpha(image) &&
 			vips_addalpha(image, &x, NULL)) {
@@ -488,7 +587,7 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 		VIPS_UNREF(image);
 		image = x;
 
-		if (vips_foreign_save_uhdr_hdr(uhdr, image)) {
+		if (vips_foreign_save_uhdr_hdr(uhdr, image, peak_nits)) {
 			VIPS_UNREF(image);
 			return -1;
 		}
