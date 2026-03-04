@@ -662,6 +662,44 @@ vips_foreign_load_jxl_fix_exif(VipsForeignLoadJxl *jxl)
 	return 0;
 }
 
+/* Known custom primaries xy coordinates from H.273 Table 2.
+ * Used to recover the CICP code when libjxl reports
+ * JXL_PRIMARIES_CUSTOM.
+ */
+static const struct {
+	int cicp;
+	double red_xy[2], green_xy[2], blue_xy[2];
+} custom_primaries_map[] = {
+	{ VIPS_CICP_COLOUR_PRIMARIES_BT470M,
+		{0.67, 0.33}, {0.21, 0.71}, {0.14, 0.08} },
+	{ VIPS_CICP_COLOUR_PRIMARIES_BT470BG,
+		{0.64, 0.33}, {0.29, 0.60}, {0.15, 0.06} },
+	{ VIPS_CICP_COLOUR_PRIMARIES_BT601,
+		{0.630, 0.340}, {0.310, 0.595}, {0.155, 0.070} },
+	{ VIPS_CICP_COLOUR_PRIMARIES_GENERIC_FILM,
+		{0.681, 0.319}, {0.243, 0.692}, {0.145, 0.049} },
+	{ VIPS_CICP_COLOUR_PRIMARIES_EBU3213,
+		{0.630, 0.340}, {0.295, 0.605}, {0.155, 0.077} },
+};
+
+/* Match custom JXL primaries xy coordinates against known H.273
+ * primaries. Returns the CICP code or UNSPECIFIED if no match.
+ */
+static int
+vips_foreign_load_jxl_match_custom_primaries(const JxlColorEncoding *enc)
+{
+	for (int i = 0; i < G_N_ELEMENTS(custom_primaries_map); i++)
+		if (fabs(enc->primaries_red_xy[0] - custom_primaries_map[i].red_xy[0]) < 1e-4 &&
+			fabs(enc->primaries_red_xy[1] - custom_primaries_map[i].red_xy[1]) < 1e-4 &&
+			fabs(enc->primaries_green_xy[0] - custom_primaries_map[i].green_xy[0]) < 1e-4 &&
+			fabs(enc->primaries_green_xy[1] - custom_primaries_map[i].green_xy[1]) < 1e-4 &&
+			fabs(enc->primaries_blue_xy[0] - custom_primaries_map[i].blue_xy[0]) < 1e-4 &&
+			fabs(enc->primaries_blue_xy[1] - custom_primaries_map[i].blue_xy[1]) < 1e-4)
+			return custom_primaries_map[i].cicp;
+
+	return VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED;
+}
+
 /* Map a JxlColorEncoding to CICP metadata on a VipsImage.
  * Only covers RGB colour spaces; returns without setting anything
  * for greyscale or XYB.
@@ -697,7 +735,8 @@ vips_foreign_load_jxl_set_cicp(const JxlColorEncoding *enc, VipsImage *out)
 	if (enc->color_space != JXL_COLOR_SPACE_RGB)
 		return;
 
-	/* Primaries: P3 needs white-point disambiguation.
+	/* Primaries: P3 needs white-point disambiguation, custom
+	 * primaries are matched by xy coordinates.
 	 */
 	int cp = VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED;
 	if (enc->primaries == JXL_PRIMARIES_P3) {
@@ -705,6 +744,9 @@ vips_foreign_load_jxl_set_cicp(const JxlColorEncoding *enc, VipsImage *out)
 			cp = VIPS_CICP_COLOUR_PRIMARIES_SMPTE432;
 		else if (enc->white_point == JXL_WHITE_POINT_DCI)
 			cp = VIPS_CICP_COLOUR_PRIMARIES_SMPTE431;
+	}
+	else if (enc->primaries == JXL_PRIMARIES_CUSTOM) {
+		cp = vips_foreign_load_jxl_match_custom_primaries(enc);
 	}
 	else {
 		for (int i = 0; i < G_N_ELEMENTS(primaries_map); i++)
@@ -821,12 +863,27 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 
 	/* If the JXL stream uses non-sRGB primaries or an HDR transfer,
 	 * override to CICP so the colour pipeline applies the correct conversion.
+	 * For custom primaries, only tag CICP if we can match them to a
+	 * known H.273 code -- otherwise we can't convert correctly.
 	 */
 	if (jxl->color_encoding.color_space == JXL_COLOR_SPACE_RGB &&
 		jxl->info.num_color_channels == 3 &&
-		jxl->color_encoding.primaries != JXL_PRIMARIES_CUSTOM &&
-		!is_standard_srgb)
-		interpretation = VIPS_INTERPRETATION_CICP;
+		!is_standard_srgb) {
+		gboolean primaries_known =
+			jxl->color_encoding.primaries != JXL_PRIMARIES_CUSTOM;
+
+		if (!primaries_known) {
+			/* Check if set_cicp (called later) will match these
+			 * custom primaries. Peek at the encoding directly.
+			 */
+			int cp = vips_foreign_load_jxl_match_custom_primaries(
+				&jxl->color_encoding);
+			primaries_known = cp != VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED;
+		}
+
+		if (primaries_known)
+			interpretation = VIPS_INTERPRETATION_CICP;
+	}
 
 	if (jxl->frame_count > 1) {
 		if (jxl->n == -1)

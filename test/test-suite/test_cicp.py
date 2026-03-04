@@ -338,6 +338,28 @@ class TestCICP:
         assert out.get("cicp-transfer-characteristics") == TRANSFER_HLG
         assert out.get("cicp-matrix-coefficients") == 0
 
+    @skip_if_no("jxlsave")
+    @pytest.mark.parametrize("primaries,name", [
+        (PRIMARIES_BT470M, "BT.470M"),
+        (PRIMARIES_BT470BG, "BT.470BG"),
+        (PRIMARIES_BT601, "BT.601"),
+        (PRIMARIES_GENERIC_FILM, "GenericFilm"),
+        (PRIMARIES_EBU3213, "EBU3213"),
+        (PRIMARIES_DCI_P3, "DCI-P3"),
+        (PRIMARIES_DISPLAY_P3, "Display P3"),
+    ])
+    def test_jxl_custom_primaries_roundtrip(self, primaries, name):
+        """Custom primaries must survive a JXL save/load roundtrip."""
+        im = make_cicp_image(128, 128, 128,
+                             primaries=primaries,
+                             transfer=TRANSFER_SRGB)
+        buf = im.jxlsave_buffer()
+        out = pyvips.Image.new_from_buffer(buf, "")
+        assert out.interpretation == "cicp", \
+            f"{name}: expected cicp interpretation"
+        assert out.get("cicp-colour-primaries") == primaries, \
+            f"{name}: primaries {out.get('cicp-colour-primaries')} != {primaries}"
+
     # -- HEIF/AVIF regression tests --
 
     @skip_if_no("heifsave")
