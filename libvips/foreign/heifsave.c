@@ -436,8 +436,7 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
 				save->ready->Type == VIPS_INTERPRETATION_GREY16 ||
-				(save->ready->Type == VIPS_INTERPRETATION_CICP &&
-					save->ready->BandFmt != VIPS_FORMAT_UCHAR)
+				save->ready->Type == VIPS_INTERPRETATION_CICP
 			? 16
 			: 8;
 
@@ -454,12 +453,12 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 	else if (save->ready->BandFmt == VIPS_FORMAT_USHORT &&
 		heif->bitdepth > 8) {
 		/* 16-bit native byte order source, 16 bit bigendian write.
+		 * See above: vips_bitdepth is the container width.
 		 */
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
 				save->ready->Type == VIPS_INTERPRETATION_GREY16 ||
-				(save->ready->Type == VIPS_INTERPRETATION_CICP &&
-					save->ready->BandFmt != VIPS_FORMAT_UCHAR)
+				save->ready->Type == VIPS_INTERPRETATION_CICP
 			? 16
 			: 8;
 
@@ -589,18 +588,9 @@ vips_foreign_save_heif_build(VipsObject *object)
 	/* Default bitdepth: use bits-per-sample metadata if available,
 	 * otherwise 12 for 16-bit images, 8 for everything else.
 	 */
-	if (!vips_object_argument_isset(object, "bitdepth")) {
-		int bits_per_sample;
-
-		if (vips_image_get_int(save->ready,
-				VIPS_META_BITS_PER_SAMPLE, &bits_per_sample) == 0)
-			heif->bitdepth = bits_per_sample;
-		else if (save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
-			save->ready->Type == VIPS_INTERPRETATION_GREY16)
-			heif->bitdepth = 12;
-		else
-			heif->bitdepth = 8;
-	}
+	if (!vips_object_argument_isset(object, "bitdepth"))
+		heif->bitdepth = VIPS_MIN(
+			vips_image_get_bits_per_sample(save->ready), 12);
 
 	/* HEIC and AVIF only implements 8 / 10 / 12 bit depth.
 	 */

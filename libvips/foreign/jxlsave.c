@@ -1173,10 +1173,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	 */
 	if (in->Type == VIPS_INTERPRETATION_scRGB)
 		format = VIPS_FORMAT_FLOAT;
-	else if (in->Type == VIPS_INTERPRETATION_RGB16 ||
-		in->Type == VIPS_INTERPRETATION_GREY16 ||
-		(in->Type == VIPS_INTERPRETATION_CICP &&
-			in->BandFmt != VIPS_FORMAT_UCHAR))
+	else if (vips_image_get_bits_per_sample(in) > 8)
 		format = VIPS_FORMAT_USHORT;
 	else
 		format = VIPS_FORMAT_UCHAR;

@@ -606,10 +606,7 @@ vips_foreign_save_spng_build(VipsObject *object)
 	 */
 	if (!vips_object_argument_isset(object, "bitdepth"))
 		spng->bitdepth =
-			in->Type == VIPS_INTERPRETATION_RGB16 ||
-				in->Type == VIPS_INTERPRETATION_GREY16
-			? 16
-			: 8;
+			vips_image_get_bits_per_sample(in) > 8 ? 16 : 8;
 
 	/* Deprecated "colours" arg just sets bitdepth large enough to hold
 	 * that many colours.
@@ -620,7 +617,9 @@ vips_foreign_save_spng_build(VipsObject *object)
 	/* The bitdepth param can change the interpretation.
 	 */
 	VipsInterpretation interpretation;
-	if (in->Bands > 2) {
+	if (in->Type == VIPS_INTERPRETATION_CICP)
+		interpretation = VIPS_INTERPRETATION_CICP;
+	else if (in->Bands > 2) {
 	   if (spng->bitdepth > 8)
 		   interpretation = VIPS_INTERPRETATION_RGB16;
 	   else

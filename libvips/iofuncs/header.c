@@ -249,6 +249,33 @@ vips_interpretation_bands(VipsInterpretation interpretation)
 	}
 }
 
+/**
+ * vips_image_get_bits_per_sample:
+ * @image: image to check
+ *
+ * Return the number of bits per sample for this image. Return "bits-per-sample"
+ * metadata if present, otherwise infers from the interpretation and format.
+ *
+ * Returns: the bits per sample (eg. 8, 10, 12, 16).
+ */
+int
+vips_image_get_bits_per_sample(VipsImage *image)
+{
+	int bits_per_sample;
+
+	if (vips_image_get_int(image,
+			VIPS_META_BITS_PER_SAMPLE, &bits_per_sample) == 0)
+		return bits_per_sample;
+
+	if (image->Type == VIPS_INTERPRETATION_RGB16 ||
+		image->Type == VIPS_INTERPRETATION_GREY16 ||
+		(image->Type == VIPS_INTERPRETATION_CICP &&
+			image->BandFmt != VIPS_FORMAT_UCHAR))
+		return 16;
+
+	return 8;
+}
+
 #ifdef DEBUG
 /* Check that this meta is on the hash table.
  */

@@ -1410,9 +1410,13 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 */
 	g_object_ref(in);
 
-	/* ANY? we are done.
+	/* ANY? we are done. Mask out capability flags (like CICP) that are
+	 * orthogonal to the MONO/RGB/CMYK band-type taxonomy.
 	 */
-	if ((saveable & ~VIPS_FOREIGN_SAVEABLE_CICP) == VIPS_FOREIGN_SAVEABLE_ANY) {
+#define VIPS_FOREIGN_SAVEABLE_IS_ANY(s) \
+	(((s) & ~VIPS_FOREIGN_SAVEABLE_CICP) == VIPS_FOREIGN_SAVEABLE_ANY)
+
+	if (VIPS_FOREIGN_SAVEABLE_IS_ANY(saveable)) {
 		*ready = in;
 		return 0;
 	}
@@ -1450,6 +1454,23 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		return 0;
 	}
 
+	/* CICP image? If our saver supports CICP we pass through,
+	 * otherwise convert to scRGB.
+	 */
+	if (vips_image_guess_interpretation(in) == VIPS_INTERPRETATION_CICP) {
+		if (saveable & VIPS_FOREIGN_SAVEABLE_CICP) {
+			*ready = in;
+			return 0;
+		}
+
+		if (vips_colourspace(in, &out, VIPS_INTERPRETATION_scRGB, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+	}
+
 	/* CMYK image? Use the sanity-checked interpretation value.
 	 */
 	if (vips_image_guess_interpretation(in) == VIPS_INTERPRETATION_CMYK &&
@@ -1471,16 +1492,6 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		}
 		g_object_unref(in);
 		in = out;
-	}
-
-	/*If the saver supports CICP,  */
-	if (saveable & VIPS_FOREIGN_SAVEABLE_CICP) {
-		// only if input is in CICP
-		if (vips_image_guess_interpretation(in) == VIPS_INTERPRETATION_CICP){
-			interpretation = VIPS_INTERPRETATION_CICP;
-			*ready = in;
-			return 0;
-		}
 	}
 
 	/* If the saver supports RGB, go to RGB, or RGB16 if this is a ushort
@@ -1572,7 +1583,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 * format, we have nothing to do.
 	 */
 	if (in->Coding == VIPS_CODING_NONE &&
-		((saveable & ~VIPS_FOREIGN_SAVEABLE_CICP) == VIPS_FOREIGN_SAVEABLE_ANY) &&
+		VIPS_FOREIGN_SAVEABLE_IS_ANY(saveable) &&
 		format[in->BandFmt] == in->BandFmt) {
 		*ready = in;
 		return 0;
@@ -1616,7 +1627,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		int bands;
 
 		bands = vips_interpretation_bands(interpretation);
-		if ((saveable & ~VIPS_FOREIGN_SAVEABLE_CICP) == VIPS_FOREIGN_SAVEABLE_ANY)
+		if (VIPS_FOREIGN_SAVEABLE_IS_ANY(saveable))
 			bands = in->Bands;
 		else if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
 			bands += 1;
