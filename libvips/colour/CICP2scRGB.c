@@ -366,63 +366,31 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 	}
 }
 
-/* Process 8-bit RGB image with CICP transfer function.
- */
-static void
-vips_CICP2scRGB_uchar(VipsCICP2scRGB *cicp,
-	VipsPel *out, VipsPel **in, int width)
-{
-	VipsPel *restrict p = in[0];
-	float *restrict q = (float *) out;
-	const VipsCICPTransferCharacteristics transfer = cicp->transfer_characteristics;
-	const float *matrix = cicp->conversion_matrix;
-
-	for (int i = 0; i < width; i++) {
-		float r = p[0] / 255.0f;
-		float g = p[1] / 255.0f;
-		float b = p[2] / 255.0f;
-
-		p += 3;
-
-		r = vips_CICP2scRGB_transfer(transfer, r);
-		g = vips_CICP2scRGB_transfer(transfer, g);
-		b = vips_CICP2scRGB_transfer(transfer, b);
-
-		if (transfer == VIPS_CICP_TRANSFER_HLG)
-			vips_hlg_ootf(&r, &g, &b);
-
-		vips_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]);
-
-		q += 3;
-	}
-}
-
-static void
-vips_CICP2scRGB_ushort(VipsCICP2scRGB *cicp,
-	VipsPel *out, VipsPel **in, int width)
-{
-	unsigned short *restrict p = (unsigned short *) in[0];
-	float *restrict q = (float *) out;
-	const VipsCICPTransferCharacteristics transfer = cicp->transfer_characteristics;
-	const float *matrix = cicp->conversion_matrix;
-
-	for (int i = 0; i < width; i++) {
-		float r = p[0] / 65535.0f;
-		float g = p[1] / 65535.0f;
-		float b = p[2] / 65535.0f;
-		p += 3;
-
-		r = vips_CICP2scRGB_transfer(transfer, r);
-		g = vips_CICP2scRGB_transfer(transfer, g);
-		b = vips_CICP2scRGB_transfer(transfer, b);
-
-		if (transfer == VIPS_CICP_TRANSFER_HLG)
-			vips_hlg_ootf(&r, &g, &b);
-
-		vips_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]);
-
-		q += 3;
-	}
+#define CICP2SCRGB_LOOP(TYPE, SCALE) \
+{ \
+	TYPE *restrict p = (TYPE *) in[0]; \
+	float *restrict q = (float *) out; \
+	const VipsCICPTransferCharacteristics transfer = \
+		cicp->transfer_characteristics; \
+	const float *matrix = cicp->conversion_matrix; \
+\
+	for (int i = 0; i < width; i++) { \
+		float r = p[0] * (SCALE); \
+		float g = p[1] * (SCALE); \
+		float b = p[2] * (SCALE); \
+		p += 3; \
+\
+		r = vips_CICP2scRGB_transfer(transfer, r); \
+		g = vips_CICP2scRGB_transfer(transfer, g); \
+		b = vips_CICP2scRGB_transfer(transfer, b); \
+\
+		if (transfer == VIPS_CICP_TRANSFER_HLG) \
+			vips_hlg_ootf(&r, &g, &b); \
+\
+		vips_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]); \
+\
+		q += 3; \
+	} \
 }
 
 static void
@@ -430,12 +398,10 @@ vips_CICP2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
 	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) colour;
 
-	if (cicp->in->BandFmt == VIPS_FORMAT_UCHAR) {
-		vips_CICP2scRGB_uchar(cicp, out, in, width);
-	}
-	else if (cicp->in->BandFmt == VIPS_FORMAT_USHORT) {
-		vips_CICP2scRGB_ushort(cicp, out, in, width);
-	}
+	if (cicp->in->BandFmt == VIPS_FORMAT_UCHAR)
+		CICP2SCRGB_LOOP(VipsPel, 1.0f / 255.0f)
+	else
+		CICP2SCRGB_LOOP(unsigned short, 1.0f / 65535.0f)
 }
 
 static int
