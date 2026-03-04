@@ -573,13 +573,11 @@ class TestCICP:
     def test_heif_hdr_nclx_with_icc(self):
         """HDR NCLX metadata must be extracted even when an ICC profile
         is also present, since ICC cannot describe PQ or HLG."""
-        # Get a valid ICC profile via icc_export
         srgb = (pyvips.Image.black(64, 64, bands=3) + 128).cast("uchar")
         srgb = srgb.copy(interpretation="srgb")
         with_icc = srgb.colourspace("lab").icc_export(output_profile="sRGB")
         icc_profile = with_icc.get("icc-profile-data")
 
-        # Create a CICP HDR image and attach the ICC profile
         im = make_cicp_image(128, 128, 128,
                              primaries=PRIMARIES_BT2020,
                              transfer=TRANSFER_PQ)
@@ -589,11 +587,44 @@ class TestCICP:
         buf = im.heifsave_buffer()
         out = pyvips.Image.new_from_buffer(buf, "")
 
-        # The loader must use CICP despite ICC being present
         assert out.interpretation == "cicp", \
             f"HDR HEIF with ICC loaded as {out.interpretation}, expected cicp"
         assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
         assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
+
+    # -- Ultra HDR regression tests --
+
+    @skip_if_no("uhdrsave")
+    def test_uhdr_hdr_capacity_max(self):
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=TRANSFER_PQ)
+        im = im.embed(0, 0, 64, 64, extend="copy")
+        scrgb = im.colourspace("scrgb")
+        buf = scrgb.jpegsave_buffer()
+
+        out = pyvips.Image.new_from_buffer(buf, "")
+        hdr_cap = out.get("gainmap-hdr-capacity-max")
+
+        # PQ signal 128/255 ≈ 1.18 scRGB ≈ 94 nits.
+        # hdr_capacity_max should be close to 94/203 ≈ 0.46,
+        # but clamped to ≥ 1.0 (203 nits minimum).
+        assert hdr_cap < 5.0, \
+            f"hdr_capacity_max {hdr_cap:.2f} is too high " \
+            f"(content peak is ~94 nits, expected < 5.0)"
+
+    @skip_if_no("uhdrsave")
+    def test_uhdr_sdr_content_low_capacity(self):
+        im = (pyvips.Image.black(64, 64, bands=3) + [1.0, 1.0, 1.0]) \
+            .copy(interpretation="scrgb").cast("float")
+        buf = im.jpegsave_buffer()
+
+        out = pyvips.Image.new_from_buffer(buf, "")
+        hdr_cap = out.get("gainmap-hdr-capacity-max")
+
+        # 80 nits / 203 nits < 1.0, clamped to minimum.
+        assert hdr_cap < 2.0, \
+            f"hdr_capacity_max {hdr_cap:.2f} too high for 80-nit content"
 
     # -- PNG regression tests --
 
