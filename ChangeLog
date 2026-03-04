@@ -41,6 +41,7 @@ date-tbd 8.18.1
 - jpegsave: fix assert fail when saving 2-band image [kleisauke]
 - LabS2LabQ: fix UB (undefined-shift) [kleisauke]
 - convasep: use unsigned accumulator where appropriate [kleisauke]
+- min: fix possible OOB read with complex images [kleisauke]
 - max: fix possible OOB read with complex images [kleisauke]
 
 17/12/25 8.18.0
