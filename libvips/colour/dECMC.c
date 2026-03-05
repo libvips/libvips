@@ -3,6 +3,8 @@
  * Modified:
  * 31/10/12
  * 	- from dE76.c
+ * 5/3/26
+ *	- find difference in LCh
  */
 
 /*
@@ -51,6 +53,43 @@ typedef VipsColourDifferenceClass VipsdECMCClass;
 
 G_DEFINE_TYPE(VipsdECMC, vips_dECMC, VIPS_TYPE_COLOUR_DIFFERENCE);
 
+/* Find the difference between two buffers of LCh data (CMC is LCh).
+ */
+static void
+vips_dECMC_lch_difference(VipsColour *colour,
+	VipsPel *out, VipsPel **in, int width)
+{
+	float *restrict p1 = (float *) in[0];
+	float *restrict p2 = (float *) in[1];
+	float *restrict q = (float *) out;
+
+	int x;
+
+	for (x = 0; x < width; x++) {
+		float C1 = p1[1];
+		float h1 = p1[2];
+		float C2 = p2[1];
+		float h2 = p2[2];
+
+		float a1;
+		float b1;
+		vips_col_Ch2ab(C1, h1, &a1, &b1);
+
+		float a2;
+		float b2;
+		vips_col_Ch2ab(C2, h2, &a2, &b2);
+
+		float dL = p1[0] - p2[0];
+		float da = a1 - a2;
+		float db = b1 - b2;
+
+		q[x] = sqrtf(dL * dL + da * da + db * db);
+
+		p1 += 3;
+		p2 += 3;
+	}
+}
+
 static void
 vips_dECMC_class_init(VipsdECMCClass *class)
 {
@@ -60,7 +99,7 @@ vips_dECMC_class_init(VipsdECMCClass *class)
 	object_class->nickname = "dECMC";
 	object_class->description = _("calculate dECMC");
 
-	colour_class->process_line = vips__pythagoras_line;
+	colour_class->process_line = vips_dECMC_lch_difference;
 }
 
 static void

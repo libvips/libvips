@@ -561,10 +561,8 @@ vips_colour_difference_build(VipsObject *object)
 	colour->in[1] = right;
 	colour->in[2] = NULL;
 
-	if (VIPS_OBJECT_CLASS(vips_colour_difference_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_colour_difference_parent_class)->
+		build(object);
 }
 
 static void

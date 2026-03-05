@@ -9,6 +9,7 @@ date-tbd 8.19.0
 - add VIPS_UNLIMITED, --vips-unlimited, vips_unlimited_get()/_set() to
   disable DoS checks
 - conversion: non-separable blending modes added [kstanikviacbs]
+- dECMC: fix incorrect results [jcupitt]
 
 date-tbd 8.18.1
 
