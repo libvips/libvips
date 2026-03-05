@@ -359,7 +359,7 @@ vips_max_stop(VipsStatistic *statistic, void *seq)
 			TYPE mod2 = p[0] * p[0] + p[1] * p[1]; \
 \
 			if (!isnan(mod2)) \
-				vips_values_add(values, p[i], x + i / bands, y); \
+				vips_values_add(values, mod2, x + i / bands, y); \
 \
 			p += 2; \
 		} \

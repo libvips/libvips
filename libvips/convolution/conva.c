@@ -310,6 +310,7 @@ vips_conva_decompose_hlines(VipsConva *conva)
 	double max;
 	double min;
 	double depth;
+	int layers;
 	int layers_above;
 	int layers_below;
 	int z, n, x, y;
@@ -334,7 +335,7 @@ vips_conva_decompose_hlines(VipsConva *conva)
 	layers_above = ceil(max / depth);
 	depth = max / layers_above;
 	layers_below = floor(min / depth);
-	conva->layers = layers_above - layers_below; // FIXME: Invalidates operation cache
+	layers = VIPS_CLIP(1, (int64_t) layers_above - layers_below, 1000);
 
 	VIPS_DEBUG_MSG("vips_conva_decompose_hlines: depth = %g, layers = %d\n",
 		depth, conva->layers);
@@ -342,7 +343,7 @@ vips_conva_decompose_hlines(VipsConva *conva)
 	/* For each layer, generate a set of lines which are inside the
 	 * perimeter. Work down from the top.
 	 */
-	for (z = 0; z < conva->layers; z++) {
+	for (z = 0; z < layers; z++) {
 		/* How deep we are into the mask, as a double we can test
 		 * against. Add half the layer depth so we can easily find >50%
 		 * mask elements.

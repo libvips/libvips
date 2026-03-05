@@ -83,6 +83,23 @@ G_DEFINE_TYPE(VipsHistCum, vips_hist_cum, VIPS_TYPE_HIST_UNARY);
 		} \
 	}
 
+/* Special case for VIPS_FORMAT_INT, to prevent UB.
+ */
+#define ACCUMULATE_INT64(ITYPE, OTYPE) \
+	{ \
+		for (b = 0; b < nb; b++) { \
+			ITYPE *p = (ITYPE *) in[0]; \
+			OTYPE *q = (OTYPE *) out; \
+			int64_t total; \
+\
+			total = 0; \
+			for (x = b; x < mx; x += nb) { \
+				total += p[x]; \
+				q[x] = total; \
+			} \
+		} \
+	}
+
 static void
 vips_hist_cum_process(VipsHistogram *histogram,
 	VipsPel *out, VipsPel **in, int width)
@@ -110,7 +127,7 @@ vips_hist_cum_process(VipsHistogram *histogram,
 		ACCUMULATE(unsigned short, unsigned int);
 		break;
 	case VIPS_FORMAT_INT:
-		ACCUMULATE(signed int, signed int);
+		ACCUMULATE_INT64(signed int, signed int);
 		break;
 	case VIPS_FORMAT_UINT:
 		ACCUMULATE(unsigned int, unsigned int);

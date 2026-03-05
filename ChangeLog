@@ -5,9 +5,11 @@ date-tbd 8.19.0
 - pngload: support for EXIF data in zTXt chunks [pszemus]
 - meson: options for building `man`, `po`, `tests`, `tools`; disable building
   `fuzz` by default [pszemus]
+- thumbnail: introduce cropping by a specific point of interest [pszemus]
 - add VIPS_UNLIMITED, --vips-unlimited, vips_unlimited_get()/_set() to
   disable DoS checks
 - better centre sampling on resize upscale [chcunningham]
+- conversion: non-separable blending modes added [kstanikviacbs]
 
 date-tbd 8.18.1
 
@@ -36,10 +38,25 @@ date-tbd 8.18.1
 - conva: guard against divide by zero [kleisauke]
 - csvload: check whitespace and separator are ASCII [Niebelungen-D] [lovell]
 - bandrank: check `index` is in range [Niebelungen-D] [lovell]
+- remainder_const: guard against divide by zero [kleisauke]
 - vips_window_take: prevent int underflow for small mapped images [jcupitt]
 - composite: fix UB (invalid-enum-value) in `->build()` [kleisauke]
+- add: prevent possible int overflow [kleisauke]
 - multiply: prevent possible int overflow [kleisauke]
+- subtract: prevent possible int overflow [kleisauke]
+- hist_cum: prevent possible int overflow [kleisauke]
+- convasep: prevent possible int overflow [kleisauke]
+- conva: prevent possible int overflow [kleisauke]
+- convi: prevent possible int overflow [kleisauke]
 - csvload: guard against negative index access [kleisauke]
+- convi: guard against invalid shift [kleisauke]
+- nary: guard against empty input [kleisauke]
+- maplut: add missing overflow checks [kleisauke]
+- jpegsave: fix assert fail when saving 2-band image [kleisauke]
+- LabS2LabQ: fix UB (undefined-shift) [kleisauke]
+- convasep: use unsigned accumulator where appropriate [kleisauke]
+- min: fix possible OOB read with complex images [kleisauke]
+- max: fix possible OOB read with complex images [kleisauke]
 
 17/12/25 8.18.0
 

@@ -99,6 +99,18 @@ G_DEFINE_TYPE(VipsAdd, vips_add, VIPS_TYPE_BINARY);
 			q[x] = left[x] + right[x]; \
 	}
 
+/* Special case for VIPS_FORMAT_INT, to prevent UB.
+ */
+#define LOOP_INT64(IN, OUT) \
+	{ \
+		IN *restrict left = (IN *) in[0]; \
+		IN *restrict right = (IN *) in[1]; \
+		OUT *restrict q = (OUT *) out; \
+\
+		for (x = 0; x < sz; x++) \
+			q[x] = (int64_t) left[x] + right[x]; \
+	}
+
 static void
 add_buffer(VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width)
 {
@@ -129,7 +141,7 @@ add_buffer(VipsArithmetic *arithmetic, VipsPel *out, VipsPel **in, int width)
 		LOOP(unsigned int, unsigned int);
 		break;
 	case VIPS_FORMAT_INT:
-		LOOP(signed int, signed int);
+		LOOP_INT64(signed int, signed int);
 		break;
 
 	case VIPS_FORMAT_FLOAT:
