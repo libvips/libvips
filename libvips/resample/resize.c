@@ -241,9 +241,12 @@ vips_resize_build(VipsObject *object)
 		 * and right. Except if this is nearest, which is always
 		 * centre.
 		 */
-		const double id = resize->kernel == VIPS_KERNEL_NEAREST
+		const double idx = resize->kernel == VIPS_KERNEL_NEAREST
 			? 0.0
-			: 0.5;
+			: 0.5 * (1.0 - 1.0 / hscale);
+		const double idy = resize->kernel == VIPS_KERNEL_NEAREST
+			? 0.0
+			: 0.5 * (1.0 - 1.0 / vscale);
 
 		VipsInterpolate *interpolate;
 
@@ -267,8 +270,8 @@ vips_resize_build(VipsObject *object)
 			if (vips_affine(in, &t[4],
 					hscale, 0.0, 0.0, vscale,
 					"interpolate", interpolate,
-					"idx", id,
-					"idy", id,
+					"idx", idx,
+					"idy", idy,
 					"extend", VIPS_EXTEND_COPY,
 					"premultiplied", TRUE,
 					NULL))
@@ -279,8 +282,8 @@ vips_resize_build(VipsObject *object)
 			g_info("residual scale %g", hscale);
 			if (vips_affine(in, &t[4], hscale, 0.0, 0.0, 1.0,
 					"interpolate", interpolate,
-					"idx", id,
-					"idy", id,
+					"idx", idx,
+					"idy", idy,
 					"extend", VIPS_EXTEND_COPY,
 					"premultiplied", TRUE,
 					NULL))
@@ -291,8 +294,8 @@ vips_resize_build(VipsObject *object)
 			g_info("residual scale %g", vscale);
 			if (vips_affine(in, &t[4], 1.0, 0.0, 0.0, vscale,
 					"interpolate", interpolate,
-					"idx", id,
-					"idy", id,
+					"idx", idx,
+					"idy", idy,
 					"extend", VIPS_EXTEND_COPY,
 					"premultiplied", TRUE,
 					NULL))
