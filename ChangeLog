@@ -8,6 +8,7 @@ date-tbd 8.19.0
 - thumbnail: introduce cropping by a specific point of interest [pszemus]
 - add VIPS_UNLIMITED, --vips-unlimited, vips_unlimited_get()/_set() to
   disable DoS checks
+- better centre sampling on resize upscale [chcunningham]
 - conversion: non-separable blending modes added [kstanikviacbs]
 - dECMC: fix incorrect results [jcupitt]
 
