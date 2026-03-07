@@ -1449,6 +1449,9 @@ vips_object_real_build(VipsObject *object)
 	(void) vips_argument_map(object,
 		vips_object_check_required, &result, &iomask);
 
+	if (!vips_object_sanity(object))
+		return -1;
+
 	return result;
 }
 
