@@ -657,6 +657,7 @@ static void
 vips_image_sanity(VipsObject *object, VipsBuf *buf)
 {
 	VipsImage *image = VIPS_IMAGE(object);
+	guint64 es, ps, ls, sizeof_image;
 
 	if (image->Xsize <= 0 ||
 		image->Ysize <= 0 ||
@@ -675,6 +676,22 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 	if (image->Xres < 0 ||
 		image->Yres < 0)
 		vips_buf_appends(buf, "bad resolution\n");
+
+	es = VIPS_IMAGE_SIZEOF_ELEMENT(image);
+
+	/* Guard for `es * bands * width * height <= UINT64_MAX`, i.e. check
+	 * whether the VIPS_IMAGE_SIZEOF_PEL(), VIPS_IMAGE_SIZEOF_LINE()
+	 * and VIPS_IMAGE_SIZEOF_IMAGE() macros can be safely used.
+	 *
+	 * Also ensure that vips_tracked_malloc(VIPS_IMAGE_SIZEOF_IMAGE(image))
+	 * can be called safely for setbuf types.
+	 */
+	if (!g_uint64_checked_mul(&ps, es, image->Bands) ||
+		!g_uint64_checked_mul(&ls, ps, image->Xsize) ||
+		!g_uint64_checked_mul(&sizeof_image, ls, image->Ysize) ||
+		(image->dtype == VIPS_IMAGE_SETBUF &&
+			sizeof_image > G_MAXSIZE - 16))
+		vips_buf_appends(buf, "dimension overflow\n");
 
 	/* These checks are expensive -- only do in leakcheck mode.
 	 */
@@ -948,9 +965,8 @@ vips_image_build(VipsObject *object)
 
 		/* Very common, so a special message.
 		 */
-		sizeof_image = VIPS_IMAGE_SIZEOF_IMAGE(image) +
-			image->sizeof_header;
-		if (image->file_length < sizeof_image) {
+		sizeof_image = VIPS_IMAGE_SIZEOF_IMAGE(image);
+		if (image->file_length - image->sizeof_header < sizeof_image) {
 			vips_error("VipsImage",
 				_("unable to open \"%s\", file too short"), image->filename);
 			return -1;
@@ -959,7 +975,7 @@ vips_image_build(VipsObject *object)
 		/* Just weird. Only print a warning for this, since we should
 		 * still be able to process it without coredumps.
 		 */
-		if (image->file_length > sizeof_image)
+		if (image->file_length - image->sizeof_header > sizeof_image)
 			g_warning("%s is longer than expected", image->filename);
 		break;
 
@@ -2054,7 +2070,7 @@ vips_image_new_from_memory(const void *data, size_t size,
 	if (size < VIPS_IMAGE_SIZEOF_IMAGE(image)) {
 		vips_error("VipsImage",
 			_("memory area too small -- "
-			  "should be %" G_GINT64_FORMAT " bytes, you passed %zd"),
+			  "should be %" G_GUINT64_FORMAT " bytes, you passed %zd"),
 			VIPS_IMAGE_SIZEOF_IMAGE(image), size);
 		VIPS_UNREF(image);
 		return NULL;
@@ -3109,6 +3125,13 @@ vips_image_hasalpha(VipsImage *image)
 int
 vips_image_write_prepare(VipsImage *image)
 {
+	if (image->dtype == VIPS_IMAGE_PARTIAL) {
+		VIPS_DEBUG_MSG("vips_image_write_prepare: old-style output for %s\n",
+			image->filename);
+
+		image->dtype = VIPS_IMAGE_SETBUF;
+	}
+
 	if (!vips_object_sanity(VIPS_OBJECT(image)))
 		return -1;
 
@@ -3123,13 +3146,6 @@ vips_image_write_prepare(VipsImage *image)
 	 * are expecting it.
 	 */
 	image->Bbits = vips_format_sizeof(image->BandFmt) << 3;
-
-	if (image->dtype == VIPS_IMAGE_PARTIAL) {
-		VIPS_DEBUG_MSG("vips_image_write_prepare: old-style output for %s\n",
-			image->filename);
-
-		image->dtype = VIPS_IMAGE_SETBUF;
-	}
 
 	switch (image->dtype) {
 	case VIPS_IMAGE_MMAPINRW:

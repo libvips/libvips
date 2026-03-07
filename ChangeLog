@@ -44,6 +44,7 @@ date-tbd 8.18.1
 - convasep: use unsigned accumulator where appropriate [kleisauke]
 - min: fix possible OOB read with complex images [kleisauke]
 - max: fix possible OOB read with complex images [kleisauke]
+- guard against dimension overflow [ElhananHaenel] [kleisauke]
 - gifload: prevent int overflow on 32-bit platforms [ElhananHaenel] [kleisauke]
 
 17/12/25 8.18.0
