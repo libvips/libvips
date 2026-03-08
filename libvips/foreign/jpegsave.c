@@ -149,13 +149,26 @@ vips_foreign_save_jpeg_build(VipsObject *object)
 			VIPS_FOREIGN_SUBSAMPLE_OFF : VIPS_FOREIGN_SUBSAMPLE_AUTO;
 
 	if (vips_image_get_typeof(save->ready, "gainmap-data") ||
-		save->ready->Type == VIPS_INTERPRETATION_scRGB) {
-		/* Pass on to uhdrsave.
+		save->ready->Type == VIPS_INTERPRETATION_scRGB ||
+		save->ready->Type == VIPS_INTERPRETATION_CICP) {
+		/* Pass on to uhdrsave. CICP images need converting to
+		 * scRGB first so the uhdr encoder sees linear BT.709.
 		 */
-		if (vips_uhdrsave_target(save->ready, jpeg->target,
-			"Q", jpeg->Q,
-			NULL))
+		VipsImage *x = NULL;
+
+		if (save->ready->Type == VIPS_INTERPRETATION_CICP &&
+			vips_colourspace(save->ready, &x,
+				VIPS_INTERPRETATION_scRGB, NULL))
 			return -1;
+
+		if (vips_uhdrsave_target(x ? x : save->ready, jpeg->target,
+			"Q", jpeg->Q,
+			NULL)) {
+			VIPS_UNREF(x);
+			return -1;
+		}
+
+		VIPS_UNREF(x);
 	}
 	else {
 		/* This is a SAVEABLE_ANY image, we need mono, rgb, cmyk for JPEG

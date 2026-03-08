@@ -69,6 +69,11 @@ G_DEFINE_TYPE(VipsUhdr2scRGB, vips_uhdr2scRGB, VIPS_TYPE_COLOUR);
 /* Derived from the apache-licensed applyGain() method of libuhdr.
  */
 
+/* Rescale from libuhdr's linear convention (1.0 = 203 nits, the ITU-R
+ * BT.2408 SDR reference white) to scRGB (1.0 = 80 nits).
+ */
+#define UHDR_TO_SCRGB (203.0f / 80.0f)
+
 /* Monochrome gainmap, colour image. Probably the most common case.
  */
 static void
@@ -97,9 +102,9 @@ vips_uhdr2scRGB_mono(VipsUhdr2scRGB *uhdr,
 
 		float gaing = exp2(boostg);
 
-		q[0] = ((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
-		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
-		q[2] = ((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		q[0] = (((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]) * UHDR_TO_SCRGB;
+		q[1] = (((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]) * UHDR_TO_SCRGB;
+		q[2] = (((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]) * UHDR_TO_SCRGB;
 		q += 3;
 	}
 }
@@ -142,9 +147,9 @@ vips_uhdr2scRGB_rgb(VipsUhdr2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float gaing = exp2(boostg);
 		float gainb = exp2(boostb);
 
-		q[0] = ((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0];
-		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
-		q[2] = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
+		q[0] = (((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0]) * UHDR_TO_SCRGB;
+		q[1] = (((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]) * UHDR_TO_SCRGB;
+		q[2] = (((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2]) * UHDR_TO_SCRGB;
 		q += 3;
 	}
 }

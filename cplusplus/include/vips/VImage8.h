@@ -6296,6 +6296,14 @@ public:
 	VImage transpose3d(VOption *options = nullptr) const;
 
 	/**
+	 * Convert CICP to scRGB.
+	 *
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage CICP2scRGB(VOption *options = nullptr) const;
+
+	/**
 	 * Transform uhdr to scrgb.
 	 * @param options Set of options.
 	 * @return Output image.

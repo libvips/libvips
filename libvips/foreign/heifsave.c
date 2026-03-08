@@ -14,8 +14,10 @@
  * 	- rename "speed" as "effort" for consistency with other savers
  * 22/12/21
  * 	- add >8 bit support
- * 22/10/11
- *      - improve rules for 16-bit write [johntrunc]
+ * 10/11/22
+ *  - improve rules for 16-bit write [johntrunc]
+ * xx/01/26 [Starbix]
+ *  - write nclx tag if in CICP colour space
  */
 
 /*
@@ -292,10 +294,44 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	options->save_alpha_channel = save->ready->Bands > 3;
 
 #ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
+
+	int colour_primaries;
+	int transfer_characteristics;
+	int matrix_coefficients;
+	int full_range_flag;
+
+	if (vips_image_get_int(save->ready, "cicp-colour-primaries", &colour_primaries) == 0 &&
+		vips_image_get_int(save->ready, "cicp-transfer-characteristics", &transfer_characteristics) == 0 &&
+		vips_image_get_int(save->ready, "cicp-matrix-coefficients", &matrix_coefficients) == 0 &&
+		vips_image_get_int(save->ready, "cicp-full-range-flag", &full_range_flag) == 0) {
+
+		if (!(nclx = heif_nclx_color_profile_alloc())) {
+			heif_encoding_options_free(options);
+			return -1;
+		}
+
+		nclx->color_primaries = colour_primaries;
+		nclx->transfer_characteristics = transfer_characteristics;
+		nclx->matrix_coefficients = matrix_coefficients;
+		nclx->full_range_flag = full_range_flag;
+
+		options->output_nclx_profile = nclx;
+
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_SAVE_TWO_COLR_BOXES
+		/* When we have both ICC and NCLX with an HDR transfer function,
+		 * write both colr boxes so the NCLX is preserved. ICC alone
+		 * cannot describe PQ or HLG.
+		 */
+		if (vips_image_get_typeof(save->ready, VIPS_META_ICC_NAME) &&
+			(transfer_characteristics == 16 || /* PQ */
+				transfer_characteristics == 18)) /* HLG */
+			options->save_two_colr_boxes_when_ICC_and_nclx_available = 1;
+#endif
+	}
 	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless
 	 * mode.
 	 */
-	if (heif->lossless) {
+	else if (heif->lossless) {
 		if (!(nclx = heif_nclx_color_profile_alloc())) {
 			heif_encoding_options_free(options);
 			return -1;
@@ -399,7 +435,11 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 		 */
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
-				save->ready->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
+				save->ready->Type == VIPS_INTERPRETATION_GREY16 ||
+				save->ready->Type == VIPS_INTERPRETATION_CICP
+			? 16
+			: 8;
+
 		int shift = vips_bitdepth - heif->bitdepth;
 
 		for (i = 0; i < ne; i++) {
@@ -413,10 +453,15 @@ vips_foreign_save_heif_pack(VipsForeignSaveHeif *heif,
 	else if (save->ready->BandFmt == VIPS_FORMAT_USHORT &&
 		heif->bitdepth > 8) {
 		/* 16-bit native byte order source, 16 bit bigendian write.
+		 * See above: vips_bitdepth is the container width.
 		 */
 		int vips_bitdepth =
 			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
-				save->ready->Type == VIPS_INTERPRETATION_GREY16 ? 16 : 8;
+				save->ready->Type == VIPS_INTERPRETATION_GREY16 ||
+				save->ready->Type == VIPS_INTERPRETATION_CICP
+			? 16
+			: 8;
+
 		int shift = vips_bitdepth - heif->bitdepth;
 
 		for (i = 0; i < ne; i++) {
@@ -531,14 +576,21 @@ vips_foreign_save_heif_build(VipsObject *object)
 	if (heif->lossless)
 		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
 
-	/* Default 12 bit save for 16-bit images.
+	/* Identity matrix coefficients (RGB) require 4:4:4 -- chroma
+	 * subsampling is only valid for YCbCr.
+	 */
+	int matrix_coefficients;
+	if (vips_image_get_int(save->ready,
+			"cicp-matrix-coefficients", &matrix_coefficients) == 0 &&
+		matrix_coefficients == 0)
+		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
+
+	/* Default bitdepth: use bits-per-sample metadata if available,
+	 * otherwise 12 for 16-bit images, 8 for everything else.
 	 */
 	if (!vips_object_argument_isset(object, "bitdepth"))
-		heif->bitdepth =
-			save->ready->Type == VIPS_INTERPRETATION_RGB16 ||
-				save->ready->Type == VIPS_INTERPRETATION_GREY16
-			? 12
-			: 8;
+		heif->bitdepth = VIPS_MIN(
+			vips_image_get_bits_per_sample(save->ready), 12);
 
 	/* HEIC and AVIF only implements 8 / 10 / 12 bit depth.
 	 */
@@ -776,7 +828,7 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 	object_class->build = vips_foreign_save_heif_build;
 
 	save_class->saveable =
-		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA;
+		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA | VIPS_FOREIGN_SAVEABLE_CICP;
 	save_class->format_table = vips_heif_bandfmt;
 
 	VIPS_ARG_INT(class, "Q", 10,
