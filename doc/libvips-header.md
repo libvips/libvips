@@ -74,6 +74,7 @@ copied between images efficiently.
 * [method@Image.get_tile_width]
 * [method@Image.get_tile_height]
 * [method@Image.get_gainmap]
+* [method@Image.get_bits_per_sample]
 * [method@Image.get_concurrency]
 * [method@Image.get_data]
 * [method@Image.init_fields]

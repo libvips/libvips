@@ -724,14 +724,10 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	 * space description.
 	 */
 	{
-		struct heif_color_profile_nclx *nclx = heif_nclx_color_profile_alloc();
-		if (!nclx) {
-			vips_error("heifload", "%s", _("unable to allocate nclx"));
-			return -1;
-		}
+		struct heif_color_profile_nclx *nclx = NULL;
 
 		error = heif_image_handle_get_nclx_color_profile(heif->handle, &nclx);
-		if (error.code == 0) {
+		if (error.code == 0 && nclx) {
 			gboolean is_hdr =
 				nclx->transfer_characteristics == 16 || /* PQ */
 				nclx->transfer_characteristics == 18;   /* HLG */
@@ -758,7 +754,8 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 			}
 		}
 
-		heif_nclx_color_profile_free(nclx);
+		if (nclx)
+			heif_nclx_color_profile_free(nclx);
 	}
 
 	vips_image_set_int(out, "heif-primary", heif->primary_page);
