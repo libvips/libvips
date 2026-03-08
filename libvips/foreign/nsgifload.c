@@ -635,11 +635,15 @@ static void *
 vips_foreign_load_nsgif_bitmap_create(int width, int height)
 {
 	/* GIF has a limit of 64k per axis -- double-check this.
+	 *
+	 * gifsave also enforces a pixel count limit, apply the same
+	 * constraint here.
 	 */
 	if (width <= 0 ||
-		width > 65536 ||
+		width > 65535 ||
 		height <= 0 ||
-		height > 65536) {
+		height > 65535 ||
+		(guint64) width * height > INT_MAX / 4) {
 		vips_error("gifload",
 			"%s", _("bad image dimensions"));
 		return NULL;

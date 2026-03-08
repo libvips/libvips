@@ -234,18 +234,28 @@ vips_exif_get_int(ExifData *ed,
 	size_t sizeof_component = entry->size / entry->components;
 	size_t offset = component * sizeof_component;
 
-	if (entry->format == EXIF_FORMAT_SHORT)
+	switch (entry->format) {
+	case EXIF_FORMAT_SHORT:
 		*out = exif_get_short(entry->data + offset, bo);
-	else if (entry->format == EXIF_FORMAT_SSHORT)
+		break;
+
+	case EXIF_FORMAT_SSHORT:
 		*out = exif_get_sshort(entry->data + offset, bo);
-	else if (entry->format == EXIF_FORMAT_LONG)
+		break;
+
+	case EXIF_FORMAT_LONG:
 		/* This won't work for huge values, but who cares.
 		 */
 		*out = (int) exif_get_long(entry->data + offset, bo);
-	else if (entry->format == EXIF_FORMAT_SLONG)
+		break;
+
+	case EXIF_FORMAT_SLONG:
 		*out = exif_get_slong(entry->data + offset, bo);
-	else
+		break;
+
+	default:
 		return -1;
+	}
 
 	return 0;
 }
@@ -327,29 +337,40 @@ vips_exif_to_s(ExifData *ed, ExifEntry *entry, VipsDbuf *buf)
 	ExifRational rv;
 	ExifSRational srv;
 
-	if (entry->components < 10 &&
-		!vips_exif_get_int(ed, entry, 0, &iv)) {
-		for (i = 0; i < entry->components; i++) {
-			vips_exif_get_int(ed, entry, i, &iv);
-			vips_dbuf_writef(buf, "%d ", iv);
-		}
-	}
-	else if (entry->components < 10 &&
-		!vips_exif_get_rational(ed, entry, 0, &rv)) {
-		for (i = 0; i < entry->components; i++) {
-			vips_exif_get_rational(ed, entry, i, &rv);
-			vips_dbuf_writef(buf, "%u/%u ", rv.numerator, rv.denominator);
-		}
-	}
-	else if (entry->components < 10 &&
-		!vips_exif_get_srational(ed, entry, 0, &srv)) {
-		for (i = 0; i < entry->components; i++) {
-			vips_exif_get_srational(ed, entry, i, &srv);
-			vips_dbuf_writef(buf, "%d/%d ", srv.numerator, srv.denominator);
-		}
-	}
-	else
+	if (entry->components == 0 || entry->components >= 10) {
 		vips_dbuf_writef(buf, "%s ", text);
+	}
+	else {
+		switch (entry->format) {
+		case EXIF_FORMAT_SHORT:
+		case EXIF_FORMAT_SSHORT:
+		case EXIF_FORMAT_LONG:
+		case EXIF_FORMAT_SLONG:
+			for (i = 0; i < entry->components; i++) {
+				vips_exif_get_int(ed, entry, i, &iv);
+				vips_dbuf_writef(buf, "%d ", iv);
+			}
+			break;
+
+		case EXIF_FORMAT_RATIONAL:
+			for (i = 0; i < entry->components; i++) {
+				vips_exif_get_rational(ed, entry, i, &rv);
+				vips_dbuf_writef(buf, "%u/%u ", rv.numerator, rv.denominator);
+			}
+			break;
+
+		case EXIF_FORMAT_SRATIONAL:
+			for (i = 0; i < entry->components; i++) {
+				vips_exif_get_srational(ed, entry, i, &srv);
+				vips_dbuf_writef(buf, "%d/%d ", srv.numerator, srv.denominator);
+			}
+			break;
+
+		default:
+			vips_dbuf_writef(buf, "%s ", text);
+			break;
+		}
+	}
 
 	vips_dbuf_writef(buf, "(%s, %s, %lu components, %d bytes)",
 		text,

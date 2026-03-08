@@ -105,6 +105,11 @@ fuzz_execs += executable('generic_buffer_with_args_fuzzer',
     link_args: fuzz_ldflags,
 )
 
+executable('generate_vips_dict',
+    'generate_vips_dict.c',
+    dependencies: libvips_dep,
+)
+
 # If the fuzzing engine is not OSS-Fuzz, build the unit tests to be run on CI
 if fuzzing_engine != 'oss-fuzz'
     test_fuzz = configure_file(
