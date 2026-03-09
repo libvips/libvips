@@ -109,7 +109,7 @@ vips_stats_build(VipsObject *object)
 	VipsStatistic *statistic = VIPS_STATISTIC(object);
 	VipsStats *stats = (VipsStats *) object;
 
-	gint64 vals, pels;
+	guint64 vals, pels;
 	double *row0, *row;
 	int b, y, i;
 
@@ -127,16 +127,15 @@ vips_stats_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_stats_parent_class)->build(object))
 		return -1;
 
-	pels = (gint64) vips_image_get_width(statistic->in) *
-		vips_image_get_height(statistic->in);
-	vals = pels * vips_image_get_bands(statistic->in);
+	pels = VIPS_IMAGE_N_PELS(statistic->ready);
+	vals = pels * vips_image_get_bands(statistic->ready);
 
 	row0 = VIPS_MATRIX(stats->out, 0, 0);
 	row = VIPS_MATRIX(stats->out, 0, 1);
 	for (i = 0; i < COL_LAST; i++)
 		row0[i] = row[i];
 
-	for (b = 1; b < vips_image_get_bands(statistic->in); b++) {
+	for (b = 1; b < vips_image_get_bands(statistic->ready); b++) {
 		row = VIPS_MATRIX(stats->out, 0, b + 1);
 
 		if (row[COL_MIN] < row0[COL_MIN]) {
@@ -179,7 +178,7 @@ vips_stats_build(VipsObject *object)
 static int
 vips_stats_stop(VipsStatistic *statistic, void *seq)
 {
-	int bands = vips_image_get_bands(statistic->in);
+	int bands = vips_image_get_bands(statistic->ready);
 	VipsStats *global = (VipsStats *) statistic;
 	VipsStats *local = (VipsStats *) seq;
 
@@ -231,7 +230,7 @@ vips_stats_stop(VipsStatistic *statistic, void *seq)
 static void *
 vips_stats_start(VipsStatistic *statistic)
 {
-	int bands = vips_image_get_bands(statistic->in);
+	int bands = vips_image_get_bands(statistic->ready);
 
 	VipsStats *stats;
 
@@ -382,12 +381,12 @@ static int
 vips_stats_scan(VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n)
 {
-	const int bands = vips_image_get_bands(statistic->in);
+	const int bands = vips_image_get_bands(statistic->ready);
 	VipsStats *local = (VipsStats *) seq;
 
 	int b, i;
 
-	switch (vips_image_get_format(statistic->in)) {
+	switch (vips_image_get_format(statistic->ready)) {
 	case VIPS_FORMAT_UCHAR:
 		LOOP(unsigned char);
 		break;
