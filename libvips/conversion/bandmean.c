@@ -152,7 +152,7 @@ vips_bandmean_buffer(VipsBandarySequence *seq,
 		SILOOP(signed int, int64_t);
 		break;
 	case VIPS_FORMAT_UINT:
-		UILOOP(unsigned int, unsigned int);
+		UILOOP(unsigned int, uint64_t);
 		break;
 	case VIPS_FORMAT_FLOAT:
 		FLOOP(float);
