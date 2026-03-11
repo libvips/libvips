@@ -693,6 +693,142 @@ class TestForeign:
 
         assert im.avg() == im2.avg()
 
+    @skip_if_no_apng
+    def test_apng_load(self):
+        # test metadata
+        x = pyvips.Image.new_from_file(APNG_ANIM_FILE, n=-1)
+        assert x.width == 85
+        assert x.height == 385
+        assert x.bands == 4
+        assert x.get("n-pages") == 5
+        assert x.get("page-height") == 77
+        assert x.get("delay") == [0, 50, 50, 50, 50]
+        assert x.get("loop") == 32761
+
+        # single frame (default n=1)
+        x1 = pyvips.Image.new_from_file(APNG_ANIM_FILE)
+        assert x1.width == 85
+        assert x1.height == 77
+
+        # page handling
+        x2 = pyvips.Image.new_from_file(APNG_ANIM_FILE, n=2)
+        assert x2.height == 2 * x1.height
+        assert x2.get("page-height") == x1.height
+
+        x3 = pyvips.Image.new_from_file(APNG_ANIM_FILE, n=-1)
+        assert x3.height == 5 * x1.height
+
+        x4 = pyvips.Image.new_from_file(APNG_ANIM_FILE, page=1, n=-1)
+        assert x4.height == 4 * x1.height
+
+        # bad page number should fail
+        with pytest.raises(pyvips.error.Error):
+            pyvips.Image.new_from_file(APNG_ANIM_FILE, page=5, n=1)
+
+    @skip_if_no_apng
+    def test_apng_dispose_background(self):
+        # 4x4 canvas, 3 frames:
+        # frame 0: full red, dispose=BACKGROUND
+        # frame 1: green 2x2 at (1,1) over cleared canvas
+        # frame 2: full blue
+        im = pyvips.Image.new_from_file(
+            APNG_DISPOSE_BACKGROUND_FILE, n=-1)
+        assert im.width == 4
+        assert im.height == 12
+
+        # frame 0: all red
+        assert im(0, 0) == [255, 0, 0, 255]
+        assert im(3, 3) == [255, 0, 0, 255]
+
+        # frame 1: cleared canvas, green at (1,1)-(2,2)
+        assert im(0, 4) == [0, 0, 0, 0]
+        assert im(1, 5) == [0, 255, 0, 255]
+        assert im(2, 6) == [0, 255, 0, 255]
+        assert im(3, 7) == [0, 0, 0, 0]
+
+        # frame 2: all blue
+        assert im(0, 8) == [0, 0, 255, 255]
+        assert im(3, 11) == [0, 0, 255, 255]
+
+    @skip_if_no_apng
+    def test_apng_dispose_previous(self):
+        # 4x4 canvas, 3 frames:
+        # frame 0: full white, dispose=PREVIOUS (treated as BG on frame 0)
+        # frame 1: red 2x2 at (0,0), dispose=PREVIOUS
+        # frame 2: green 2x2 at (2,2), blend=OVER
+        im = pyvips.Image.new_from_file(
+            APNG_DISPOSE_PREVIOUS_FILE, n=-1)
+        assert im.width == 4
+        assert im.height == 12
+
+        # frame 0: all white
+        assert im(0, 0) == [255, 255, 255, 255]
+
+        # frame 1: canvas cleared (PREVIOUS on frame 0 = BG), red at (0,0)
+        assert im(0, 4) == [255, 0, 0, 255]
+        assert im(1, 5) == [255, 0, 0, 255]
+        assert im(2, 6) == [0, 0, 0, 0]
+
+        # frame 2: canvas restored to pre-frame1 (transparent),
+        # green at (2,2)
+        assert im(0, 8) == [0, 0, 0, 0]
+        assert im(2, 10) == [0, 255, 0, 255]
+        assert im(3, 11) == [0, 255, 0, 255]
+
+    @skip_if_no_apng
+    def test_apng_blend_over(self):
+        # 4x4 canvas, 2 frames:
+        # frame 0: semi-transparent red everywhere
+        # frame 1: semi-transparent green 2x2 at (1,1), blend=OVER
+        im = pyvips.Image.new_from_file(
+            APNG_BLEND_OVER_FILE, n=-1)
+        assert im.width == 4
+        assert im.height == 8
+
+        # frame 0: semi-transparent red
+        assert im(0, 0) == [255, 0, 0, 128]
+
+        # frame 1 corner: unchanged semi-red
+        assert im(0, 4) == [255, 0, 0, 128]
+
+        # frame 1 center: green alpha-composited over red
+        p = im(1, 5)
+        assert p == [85, 170, 0, 192]
+
+    @skip_if_no_apng
+    def test_apng_save(self):
+        # animated APNG round trip
+        x1 = pyvips.Image.new_from_file(APNG_ANIM_FILE, n=-1)
+        buf = x1.pngsave_buffer()
+        x2 = pyvips.Image.new_from_buffer(buf, "", n=-1)
+        assert x1.width == x2.width
+        assert x1.height == x2.height
+        assert x1.get("n-pages") == x2.get("n-pages")
+        assert x1.get("delay") == x2.get("delay")
+        assert x1.get("page-height") == x2.get("page-height")
+        assert x1.get("loop") == x2.get("loop")
+        assert (x1 - x2).abs().max() == 0
+
+        # palette APNG round trip
+        buf = x1.pngsave_buffer(palette=True, Q=100)
+        x3 = pyvips.Image.new_from_buffer(buf, "", n=-1)
+        assert x3.width == x1.width
+        assert x3.height == x1.height
+        assert x3.get("n-pages") == x1.get("n-pages")
+        assert x3.get("delay") == x1.get("delay")
+        assert x3.get("loop") == x1.get("loop")
+
+        # GIF to APNG
+        if have("gifload"):
+            g = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
+            buf = g.pngsave_buffer()
+            x4 = pyvips.Image.new_from_buffer(buf, "", n=-1)
+            assert g.width == x4.width
+            assert g.height == x4.height
+            assert g.get("n-pages") == x4.get("n-pages")
+            assert g.get("delay") == x4.get("delay")
+            assert g.get("page-height") == x4.get("page-height")
+
     @skip_if_no("tiffload")
     def test_tiff(self):
         def tiff_valid(im):

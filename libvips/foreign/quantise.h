@@ -79,6 +79,7 @@ VipsQuantiseError vips__quantise_write_remapped_image(VipsQuantiseResult *result
 void vips__quantise_result_destroy(VipsQuantiseResult *result);
 void vips__quantise_image_destroy(VipsQuantiseImage *img);
 void vips__quantise_attr_destroy(VipsQuantiseAttr *attr);
+
 #endif /*HAVE_QUANTIZATION*/
 
 int vips__quantise_image(VipsImage *in,
@@ -86,6 +87,14 @@ int vips__quantise_image(VipsImage *in,
 	int colours, int Q, double dither, int effort,
 	gboolean threshold_alpha);
 
+/* Built-in quantizer (Wu's optimal + Floyd-Steinberg).
+ * Used as fallback when libimagequant/quantizr are not available.
+ */
+#ifndef HAVE_QUANTIZATION
+int vips__builtin_quantise_image(VipsImage *in,
+	VipsImage **index_out, VipsImage **palette_out,
+	int colours, double dither);
+#endif /*!HAVE_QUANTIZATION*/
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/
