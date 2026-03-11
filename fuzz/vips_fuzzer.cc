@@ -277,6 +277,21 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		}
 	}
 
+	// Get the option_string from the input
+	const guint8 *save_data = data;
+	size_t save_size = size;
+	char *line = ExtractLine(&data, &size);
+	char *option_string;
+	if (line && line[0] == '[') {
+		option_string = line;
+	} else {
+		// Not an option_string -- put the data back.
+		g_free(line);
+		data = save_data;
+		size = save_size;
+		option_string = g_strdup("");
+	}
+
 	// Parse optional arguments (lines starting with "--").
 	char *opt_names[MAX_OPTIONAL_ARGS];
 	char *opt_values[MAX_OPTIONAL_ARGS];
@@ -314,7 +329,7 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	// Try to load an image from the remaining data.
 	if (size > 0 &&
 		((ctx.source = vips_source_new_from_memory(data, size))) &&
-		(!(ctx.image = vips_image_new_from_source(ctx.source, "",
+		(!(ctx.image = vips_image_new_from_source(ctx.source, option_string,
 			"access", access,
 			nullptr)))) {
 		g_object_unref(ctx.source);
@@ -376,6 +391,7 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		g_free(opt_names[i]);
 		g_free(opt_values[i]);
 	}
+	g_free(option_string);
 
 	vips_error_clear();
 

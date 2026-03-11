@@ -154,6 +154,11 @@ main(int argc, char **argv)
 	g_slist_free(operations);
 	g_slist_free(arguments);
 
+	printf("\n# option_string syntax\n");
+	printf("\"%s\"\n", "[");
+	printf("\"%s\"\n", "]");
+	printf("\"%s\"\n", ",");
+
 	printf("\n# optional argument syntax\n");
 	printf("\"%s\"\n", "--");
 	printf("\"%s\"\n", "=");
