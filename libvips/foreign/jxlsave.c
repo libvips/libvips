@@ -84,6 +84,7 @@ typedef struct _VipsForeignSaveJxl {
 	gboolean lossless;
 	int Q;
 	int bitdepth;
+	gboolean interlace;
 
 #ifdef HAVE_LIBJXL_0_9
 	gboolean error;
@@ -719,6 +720,16 @@ vips_foreign_save_jxl_save_page(VipsForeignSaveJxl *jxl,
 		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
 	JxlEncoderSetFrameLossless(frame_settings,
 		jxl->lossless);
+	if (jxl->interlace) {
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_RESPONSIVE, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_GROUP_ORDER, 1);
+	}
 
 	if (jxl->info.have_animation) {
 		JxlFrameHeader header = { 0 };
@@ -819,6 +830,16 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 	JxlEncoderFrameSettingsSetOption(frame_settings,
 		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
 	JxlEncoderSetFrameLossless(frame_settings, jxl->lossless);
+	if (jxl->interlace) {
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_RESPONSIVE, 1);
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_GROUP_ORDER, 1);
+	}
 
 #ifdef HAVE_LIBJXL_0_8
 	const JxlBitDepth bitdepth = {
@@ -1070,6 +1091,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	printf("    distance = %g\n", jxl->distance);
 	printf("    effort = %d\n", jxl->effort);
 	printf("    lossless = %d\n", jxl->lossless);
+	printf("    interlace = %d\n", jxl->interlace);
 #endif /*DEBUG*/
 
 #ifdef HAVE_LIBJXL_0_9
@@ -1179,6 +1201,20 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, bitdepth),
 		1, 16, 8);
 
+	VIPS_ARG_BOOL(class, "interlace", 16,
+		_("Interlace"),
+		_("Enable progressive (interlaced) encoding"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveJxl, interlace),
+		FALSE);
+
+	VIPS_ARG_BOOL(class, "progressive", 17,
+		_("Progressive"),
+		_("Enable progressive encoding"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		G_STRUCT_OFFSET(VipsForeignSaveJxl, interlace),
+		FALSE);
+
 }
 
 static void
@@ -1188,6 +1224,7 @@ vips_foreign_save_jxl_init(VipsForeignSaveJxl *jxl)
 	jxl->effort = 7;
 	jxl->Q = 75;
 	jxl->bitdepth = 8;
+	jxl->interlace = FALSE;
 #ifdef HAVE_LIBJXL_0_9
 	g_mutex_init(&jxl->tile_lock);
 #endif
