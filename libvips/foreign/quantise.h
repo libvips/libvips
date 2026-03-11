@@ -35,8 +35,9 @@
 extern "C" {
 #endif /*__cplusplus*/
 
-#if defined(HAVE_IMAGEQUANT)
 #define HAVE_QUANTIZATION
+
+#if defined(HAVE_IMAGEQUANT)
 
 #include <libimagequant.h>
 
@@ -47,7 +48,6 @@ extern "C" {
 #define VipsQuantiseError liq_error
 
 #elif defined(HAVE_QUANTIZR)
-#define HAVE_QUANTIZATION
 
 #include <quantizr.h>
 
@@ -56,9 +56,26 @@ extern "C" {
 #define VipsQuantiseResult QuantizrResult
 #define VipsQuantisePalette QuantizrPalette
 #define VipsQuantiseError QuantizrError
-#endif
 
-#ifdef HAVE_QUANTIZATION
+#else /*!HAVE_IMAGEQUANT && !HAVE_QUANTIZR*/
+
+/* Built-in Wu quantiser opaque types.
+ */
+typedef struct _VipsQuantiseAttr VipsQuantiseAttr;
+typedef struct _VipsQuantiseImage VipsQuantiseImage;
+typedef struct _VipsQuantiseResult VipsQuantiseResult;
+typedef int VipsQuantiseError;
+
+typedef struct {
+	unsigned char r, g, b, a;
+} VipsQuantiseColour;
+
+typedef struct {
+	unsigned int count;
+	VipsQuantiseColour entries[256];
+} VipsQuantisePalette;
+
+#endif
 VipsQuantiseAttr *vips__quantise_attr_create(void);
 VipsQuantiseError vips__quantise_set_max_colors(VipsQuantiseAttr *attr,
 	int colors);
@@ -79,13 +96,33 @@ VipsQuantiseError vips__quantise_write_remapped_image(VipsQuantiseResult *result
 void vips__quantise_result_destroy(VipsQuantiseResult *result);
 void vips__quantise_image_destroy(VipsQuantiseImage *img);
 void vips__quantise_attr_destroy(VipsQuantiseAttr *attr);
-#endif /*HAVE_QUANTIZATION*/
 
 int vips__quantise_image(VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither, int effort,
 	gboolean threshold_alpha);
 
+/* Built-in Wu quantiser low-level API (always available).
+ */
+int vips__builtin_quantise(const unsigned char *pixels,
+	int width, int height, int max_colors, int effort,
+	VipsQuantisePalette *palette_out);
+int vips__builtin_remap(const unsigned char *pixels,
+	int width, int height,
+	const VipsQuantisePalette *palette,
+	float dither_level, void *index_out);
+
+/* Streaming variants: accept VipsImage, use vips_sink_disc internally.
+ */
+int vips__builtin_quantise_stream(VipsImage *in,
+	int max_colors, int effort,
+	VipsQuantisePalette *palette_out,
+	GHashTable **exact_map_out);
+int vips__builtin_exact_remap_stream(VipsImage *in, VipsImage *index,
+	GHashTable *exact_map, gboolean has_transparent);
+int vips__builtin_remap_stream(VipsImage *in, VipsImage *index,
+	const VipsQuantisePalette *palette,
+	float dither_level);
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

@@ -40,6 +40,7 @@ foreign_sources = files(
     'ppmload.c',
     'ppmsave.c',
     'quantise.c',
+    'quantise-builtin.c',
     'radiance.c',
     'radload.c',
     'radsave.c',
