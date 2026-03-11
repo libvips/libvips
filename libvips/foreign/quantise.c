@@ -459,16 +459,71 @@ vips__quantise_image(VipsImage *in,
 
 #else /*!HAVE_QUANTIZATION*/
 
+/* Use built-in Wu + k-means quantizer as fallback.
+ */
 int
 vips__quantise_image(VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
 	int colours, int Q, double dither, int effort,
 	gboolean threshold_alpha)
 {
-	vips_error("vips__quantise_image",
-		"%s", _("libvips not built with quantisation support"));
+	VipsImage *memory = NULL;
+	VipsImage *rgba = NULL;
+	gboolean added_alpha;
+	int result;
 
-	return -1;
+	/* Ensure sRGB.
+	 */
+	if (in->Type != VIPS_INTERPRETATION_sRGB) {
+		if (vips_colourspace(in, &rgba, VIPS_INTERPRETATION_sRGB, NULL))
+			return -1;
+		in = rgba;
+	}
+
+	/* Add alpha channel if missing.
+	 */
+	added_alpha = FALSE;
+	if (!vips_image_hasalpha(in)) {
+		VipsImage *t;
+
+		if (vips_bandjoin_const1(in, &t, 255, NULL)) {
+			VIPS_UNREF(rgba);
+			return -1;
+		}
+		VIPS_UNREF(rgba);
+		rgba = t;
+		in = rgba;
+		added_alpha = TRUE;
+	}
+
+	/* Copy to memory for pixel access.
+	 */
+	if (!(memory = vips_image_copy_memory(in))) {
+		VIPS_UNREF(rgba);
+		return -1;
+	}
+	VIPS_UNREF(rgba);
+	in = memory;
+
+	/* Threshold alpha if requested.
+	 */
+	if (threshold_alpha && !added_alpha) {
+		const guint64 n_pels = VIPS_IMAGE_N_PELS(in);
+		VipsPel *p = VIPS_IMAGE_ADDR(in, 0, 0);
+		guint64 i;
+
+		for (i = 0; i < n_pels; i++) {
+			p[3] = p[3] > 128 ? 255 : 0;
+			p += 4;
+		}
+	}
+
+	result = vips__builtin_quantise_image(in, index_out, palette_out,
+		colours, dither);
+
+	VIPS_UNREF(memory);
+
+	return result;
 }
 
 #endif /*HAVE_QUANTIZATION*/

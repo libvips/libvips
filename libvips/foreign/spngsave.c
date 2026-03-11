@@ -423,15 +423,10 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 		return -1;
 	}
 
-#ifdef HAVE_QUANTIZATION
 	/* Enable image quantisation to paletted 8bpp PNG if palette is set.
 	 */
 	if (spng->palette)
 		ihdr.color_type = SPNG_COLOR_TYPE_INDEXED;
-#else
-	if (spng->palette)
-		g_warning("ignoring palette (no quantisation support)");
-#endif /*HAVE_QUANTIZATION*/
 
 	ihdr.compression_method = 0;
 	ihdr.filter_method = 0;
@@ -461,7 +456,6 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 		vips_foreign_save_spng_metadata(spng, in))
 		return -1;
 
-#ifdef HAVE_QUANTIZATION
 	if (spng->palette) {
 		struct spng_plte plte = { 0 };
 		struct spng_trns trns = { 0 };
@@ -516,7 +510,6 @@ vips_foreign_save_spng_write(VipsForeignSaveSpng *spng, VipsImage *in)
 
 		in = spng->memory = im_index;
 	}
-#endif /*HAVE_QUANTIZATION*/
 
 	/* Low-bitdepth write needs an extra buffer for packing pixels.
 	 */
