@@ -10,6 +10,7 @@ date-tbd 8.19.0
   disable DoS checks
 - better centre sampling on resize upscale [chcunningham]
 - conversion: non-separable blending modes added [kstanikviacbs]
+- dECMC: fix incorrect results [jcupitt]
 
 date-tbd 8.18.1
 
