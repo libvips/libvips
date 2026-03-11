@@ -821,7 +821,7 @@ vips_convi_gen(VipsRegion *out_region,
 			break;
 
 		case VIPS_FORMAT_UINT:
-			CONV_INT(unsigned int, unsigned int, CLIP_NONE);
+			CONV_INT(unsigned int, uint64_t, CLIP_NONE);
 			break;
 
 		case VIPS_FORMAT_INT:
