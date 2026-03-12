@@ -48,6 +48,7 @@ date-tbd 8.18.1
 - guard against dimension overflow [ElhananHaenel] [kleisauke]
 - gifload: prevent int overflow on 32-bit platforms [ElhananHaenel] [kleisauke]
 - sign: use ready image instead of `unary->in` [kleisauke]
+- statistic: use ready image instead of `statistic->in` [kleisauke]
 
 17/12/25 8.18.0
 

@@ -94,15 +94,14 @@ vips_avg_build(VipsObject *object)
 	VipsStatistic *statistic = VIPS_STATISTIC(object);
 	VipsAvg *avg = (VipsAvg *) object;
 
-	gint64 vals;
+	guint64 vals;
 	double average;
 
 	if (VIPS_OBJECT_CLASS(vips_avg_parent_class)->build(object))
 		return -1;
 
-	vals = (gint64) vips_image_get_width(statistic->in) *
-		vips_image_get_height(statistic->in) *
-		vips_image_get_bands(statistic->in);
+	vals = VIPS_IMAGE_N_PELS(statistic->ready) *
+		vips_image_get_bands(statistic->ready);
 	average = avg->sum / vals;
 	g_object_set(object, "out", average, NULL);
 
@@ -161,7 +160,7 @@ static int
 vips_avg_scan(VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n)
 {
-	const int sz = n * vips_image_get_bands(statistic->in);
+	const int sz = n * vips_image_get_bands(statistic->ready);
 
 	double *sum = (double *) seq;
 
@@ -172,7 +171,7 @@ vips_avg_scan(VipsStatistic *statistic, void *seq,
 
 	/* Now generate code for all types.
 	 */
-	switch (vips_image_get_format(statistic->in)) {
+	switch (vips_image_get_format(statistic->ready)) {
 	case VIPS_FORMAT_UCHAR:
 		LOOP(unsigned char);
 		break;
