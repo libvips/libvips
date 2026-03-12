@@ -48,6 +48,7 @@
 #include <glib/gi18n-lib.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -148,10 +149,10 @@ vips_bandmean_buffer(VipsBandarySequence *seq,
 		UILOOP(unsigned short, unsigned int);
 		break;
 	case VIPS_FORMAT_INT:
-		SILOOP(signed int, int);
+		SILOOP(signed int, int64_t);
 		break;
 	case VIPS_FORMAT_UINT:
-		UILOOP(unsigned int, unsigned int);
+		UILOOP(unsigned int, uint64_t);
 		break;
 	case VIPS_FORMAT_FLOAT:
 		FLOOP(float);
