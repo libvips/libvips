@@ -105,11 +105,11 @@ static void
 vips_sign_buffer(VipsArithmetic *arithmetic,
 	VipsPel *out, VipsPel **in, int width)
 {
-	VipsUnary *unary = VIPS_UNARY(arithmetic);
-	const int bands = vips_image_get_bands(unary->in);
+	VipsImage *im = arithmetic->ready[0];
+	const int bands = vips_image_get_bands(im);
 	int sz = width * bands;
 
-	switch (vips_image_get_format(unary->in)) {
+	switch (vips_image_get_format(im)) {
 	case VIPS_FORMAT_UCHAR:
 		SIGN(unsigned char);
 		break;
