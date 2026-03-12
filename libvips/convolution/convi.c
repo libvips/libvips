@@ -119,6 +119,7 @@
 #include <glib/gi18n-lib.h>
 
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
 
@@ -693,19 +694,19 @@ vips_convi_gen_vector(VipsRegion *out_region,
 
 /* INT inner loops.
  */
-#define CONV_INT(TYPE, CLIP) \
+#define CONV_INT(TYPE, STYPE, CLIP) \
 	{ \
 		TYPE *restrict p = (TYPE *) VIPS_REGION_ADDR(ir, le, y); \
 		TYPE *restrict q = (TYPE *) VIPS_REGION_ADDR(out_region, le, y); \
 		int *restrict offsets = seq->offsets; \
 \
 		for (x = 0; x < sz; x++) { \
-			int64_t sum; \
+			STYPE sum; \
 			int i; \
 \
 			sum = 0; \
 			for (i = 0; i < nnz; i++) \
-				sum += (int64_t) t[i] * p[offsets[i]]; \
+				sum += (STYPE) t[i] * p[offsets[i]]; \
 \
 			sum = CLIP(((sum + rounding) / scale) + offset); \
 \
@@ -804,27 +805,27 @@ vips_convi_gen(VipsRegion *out_region,
 	for (y = to; y < bo; y++) {
 		switch (in->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			CONV_INT(unsigned char, CLIP_UCHAR);
+			CONV_INT(unsigned char, unsigned int, CLIP_UCHAR);
 			break;
 
 		case VIPS_FORMAT_CHAR:
-			CONV_INT(signed char, CLIP_CHAR);
+			CONV_INT(signed char, int, CLIP_CHAR);
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			CONV_INT(unsigned short, CLIP_USHORT);
+			CONV_INT(unsigned short, unsigned int, CLIP_USHORT);
 			break;
 
 		case VIPS_FORMAT_SHORT:
-			CONV_INT(signed short, CLIP_SHORT);
+			CONV_INT(signed short, int, CLIP_SHORT);
 			break;
 
 		case VIPS_FORMAT_UINT:
-			CONV_INT(unsigned int, CLIP_NONE);
+			CONV_INT(unsigned int, uint64_t, CLIP_NONE);
 			break;
 
 		case VIPS_FORMAT_INT:
-			CONV_INT(signed int, CLIP_NONE);
+			CONV_INT(signed int, int64_t, CLIP_NONE);
 			break;
 
 		case VIPS_FORMAT_FLOAT:
