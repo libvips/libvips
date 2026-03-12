@@ -29,6 +29,7 @@ date-tbd 8.18.1
 - vips_window_take: prevent int underflow for small mapped images [jcupitt]
 - composite: fix UB (invalid-enum-value) in `->build()` [kleisauke]
 - add: prevent possible int overflow [kleisauke]
+- bandmean: prevent possible int overflow [kleisauke]
 - multiply: prevent possible int overflow [kleisauke]
 - subtract: prevent possible int overflow [kleisauke]
 - hist_cum: prevent possible int overflow [kleisauke]
@@ -46,6 +47,7 @@ date-tbd 8.18.1
 - max: fix possible OOB read with complex images [kleisauke]
 - guard against dimension overflow [ElhananHaenel] [kleisauke]
 - gifload: prevent int overflow on 32-bit platforms [ElhananHaenel] [kleisauke]
+- sign: use ready image instead of `unary->in` [kleisauke]
 - statistic: use ready image instead of `statistic->in` [kleisauke]
 
 17/12/25 8.18.0
