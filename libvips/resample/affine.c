@@ -421,7 +421,7 @@ vips_affine_build(VipsObject *object)
 	VipsDemandStyle hint;
 	int window_size;
 	int window_offset;
-	double edge;
+	int edge;
 
 	/* TRUE if we've premultiplied and need to unpremultiply.
 	 */
@@ -507,11 +507,11 @@ vips_affine_build(VipsObject *object)
 	/* Check for coordinate overflow ... we want to be able to hold the
 	 * output space inside INT_MAX / TRANSFORM_SCALE.
 	 */
-	edge = (int) (INT_MAX / VIPS_TRANSFORM_SCALE);
+	edge = INT_MAX / VIPS_TRANSFORM_SCALE;
 	if (affine->trn.oarea.left < -edge ||
 		affine->trn.oarea.top < -edge ||
-		VIPS_RECT_RIGHT(&affine->trn.oarea) > edge ||
-		VIPS_RECT_BOTTOM(&affine->trn.oarea) > edge) {
+		(guint64) affine->trn.oarea.left + affine->trn.oarea.width > edge ||
+		(guint64) affine->trn.oarea.top + affine->trn.oarea.height > edge) {
 		vips_error(class->nickname,
 			"%s", _("output coordinates out of range"));
 		return -1;
