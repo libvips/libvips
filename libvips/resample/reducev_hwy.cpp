@@ -41,6 +41,7 @@
 #include <glib/gi18n-lib.h>
 
 #include <cstdio>
+#include <cstdint>
 #include <cstdlib>
 #include <cmath>
 
