@@ -511,6 +511,9 @@ static VipsColourRoute vips_colour_routes[] = {
 	{ CICP, YXY, { vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Yxy, NULL } },
 	{ CICP, OKLAB, { vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, NULL } },
 	{ CICP, OKLCH, { vips_CICP2scRGB, vips_scRGB2XYZ, vips_XYZ2Oklab, vips_Oklab2Oklch, NULL } },
+	/* No other space converts *to* CICP, so we need an explicit
+	 * identity route for colourspace(cicp) on CICP images.
+	 */
 	{ CICP, CICP, { NULL } },
 
 };
