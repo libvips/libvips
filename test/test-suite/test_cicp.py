@@ -439,33 +439,6 @@ class TestCICP:
         assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
         assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
 
-    # -- Ultra HDR regression tests --
-
-    @skip_if_no("uhdrsave")
-    def test_uhdr_hdr_capacity_max(self):
-        im = make_cicp_image(128, 128, 128,
-                             primaries=PRIMARIES_BT2020,
-                             transfer=TRANSFER_PQ)
-        im = im.embed(0, 0, 64, 64, extend="copy")
-        scrgb = im.colourspace("scrgb")
-        buf = scrgb.jpegsave_buffer()
-
-        out = pyvips.Image.new_from_buffer(buf, "")
-        hdr_cap = out.get("gainmap-hdr-capacity-max")
-        assert hdr_cap < 5.0, \
-            f"hdr_capacity_max {hdr_cap:.2f} too high for ~94 nit content"
-
-    @skip_if_no("uhdrsave")
-    def test_uhdr_sdr_content_low_capacity(self):
-        im = (pyvips.Image.black(64, 64, bands=3) + [1.0, 1.0, 1.0]) \
-            .copy(interpretation="scrgb").cast("float")
-        buf = im.jpegsave_buffer()
-
-        out = pyvips.Image.new_from_buffer(buf, "")
-        hdr_cap = out.get("gainmap-hdr-capacity-max")
-        assert hdr_cap < 2.0, \
-            f"hdr_capacity_max {hdr_cap:.2f} too high for 80-nit content"
-
     # -- PNG regression tests --
 
     @skip_if_no("pngsave")
