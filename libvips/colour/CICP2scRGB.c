@@ -52,7 +52,7 @@ typedef struct _VipsCICP2scRGB {
 	VipsCICPTransferCharacteristics transfer_characteristics;
 	VipsCICPMatrixCoefficients matrix_coefficients;
 
-	int full_range_flag; // unused
+	int full_range_flag; /* unused */
 
 	/* Conversion matrix from source primaries to BT.709 (scRGB) */
 	float conversion_matrix[9];
@@ -95,7 +95,7 @@ static const float BT2020_to_BT709[9] = {
     -0.01815076f, -0.1005789f, 1.11872966f
 };
 
-// Bradford chromatic adaptation
+/* Bradford chromatic adaptation */
 static const float DCI_P3_to_BT709[9] = {
     1.15751641f, -0.15496238f, -0.00255403f,
     -0.04150007f, 1.04556792f, -0.00406785f,
