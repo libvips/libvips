@@ -114,10 +114,7 @@ vips_foreign_save_png_build(VipsObject *object)
 	 */
 	if (!vips_object_argument_isset(object, "bitdepth"))
 		png->bitdepth =
-			in->Type == VIPS_INTERPRETATION_RGB16 ||
-				in->Type == VIPS_INTERPRETATION_GREY16
-			? 16
-			: 8;
+			vips_image_get_bits_per_sample(in) > 8 ? 16 : 8;
 
 	/* Deprecated "colours" arg just sets bitdepth large enough to hold
 	 * that many colours.
@@ -128,7 +125,9 @@ vips_foreign_save_png_build(VipsObject *object)
 	/* The bitdepth param can change the interpretation.
 	 */
 	VipsInterpretation interpretation;
-	if (in->Bands > 2) {
+	if (in->Type == VIPS_INTERPRETATION_CICP)
+		interpretation = VIPS_INTERPRETATION_CICP;
+	else if (in->Bands > 2) {
 	   if (png->bitdepth > 8)
 		   interpretation = VIPS_INTERPRETATION_RGB16;
 	   else
@@ -217,7 +216,8 @@ vips_foreign_save_png_class_init(VipsForeignSavePngClass *class)
 	save_class->saveable =
 		VIPS_FOREIGN_SAVEABLE_MONO |
 		VIPS_FOREIGN_SAVEABLE_RGB |
-		VIPS_FOREIGN_SAVEABLE_ALPHA;
+		VIPS_FOREIGN_SAVEABLE_ALPHA |
+		VIPS_FOREIGN_SAVEABLE_CICP;
 	save_class->format_table = bandfmt_png;
 
 	VIPS_ARG_INT(class, "compression", 6,

@@ -1,4 +1,5 @@
 colour_sources = files(
+    'CICP2scRGB.c',
     'CMYK2XYZ.c',
     'colour.c',
     'colourspace.c',

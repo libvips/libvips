@@ -201,6 +201,8 @@ VIPS_API
 double vips_interpretation_max_alpha(VipsInterpretation interpretation);
 VIPS_API
 int vips_interpretation_bands(VipsInterpretation interpretation);
+VIPS_API
+int vips_image_get_bits_per_sample(VipsImage *image);
 
 VIPS_API
 int vips_image_get_width(const VipsImage *image);
