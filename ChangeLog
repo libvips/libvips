@@ -51,6 +51,7 @@ date-tbd 8.18.1
 - sign: use ready image instead of `unary->in` [kleisauke]
 - statistic: use ready image instead of `statistic->in` [kleisauke]
 - hist_plot: handle near-zero ranges for float images [kleisauke]
+- affine: check bounds using unsigned arithmetic [kleisauke]
 
 17/12/25 8.18.0
 
