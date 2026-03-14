@@ -139,23 +139,9 @@ vips_foreign_save_png_build(VipsObject *object)
 	   else
 		   interpretation = VIPS_INTERPRETATION_B_W;
 	}
-
-	if (vips_colourspace_issupported(in)) {
-		if (vips_colourspace(in, &x, interpretation, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
-	}
-	else {
-		VipsBandFormat target_format =
-			png->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
-
-		/* Cast in down to target format if we can.
-		 */
-		if (vips_cast(in, &x, target_format, NULL)) {
-			g_object_unref(in);
-			return -1;
-		}
+	if (vips_colourspace(in, &x, interpretation, NULL)) {
+		g_object_unref(in);
+		return -1;
 	}
 	g_object_unref(in);
 	in = x;
