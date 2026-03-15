@@ -21,4 +21,5 @@ leak:___kmp_allocate
 # https://github.com/strukturag/libheif/pull/1061
 # TODO: Does this requires calling heif_deinit()?
 leak:x265::x265_malloc
+leak:x265_10bit::x265_malloc
 leak:x265_12bit::x265_malloc
