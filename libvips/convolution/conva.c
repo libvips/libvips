@@ -90,6 +90,7 @@ $ vips im_max abs.v
 
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>

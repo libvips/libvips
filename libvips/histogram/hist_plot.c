@@ -262,9 +262,21 @@ vips_hist_plot_build(VipsObject *object)
 		min = *VIPS_MATRIX(t[0], 0, 0);
 		max = *VIPS_MATRIX(t[0], 1, 0);
 
-		if (vips_linear1(in, &t[1],
-				any / (max - min), -min * any / (max - min), NULL))
-			return -1;
+		/* For float-style images, we need to check for near zero range,
+		 * or we'll get +/- Inf in vips_max() below.
+		 */
+		if (fabs(max - min) > 0.01) {
+			if (vips_linear1(in, &t[1],
+					any / (max - min), -min * any / (max - min), NULL))
+				return -1;
+		}
+		else
+			/* Range effectively zero: just return black.
+			 */
+			if (vips_black(&t[1], in->Xsize, in->Ysize,
+					"bands", in->Bands,
+					NULL))
+				return -1;
 
 		in = t[1];
 	}

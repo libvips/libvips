@@ -90,7 +90,7 @@ G_DEFINE_TYPE(VipsFastcor, vips_fastcor, VIPS_TYPE_CORRELATION);
 						for (i = b; i < sz; i += bands) { \
 							int t = p1[i] - p2[i]; \
 \
-							sum += t * t; \
+							sum += (unsigned int) t * t; \
 						} \
 \
 						p1 += sz; \

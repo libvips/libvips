@@ -54,6 +54,7 @@
 #include <glib/gi18n-lib.h>
 
 #include <string.h>
+#include <stdint.h>
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -81,7 +82,8 @@ void
 vips__draw_circle_direct(VipsImage *image, int cx, int cy, int r,
 	VipsDrawScanline draw_scanline, void *client)
 {
-	int x, y, d;
+	int x, y;
+	int64_t d;
 
 	y = r;
 	d = 3 - 2 * r;
@@ -93,9 +95,9 @@ vips__draw_circle_direct(VipsImage *image, int cx, int cy, int r,
 		draw_scanline(image, cy - x, cx - y, cx + y, 3, client);
 
 		if (d < 0)
-			d += 4 * x + 6;
+			d += (int64_t) 4 * x + 6;
 		else {
-			d += 4 * (x - y) + 10;
+			d += (int64_t) 4 * (x - y) + 10;
 			y--;
 		}
 	}

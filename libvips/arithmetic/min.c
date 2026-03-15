@@ -210,7 +210,7 @@ vips_min_build(VipsObject *object)
 	/* For speed we accumulate min ** 2 for complex.
 	 */
 	if (vips_band_format_iscomplex(
-			vips_image_get_format(statistic->in))) {
+			vips_image_get_format(statistic->ready))) {
 		int i;
 
 		for (i = 0; i < values->n; i++)
@@ -384,12 +384,12 @@ vips_min_scan(VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n)
 {
 	VipsValues *values = (VipsValues *) seq;
-	const int bands = vips_image_get_bands(statistic->in);
+	const int bands = vips_image_get_bands(statistic->ready);
 	const int sz = n * bands;
 
 	int i;
 
-	switch (vips_image_get_format(statistic->in)) {
+	switch (vips_image_get_format(statistic->ready)) {
 	case VIPS_FORMAT_UCHAR:
 		LOOPU(unsigned char, 0);
 		break;
