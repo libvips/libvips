@@ -1211,7 +1211,7 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 	VIPS_ARG_BOOL(class, "progressive", 17,
 		_("Progressive"),
 		_("Enable progressive encoding"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT | VIPS_ARGUMENT_DEPRECATED,
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveJxl, interlace),
 		FALSE);
 
