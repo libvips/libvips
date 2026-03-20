@@ -79,6 +79,12 @@ class TestConvolution:
                     true = conv(im, msk, 49, 49)
                     assert_almost_equal_objects(result, true)
 
+        # https://github.com/libvips/libvips/issues/4955
+        # (cast to ushort to avoid vector path)
+        im = pyvips.Image.mask_ideal(100, 100, 0.5, reject=True, optical=True, uchar=True).cast('ushort')
+        convolved = im.conv(self.sharp, precision=pyvips.Precision.INTEGER)
+        assert convolved(24, 49) == [0]
+
     # don't test conva, it's still not done
     def dont_est_conva(self):
         for im in self.all_images:

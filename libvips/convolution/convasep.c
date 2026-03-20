@@ -455,7 +455,7 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 \
 			TYPE *q; \
 			TYPE *p; \
-			ACC sum; \
+			int64_t sum; \
 \
 			p = i + (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top + y); \
 			q = i + (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top + y); \
@@ -465,7 +465,7 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 				isum[z] = 0; \
 				for (x = seq->start[z]; x < seq->end[z]; x += istride) \
 					isum[z] += p[x]; \
-				sum += convasep->factor[z] * isum[z]; \
+				sum += (int64_t) convasep->factor[z] * isum[z]; \
 			} \
 \
 			/* Don't add offset ... we only want to do that once, do it on \
@@ -481,7 +481,7 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 				for (z = 0; z < n_lines; z++) { \
 					isum[z] += p[seq->end[z]]; \
 					isum[z] -= p[seq->start[z]]; \
-					sum += convasep->factor[z] * isum[z]; \
+					sum += (int64_t) convasep->factor[z] * isum[z]; \
 				} \
 				p += istride; \
 				sum = (sum + convasep->rounding) / convasep->divisor; \
@@ -638,7 +638,7 @@ vips_convasep_generate_horizontal(VipsRegion *out_region,
 \
 			TYPE *q; \
 			TYPE *p; \
-			ACC sum; \
+			int64_t sum; \
 \
 			p = x + (TYPE *) VIPS_REGION_ADDR(ir, r->left, r->top); \
 			q = x + (TYPE *) VIPS_REGION_ADDR(out_region, r->left, r->top); \
@@ -648,7 +648,7 @@ vips_convasep_generate_horizontal(VipsRegion *out_region,
 				isum[z] = 0; \
 				for (y = seq->start[z]; y < seq->end[z]; y += istride) \
 					isum[z] += p[y]; \
-				sum += convasep->factor[z] * isum[z]; \
+				sum += (int64_t) convasep->factor[z] * isum[z]; \
 			} \
 			sum = (sum + convasep->rounding) / convasep->divisor + \
 				convasep->offset; \
@@ -661,7 +661,7 @@ vips_convasep_generate_horizontal(VipsRegion *out_region,
 				for (z = 0; z < n_lines; z++) { \
 					isum[z] += p[seq->end[z]]; \
 					isum[z] -= p[seq->start[z]]; \
-					sum += convasep->factor[z] * isum[z]; \
+					sum += (int64_t) convasep->factor[z] * isum[z]; \
 				} \
 				p += istride; \
 				sum = (sum + convasep->rounding) / convasep->divisor + \
