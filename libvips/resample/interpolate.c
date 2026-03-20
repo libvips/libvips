@@ -167,6 +167,19 @@ vips_interpolate_real_get_window_offset(VipsInterpolate *interpolate)
 }
 
 static void
+vips_interpolate_summary(VipsObject *object, VipsBuf *buf)
+{
+	VipsInterpolate *interpolate = VIPS_INTERPOLATE(object);
+	int window_size = vips_interpolate_get_window_size(interpolate);
+	int window_offset = vips_interpolate_get_window_offset(interpolate);
+
+	vips_buf_appendf(buf, "%1$dx%1$d pixels, +%2$dx%2$d",
+		window_size, window_offset);
+
+	VIPS_OBJECT_CLASS(vips_interpolate_parent_class)->summary(object, buf);
+}
+
+static void
 vips_interpolate_class_init(VipsInterpolateClass *class)
 {
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
@@ -181,6 +194,7 @@ vips_interpolate_class_init(VipsInterpolateClass *class)
 
 	vobject_class->nickname = "interpolate";
 	vobject_class->description = _("VIPS interpolators");
+	vobject_class->summary = vips_interpolate_summary;
 
 	class->interpolate = NULL;
 	class->get_window_size = vips_interpolate_real_get_window_size;
