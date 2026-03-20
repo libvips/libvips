@@ -1,0 +1,5 @@
+gaussnoise
+16
+16
+--mean=128
+--sigma=30
