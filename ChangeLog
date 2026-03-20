@@ -11,6 +11,7 @@ date-tbd 8.19.0
 - better centre sampling on resize upscale [chcunningham]
 - conversion: non-separable blending modes added [kstanikviacbs]
 - dECMC: fix incorrect results [jcupitt]
+- jxlsave: add `interlace` option [mertalev]
 
 18/3/26 8.18.1
 
