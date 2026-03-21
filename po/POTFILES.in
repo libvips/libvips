@@ -95,6 +95,7 @@ libvips/arithmetic/subtract.c
 libvips/arithmetic/sum.c
 libvips/arithmetic/unary.c
 libvips/arithmetic/unaryconst.c
+libvips/colour/CICP2scRGB.c
 libvips/colour/CMYK2XYZ.c
 libvips/colour/colour.c
 libvips/colour/colourspace.c

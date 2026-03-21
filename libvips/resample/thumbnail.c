@@ -726,6 +726,14 @@ vips_thumbnail_build(VipsObject *object)
 		(thumbnail->input_profile ||
 			vips_image_get_typeof(in, VIPS_META_ICC_NAME));
 
+	/* CICP-tagged images should not have their
+	 * colourspace converted - the pixel values are in a specific
+	 * signal encoding that would be destroyed. Resize in the
+	 * original encoding and let the saver preserve the metadata.
+	 */
+	gboolean has_cicp =
+		vips_image_get_typeof(in, "cicp-transfer-characteristics") != 0;
+
 	/* RAD needs special unpacking.
 	 */
 	if (in->Coding == VIPS_CODING_RAD) {
@@ -742,7 +750,12 @@ vips_thumbnail_build(VipsObject *object)
 	 * vips_resize().
 	 */
 	have_imported = FALSE;
-	if (thumbnail->linear) {
+	if (has_cicp) {
+		/* Skip colourspace conversion for CICP images.
+		 */
+		g_info("CICP image, skipping colourspace conversion");
+	}
+	else if (thumbnail->linear) {
 		/* If we are doing colour management (there's an input
 		 * profile), then we can use XYZ PCS as the resize space.
 		 */
@@ -888,8 +901,13 @@ vips_thumbnail_build(VipsObject *object)
 	 *
 	 * We always export as depth 8, to match the no profile case which
 	 * uses vips_colourspace(sRGB|B_W).
+	 *
+	 * Skip for CICP images - their pixel encoding must be preserved.
 	 */
-	if (have_imported) {
+	if (has_cicp) {
+		g_info("CICP image, skipping colour management");
+	}
+	else if (have_imported) {
 		/* We are in PCS. Export with the output profile, if any (this
 		 * will export with the embedded input profile if there's no
 		 * output profile).

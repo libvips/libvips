@@ -1562,7 +1562,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 	 * format, we have nothing to do.
 	 */
 	if (in->Coding == VIPS_CODING_NONE &&
-		(saveable == VIPS_FOREIGN_SAVEABLE_ANY) &&
+		saveable == VIPS_FOREIGN_SAVEABLE_ANY &&
 		format[in->BandFmt] == in->BandFmt) {
 		*ready = in;
 		return 0;
@@ -1713,6 +1713,9 @@ vips_foreign_get_keep(const char *field)
 
 	if (vips_isprefix("gainmap", field))
 		return VIPS_FOREIGN_KEEP_GAINMAP;
+
+	if (vips_isprefix("cicp-", field))
+		return VIPS_FOREIGN_KEEP_CICP;
 
 	/* OTHER is a metadata item that:
 	 *

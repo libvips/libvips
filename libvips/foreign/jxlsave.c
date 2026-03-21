@@ -155,6 +155,133 @@ typedef VipsForeignSaveClass VipsForeignSaveJxlClass;
 G_DEFINE_ABSTRACT_TYPE(VipsForeignSaveJxl, vips_foreign_save_jxl,
 	VIPS_TYPE_FOREIGN_SAVE);
 
+/* H.273 colour primaries to JXL primaries + white point + custom xy.
+ * Entries with JXL_PRIMARIES_CUSTOM need the xy coordinates from H.273.
+ */
+typedef struct _CICPPrimariesEntry {
+	int cicp_code;
+	JxlPrimaries primaries;
+	JxlWhitePoint white_point;
+	double red_xy[2], green_xy[2], blue_xy[2], wp_xy[2];
+} CICPPrimariesEntry;
+
+static const CICPPrimariesEntry cicp_primaries_table[] = {
+	{ 1, JXL_PRIMARIES_SRGB, JXL_WHITE_POINT_D65, {0}, {0}, {0}, {0} },
+	{ 4, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_CUSTOM,
+		{0.67, 0.33}, {0.21, 0.71}, {0.14, 0.08}, {0.310, 0.316} },
+	{ 5, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_D65,
+		{0.64, 0.33}, {0.29, 0.60}, {0.15, 0.06}, {0} },
+	{ 6, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_D65,
+		{0.630, 0.340}, {0.310, 0.595}, {0.155, 0.070}, {0} },
+	{ 7, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_D65,
+		{0.630, 0.340}, {0.310, 0.595}, {0.155, 0.070}, {0} },
+	{ 8, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_CUSTOM,
+		{0.681, 0.319}, {0.243, 0.692}, {0.145, 0.049}, {0.310, 0.316} },
+	{ 9, JXL_PRIMARIES_2100, JXL_WHITE_POINT_D65, {0}, {0}, {0}, {0} },
+	{ 10, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_E,
+		{1.0, 0.0}, {0.0, 1.0}, {0.0, 0.0}, {0} },
+	{ 11, JXL_PRIMARIES_P3, JXL_WHITE_POINT_DCI, {0}, {0}, {0}, {0} },
+	{ 12, JXL_PRIMARIES_P3, JXL_WHITE_POINT_D65, {0}, {0}, {0}, {0} },
+	{ 22, JXL_PRIMARIES_CUSTOM, JXL_WHITE_POINT_D65,
+		{0.630, 0.340}, {0.295, 0.605}, {0.155, 0.077}, {0} },
+};
+
+/* H.273 transfer characteristics to JXL transfer function + gamma.
+ */
+typedef struct _CICPTransferEntry {
+	int cicp_code;
+	JxlTransferFunction transfer_function;
+	double gamma;
+} CICPTransferEntry;
+
+static const CICPTransferEntry cicp_transfer_table[] = {
+	{ 1, JXL_TRANSFER_FUNCTION_709, 0 },
+	{ 4, JXL_TRANSFER_FUNCTION_GAMMA, 1.0 / 2.2 },
+	{ 5, JXL_TRANSFER_FUNCTION_GAMMA, 1.0 / 2.8 },
+	{ 6, JXL_TRANSFER_FUNCTION_709, 0 },
+	{ 8, JXL_TRANSFER_FUNCTION_LINEAR, 0 },
+	{ 13, JXL_TRANSFER_FUNCTION_SRGB, 0 },
+	{ 14, JXL_TRANSFER_FUNCTION_709, 0 },
+	{ 15, JXL_TRANSFER_FUNCTION_709, 0 },
+	{ 16, JXL_TRANSFER_FUNCTION_PQ, 0 },
+	{ 17, JXL_TRANSFER_FUNCTION_DCI, 0 },
+	{ 18, JXL_TRANSFER_FUNCTION_HLG, 0 },
+};
+
+/* Build a JxlColorEncoding from CICP metadata on a VipsImage.
+ * Primaries xy coordinates are from ITU-T H.273.
+ */
+static gboolean
+vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
+	JxlColorEncoding *enc)
+{
+	int colour_primaries;
+	int transfer_characteristics;
+	int matrix_coefficients;
+	int full_range_flag;
+	int i;
+
+	if (!vips_image_get_typeof(image, "cicp-colour-primaries") ||
+		vips_image_get_int(image, "cicp-colour-primaries",
+			&colour_primaries) ||
+		vips_image_get_int(image, "cicp-transfer-characteristics",
+			&transfer_characteristics) ||
+		vips_image_get_int(image, "cicp-matrix-coefficients",
+			&matrix_coefficients) ||
+		vips_image_get_int(image, "cicp-full-range-flag",
+			&full_range_flag))
+		return FALSE;
+
+	/* JXL pixel data is always RGB, so we only need identity matrix
+	 * and full range. Ignore the metadata MC value since the actual
+	 * pixel data has already been converted to RGB by the loader.
+	 */
+	if (full_range_flag != 1)
+		return FALSE;
+
+	memset(enc, 0, sizeof(*enc));
+	enc->color_space = JXL_COLOR_SPACE_RGB;
+	enc->rendering_intent = JXL_RENDERING_INTENT_RELATIVE;
+
+	/* Map H.273 colour primaries to JXL primaries + white point.
+	 */
+	const CICPPrimariesEntry *pe = NULL;
+	for (i = 0; i < G_N_ELEMENTS(cicp_primaries_table); i++)
+		if (cicp_primaries_table[i].cicp_code == colour_primaries) {
+			pe = &cicp_primaries_table[i];
+			break;
+		}
+	if (!pe)
+		return FALSE;
+
+	enc->primaries = pe->primaries;
+	enc->white_point = pe->white_point;
+	if (pe->primaries == JXL_PRIMARIES_CUSTOM) {
+		memcpy(enc->primaries_red_xy, pe->red_xy, sizeof(pe->red_xy));
+		memcpy(enc->primaries_green_xy, pe->green_xy, sizeof(pe->green_xy));
+		memcpy(enc->primaries_blue_xy, pe->blue_xy, sizeof(pe->blue_xy));
+	}
+	if (pe->white_point == JXL_WHITE_POINT_CUSTOM)
+		memcpy(enc->white_point_xy, pe->wp_xy, sizeof(pe->wp_xy));
+
+	/* Map H.273 transfer characteristics to JXL transfer function.
+	 */
+	const CICPTransferEntry *te = NULL;
+	for (i = 0; i < G_N_ELEMENTS(cicp_transfer_table); i++)
+		if (cicp_transfer_table[i].cicp_code == transfer_characteristics) {
+			te = &cicp_transfer_table[i];
+			break;
+		}
+	if (!te)
+		return FALSE;
+
+	enc->transfer_function = te->transfer_function;
+	if (te->transfer_function == JXL_TRANSFER_FUNCTION_GAMMA)
+		enc->gamma = te->gamma;
+
+	return TRUE;
+}
+
 #ifdef HAVE_LIBJXL_0_9
 static void *
 vips_foreign_save_jxl_get_buffer(void *opaque, size_t *size)
@@ -576,9 +703,26 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 		return -1;
 	}
 
-	/* Set any ICC profile.
+	/* For HDR transfers (PQ, HLG), prefer the structured CICP encoding
+	 * over ICC since ICC profiles cannot describe these transfer
+	 * functions. For SDR, ICC takes priority as it may be more precise.
 	 */
-	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+	if (vips_foreign_save_jxl_cicp_to_color_encoding(in,
+		&jxl->color_encoding) &&
+		(jxl->color_encoding.transfer_function ==
+				JXL_TRANSFER_FUNCTION_PQ ||
+			jxl->color_encoding.transfer_function ==
+				JXL_TRANSFER_FUNCTION_HLG)) {
+#ifdef DEBUG
+		printf("setting HDR CICP colourspace\n");
+#endif /*DEBUG*/
+
+		if (JxlEncoderSetColorEncoding(jxl->encoder, &jxl->color_encoding)) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
+			return -1;
+		}
+	}
+	else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
 		const void *data;
 		size_t length;
 
@@ -589,13 +733,24 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 		printf("attaching %zd bytes of ICC\n", length);
 #endif /*DEBUG*/
 		if (JxlEncoderSetICCProfile(jxl->encoder, (guint8 *) data, length)) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetICCProfile");
+			return -1;
+		}
+	}
+	else if (vips_foreign_save_jxl_cicp_to_color_encoding(in,
+		&jxl->color_encoding)) {
+#ifdef DEBUG
+		printf("setting CICP colourspace\n");
+#endif /*DEBUG*/
+
+		if (JxlEncoderSetColorEncoding(jxl->encoder, &jxl->color_encoding)) {
 			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
 			return -1;
 		}
 	}
 	else {
-		/* If there's no ICC profile, we must set the colour encoding
-		 * ourselves.
+		/* No ICC profile and no usable CICP -- fall back to
+		 * sRGB or linear sRGB based on interpretation.
 		 */
 		if (in->Type == VIPS_INTERPRETATION_scRGB) {
 #ifdef DEBUG

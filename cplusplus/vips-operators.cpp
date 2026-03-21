@@ -3,6 +3,18 @@
 // clang-format off
 
 VImage
+VImage::CICP2scRGB(VOption *options) const
+{
+	VImage out;
+
+	call("CICP2scRGB", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
 VImage::CMC2LCh(VOption *options) const
 {
 	VImage out;
