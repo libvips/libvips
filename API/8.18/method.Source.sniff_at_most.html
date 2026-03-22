@@ -154,7 +154,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/source.c#L1324">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/source.c#L1330">[src]</a>
         
       </h4>
 
@@ -163,6 +163,9 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 pointer to the bytes is returned in <code>data</code>. The number of bytes actually
 read is returned &#8212; it may be less than <code>length</code> if the file is shorter than
 <code>length</code>. A negative number indicates a read&nbsp;error.</p>
+<p>Do not use it if <code>length</code> is greater than <code>UINT_MAX</code>.
+<a href="javascript:void(0)" data-namespace="GLib" data-link="struct.ByteArray.html" class="external"><code>GByteArray</code></a> stores the length of its data in <code>guint</code>, which
+may be shorter than <code>size_t</code>.</p>
       </div>
 
       <div class="docblock">

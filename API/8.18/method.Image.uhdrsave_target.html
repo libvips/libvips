@@ -994,12 +994,19 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/uhdrsave.c#L808">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/uhdrsave.c#L827">[src]</a>
         
       </h4>
 
       <div class="docblock">
         <p>As <a href="method.Image.uhdrsave.html"><code>vips_uhdrsave()</code></a>, but save to a&nbsp;target.</p>
+<div class="admonition tip">
+<p class="admonition-title">Optional&nbsp;arguments</p>
+<ul>
+<li><code>Q</code>: <code>gint</code>, quality&nbsp;factor</li>
+<li><code>gainmap_scale_factor</code>: <code>gint</code>, scale factor of base image to&nbsp;gainmap</li>
+</ul>
+</div>
 <div class="admonition seealso">
 <p class="admonition-title">See&nbsp;also</p>
 <p><a href="method.Image.uhdrsave.html"><code>vips_uhdrsave()</code></a>, <a href="method.Image.write_to_target.html"><code>vips_image_write_to_target()</code></a>.</p>
