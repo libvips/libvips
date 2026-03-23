@@ -2146,6 +2146,12 @@ rtiff_decompress_jpeg_run(Rtiff *rtiff, j_decompress_ptr cinfo,
 		break;
 	}
 
+	/* bytes_per_pixel from photometric_interpretation must match the number
+	 * of components in the JPEG compressed tile.
+	 */
+	if (cinfo->output_components != bytes_per_pixel)
+		return -1;
+
 	jpeg_calc_output_dimensions(cinfo);
 	bytes_per_scanline = (size_t) cinfo->output_width * bytes_per_pixel;
 
