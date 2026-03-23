@@ -92,6 +92,26 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 		} \
 	}
 
+/* Fixed-point arithmetic path for ushort images. Avoids per-pixel
+ * integer division by using multiply-shift, same technique as UCHAR.
+ */
+#define USHORT_SHRINK(BANDS) \
+	{ \
+		unsigned short *restrict p = (unsigned short *) in; \
+		unsigned short *restrict q = (unsigned short *) out; \
+\
+		for (x = 0; x < width; x++) { \
+			for (b = 0; b < BANDS; b++) { \
+				int sum = amend; \
+				for (x1 = b; x1 < ne; x1 += BANDS) \
+					sum += p[x1]; \
+				q[b] = ((gint64) sum * ushort_multiplier) >> 32; \
+			} \
+			p += ne; \
+			q += BANDS; \
+		} \
+	}
+
 /* Integer shrink.
  */
 #define ISHRINK(ACC_TYPE, TYPE, BANDS) \
@@ -177,9 +197,15 @@ vips_shrinkh_gen2(VipsShrinkh *shrink, VipsRegion *out_region, VipsRegion *ir,
 	case VIPS_FORMAT_CHAR:
 		ISHRINK(int, char, bands);
 		break;
-	case VIPS_FORMAT_USHORT:
-		ISHRINK(int, unsigned short, bands);
+	case VIPS_FORMAT_USHORT: {
+		/* Ceiling division to ensure exact results.
+		 */
+		guint64 ushort_multiplier =
+			((1ULL << 32) + shrink->hshrink - 1) / shrink->hshrink;
+
+		USHORT_SHRINK(bands);
 		break;
+	}
 	case VIPS_FORMAT_SHORT:
 		ISHRINK(int, short, bands);
 		break;
