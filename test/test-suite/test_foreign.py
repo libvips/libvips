@@ -1537,15 +1537,15 @@ class TestForeign:
                 im = im.rad2float()
 
             assert_almost_equal_objects(im(10, 10),
-                                        [0.533, 0.564, 0.693],
-                                        threshold=0.01)
+                                        [13.3, 10.8, 9.5],
+                                        threshold=0.1)
 
-            assert_almost_equal_objects(im(1592, 855),
-                                        [1580, 1364, 1276],
-                                        threshold=0.01)
+            assert_almost_equal_objects(im(85, 59),
+                                        [4720, 4336, 4528],
+                                        threshold=1)
 
-            assert im.width == 1655
-            assert im.height == 1764
+            assert im.width == 141
+            assert im.height == 980
             assert im.bands == 3
 
         self.file_loader("radload", RAD_FILE, hdr_valid)
