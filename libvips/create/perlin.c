@@ -186,12 +186,13 @@ vips_perlin_gen(VipsRegion *out_region,
 			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 		VipsPel *q = (VipsPel *) fq;
 
+		int cs = perlin->cell_size;
+		int cell_y = (r->top + y) / cs;
+		float dy = (y + r->top - cell_y * cs) / (float) cs;
+
 		for (x = 0; x < r->width; x++) {
-			int cs = perlin->cell_size;
 			int cell_x = (r->left + x) / cs;
-			int cell_y = (r->top + y) / cs;
 			float dx = (x + r->left - cell_x * cs) / (float) cs;
-			float dy = (y + r->top - cell_y * cs) / (float) cs;
 			float sx = smootherstep(dx);
 			float sy = smootherstep(dy);
 
