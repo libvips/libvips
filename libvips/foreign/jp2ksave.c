@@ -307,6 +307,8 @@ vips_foreign_save_jp2k_rgb_to_ycc(VipsRegion *region,
 		ACC_TYPE *acc = (ACC_TYPE *) accumulate; \
 		OUTPUT_TYPE *tq = (OUTPUT_TYPE *) q; \
 		const int n_pels = comp->dx * comp->dy; \
+		const guint64 n_pels_recip = \
+			((1ULL << 32) + n_pels - 1) / n_pels; \
 \
 		PIXEL_TYPE *tp; \
 		ACC_TYPE *ap; \
@@ -333,7 +335,7 @@ vips_foreign_save_jp2k_rgb_to_ycc(VipsRegion *region,
 			for (z = 0; z < comp->dx; z++) \
 				sum += ap[z]; \
 \
-			tq[x] = (sum + n_pels / 2) / n_pels; \
+			tq[x] = ((guint64)(sum + n_pels / 2) * n_pels_recip) >> 32; \
 			ap += comp->dx; \
 		} \
 	}
