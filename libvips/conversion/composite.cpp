@@ -125,6 +125,11 @@ typedef struct _VipsCompositeBase {
 	 */
 	double max_band[MAX_BANDS + 1];
 
+	/* Precomputed reciprocals of max_band, to replace per-pixel
+	 * division with multiplication.
+	 */
+	double inv_max_band[MAX_BANDS + 1];
+
 	/* TRUE if all our modes are skippable, ie. we can avoid compositing
 	 * the whole stack for every pixel request.
 	 */
@@ -168,6 +173,7 @@ typedef struct {
 	 * on a 16-byte boundary.
 	 */
 	v4f max_band_vec;
+	v4f inv_max_band_vec;
 #endif /*HAVE_VECTOR_ARITH*/
 
 	VipsCompositeBase *composite;
@@ -332,13 +338,20 @@ vips_composite_start(VipsImage *out, void *a, void *b)
 #ifdef HAVE_VECTOR_ARITH
 	/* We need a float version for the vector path.
 	 */
-	if (composite->bands == 3)
+	if (composite->bands == 3) {
 		seq->max_band_vec = (v4f){
 			(float) composite->max_band[0],
 			(float) composite->max_band[1],
 			(float) composite->max_band[2],
 			(float) composite->max_band[3]
 		};
+		seq->inv_max_band_vec = (v4f){
+			(float) composite->inv_max_band[0],
+			(float) composite->inv_max_band[1],
+			(float) composite->inv_max_band[2],
+			(float) composite->inv_max_band[3]
+		};
+	}
 #endif
 
 	return seq;
@@ -590,7 +603,7 @@ vips_composite_base_blend(VipsCompositeBase *composite,
 	/* Load and scale the pixel to 0 - 1.
 	 */
 	for (int b = 0; b <= bands; b++)
-		A[b] = p[b] / composite->max_band[b];
+		A[b] = p[b] * composite->inv_max_band[b];
 	/* Not necessary, but it stops a compiler warning.
 	 */
 	for (int b = bands + 1; b < MAX_BANDS + 1; b++)
@@ -881,7 +894,7 @@ vips_composite_base_blend3(VipsCompositeSequence *seq,
 	A[2] = p[2];
 	A[3] = p[3];
 
-	A /= seq->max_band_vec;
+	A *= seq->inv_max_band_vec;
 
 	aA = A[3];
 	aB = B[3];
@@ -1152,7 +1165,7 @@ vips_combine_pixels(VipsCompositeSequence *seq, VipsPel *q)
 	/* Load and scale the base pixel to 0 - 1.
 	 */
 	for (int b = 0; b <= bands; b++)
-		B[b] = tp[0][b] / composite->max_band[b];
+		B[b] = tp[0][b] * composite->inv_max_band[b];
 
 	aB = B[bands];
 	if (!composite->premultiplied)
@@ -1220,7 +1233,7 @@ vips_combine_pixels3(VipsCompositeSequence *seq, VipsPel *q)
 
 	/* Scale the base pixel to 0 - 1.
 	 */
-	B /= seq->max_band_vec;
+	B *= seq->inv_max_band_vec;
 	aB = B[3];
 
 	if (!composite->premultiplied) {
@@ -1651,6 +1664,9 @@ vips_composite_base_build(VipsObject *object)
 			"%s", _("unsupported compositing space"));
 		return -1;
 	}
+
+	for (int b = 0; b <= composite->bands; b++)
+		composite->inv_max_band[b] = 1.0 / composite->max_band[b];
 
 	/* Transform the input images to match in format. We may have
 	 * mixed float and double, for example.
