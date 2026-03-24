@@ -261,9 +261,10 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 	{ \
 		double *restrict sum = (double *) seq->sum + sz * y; \
 		TYPE *restrict q = (TYPE *) out; \
+		const double inv_vshrink = 1.0 / shrink->vshrink; \
 \
 		for (x = 0; x < sz; x++) \
-			q[x] = sum[x] / shrink->vshrink; \
+			q[x] = sum[x] * inv_vshrink; \
 	}
 
 /* Average the line of sums to out.

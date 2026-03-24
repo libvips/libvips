@@ -137,13 +137,14 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 	{ \
 		TYPE *restrict p = (TYPE *) in; \
 		TYPE *restrict q = (TYPE *) out; \
+		const double inv_hshrink = 1.0 / shrink->hshrink; \
 \
 		for (x = 0; x < width; x++) { \
 			for (b = 0; b < bands; b++) { \
 				double sum = 0.0; \
 				for (x1 = b; x1 < ne; x1 += bands) \
 					sum += p[x1]; \
-				q[b] = sum / shrink->hshrink; \
+				q[b] = sum * inv_hshrink; \
 			} \
 			p += ne; \
 			q += bands; \
