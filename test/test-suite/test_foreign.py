@@ -493,6 +493,15 @@ class TestForeign:
         im = pyvips.Image.uhdrload_buffer(data)
         assert im.get("gainmap-scale-factor") == 4
 
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave_optimize_coding(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE)
+
+        data = im.uhdrsave_buffer(Q=80)
+        data_opt = im.uhdrsave_buffer(Q=80, optimize_coding=True)
+
+        assert len(data_opt) < len(data)
+
     @skip_if_no("uhdrload")
     def test_uhdr_thumbnail(self):
         im = pyvips.Image.uhdrload(UHDR_FILE)

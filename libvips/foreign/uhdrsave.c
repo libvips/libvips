@@ -79,6 +79,17 @@ typedef struct _VipsForeignSaveUhdr {
 
 	int gainmap_scale_factor;
 
+	/* Base image options to pass to jpegsave.
+	 */
+	gboolean optimize_coding;
+	gboolean interlace;
+	VipsForeignSubsample subsample_mode;
+	gboolean trellis_quant;
+	gboolean overshoot_deringing;
+	gboolean optimize_scans;
+	int quant_table;
+	int restart_interval;
+
 	uhdr_codec_private_t *enc;
 
 } VipsForeignSaveUhdr;
@@ -321,6 +332,7 @@ vips_foreign_save_uhdr_set_compressed_base(VipsForeignSaveUhdr *uhdr,
 	VipsImage *image)
 {
 	VipsObject **t = vips_object_local_array(VIPS_OBJECT(uhdr), 4);
+	VipsForeignSave *save = VIPS_FOREIGN_SAVE(uhdr);
 
 	VipsTarget *temp;
 	VipsSource *base;
@@ -339,7 +351,18 @@ vips_foreign_save_uhdr_set_compressed_base(VipsForeignSaveUhdr *uhdr,
 	vips_image_remove(image, "gainmap");
 	vips_image_remove(image, "gainmap-data");
 
-	if (vips_jpegsave_target(image, temp, "Q", uhdr->Q, NULL))
+	if (vips_jpegsave_target(image, temp,
+		"keep", save->keep,
+		"Q", uhdr->Q,
+		"optimize_coding", uhdr->optimize_coding,
+		"interlace", uhdr->interlace,
+		"subsample_mode", uhdr->subsample_mode,
+		"trellis_quant", uhdr->trellis_quant,
+		"overshoot_deringing", uhdr->overshoot_deringing,
+		"optimize_scans", uhdr->optimize_scans,
+		"quant_table", uhdr->quant_table,
+		"restart_interval", uhdr->restart_interval,
+		NULL))
 		return -1;
 
 	if (!(base = vips_source_new_from_target(temp)))
@@ -552,6 +575,63 @@ vips_foreign_save_uhdr_class_init(VipsForeignSaveUhdrClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, gainmap_scale_factor),
 		1, 128, 2);
 
+	VIPS_ARG_BOOL(class, "optimize_coding", 12,
+		_("Optimize coding"),
+		_("Compute optimal Huffman coding tables"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, optimize_coding),
+		FALSE);
+
+	VIPS_ARG_BOOL(class, "interlace", 13,
+		_("Interlace"),
+		_("Generate an interlaced (progressive) jpeg"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, interlace),
+		FALSE);
+
+	VIPS_ARG_ENUM(class, "subsample_mode", 14,
+		_("Subsample mode"),
+		_("Select chroma subsample operation mode"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, subsample_mode),
+		VIPS_TYPE_FOREIGN_SUBSAMPLE,
+		VIPS_FOREIGN_SUBSAMPLE_AUTO);
+
+	VIPS_ARG_BOOL(class, "trellis_quant", 15,
+		_("Trellis quantization"),
+		_("Apply trellis quantisation to each 8x8 block"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, trellis_quant),
+		FALSE);
+
+	VIPS_ARG_BOOL(class, "overshoot_deringing", 16,
+		_("Overshoot de-ringing"),
+		_("Apply overshooting to samples with extreme values"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, overshoot_deringing),
+		FALSE);
+
+	VIPS_ARG_BOOL(class, "optimize_scans", 17,
+		_("Optimize scans"),
+		_("Split spectrum of DCT coefficients into separate scans"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, optimize_scans),
+		FALSE);
+
+	VIPS_ARG_INT(class, "quant_table", 18,
+		_("Quantization table"),
+		_("Use predefined quantization table with given index"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, quant_table),
+		0, 8, 0);
+
+	VIPS_ARG_INT(class, "restart_interval", 19,
+		_("Restart interval"),
+		_("Add restart markers every specified number of mcu"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, restart_interval),
+		0, INT_MAX, 0);
+
 }
 
 static void
@@ -559,6 +639,14 @@ vips_foreign_save_uhdr_init(VipsForeignSaveUhdr *uhdr)
 {
 	uhdr->Q = 75;
 	uhdr->gainmap_scale_factor = 2;
+	uhdr->optimize_coding = FALSE;
+	uhdr->interlace = FALSE;
+	uhdr->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_AUTO;
+	uhdr->trellis_quant = FALSE;
+	uhdr->overshoot_deringing = FALSE;
+	uhdr->optimize_scans = FALSE;
+	uhdr->quant_table = 0;
+	uhdr->restart_interval = 0;
 }
 
 typedef struct _VipsForeignSaveUhdrFile {

@@ -2,6 +2,7 @@ date-tbd 8.18.2
 
 - convolution: avoid using unsigned accumulators [nakrovati]
 - uhdrsave: prevent early unref of image with alpha channel [lovell]
+- uhdrsave: ensure base image applies existing jpegsave options [lovell]
 
 18/3/26 8.18.1
 
