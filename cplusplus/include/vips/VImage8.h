@@ -2113,6 +2113,13 @@ public:
 	// clang-format off
 
 	/**
+	 * Transform cicp to scrgb.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage CICP2scRGB(VOption *options = nullptr) const;
+
+	/**
 	 * Transform lch to cmc.
 	 * @param options Set of options.
 	 * @return Output image.

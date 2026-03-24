@@ -12,6 +12,12 @@ date-tbd 8.19.0
 - conversion: non-separable blending modes added [kstanikviacbs]
 - dECMC: fix incorrect results [jcupitt]
 - jxlsave: add `interlace` option [mertalev]
+- add vips_CICP2scRGB [Starbix] [mertalev]
+- jxlload, heifload, pngload: read CICP metadata [Starbix] [mertalev]
+- jxlsave, heifsave, pngsave: write CICP metadata and pixel data
+  [Starbix] [mertalev]
+- jpegsave, uhdrsave: convert CICP image with HDR transfer to scRGB for HDR
+  [Starbix] [mertalev]
 
 18/3/26 8.18.1
 

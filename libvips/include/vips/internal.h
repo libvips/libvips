@@ -433,6 +433,8 @@ const char *vips__windows_prefix(void);
 
 char *vips__get_iso8601(void);
 
+gboolean vips__image_is_cicp_hdr(VipsImage *image);
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

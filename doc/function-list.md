@@ -40,6 +40,7 @@ API docs each function links to for more details.
 
 | Operator | Description | C functions |
 | -------- | ----------- | ----------- |
+| `CICP2scRGB` | Transform cicp to scrgb | [method@Image.CICP2scRGB] |
 | `CMC2LCh` | Transform lch to cmc | [method@Image.CMC2LCh] |
 | `CMYK2XYZ` | Transform cmyk to xyz | [method@Image.CMYK2XYZ] |
 | `HSV2sRGB` | Transform hsv to srgb | [method@Image.HSV2sRGB] |

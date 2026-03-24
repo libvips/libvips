@@ -534,6 +534,7 @@ if libheif_dep.found()
     cfg_var.set('HAVE_HEIF', true)
     # added in 1.10.0
     cfg_var.set('HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES', cpp.has_function('heif_encoder_parameter_get_valid_integer_values', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
+    cfg_var.set('HAVE_HEIF_ENCODING_OPTIONS_SAVE_TWO_COLR_BOXES', cpp.has_member('struct heif_encoding_options', 'save_two_colr_boxes_when_ICC_and_nclx_available', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
     # added in 1.11.0
     cfg_var.set('HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE', cpp.has_member('struct heif_encoding_options', 'output_nclx_profile', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
     # heif_init added in 1.13.0

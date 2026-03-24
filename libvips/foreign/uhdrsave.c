@@ -468,6 +468,19 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 		return -1;
 	}
 
+	/* CICP-tagged HDR images need linearizing to scRGB first.
+	 */
+	if (vips__image_is_cicp_hdr(image)) {
+		VipsImage *x;
+
+		if (vips_CICP2scRGB(image, &x, NULL)) {
+			VIPS_UNREF(image);
+			return -1;
+		}
+		VIPS_UNREF(image);
+		image = x;
+	}
+
 	if (image->Type == VIPS_INTERPRETATION_scRGB) {
 		VipsImage *x;
 

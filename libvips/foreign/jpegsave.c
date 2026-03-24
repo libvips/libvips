@@ -149,7 +149,8 @@ vips_foreign_save_jpeg_build(VipsObject *object)
 			VIPS_FOREIGN_SUBSAMPLE_OFF : VIPS_FOREIGN_SUBSAMPLE_AUTO;
 
 	if (vips_image_get_typeof(save->ready, "gainmap-data") ||
-		save->ready->Type == VIPS_INTERPRETATION_scRGB) {
+		save->ready->Type == VIPS_INTERPRETATION_scRGB ||
+		vips__image_is_cicp_hdr(save->ready)) {
 		/* Pass on to uhdrsave.
 		 */
 		if (vips_uhdrsave_target(save->ready, jpeg->target,
