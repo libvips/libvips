@@ -591,23 +591,19 @@ vips_composite_base_blend(VipsCompositeBase *composite,
 {
 	const int bands = composite->bands;
 
-	double A[MAX_BANDS + 1];
+	double A[MAX_BANDS + 1] = { 0 };
 	double aA;
 	double aB;
 	double aR;
 	double t1;
 	double t2;
 	double t3;
-	double f[MAX_BANDS + 1];
+	double f[MAX_BANDS + 1] = { 0 };
 
 	/* Load and scale the pixel to 0 - 1.
 	 */
 	for (int b = 0; b <= bands; b++)
 		A[b] = p[b] * composite->inv_max_band[b];
-	/* Not necessary, but it stops a compiler warning.
-	 */
-	for (int b = bands + 1; b < MAX_BANDS + 1; b++)
-		A[b] = 0.0;
 
 	aA = A[bands];
 	aB = B[bands];
