@@ -120,10 +120,13 @@ vips_foreign_save_png_build(VipsObject *object)
 			: 8;
 
 	/* Deprecated "colours" arg just sets bitdepth large enough to hold
-	 * that many colours.
+	 * that many colours. Round up to valid PNG depth (1,2,4,8).
 	 */
-	if (vips_object_argument_isset(object, "colours"))
-		png->bitdepth = ceil(log2(png->colours));
+	if (vips_object_argument_isset(object, "colours")) {
+		int bits = g_bit_storage(png->colours - 1);
+
+		png->bitdepth = 1 << g_bit_storage(bits - 1);
+	}
 
 	/* The bitdepth param can change the interpretation.
 	 */
