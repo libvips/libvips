@@ -1,5 +1,8 @@
 ## The suppressions below match only the top frame of report stacks
 
+# dispose() may run multiple times, but always serially, so non-racy
+race_top:vips_*_dispose
+
 # using thread-local regions in generate functions is fine
 race_top:vips_*_gen
 
@@ -258,7 +261,8 @@ race:vips_image_finalize
 # only called optionally when the whole program is done, so non-racy
 race:vips_shutdown
 
-# dispose() may run multiple times, but always serially, so non-racy
+# same as `race_top:vips_*_dispose` above, but matched against all
+# frames of report stacks
 race:vips_image_dispose
 race:vips_operation_dispose
 
