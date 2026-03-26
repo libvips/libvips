@@ -2,6 +2,7 @@ date-tbd 8.18.2
 
 - convolution: avoid using unsigned accumulators [nakrovati]
 - tiffload: check jpeg and jp2k components [wooseokdotkim]
+- uhdrsave: prevent early unref of image with alpha channel [lovell]
 
 18/3/26 8.18.1
 
