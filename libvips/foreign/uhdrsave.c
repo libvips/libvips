@@ -516,13 +516,14 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 		image = x;
 
 		// libuhdr needs RGBA
-		if (!vips_image_hasalpha(image) &&
-			vips_addalpha(image, &x, NULL)) {
+		if (!vips_image_hasalpha(image)) {
+			if (vips_addalpha(image, &x, NULL)) {
+				VIPS_UNREF(image);
+				return -1;
+			}
 			VIPS_UNREF(image);
-			return -1;
+			image = x;
 		}
-		VIPS_UNREF(image);
-		image = x;
 
 		if (vips_foreign_save_uhdr_hdr(uhdr, image)) {
 			VIPS_UNREF(image);
