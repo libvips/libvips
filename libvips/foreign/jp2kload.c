@@ -603,17 +603,14 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 /* Is an image a type we handle? We don't support various strange jp2k types.
  */
 static int
-vips_foreign_load_jp2k_check_supported(VipsForeignLoadJp2k *jp2k,
-	opj_image_t *image)
+vips_foreign_load_jp2k_check_supported(opj_image_t *image)
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jp2k);
-
 	if (image->numcomps > MAX_BANDS) {
-		vips_error(class->nickname, "%s", _("too many image bands"));
+		vips_error("jp2kload", "%s", _("too many image bands"));
 		return -1;
 	}
 	if (image->numcomps == 0) {
-		vips_error(class->nickname, "%s", _("no image components"));
+		vips_error("jp2kload", "%s", _("no image components"));
 		return -1;
 	}
 
@@ -629,15 +626,13 @@ vips_foreign_load_jp2k_check_supported(VipsForeignLoadJp2k *jp2k,
 			this->h * this->dy != first->h * first->dy ||
 			this->resno_decoded != first->resno_decoded ||
 			this->factor != first->factor) {
-			vips_error(class->nickname,
-				"%s", _("components differ in geometry"));
+			vips_error("jp2kload", "%s", _("components differ in geometry"));
 			return -1;
 		}
 
 		if (this->prec != first->prec ||
 			this->sgnd != first->sgnd) {
-			vips_error(class->nickname,
-				"%s", _("components differ in precision"));
+			vips_error("jp2kload", "%s", _("components differ in precision"));
 			return -1;
 		}
 	}
@@ -673,7 +668,7 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 	if (!(jp2k->info = opj_get_cstr_info(jp2k->codec)))
 		return -1;
 
-	if (vips_foreign_load_jp2k_check_supported(jp2k, jp2k->image))
+	if (vips_foreign_load_jp2k_check_supported(jp2k->image))
 		return -1;
 
 	/* If any dx/dy are not 1, we'll need to upsample components during
@@ -1001,7 +996,7 @@ vips_foreign_load_jp2k_generate_untiled(VipsRegion *out,
 	if (!opj_decode(jp2k->codec, jp2k->stream, jp2k->image))
 		return -1;
 
-	if (vips_foreign_load_jp2k_check_supported(jp2k, jp2k->image))
+	if (vips_foreign_load_jp2k_check_supported(jp2k->image))
 		return -1;
 
 	/* Tragically, jp2k allows the decoded image to not match the wrapper.
@@ -1097,7 +1092,7 @@ vips_foreign_load_jp2k_generate_tiled(VipsRegion *out,
 					jp2k->stream, jp2k->image, tile_index))
 				return -1;
 
-			if (vips_foreign_load_jp2k_check_supported(jp2k, jp2k->image))
+			if (vips_foreign_load_jp2k_check_supported(jp2k->image))
 				return -1;
 
 			/* Tragically, jp2k allows the decoded image to not match the
@@ -1564,8 +1559,12 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 		return -1;
 	}
 
+	if (vips_foreign_load_jp2k_check_supported(decompress.image))
+		return -1;
+
 	if (decompress.image->x1 > width ||
 		decompress.image->y1 > height ||
+		decompress.image->numcomps > out->Bands ||
 		line_size * height > to_length) {
 		vips_error("jp2kload", "%s", ("bad dimensions"));
 		vips__foreign_load_jp2k_decompress_free(&decompress);
