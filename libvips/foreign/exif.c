@@ -1284,6 +1284,11 @@ vips_exif_image_field(VipsImage *image,
 
 	p = field + strlen("exif-ifd");
 	ifd = atoi(p);
+	if (ifd < 0 ||
+		ifd >= EXIF_IFD_COUNT) {
+		g_warning("bad exif ifd %d in \"%s\"", ifd, field);
+		return NULL;
+	}
 
 	for (; g_ascii_isdigit(*p); p++)
 		;
