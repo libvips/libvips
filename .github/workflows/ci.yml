@@ -112,7 +112,6 @@ jobs:
         run:
           meson setup build
             -Ddebug=true
-            -Ddeprecated=false
             -Dmagick=disabled
             -Ddocs=${{ matrix.build.docs || 'false' }}
             -Dintrospection=${{ matrix.build.docs && 'enabled' || 'disabled' }}

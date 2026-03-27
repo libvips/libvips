@@ -2,7 +2,7 @@
 
 option('deprecated',
   type: 'boolean',
-  value: true,
+  value: false,
   description: 'Build deprecated components')
 
 option('examples',
