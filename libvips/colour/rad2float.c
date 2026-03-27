@@ -196,6 +196,7 @@ vips_rad2float_init(VipsRad2float *rad2float)
 	colour->interpretation = VIPS_INTERPRETATION_scRGB;
 	colour->format = VIPS_FORMAT_FLOAT;
 	colour->bands = 3;
+	colour->input_bands = 4;
 
 	code->input_coding = VIPS_CODING_RAD;
 }
