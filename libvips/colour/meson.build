@@ -27,6 +27,7 @@ colour_sources = files(
     'profiles.c',
     'rad2float.c',
     'scRGB2BW.c',
+    'scRGB2CICP.c',
     'scRGB2sRGB.c',
     'scRGB2XYZ.c',
     'sRGB2HSV.c',

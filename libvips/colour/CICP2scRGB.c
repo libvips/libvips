@@ -78,17 +78,9 @@ typedef struct _VipsCICP2scRGB {
 
 } VipsCICP2scRGB;
 
-#define SDR_WHITE 80.0f
-
 typedef VipsColourClass VipsCICP2scRGBClass;
 
 G_DEFINE_TYPE(VipsCICP2scRGB, vips_CICP2scRGB, VIPS_TYPE_COLOUR);
-
-static const float BT709_to_BT709[9] = {
-	1.0f, 0.0f, 0.0f,
-	0.0f, 1.0f, 0.0f,
-	0.0f, 0.0f, 1.0f
-};
 
 static const float BT2020_to_BT709[9] = {
 	1.660491f, -0.58764114f, -0.07284986f,
@@ -146,128 +138,30 @@ static const float EBU3213_to_BT709[9] = {
 	-0.00176953f, -0.00144232f, 1.00321185f
 };
 
-/* Luminance coefficients (Y row of primaries-to-XYZ matrix) for
- * each set of colour primaries. Used by HLG OOTF to compute
- * scene luminance in the source primaries' colour space.
- *
- * These are the normalised Y chromaticities scaled so that the
- * white point has Y = 1. For standard illuminant D65 primaries:
- *   Y_r = yr * (xw/yw) / (xr/yr * (yw-yg) - xg * (yw-yr)/yg + xb * (yr-yg)/yb + ...)
- * In practice these come from the second row of the 3x3
- * chromaticity-to-XYZ matrix, normalised to sum to 1.
- */
-
-/* Luminance coefficients derived from H.273 Table 2 chromaticities.
- */
-
-/* BT.709 / sRGB (value 1)
- */
-static const float BT709_luminance[3] = { 0.2126f, 0.7152f, 0.0722f };
-
-/* BT.2020 / BT.2100 (value 9)
- */
-static const float BT2020_luminance[3] = { 0.2627f, 0.6780f, 0.0593f };
-
-/* DCI-P3 / SMPTE 431 (value 11, Illuminant DCI ~0.314/0.351)
- */
-static const float DCI_P3_luminance[3] = { 0.2095f, 0.7216f, 0.0689f };
-
-/* Display P3 / SMPTE 432 (value 12, D65 white)
- */
-static const float Display_P3_luminance[3] = { 0.2290f, 0.6917f, 0.0793f };
-
-/* BT.470M (value 4, Illuminant C)
- */
-static const float BT470M_luminance[3] = { 0.2990f, 0.5864f, 0.1146f };
-
-/* BT.470BG (value 5)
- */
-static const float BT470BG_luminance[3] = { 0.2220f, 0.7067f, 0.0713f };
-
-/* BT.601 / SMPTE 170M / SMPTE 240M (values 6, 7)
- */
-static const float BT601_luminance[3] = { 0.2124f, 0.7011f, 0.0866f };
-
-/* Generic Film (value 8, Illuminant C)
- */
-static const float GenericFilm_luminance[3] = { 0.2536f, 0.6783f, 0.0681f };
-
-/* EBU 3213 (value 22)
- */
-static const float EBU3213_luminance[3] = { 0.2318f, 0.6723f, 0.0960f };
-
-static void
-vips_CICP2scRGB_init_matrix(VipsCICP2scRGB *cicp)
+static const float *
+vips_CICP2scRGB_get_matrix(VipsCICPColourPrimaries primaries)
 {
-	const float *matrix;
-	const float *luminance;
-
-	switch (cicp->colour_primaries) {
-	case VIPS_CICP_COLOUR_PRIMARIES_BT709:
-		matrix = BT709_to_BT709;
-		luminance = BT709_luminance;
-		break;
-
+	switch (primaries) {
 	case VIPS_CICP_COLOUR_PRIMARIES_BT2020:
-		matrix = BT2020_to_BT709;
-		luminance = BT2020_luminance;
-		break;
-
+		return BT2020_to_BT709;
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE431:
-		matrix = DCI_P3_to_BT709;
-		luminance = DCI_P3_luminance;
-		break;
-
+		return DCI_P3_to_BT709;
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE432:
-		matrix = Display_P3_to_BT709;
-		luminance = Display_P3_luminance;
-		break;
-
+		return Display_P3_to_BT709;
 	case VIPS_CICP_COLOUR_PRIMARIES_BT470M:
-		matrix = BT470M_to_BT709;
-		luminance = BT470M_luminance;
-		break;
-
+		return BT470M_to_BT709;
 	case VIPS_CICP_COLOUR_PRIMARIES_BT470BG:
-		matrix = BT470BG_to_BT709;
-		luminance = BT470BG_luminance;
-		break;
-
+		return BT470BG_to_BT709;
 	case VIPS_CICP_COLOUR_PRIMARIES_BT601:
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE240:
-		matrix = BT601_to_BT709;
-		luminance = BT601_luminance;
-		break;
-
+		return BT601_to_BT709;
 	case VIPS_CICP_COLOUR_PRIMARIES_GENERIC_FILM:
-		matrix = GenericFilm_to_BT709;
-		luminance = GenericFilm_luminance;
-		break;
-
+		return GenericFilm_to_BT709;
 	case VIPS_CICP_COLOUR_PRIMARIES_EBU3213:
-		matrix = EBU3213_to_BT709;
-		luminance = EBU3213_luminance;
-		break;
-
+		return EBU3213_to_BT709;
 	default:
-		/* For unspecified or unimplemented primaries, use identity.
-		 */
-		matrix = BT709_to_BT709;
-		luminance = BT709_luminance;
-		break;
+		return BT709_to_BT709;
 	}
-
-	memcpy(cicp->conversion_matrix, matrix, 9 * sizeof(float));
-	memcpy(cicp->luminance_coeffs, luminance, 3 * sizeof(float));
-}
-
-static inline void
-vips_apply_matrix(const float *matrix, float r, float g, float b,
-	float *out_r, float *out_g, float *out_b)
-{
-	*out_r = matrix[0] * r + matrix[1] * g + matrix[2] * b;
-	*out_g = matrix[3] * r + matrix[4] * g + matrix[5] * b;
-	*out_b = matrix[6] * r + matrix[7] * g + matrix[8] * b;
 }
 
 static inline float
@@ -331,24 +225,6 @@ vips_hlg_inverse_oetf(float E)
  * Uses a pre-computed LUT for powf(Y_s, gamma-1) with linear
  * interpolation. Y_s is in [0, 1] (scene-linear after inverse OETF).
  */
-#define OOTF_LUT_SIZE 4096
-
-static float *
-vips_hlg_ootf_build_lut(void)
-{
-	const float gamma_minus_1 = 0.2f;
-	const float scale = 1000.0f / SDR_WHITE;
-
-	float *lut = g_new(float, OOTF_LUT_SIZE);
-
-	lut[0] = 0.0f;
-	for (int i = 1; i < OOTF_LUT_SIZE; i++)
-		lut[i] = scale *
-			powf((float) i / (OOTF_LUT_SIZE - 1), gamma_minus_1);
-
-	return lut;
-}
-
 static inline void
 vips_hlg_ootf(float *r, float *g, float *b,
 	const float *luminance, const float *ootf_lut)
@@ -362,16 +238,7 @@ vips_hlg_ootf(float *r, float *g, float *b,
 		return;
 	}
 
-	/* Linearly interpolate the OOTF LUT. Y_s is in [0, 1].
-	 */
-	float idx = Y_s * (OOTF_LUT_SIZE - 1);
-	int lo = (int) idx;
-
-	if (lo >= OOTF_LUT_SIZE - 1)
-		lo = OOTF_LUT_SIZE - 2;
-
-	float frac = idx - lo;
-	float factor = ootf_lut[lo] + frac * (ootf_lut[lo + 1] - ootf_lut[lo]);
+	float factor = vips_cicp_lut_interpolate(ootf_lut, Y_s);
 
 	*r *= factor;
 	*g *= factor;
@@ -400,9 +267,10 @@ vips_bt709_inverse_oetf(float E)
 static inline float
 vips_sRGB_inverse_oetf(float E)
 {
-	const float signal_beta = 0.04045f;
+	const float linear_beta = 0.003041282560128f;
 	const float slope = 12.92f;
-	const float alpha = 1.055f;
+	const float signal_beta = slope * linear_beta;
+	const float alpha = 1.05501071894759f;
 	const float gamma = 2.4f;
 
 	if (E < 0.0f)
@@ -428,8 +296,8 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 	case VIPS_CICP_TRANSFER_BT2020_12BIT:
 		return vips_bt709_inverse_oetf(in);
 	case VIPS_CICP_TRANSFER_SMPTE240: {
-		const float alpha = 1.1115f;
-		const float linear_beta = 0.0228f;
+		const float alpha = 1.11157219592173f;
+		const float linear_beta = 0.022821585529445f;
 		const float slope = 4.0f;
 
 		if (in < slope * linear_beta)
@@ -516,7 +384,7 @@ vips_CICP2scRGB_build_lut(VipsCICPTransferCharacteristics transfer, int n)
 		if (is_hlg) \
 			vips_hlg_ootf(&r, &g, &b, luminance, cicp->ootf_lut); \
 \
-		vips_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]); \
+		vips_cicp_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]); \
 \
 		q += 3; \
 	} \
@@ -564,7 +432,12 @@ vips_CICP2scRGB_build(VipsObject *object)
 		cicp->transfer_characteristics = transfer_characteristics;
 		cicp->matrix_coefficients = matrix_coefficients;
 
-		vips_CICP2scRGB_init_matrix(cicp);
+		memcpy(cicp->conversion_matrix,
+			vips_CICP2scRGB_get_matrix(cicp->colour_primaries),
+			9 * sizeof(float));
+		memcpy(cicp->luminance_coeffs,
+			vips_cicp_get_luminance(cicp->colour_primaries),
+			3 * sizeof(float));
 
 		cicp->lut_size = cicp->in->BandFmt == VIPS_FORMAT_UCHAR
 			? 256 : 65536;
@@ -572,7 +445,8 @@ vips_CICP2scRGB_build(VipsObject *object)
 			cicp->transfer_characteristics, cicp->lut_size);
 
 		if (cicp->transfer_characteristics == VIPS_CICP_TRANSFER_HLG)
-			cicp->ootf_lut = vips_hlg_ootf_build_lut();
+			cicp->ootf_lut = vips_cicp_build_power_lut(
+				0.2f, 1000.0f / SDR_WHITE);
 
 		colour->in[0] = cicp->in;
 		g_object_ref(cicp->in);
