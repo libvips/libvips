@@ -223,6 +223,99 @@ class TestCICP:
         assert result.interpretation == "scrgb"
         assert result.bands == 3
 
+    @skip_if_no("scRGB2CICP")
+    @pytest.mark.parametrize("transfer,name,cases,tolerance", TRANSFER_CASES,
+                             ids=[c[1] for c in TRANSFER_CASES])
+    def test_transfer_roundtrip(self, transfer, name, cases, tolerance):
+        for val, _ in cases:
+            if val == 0:
+                continue
+            im = make_cicp_image(val, val, val, transfer=transfer)
+            scrgb = im.CICP2scRGB()
+            result = scrgb.scRGB2CICP(PRIMARIES_BT709, transfer, 0, 1)
+            pixel = result(0, 0)
+            assert abs(pixel[0] - val) <= 1, \
+                f"{name} at {val}: got {pixel[0]}, expected {val}"
+
+    @skip_if_no("scRGB2CICP")
+    @pytest.mark.parametrize("primaries,name,_expected,_tolerance",
+                             PRIMARIES_MATRIX_CASES,
+                             ids=[c[1] for c in PRIMARIES_MATRIX_CASES])
+    def test_primaries_roundtrip(self, primaries, name, _expected, _tolerance):
+        im = make_cicp_image(200, 100, 50, primaries=primaries,
+                             transfer=TRANSFER_LINEAR)
+        scrgb = im.CICP2scRGB()
+        result = scrgb.scRGB2CICP(primaries, TRANSFER_LINEAR, 0, 1)
+        pixel = result(0, 0)
+        assert abs(pixel[0] - 200) <= 1, \
+            f"{name} R: got {pixel[0]}, expected 200"
+        assert abs(pixel[1] - 100) <= 1, \
+            f"{name} G: got {pixel[1]}, expected 100"
+        assert abs(pixel[2] - 50) <= 1, \
+            f"{name} B: got {pixel[2]}, expected 50"
+
+    @skip_if_no("scRGB2CICP")
+    def test_scRGB2CICP_output_format_8bit(self):
+        im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
+            + [0.5, 0.5, 0.5]
+        result = im.scRGB2CICP(PRIMARIES_BT709, TRANSFER_SRGB, 0, 1)
+        assert result.format == "uchar"
+        assert result.bands == 3
+
+    @skip_if_no("scRGB2CICP")
+    def test_scRGB2CICP_output_format_16bit(self):
+        im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
+            + [0.5, 0.5, 0.5]
+        result = im.scRGB2CICP(PRIMARIES_BT709, TRANSFER_SRGB, 0, 1,
+                                depth=16)
+        assert result.format == "ushort"
+        assert result.bands == 3
+
+    @skip_if_no("scRGB2CICP")
+    def test_scRGB2CICP_metadata_set(self):
+        im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
+            + [0.5, 0.5, 0.5]
+        result = im.scRGB2CICP(PRIMARIES_BT2020, TRANSFER_PQ, 0, 1)
+        assert result.get("cicp-colour-primaries") == PRIMARIES_BT2020
+        assert result.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert result.get("cicp-matrix-coefficients") == 0
+        assert result.get("cicp-full-range-flag") == 1
+
+    @skip_if_no("scRGB2CICP")
+    def test_scRGB2CICP_ushort_roundtrip(self):
+        ushort_val = round(128 / 255.0 * 65535)
+        im = make_cicp_image(ushort_val, ushort_val, ushort_val,
+                             transfer=TRANSFER_SRGB, fmt="ushort")
+        scrgb = im.CICP2scRGB()
+        result = scrgb.scRGB2CICP(PRIMARIES_BT709, TRANSFER_SRGB, 0, 1,
+                                   depth=16)
+        pixel = result(0, 0)
+        assert abs(pixel[0] - ushort_val) <= 1
+
+    @skip_if_no("scRGB2CICP")
+    def test_bt2020_pq_roundtrip(self):
+        im = make_cicp_image(128, 100, 80,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=TRANSFER_PQ)
+        scrgb = im.CICP2scRGB()
+        result = scrgb.scRGB2CICP(PRIMARIES_BT2020, TRANSFER_PQ, 0, 1)
+        pixel = result(0, 0)
+        assert abs(pixel[0] - 128) <= 1
+        assert abs(pixel[1] - 100) <= 1
+        assert abs(pixel[2] - 80) <= 1
+
+    @skip_if_no("scRGB2CICP")
+    def test_display_p3_hlg_roundtrip(self):
+        im = make_cicp_image(180, 120, 60,
+                             primaries=PRIMARIES_DISPLAY_P3,
+                             transfer=TRANSFER_HLG)
+        scrgb = im.CICP2scRGB()
+        result = scrgb.scRGB2CICP(PRIMARIES_DISPLAY_P3, TRANSFER_HLG, 0, 1)
+        pixel = result(0, 0)
+        assert abs(pixel[0] - 180) <= 1
+        assert abs(pixel[1] - 120) <= 1
+        assert abs(pixel[2] - 60) <= 1
+
     # -- JXL round-trip tests --
 
     @skip_if_no("jxlsave")
