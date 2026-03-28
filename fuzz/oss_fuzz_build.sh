@@ -237,7 +237,7 @@ popd
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debug \
-  -Dbackend_max_links=4 -Ddeprecated=false -Dexamples=false -Dman=false -Dpo=false \
+  -Dbackend_max_links=4 -Dexamples=false -Dman=false -Dpo=false \
   -Dtests=false -Dtools=false -Dcplusplus=false -Dmodules=disabled -Dfuzz=true \
   -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE" \
   -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
