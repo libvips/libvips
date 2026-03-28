@@ -1,6 +1,10 @@
 #include <cstring>
 #include <vips/vips.h>
 
+#if defined(__has_feature) && __has_feature(thread_sanitizer)
+#include "tsan_config.h"
+#endif
+
 #ifdef __GNUC__
 #define PACK(...) __VA_ARGS__ __attribute__((__packed__))
 #elif defined(_MSC_VER)
