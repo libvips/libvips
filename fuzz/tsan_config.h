@@ -1,7 +1,7 @@
 extern "C" const char *
 __tsan_default_options()
 {
-	return "halt_on_error=1";
+	return "halt_on_error=1:ignore_noninstrumented_modules=1";
 }
 
 extern "C" const char *
