@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <vips/vips.h>
 
 #define MAX_ARG_LEN 4096 // =VIPS_PATH_MAX

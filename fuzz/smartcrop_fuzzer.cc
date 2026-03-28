@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include <vips/vips.h>
 
 extern "C" int
