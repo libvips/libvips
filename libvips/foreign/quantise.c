@@ -1117,3 +1117,141 @@ vips__quantise_palette_single(VipsImage *in, VipsQuantisePalette *out)
 	return 0;
 }
 #endif /*HAVE_IMAGEQUANT || HAVE_QUANTIZR*/
+
+int
+vips__quantise_palette(VipsImage *in, VipsImage **palette_out,
+	int colours, int Q, int effort)
+{
+	Quantise *quantise;
+	VipsImage *palette;
+	const VipsQuantisePalette *lp;
+	VipsQuantisePalette builtin_pal;
+	gint64 i;
+	VipsPel *restrict p;
+
+	quantise = vips__quantise_new(in, NULL, palette_out,
+		colours, Q, 0, effort);
+
+	/* Ensure sRGB. Also force the conversion if the input has fewer
+	 * than 3 bands (e.g. a 1-band slice tagged sRGB after extract_band):
+	 * the quantiser reads 4 bytes per pixel and would walk off the end.
+	 */
+	if (in->Type != VIPS_INTERPRETATION_sRGB || in->Bands < 3) {
+		if (vips_colourspace(in, &quantise->t[0],
+				VIPS_INTERPRETATION_sRGB, NULL)) {
+			vips__quantise_free(quantise);
+			return -1;
+		}
+		in = quantise->t[0];
+	}
+
+	/* Add alpha channel if missing.
+	 */
+	if (!vips_image_hasalpha(in)) {
+		if (vips_bandjoin_const1(in, &quantise->t[1], 255, NULL)) {
+			vips__quantise_free(quantise);
+			return -1;
+		}
+		in = quantise->t[1];
+	}
+
+	/* Cast to 8-bit — the quantiser expects uchar RGBA.
+	 */
+	if (in->BandFmt != VIPS_FORMAT_UCHAR) {
+		if (vips_cast(in, &quantise->t[4], VIPS_FORMAT_UCHAR, NULL)) {
+			vips__quantise_free(quantise);
+			return -1;
+		}
+		in = quantise->t[4];
+	}
+
+	/* colours == 1: use the per-backend single-cluster helper and
+	 * skip the remap/copy_memory steps entirely.
+	 */
+	if (colours == 1) {
+		if (vips__quantise_palette_single(in, &builtin_pal)) {
+			vips_error("quantise", "%s",
+				_("quantisation failed"));
+			vips__quantise_free(quantise);
+			return -1;
+		}
+		lp = &builtin_pal;
+	}
+	else {
+#if !defined(HAVE_IMAGEQUANT) && !defined(HAVE_QUANTIZR)
+		/* Built-in backend: stream the histogram pass via vips_sink,
+		 * no need to copy the image to memory. Discard the exact_map —
+		 * we only want the palette.
+		 */
+		GHashTable *exact_map;
+
+		if (vips__builtin_quantise_stream(in,
+				colours, effort, &builtin_pal, &exact_map)) {
+			vips_error("quantise", "%s",
+				_("quantisation failed"));
+			vips__quantise_free(quantise);
+			return -1;
+		}
+
+		if (exact_map)
+			g_hash_table_destroy(exact_map);
+
+		lp = &builtin_pal;
+#else
+		if (!(quantise->t[2] = vips_image_copy_memory(in))) {
+			vips__quantise_free(quantise);
+			return -1;
+		}
+		in = quantise->t[2];
+
+		quantise->attr = vips__quantise_attr_create();
+		vips__quantise_set_max_colors(quantise->attr, colours);
+		vips__quantise_set_quality(quantise->attr, 0, Q);
+		vips__quantise_set_speed(quantise->attr, 11 - effort);
+
+		quantise->input_image =
+			vips__quantise_image_create_rgba(quantise->attr,
+				VIPS_IMAGE_ADDR(in, 0, 0),
+				in->Xsize, in->Ysize, 0);
+
+		if (vips__quantise_image_quantize(quantise->input_image,
+				quantise->attr,
+				&quantise->quantisation_result)) {
+			vips_error("quantise", "%s",
+				_("quantisation failed"));
+			vips__quantise_free(quantise);
+			return -1;
+		}
+
+		/* Extract palette without remapping.
+		 */
+		lp = vips__quantise_get_palette(quantise->quantisation_result);
+#endif
+	}
+
+	palette = quantise->t[3] = vips_image_new_memory();
+	vips_image_init_fields(palette, lp->count, 1, 4,
+		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB,
+		1.0, 1.0);
+
+	if (vips_image_write_prepare(palette)) {
+		vips__quantise_free(quantise);
+		return -1;
+	}
+
+	p = VIPS_IMAGE_ADDR(palette, 0, 0);
+	for (i = 0; i < lp->count; i++) {
+		p[0] = lp->entries[i].r;
+		p[1] = lp->entries[i].g;
+		p[2] = lp->entries[i].b;
+		p[3] = lp->entries[i].a;
+		p += 4;
+	}
+
+	*palette_out = palette;
+	g_object_ref(palette);
+
+	vips__quantise_free(quantise);
+
+	return 0;
+}

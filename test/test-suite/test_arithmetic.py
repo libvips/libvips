@@ -722,6 +722,56 @@ class TestArithmetic:
             assert_almost_equal_objects(matrix(4, 1), [a.avg()])
             assert_almost_equal_objects(matrix(5, 1), [a.deviate()])
 
+    def test_dominant_colours(self):
+        im = pyvips.Image.new_from_file(JPEG_FILE)
+        palette = im.dominant_colours(5)
+        assert palette.height == 1
+        assert palette.width <= 5
+        assert palette.bands == 4
+        assert palette.format == "uchar"
+        assert palette.interpretation == "srgb"
+
+        # mono input
+        mono = im.extract_band(0)
+        palette = mono.dominant_colours(3)
+        assert palette.width <= 3
+        assert palette.bands == 4
+
+        # n=1 returns the single-cluster centroid. Uniform black and white
+        # round-trip exactly through every backend's gamma curve, so we can
+        # assert the value rather than just the shape.
+        palette = im.dominant_colours(1)
+        assert palette.width == 1
+
+        white = (pyvips.Image.black(10, 10, bands=3) + 255) \
+            .copy(interpretation="srgb").cast("uchar")
+        assert tuple(white.dominant_colours(1)(0, 0)) == \
+            (255.0, 255.0, 255.0, 255.0)
+
+        black = pyvips.Image.black(10, 10, bands=3) \
+            .copy(interpretation="srgb").cast("uchar")
+        assert tuple(black.dominant_colours(1)(0, 0)) == \
+            (0.0, 0.0, 0.0, 255.0)
+
+        # n=2: smallest case where the quantiser actually splits
+        palette = im.dominant_colours(2)
+        assert palette.width <= 2
+
+        # 16-bit input
+        im16 = pyvips.Image.new_from_file(PNG_FILE)
+        palette = im16.dominant_colours(8)
+        assert palette.width <= 8
+        assert palette.format == "uchar"
+
+        # Fully-transparent RGBA: collapses to (0,0,0,0) on every backend.
+        # Built-in detects the empty histogram and overrides wu_box_color's
+        # opaque-black fallback; libimagequant returns 0 because sum_fa==0;
+        # quantizr normalises every α=0 pixel to (0,0,0,0) before averaging.
+        rgba = im.bandjoin(0)
+        palette = rgba.dominant_colours(1)
+        assert palette.width == 1
+        assert tuple(palette(0, 0)) == (0.0, 0.0, 0.0, 0.0)
+
     def test_sum(self):
         for fmt in all_formats:
             im = pyvips.Image.black(50, 50)
