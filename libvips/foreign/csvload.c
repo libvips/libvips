@@ -332,6 +332,7 @@ vips_foreign_load_csv_header(VipsForeignLoad *load)
 	int ch;
 	int width;
 	int height;
+	const int max_width = VIPS_MAX_COORD;
 
 	/* Rewind.
 	 */
@@ -356,7 +357,12 @@ vips_foreign_load_csv_header(VipsForeignLoad *load)
 		csv->colno += 1;
 		ch = vips_foreign_load_csv_read_double(csv, &value);
 	} while (ch != '\n' &&
-		ch != EOF);
+		ch != EOF &&
+		csv->colno <= max_width);
+	if (csv->colno > max_width) {
+		vips_error(class->nickname, "%s", _("image too large"));
+		return -1;
+	}
 	width = csv->colno;
 
 	if (!(csv->linebuf = VIPS_ARRAY(NULL, width, double)))
