@@ -234,9 +234,18 @@ cmake \
 cmake --build . --target install
 popd
 
+TSAN_ARGS=""
+if [ "$SANITIZER" = "thread" ]; then
+  # TSan may report false positives when callbacks cross boundaries between
+  # instrumented and non-instrumented code. To avoid this, built GLib with
+  # TSan instrumentation as well.
+  # https://github.com/google/sanitizers/wiki/threadsanitizercppmanual#non-instrumented-code
+  TSAN_ARGS="--force-fallback-for=glib -Dglib:glib_debug=disabled -Dglib:nls=disabled -Dglib:sysprof=disabled -Dglib:tests=false"
+fi
+
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
-meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debug \
+meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debug $TSAN_ARGS \
   -Dbackend_max_links=4 -Dexamples=false -Dman=false -Dpo=false \
   -Dtests=false -Dtools=false -Dcplusplus=false -Dmodules=disabled -Dfuzz=true \
   -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE" \

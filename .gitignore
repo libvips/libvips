@@ -52,3 +52,9 @@ TAGS
 ### Distribution
 vips-*.tar.gz
 ### End of Distribution
+
+### Subprojects
+subprojects/glib-*/
+subprojects/packagecache/
+subprojects/.wraplock
+### End of Subprojects
