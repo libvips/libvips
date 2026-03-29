@@ -545,7 +545,8 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 			p[2] = 0;
 			p[3] = 0;
 
-			if (cgif->page_number > 0 &&
+			if (cgif->previous_frame &&
+				cgif->page_number > 0 &&
 				cgif->previous_frame[i * 4 + 3])
 				has_alpha_constraint = TRUE;
 		}
@@ -645,23 +646,29 @@ vips_foreign_save_cgif_write_frame(VipsForeignSaveCgif *cgif)
 	/* Pixels which are equal to pixels in the previous frame can be made
 	 * transparent, provided no alpha channel constraint is present.
 	 */
-	if (cgif->page_number > 0 &&
-		!has_alpha_constraint) {
-		int trans = has_transparency ? 0 : n_colours;
+	if (cgif->previous_frame) {
+		if (cgif->page_number > 0 &&
+			!has_alpha_constraint) {
+			int trans = has_transparency ? 0 : n_colours;
 
-		vips_foreign_save_cgif_set_transparent(cgif,
-			cgif->previous_frame, cgif->frame_bytes, cgif->index,
-			n_pels, cgif->frame_width, trans);
+			vips_foreign_save_cgif_set_transparent(cgif,
+				cgif->previous_frame, cgif->frame_bytes,
+				cgif->index,
+				n_pels, cgif->frame_width, trans);
 
-		if (has_transparency)
-			frame_config.attrFlags &= ~CGIF_FRAME_ATTR_HAS_ALPHA;
-		frame_config.attrFlags |= CGIF_FRAME_ATTR_HAS_SET_TRANS;
-		frame_config.transIndex = trans;
-	}
-	else {
-		/* Take a copy of the RGBA frame.
-		 */
-		memcpy(cgif->previous_frame, cgif->frame_bytes, 4 * n_pels);
+			if (has_transparency)
+				frame_config.attrFlags &=
+					~CGIF_FRAME_ATTR_HAS_ALPHA;
+			frame_config.attrFlags |=
+				CGIF_FRAME_ATTR_HAS_SET_TRANS;
+			frame_config.transIndex = trans;
+		}
+		else {
+			/* Take a copy of the RGBA frame.
+			 */
+			memcpy(cgif->previous_frame, cgif->frame_bytes,
+				4 * n_pels);
+		}
 	}
 
 	if (cgif->delay &&
@@ -778,9 +785,11 @@ vips_foreign_save_cgif_build(VipsObject *object)
 		cgif->frame_width * cgif->frame_height);
 
 	/* The previous RGBA frame (for spotting pixels which haven't changed).
+	 * Only needed for multi-frame animations.
 	 */
-	cgif->previous_frame = g_malloc0((size_t) 4 *
-		cgif->frame_width * cgif->frame_height);
+	if (cgif->in->Ysize > cgif->frame_height)
+		cgif->previous_frame = g_malloc0((size_t) 4 *
+			cgif->frame_width * cgif->frame_height);
 
 	/* The frame index buffer.
 	 */
