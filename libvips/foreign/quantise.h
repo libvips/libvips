@@ -102,6 +102,9 @@ int vips__quantise_image(VipsImage *in,
 	int colours, int Q, double dither, int effort,
 	gboolean threshold_alpha);
 
+int vips__quantise_palette(VipsImage *in, VipsImage **palette_out,
+	int colours, int Q, int effort);
+
 /* Built-in Wu quantiser low-level API (always available).
  */
 int vips__builtin_quantise(const unsigned char *pixels,
