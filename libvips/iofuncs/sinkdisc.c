@@ -417,7 +417,12 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 
 	/* Add the number of pixels we've just allocated to progress.
 	 */
+#if GLIB_SIZEOF_VOID_P >= 8
+	g_atomic_pointer_add(&sink_base->processed,
+		(guint64) state->pos.width * state->pos.height);
+#else
 	sink_base->processed += (guint64) state->pos.width * state->pos.height;
+#endif
 
 	return 0;
 }

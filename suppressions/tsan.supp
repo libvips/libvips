@@ -11,9 +11,6 @@ race_top:vips_progress_update
 # Unsynchronized TRUE assignment to wbuffer->kill
 race_top:wbuffer_free
 
-# Unsynchronized read of sink_base->processed
-race_top:vips_sink_base_progress
-
 # Unsynchronized read of write->buf->write_errno
 race_top:write_check_error
 
