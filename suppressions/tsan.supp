@@ -5,9 +5,6 @@
 # Unsynchronized TRUE assignment to wbuffer->kill
 race_top:wbuffer_free
 
-# Unsynchronized read of sink_base->processed
-race_top:vips_sink_base_progress
-
 # GClosure mixes atomic compare and exchange with non atomic reads
 # (read of cl->n_guards and cl->derivative_flag is non atomic)
 # https://gitlab.gnome.org/GNOME/glib/-/issues/1672
