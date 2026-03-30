@@ -2,12 +2,6 @@
 
 ## The suppressions below match only the top frame of report stacks
 
-# Unsynchronized write of image->time
-race_top:g_timer_elapsed
-race_top:g_timer_start
-race_top:vips_progress_add
-race_top:vips_progress_update
-
 # GClosure mixes atomic compare and exchange with non atomic reads
 # (read of cl->n_guards and cl->derivative_flag is non atomic)
 # https://gitlab.gnome.org/GNOME/glib/-/issues/1672
