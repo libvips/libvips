@@ -11,9 +11,6 @@ race_top:vips_progress_update
 # Unsynchronized TRUE assignment to wbuffer->kill
 race_top:wbuffer_free
 
-# Unsynchronized FALSE assignment to dest->invalid
-race_top:vips_region_prepare_to
-
 # Unsynchronized read of sink_base->processed
 race_top:vips_sink_base_progress
 
