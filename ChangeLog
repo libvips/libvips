@@ -20,6 +20,7 @@ date-tbd 8.19.0
 - jpegsave, uhdrsave: convert CICP image with HDR transfer to scRGB for HDR
   [Starbix] [mertalev]
 - uhdrsave: add existing JPEG options for base image [lovell]
+- csvload: add maximum limit on column count [lovell]
 
 date-tbd 8.18.2
 
