@@ -18,9 +18,6 @@ race_top:vips_progress_update
 race_top:vips_max_scan
 race_top:vips_min_scan
 
-# Unsynchronized TRUE assignment to wbuffer->kill
-race_top:wbuffer_free
-
 # Unsynchronized read of sink_base->processed
 race_top:vips_sink_base_progress
 
