@@ -544,13 +544,6 @@
    fun:clone
 }
 
-# there's an unlocked assign FALSE which is fine
-{
-   helgrind3
-   Helgrind:Race
-   fun:vips_region_prepare_to
-}
-
 # unlocked read of pixels-processed-so-far, which is fine
 {
    helgrind4

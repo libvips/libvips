@@ -1898,7 +1898,8 @@ vips_region_prepare_to(VipsRegion *reg,
 	 * vips_region_prepare(), we don't vips_region_buffer() dest before
 	 * writing it.
 	 */
-	dest->invalid = FALSE;
+	if (dest->invalid)
+		dest->invalid = FALSE;
 
 	return 0;
 }
