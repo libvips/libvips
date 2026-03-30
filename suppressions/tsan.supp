@@ -8,9 +8,6 @@ race_top:g_timer_start
 race_top:vips_progress_add
 race_top:vips_progress_update
 
-# Unsynchronized TRUE assignment to wbuffer->kill
-race_top:wbuffer_free
-
 # GClosure mixes atomic compare and exchange with non atomic reads
 # (read of cl->n_guards and cl->derivative_flag is non atomic)
 # https://gitlab.gnome.org/GNOME/glib/-/issues/1672
