@@ -2,16 +2,6 @@
 
 ## The suppressions below match only the top frame of report stacks
 
-# Unsynchronized read/write of pool->stop and pool->error
-race_top:vips_threadpool_run
-race_top:vips_threadpool_wait
-race_top:vips_thread_main_loop
-race_top:vips_worker_work_unit
-
-# Unsynchronized TRUE assignment to statistic->stop
-race_top:vips_max_scan
-race_top:vips_min_scan
-
 # GClosure mixes atomic compare and exchange with non atomic reads
 # (read of cl->n_guards and cl->derivative_flag is non atomic)
 # https://gitlab.gnome.org/GNOME/glib/-/issues/1672
