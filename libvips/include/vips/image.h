@@ -227,7 +227,7 @@ struct _VipsImage {
 	char *Hist;		/* don't use, see vips_image_get_history() */
 	char *filename; /* pointer to copy of filename */
 	VipsPel *data;	/* start of image data for WIO */
-	int kill;		/* set to non-zero to block eval */
+	int kill;		/* (atomic) - set to non-zero to block eval */
 
 	/* Everything below this private and only used internally by
 	 * VipsImage.

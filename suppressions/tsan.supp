@@ -14,9 +14,6 @@ race_top:wbuffer_free
 # Unsynchronized FALSE assignment to dest->invalid
 race_top:vips_region_prepare_to
 
-# Unsynchronized FALSE/TRUE assignment
-race_top:vips_image_set_kill
-
 # Unsynchronized read of sink_base->processed
 race_top:vips_sink_base_progress
 
@@ -25,7 +22,6 @@ race_top:write_check_error
 
 # Unsynchronized read of image fields
 race_top:vips__image_copy_fields_array
-race_top:vips__link_make
 
 # GClosure mixes atomic compare and exchange with non atomic reads
 # (read of cl->n_guards and cl->derivative_flag is non atomic)
