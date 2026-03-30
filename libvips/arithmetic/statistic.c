@@ -84,15 +84,10 @@ vips_statistic_scan(VipsRegion *region,
 	p = VIPS_REGION_ADDR(region, r->left, r->top);
 	for (y = 0; y < r->height; y++) {
 		if (class->scan(statistic,
-				seq, r->left, r->top + y, p, r->width))
+				seq, r->left, r->top + y, p, r->width, stop))
 			return -1;
 		p += lsk;
 	}
-
-	/* If we've requested stop, pass the message on.
-	 */
-	if (g_atomic_int_get(&statistic->stop))
-		g_atomic_int_set(stop, TRUE);
 
 	return 0;
 }
