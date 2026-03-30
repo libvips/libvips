@@ -21,10 +21,6 @@ race_top:vips_region_prepare_to
 # Unsynchronized FALSE/TRUE assignment
 race_top:vips_image_set_kill
 
-# Unsynchronized singleton init of a local static variable
-race_top:vips_getpagesize
-race_top:vips_get_disc_threshold
-
 # Unsynchronized read of write->buf->write_errno
 race_top:write_check_error
 
