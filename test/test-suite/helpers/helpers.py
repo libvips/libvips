@@ -46,6 +46,10 @@ GIF_ANIM_DISPOSE_BACKGROUND_FILE = os.path.join(IMAGES, "dispose-background.gif"
 GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE = os.path.join(IMAGES, "dispose-background.png")
 GIF_ANIM_DISPOSE_PREVIOUS_FILE = os.path.join(IMAGES, "dispose-previous.gif")
 GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE = os.path.join(IMAGES, "dispose-previous.png")
+APNG_ANIM_FILE = os.path.join(IMAGES, "cogs-apng.png")
+APNG_DISPOSE_BACKGROUND_FILE = os.path.join(IMAGES, "apng-dispose-background.png")
+APNG_DISPOSE_PREVIOUS_FILE = os.path.join(IMAGES, "apng-dispose-previous.png")
+APNG_BLEND_OVER_FILE = os.path.join(IMAGES, "apng-blend-over.png")
 DICOM_FILE = os.path.join(IMAGES, "dicom_test_image.dcm")
 BMP_FILE = os.path.join(IMAGES, "MARBLES.BMP")
 NIFTI_FILE = os.path.join(IMAGES, "avg152T1_LR_nifti.nii.gz")
@@ -164,6 +168,20 @@ def have(name):
 def skip_if_no(operation_name):
     return pytest.mark.skipif(not have(operation_name),
                         reason='no {}, skipping test'.format(operation_name))
+
+
+def have_apng():
+    if not have("pngload"):
+        return False
+    try:
+        im = pyvips.Image.pngload(APNG_ANIM_FILE, n=-1)
+        return im.get_typeof("n-pages") != 0 and im.get("n-pages") > 1
+    except Exception:
+        return False
+
+
+skip_if_no_apng = pytest.mark.skipif(not have_apng(),
+                        reason='no APNG support, skipping test')
 
 
 # run a 2-ary function on two things -- loop over elements pairwise if the
