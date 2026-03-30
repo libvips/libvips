@@ -12,9 +12,6 @@ race_top:vips_worker_work_unit
 race_top:vips_max_scan
 race_top:vips_min_scan
 
-# Unsynchronized TRUE assignment to wbuffer->kill
-race_top:wbuffer_free
-
 # GClosure mixes atomic compare and exchange with non atomic reads
 # (read of cl->n_guards and cl->derivative_flag is non atomic)
 # https://gitlab.gnome.org/GNOME/glib/-/issues/1672

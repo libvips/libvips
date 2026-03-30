@@ -76,7 +76,7 @@ typedef struct _WriteBuffer {
 	VipsSemaphore finish; /* Bg thread has finished */
 	int write_errno;	  /* Save write errors here */
 	gboolean running;	  /* Whether the bg writer thread is running */
-	gboolean kill;		  /* Set to ask thread to exit */
+	gboolean kill;		  /* (atomic) - Set to ask thread to exit */
 } WriteBuffer;
 
 /* Per-call state.
@@ -155,7 +155,7 @@ wbuffer_free(WriteBuffer *wbuffer)
 	/* Is there a thread running this region? Kill it!
 	 */
 	if (wbuffer->running) {
-		wbuffer->kill = TRUE;
+		g_atomic_int_set(&wbuffer->kill, TRUE);
 		vips_semaphore_up(&wbuffer->go);
 
 		vips_semaphore_down(&wbuffer->finish);
@@ -201,7 +201,7 @@ wbuffer_write_thread(void *data, void *user_data)
 		 */
 		vips_semaphore_down(&wbuffer->go);
 
-		if (wbuffer->kill)
+		if (g_atomic_int_get(&wbuffer->kill))
 			break;
 
 		/* Now block until the last worker finishes on this buffer.
