@@ -666,12 +666,10 @@ vips_threadpool_run(VipsImage *im,
 			break;
 
 		if (progress &&
-			progress(pool->a))
+			progress(pool->a)) {
 			g_atomic_int_set(&pool->error, TRUE);
-
-		if (g_atomic_int_get(&pool->stop) ||
-			g_atomic_int_get(&pool->error))
 			break;
+		}
 
 		n_waiting = g_atomic_int_get(&pool->n_waiting);
 		VIPS_DEBUG_MSG("n_waiting = %d\n", n_waiting);
