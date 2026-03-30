@@ -1527,11 +1527,13 @@ vips_image_preeval(VipsImage *image)
 
 		(void) vips_progress_add(image);
 
+#if VIPS_ENABLE_DEPRECATED
 		/* For vips7 compat, we also have to make sure ->time on the
 		 * image that was originally marked with
 		 * vips_image_set_progress() is valid.
 		 */
 		(void) vips_progress_add(image->progress_signal);
+#endif
 
 		if (!vips_image_get_typeof(image, "hide-progress"))
 			g_signal_emit(image->progress_signal,
@@ -1553,12 +1555,14 @@ vips_image_eval(VipsImage *image, guint64 processed)
 
 		vips_progress_update(image->time, processed);
 
+#if VIPS_ENABLE_DEPRECATED
 		/* For vips7 compat, update the ->time on the signalling image
 		 * too, even though it may have a different width/height to
 		 * the image we are actually generating.
 		 */
 		if (image->progress_signal->time != image->time)
 			vips_progress_update(image->progress_signal->time, processed);
+#endif
 
 		if (!vips_image_get_typeof(image, "hide-progress"))
 			g_signal_emit(image->progress_signal,
@@ -1583,6 +1587,7 @@ vips_image_posteval(VipsImage *image)
 		processed = image->time->tpels;
 		vips_progress_update(image->time, processed);
 
+#if VIPS_ENABLE_DEPRECATED
 		/* For vips7 compat, update the ->time on the signalling image
 		 * too, even though it may have a different width/height to
 		 * the image we are actually generating.
@@ -1590,6 +1595,7 @@ vips_image_posteval(VipsImage *image)
 		if (image->progress_signal->time != image->time)
 			vips_progress_update(image->progress_signal->time,
 				processed);
+#endif
 
 		if (!vips_image_get_typeof(image, "hide-progress"))
 			g_signal_emit(image->progress_signal,
