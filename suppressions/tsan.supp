@@ -17,9 +17,6 @@ race_top:vips_sink_base_progress
 # Unsynchronized read of write->buf->write_errno
 race_top:write_check_error
 
-# Unsynchronized read of image fields
-race_top:vips__image_copy_fields_array
-
 # GClosure mixes atomic compare and exchange with non atomic reads
 # (read of cl->n_guards and cl->derivative_flag is non atomic)
 # https://gitlab.gnome.org/GNOME/glib/-/issues/1672
