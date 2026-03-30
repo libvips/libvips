@@ -424,7 +424,7 @@ typedef void (*VipsHistFindIndexedScanFn)(VipsHistFindIndexed *indexed,
 
 static int
 vips_hist_find_indexed_scan(VipsStatistic *statistic, void *seq,
-	int x, int y, void *in, int n)
+	int x, int y, void *in, int n, gboolean *stop)
 {
 	Histogram *hist = (Histogram *) seq;
 	VipsHistFindIndexed *indexed = (VipsHistFindIndexed *) statistic;
