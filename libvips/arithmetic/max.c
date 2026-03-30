@@ -319,7 +319,7 @@ vips_max_stop(VipsStatistic *statistic, void *seq)
 				m = values->value[0]; \
 \
 				if (m >= UPPER) { \
-					statistic->stop = TRUE; \
+					g_atomic_int_set(&statistic->stop, TRUE); \
 					break; \
 				} \
 			} \

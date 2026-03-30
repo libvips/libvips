@@ -91,8 +91,8 @@ vips_statistic_scan(VipsRegion *region,
 
 	/* If we've requested stop, pass the message on.
 	 */
-	if (statistic->stop)
-		*stop = TRUE;
+	if (g_atomic_int_get(&statistic->stop))
+		g_atomic_int_set(stop, TRUE);
 
 	return 0;
 }

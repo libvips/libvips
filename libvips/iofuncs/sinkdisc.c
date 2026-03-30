@@ -351,14 +351,14 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 			 * is done, then set write of this buffer going.
 			 */
 			if (wbuffer_flush(write)) {
-				*stop = TRUE;
+				g_atomic_int_set(stop, TRUE);
 				return -1;
 			}
 
 			/* End of image?
 			 */
 			if (sink_base->y >= sink_base->im->Ysize) {
-				*stop = TRUE;
+				g_atomic_int_set(stop, TRUE);
 				return 0;
 			}
 
@@ -374,7 +374,7 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 			 */
 			if (wbuffer_position(write->buf,
 					sink_base->y, sink_base->n_lines)) {
-				*stop = TRUE;
+				g_atomic_int_set(stop, TRUE);
 				return -1;
 			}
 

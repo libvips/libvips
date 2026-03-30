@@ -319,7 +319,7 @@ vips_min_stop(VipsStatistic *statistic, void *seq)
 				m = values->value[0]; \
 \
 				if (m <= LOWER) { \
-					statistic->stop = TRUE; \
+					g_atomic_int_set(&statistic->stop, TRUE); \
 					break; \
 				} \
 			} \

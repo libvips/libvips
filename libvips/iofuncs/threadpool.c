@@ -272,11 +272,11 @@ typedef struct _VipsThreadpool {
 
 	/* Set this to abort evaluation early with an error.
 	 */
-	gboolean error;
+	gboolean error; // (atomic)
 
 	/* Ask threads to exit, either set by allocate, or on free.
 	 */
-	gboolean stop;
+	gboolean stop; // (atomic)
 } VipsThreadpool;
 
 static int
@@ -312,7 +312,7 @@ vips_worker_work_unit(VipsWorker *worker)
 
 	/* Has another worker signaled stop while we've been waiting?
 	 */
-	if (pool->stop) {
+	if (g_atomic_int_get(&pool->stop)) {
 		worker->stop = TRUE;
 		g_mutex_unlock(&pool->allocate_lock);
 		return;
@@ -336,7 +336,7 @@ vips_worker_work_unit(VipsWorker *worker)
 	}
 
 	if (vips_worker_allocate(worker)) {
-		pool->error = TRUE;
+		g_atomic_int_set(&pool->error, TRUE);
 		worker->stop = TRUE;
 		g_mutex_unlock(&pool->allocate_lock);
 		return;
@@ -344,7 +344,7 @@ vips_worker_work_unit(VipsWorker *worker)
 
 	/* Have we just signalled stop?
 	 */
-	if (pool->stop) {
+	if (g_atomic_int_get(&pool->stop)) {
 		worker->stop = TRUE;
 		g_mutex_unlock(&pool->allocate_lock);
 		return;
@@ -367,7 +367,7 @@ vips_worker_work_unit(VipsWorker *worker)
 	 */
 	if (pool->work(worker->state, pool->a)) {
 		worker->stop = TRUE;
-		pool->error = TRUE;
+		g_atomic_int_set(&pool->error, TRUE);
 	}
 }
 
@@ -386,9 +386,7 @@ vips_thread_main_loop(void *a, void *b)
 	/* Process work units! Always tick, even if we are stopping, so the
 	 * main thread will wake up for exit.
 	 */
-	while (!pool->stop &&
-		!worker->stop &&
-		!pool->error) {
+	while (!worker->stop) {
 		VIPS_GATE_START("vips_worker_work_unit: u");
 		vips_worker_work_unit(worker);
 		VIPS_GATE_STOP("vips_worker_work_unit: u");
@@ -472,7 +470,7 @@ vips_threadpool_wait(VipsThreadpool *pool)
 {
 	/* Wait for them all to exit.
 	 */
-	pool->stop = TRUE;
+	g_atomic_int_set(&pool->stop, TRUE);
 	vips_semaphore_downn(&pool->n_workers, 0);
 }
 
@@ -663,16 +661,16 @@ vips_threadpool_run(VipsImage *im,
 
 		VIPS_DEBUG_MSG("vips_threadpool_run: tick\n");
 
-		if (pool->stop ||
-			pool->error)
+		if (g_atomic_int_get(&pool->stop) ||
+			g_atomic_int_get(&pool->error))
 			break;
 
 		if (progress &&
 			progress(pool->a))
-			pool->error = TRUE;
+			g_atomic_int_set(&pool->error, TRUE);
 
-		if (pool->stop ||
-			pool->error)
+		if (g_atomic_int_get(&pool->stop) ||
+			g_atomic_int_get(&pool->error))
 			break;
 
 		n_waiting = g_atomic_int_get(&pool->n_waiting);

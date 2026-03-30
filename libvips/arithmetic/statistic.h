@@ -71,7 +71,7 @@ struct _VipsStatistic {
 
 	/* Set this to stop computation early.
 	 */
-	gboolean stop;
+	gboolean stop; // (atomic)
 
 	/* Client data for the subclass.
 	 */
