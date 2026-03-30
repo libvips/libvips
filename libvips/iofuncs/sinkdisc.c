@@ -549,7 +549,8 @@ vips_sink_disc(VipsImage *im, VipsRegionWrite write_fn, void *a)
 
 	/* The final write might have failed, pick up any error code.
 	 */
-	result |= write_check_error(&write);
+	if (!result)
+		result = write_check_error(&write);
 
 	write_free(&write);
 

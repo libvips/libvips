@@ -11,9 +11,6 @@ race_top:vips_progress_update
 # Unsynchronized TRUE assignment to wbuffer->kill
 race_top:wbuffer_free
 
-# Unsynchronized read of write->buf->write_errno
-race_top:write_check_error
-
 # GClosure mixes atomic compare and exchange with non atomic reads
 # (read of cl->n_guards and cl->derivative_flag is non atomic)
 # https://gitlab.gnome.org/GNOME/glib/-/issues/1672
