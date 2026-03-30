@@ -1605,6 +1605,8 @@ vips__temp_dir(void)
 #ifdef G_OS_WIN32
 		static char *tmp_dir = NULL;
 
+		// No need for `g_once_init_enter_pointer()`, this is always called
+		// serially.
 		if (tmp_dir == NULL) {
 			char *dir = NULL;
 			wchar_t wdir[MAX_PATH];

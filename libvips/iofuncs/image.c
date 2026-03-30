@@ -2526,13 +2526,11 @@ vips_image_set_delete_on_close(VipsImage *image, gboolean delete_on_close)
 guint64
 vips_get_disc_threshold(void)
 {
-	static gboolean done = FALSE;
+	static gsize initialized = 0;
 	static guint64 threshold;
 
-	if (!done) {
+	if (g_once_init_enter(&initialized)) {
 		const char *env;
-
-		done = TRUE;
 
 		/* 100mb default.
 		 */
@@ -2551,6 +2549,8 @@ vips_get_disc_threshold(void)
 #ifdef DEBUG
 		printf("vips_get_disc_threshold: %zd bytes\n", threshold);
 #endif /*DEBUG*/
+
+		g_once_init_leave(&initialized, TRUE);
 	}
 
 	return threshold;
