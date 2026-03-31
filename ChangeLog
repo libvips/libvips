@@ -6,6 +6,7 @@ date-tbd 8.18.2
 - uhdrsave: set Q for gainmap recompress, don't chroma subsample RGB gainmaps
 - uhdrsave: prevent early unref of image with alpha channel [lovell]
 - rad2float: limit band count when converting from radiance [lovell]
+- jxlload: check EXIF buffer size before reading header [lovell]
 
 18/3/26 8.18.1
 

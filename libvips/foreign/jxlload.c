@@ -628,8 +628,8 @@ vips_foreign_load_jxl_generate(VipsRegion *out_region,
 static int
 vips_foreign_load_jxl_fix_exif(VipsForeignLoadJxl *jxl)
 {
-	if (!jxl->exif_data ||
-		vips_isprefix("Exif", (char *) jxl->exif_data))
+	if (!jxl->exif_data || (jxl->exif_size >= 6 &&
+		vips_isprefix("Exif\0\0", (char *) jxl->exif_data)))
 		return 0;
 
 	if (jxl->exif_size < 4) {
