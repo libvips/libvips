@@ -230,8 +230,6 @@ typedef struct _VipsWorker {
 
 	VipsThreadState *state;
 
-	gboolean stop;
-
 } VipsWorker;
 
 /* What we track for a group of threads working together.
@@ -299,7 +297,7 @@ vips_worker_allocate(VipsWorker *worker)
 /* Run this once per main loop. Get some work (single-threaded), then do it
  * (many-threaded).
  */
-static void
+static int
 vips_worker_work_unit(VipsWorker *worker)
 {
 	VipsThreadpool *pool = worker->pool;
@@ -313,9 +311,8 @@ vips_worker_work_unit(VipsWorker *worker)
 	/* Has another worker signaled stop while we've been waiting?
 	 */
 	if (g_atomic_int_get(&pool->stop)) {
-		worker->stop = TRUE;
 		g_mutex_unlock(&pool->allocate_lock);
-		return;
+		return -1;
 	}
 
 	/* Has a thread been asked to exit? Volunteer if yes.
@@ -324,9 +321,8 @@ vips_worker_work_unit(VipsWorker *worker)
 		/* A thread had been asked to exit, and we've grabbed the
 		 * flag.
 		 */
-		worker->stop = TRUE;
 		g_mutex_unlock(&pool->allocate_lock);
-		return;
+		return -1;
 	}
 	else {
 		/* No one had been asked to exit and we've mistakenly taken
@@ -337,17 +333,15 @@ vips_worker_work_unit(VipsWorker *worker)
 
 	if (vips_worker_allocate(worker)) {
 		g_atomic_int_set(&pool->error, TRUE);
-		worker->stop = TRUE;
 		g_mutex_unlock(&pool->allocate_lock);
-		return;
+		return -1;
 	}
 
 	/* Have we just signalled stop?
 	 */
 	if (g_atomic_int_get(&pool->stop)) {
-		worker->stop = TRUE;
 		g_mutex_unlock(&pool->allocate_lock);
-		return;
+		return -1;
 	}
 
 	g_mutex_unlock(&pool->allocate_lock);
@@ -366,9 +360,11 @@ vips_worker_work_unit(VipsWorker *worker)
 	/* Process a work unit.
 	 */
 	if (pool->work(worker->state, pool->a)) {
-		worker->stop = TRUE;
 		g_atomic_int_set(&pool->error, TRUE);
+		return -1;
 	}
+
+	return 0;
 }
 
 /* What runs as a thread ... loop, waiting to be told to do stuff.
@@ -386,12 +382,13 @@ vips_thread_main_loop(void *a, void *b)
 	/* Process work units! Always tick, even if we are stopping, so the
 	 * main thread will wake up for exit.
 	 */
-	while (!worker->stop) {
+	int result = 0;
+	do {
 		VIPS_GATE_START("vips_worker_work_unit: u");
-		vips_worker_work_unit(worker);
+		result = vips_worker_work_unit(worker);
 		VIPS_GATE_STOP("vips_worker_work_unit: u");
 		vips_semaphore_up(&pool->tick);
-	}
+	} while (!result);
 
 	VIPS_GATE_STOP("vips_thread_main_loop: thread");
 
