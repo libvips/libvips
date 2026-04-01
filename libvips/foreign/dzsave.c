@@ -1376,7 +1376,7 @@ image_strip_work(VipsThreadState *state, void *a)
 	/* killed is checked by sink_disc, but that's only once per strip, and
 	 * they can be huge. Check per output tile as well.
 	 */
-	if (vips_image_iskilled(save->in))
+	if (vips_image_iskilled(save->ready))
 		return -1;
 
 	/* We may be outside the real pixels.
@@ -1605,7 +1605,7 @@ direct_strip_work(VipsThreadState *state, void *a)
 	/* killed is checked by sink_disc, but that's only once per strip, and
 	 * they can be huge. Check per output tile as well.
 	 */
-	if (vips_image_iskilled(save->in))
+	if (vips_image_iskilled(save->ready))
 		return -1;
 
 	/* We may be outside the real pixels.
