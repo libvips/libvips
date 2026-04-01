@@ -237,12 +237,7 @@ sink_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 
 	/* Add the number of pixels we've just allocated to progress.
 	 */
-#if GLIB_SIZEOF_VOID_P >= 8
-	g_atomic_pointer_add(&sink_base->processed,
-		(guint64) state->pos.width * state->pos.height);
-#else
 	sink_base->processed += (guint64) state->pos.width * state->pos.height;
-#endif
 
 	return 0;
 }
@@ -433,19 +428,13 @@ int
 vips_sink_base_progress(void *a)
 {
 	SinkBase *sink_base = (SinkBase *) a;
-	guint64 processed =
-#if GLIB_SIZEOF_VOID_P >= 8
-		g_atomic_pointer_get(&sink_base->processed);
-#else
-		sink_base->processed;
-#endif
 
 	VIPS_DEBUG_MSG("vips_sink_base_progress:\n");
 
 	/* Trigger any eval callbacks on our source image and
 	 * check for errors.
 	 */
-	vips_image_eval(sink_base->im, processed);
+	vips_image_eval(sink_base->im, sink_base->processed);
 	if (vips_image_iskilled(sink_base->im))
 		return -1;
 
