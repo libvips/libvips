@@ -300,7 +300,7 @@ vips_worker_allocate(VipsWorker *worker)
  * (many-threaded).
  */
 static int
-vips_worker_work_unit(VipsWorker *worker, gboolean first)
+vips_worker_work_unit(VipsWorker *worker)
 {
 	VipsThreadpool *pool = worker->pool;
 
@@ -319,7 +319,7 @@ vips_worker_work_unit(VipsWorker *worker, gboolean first)
 
 	/* Report progress of the previously processed work unit.
 	 */
-	if (!first &&
+	if (worker->state &&
 		pool->progress &&
 		pool->progress(pool->a)) {
 		g_atomic_int_set(&pool->error, TRUE);
@@ -394,10 +394,10 @@ vips_thread_main_loop(void *a, void *b)
 	/* Process work units! Always tick, even if we are stopping, so the
 	 * main thread will wake up for exit.
 	 */
-	int result = -1;
+	int result;
 	do {
 		VIPS_GATE_START("vips_worker_work_unit: u");
-		result = vips_worker_work_unit(worker, result == -1);
+		result = vips_worker_work_unit(worker);
 		VIPS_GATE_STOP("vips_worker_work_unit: u");
 		vips_semaphore_up(&pool->tick);
 	} while (!result);
