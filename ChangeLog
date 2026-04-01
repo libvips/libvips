@@ -20,6 +20,7 @@ date-tbd 8.19.0
 - jpegsave, uhdrsave: convert CICP image with HDR transfer to scRGB for HDR
   [Starbix] [mertalev]
 - uhdrsave: add existing JPEG options for base image [lovell]
+- csvload: add maximum limit on column count [lovell]
 
 date-tbd 8.18.2
 
@@ -28,6 +29,7 @@ date-tbd 8.18.2
 - tiffload: check jpeg and jp2k components [wooseokdotkim]
 - uhdrsave: set Q for gainmap recompress, don't chroma subsample RGB gainmaps
 - uhdrsave: prevent early unref of image with alpha channel [lovell]
+- rad2float: limit band count when converting from radiance [lovell]
 
 18/3/26 8.18.1
 
