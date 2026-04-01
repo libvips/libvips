@@ -544,13 +544,6 @@
    fun:clone
 }
 
-# unlocked read of pixels-processed-so-far, which is fine
-{
-   helgrind4
-   Helgrind:Race
-   fun:vips_sink_base_progress
-}
-
 # helgrind can't see g_private
 {
    helgrind5
