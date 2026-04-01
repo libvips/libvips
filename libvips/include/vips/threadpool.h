@@ -129,8 +129,8 @@ typedef int (*VipsThreadpoolAllocateFn)(VipsThreadState *state,
  */
 typedef int (*VipsThreadpoolWorkFn)(VipsThreadState *state, void *a);
 
-/* A progress function. This is run by the main thread once for every
- * allocation. Return an error to kill computation early.
+/* A progress function. This is run single-threaded by a worker once for
+ * every work unit processed. Return an error to kill computation early.
  */
 typedef int (*VipsThreadpoolProgressFn)(void *a);
 
