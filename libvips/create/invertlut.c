@@ -173,6 +173,8 @@ vips_invertlut_build_init(VipsInvertlut *lut)
 static int
 vips_invertlut_build_create(VipsInvertlut *lut)
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(lut);
+
 	int bands = lut->mat->Xsize - 1;
 	int height = lut->mat->Ysize;
 
@@ -185,6 +187,11 @@ vips_invertlut_build_create(VipsInvertlut *lut)
 		 */
 		int first = lut->data[0][b + 1] * (lut->size - 1);
 		int last = lut->data[height - 1][b + 1] * (lut->size - 1);
+		if (first < 0 || first >= lut->size ||
+			last < 0 || last >= lut->size) {
+			vips_error(class->nickname, _("invalid input mask"));
+			return -1;
+		}
 
 		int k;
 
