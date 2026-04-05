@@ -49,6 +49,7 @@
 #include <vips/internal.h>
 
 #include "pforeign.h"
+#include "qoi/qoi.h"
 
 typedef struct _VipsForeignLoadQoi {
 	VipsForeignLoad parent_object;
@@ -116,6 +117,13 @@ vips_foreign_load_qoi_parse_header( VipsForeignLoadQoi *qoi )
 			_( "unable to read QOI header" ), NULL );
 		return( -1 );
 	}
+
+printf("Read header:\n");
+for (int i = 0; i < 14; i++) {
+    printf("%02X ", header[i]);
+}
+printf("\nMagic: %.4s\n", header);
+	
 	
 	/* Check magic bytes.
 	 */
@@ -147,6 +155,8 @@ vips_foreign_load_qoi_parse_header( VipsForeignLoadQoi *qoi )
 			_( "bad QOI channels" ), NULL );
 		return( -1 );
 	}
+		qoi->have_read_header = TRUE;
+
 	
 	return( 0 );
 }
@@ -185,6 +195,8 @@ vips_foreign_load_qoi_map( VipsForeignLoadQoi *qoi )
 	size_t length;
 	const void *data;
 	VipsImage *out;
+	qoi_desc desc;
+	void *decoded_data;
 
 #ifdef DEBUG
 	printf( "vips_foreign_load_qoi_map:\n" );
@@ -195,14 +207,40 @@ vips_foreign_load_qoi_map( VipsForeignLoadQoi *qoi )
 	if( header_offset < 0 || 
 		!data )
 		return( NULL );
-	data = (char *) data + header_offset;
-	length -= header_offset;
+	//data = (char *) data + header_offset;
+	//length -= header_offset;
 
-	if( !(out = vips_image_new_from_memory( data, length,
-		qoi->width, qoi->height, qoi->bands, VIPS_FORMAT_UCHAR )) )
+	printf( "QOI Decode: length = %zu, width = %d, height = %d, channels = %d\n",
+		length, qoi->width, qoi->height, qoi->bands );
+
+	/* Decode the QOI data */
+	decoded_data = qoi_decode( data, length, &desc, 0 );
+	if( !decoded_data ) {
+		printf( "QOI Decode Failed: length = %zu, width = %d, height = %d, channels = %d\n",
+			length, qoi->width, qoi->height, qoi->bands );
+		printf( "Expected length: %d\n", qoi->width * qoi->height * qoi->bands + 14 + 8 );
+		printf( "Header: magic = %08X, width = %d, height = %d, channels = %d, colorspace = %d\n",
+			*(unsigned int*)data, qoi->width, qoi->height, qoi->bands, ((unsigned char*)data)[13]);
+		printf( "First 20 bytes: ");
+		for (int i = 0; i < 20; i++) {
+			printf( "%02X ", ((unsigned char*)data)[i] );
+		}
+		printf( "\n" );
+		vips_error( "VipsForeignLoadQoi",
+			_( "unable to decode QOI data" ), NULL );
+		return( NULL );
+	}
+
+	if( !(out = vips_image_new_from_memory( decoded_data, desc.width * desc.height * desc.channels,
+		desc.width, desc.height, desc.channels, VIPS_FORMAT_UCHAR )) )
 		return( NULL );
 
-	vips_foreign_load_qoi_set_image_metadata( qoi, out );
+	vips_image_init_fields(out,
+		desc.width, desc.height, desc.channels, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
+
+	/* Free the decoded data */
+	free( decoded_data );
 
 	return( out );
 }
@@ -225,7 +263,10 @@ vips_foreign_load_qoi_load( VipsForeignLoad *load )
 			return( -1 );
 	}
 	else {
-		if( !(t[0] = vips_foreign_load_qoi_scan( qoi )) ) 
+		/* QOI is always binary, so we should not reach here for non-mappable sources.
+		 * Fall back to map-based loading if possible.
+		 */
+		if( !(t[0] = vips_foreign_load_qoi_map( qoi )) )
 			return( -1 );
 	}
 
@@ -295,9 +336,7 @@ vips_foreign_load_qoi_class_init( VipsForeignLoadQoiClass *class )
 
 }
 
-/* QOI file suffixes.
- */
-const char *vips__qoi_suffs[] = { ".qoi", NULL };
+
 
 static void
 vips_foreign_load_qoi_init( VipsForeignLoadQoi *qoi )
