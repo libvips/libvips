@@ -63,25 +63,25 @@ typedef struct _VipsForeignLoadQoi {
 
 } VipsForeignLoadQoi;
 
+static const char *qoi_magic = "qoif";
+
 typedef VipsForeignLoadClass VipsForeignLoadQoiClass;
 
 G_DEFINE_ABSTRACT_TYPE( VipsForeignLoadQoi, vips_foreign_load_qoi, 
 	VIPS_TYPE_FOREIGN_LOAD );
 
 static gboolean
-vips_foreign_load_qoi_is_a_source( VipsSource *source )
+vips_foreign_load_qoi_is_a_source(VipsSource *source)
 {
-	const unsigned char *data;
+    const unsigned char *data;
 
-	if( (data = vips_source_sniff( source, 2 )) ) { 
-		int i;
+    if ((data = vips_source_sniff(source, 4))) {
+        if (memcmp(data, qoi_magic, 4) == 0) {
+            return TRUE;
+        }
+    }
 
-		for( i = 0; i < VIPS_NUMBER( magic_names ); i++ )
-			if( vips_isprefix( magic_names[i], (char *) data ) )
-				return( TRUE );
-	}
-
-	return( FALSE );
+    return FALSE;
 }
 
 static void
@@ -114,7 +114,7 @@ vips_foreign_load_qoi_parse_header( VipsForeignLoadQoi *qoi )
 	
 	/* Check magic bytes.
 	 */
-	if( memcmp( header, "qoif", 4 ) != 0 ) {
+	if( memcmp( header, qoi_magic, 4 ) != 0 ) {
 		vips_error( "VipsForeignLoadQoi",
 			_( "bad QOI magic" ), NULL );
 		return( -1 );
