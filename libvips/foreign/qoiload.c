@@ -104,8 +104,45 @@ vips_foreign_load_qoi_dispose( GObject *gobject )
 static int
 vips_foreign_load_qoi_parse_header( VipsForeignLoadQoi *qoi )
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS( qoi );
-
+	unsigned char header[14];
+	
+	if( vips_source_read( qoi->source, header, 14 ) != 14 ) {
+		vips_error( "VipsForeignLoadQoi",
+			_( "unable to read QOI header" ), NULL );
+		return( -1 );
+	}
+	
+	/* Check magic bytes.
+	 */
+	if( memcmp( header, "qoif", 4 ) != 0 ) {
+		vips_error( "VipsForeignLoadQoi",
+			_( "bad QOI magic" ), NULL );
+		return( -1 );
+	}
+	
+	/* Read width and height (big-endian).
+	 */
+	qoi->width = (header[4] << 24) | (header[5] << 16) | (header[6] << 8) | header[7];
+	qoi->height = (header[8] << 24) | (header[9] << 16) | (header[10] << 8) | header[11];
+	
+	/* Read channels.
+	 */
+	qoi->bands = header[12];
+	
+	/* Validate header values.
+	 */
+	if( qoi->width == 0 || qoi->height == 0 ) {
+		vips_error( "VipsForeignLoadQoi",
+			_( "bad QOI dimensions" ), NULL );
+		return( -1 );
+	}
+	
+	if( qoi->bands != 3 && qoi->bands != 4 ) {
+		vips_error( "VipsForeignLoadQoi",
+			_( "bad QOI channels" ), NULL );
+		return( -1 );
+	}
+	
 	return( 0 );
 }
 
@@ -127,6 +164,9 @@ vips_foreign_load_qoi_header( VipsForeignLoad *load )
 	VipsForeignLoadQoi *qoi = (VipsForeignLoadQoi *) load;
 
 	vips_source_minimise( qoi->source );
+
+	if( vips_foreign_load_qoi_parse_header( qoi ) )
+		return( -1 );
 
 	return( 0 );
 }
