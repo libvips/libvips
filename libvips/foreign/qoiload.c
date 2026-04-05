@@ -61,6 +61,9 @@ typedef struct _VipsForeignLoadQoi {
 	int height;
 	int bands;
 
+	gboolean have_read_header;
+
+
 } VipsForeignLoadQoi;
 
 static const char *qoi_magic = "qoif";
@@ -216,9 +219,7 @@ vips_foreign_load_qoi_load( VipsForeignLoad *load )
 
 	/* If the source is mappable and this is a binary file, we can map it.
 	 */
-	if( vips_source_is_mappable( qoi->source ) &&
-		!qoi->ascii && 
-		qoi->bits >= 8 ) {
+	if( vips_source_is_mappable( qoi->source ) ) {
 		if( !(t[0] = vips_foreign_load_qoi_map( qoi )) ) 
 			return( -1 );
 	}
@@ -233,6 +234,28 @@ vips_foreign_load_qoi_load( VipsForeignLoad *load )
 #endif /*DEBUG*/
 
 	if( vips_source_decode( qoi->source ) )
+		return( -1 );
+
+	return( 0 );
+}
+
+static int
+vips_foreign_load_qoi_build( VipsObject *object )
+{
+	VipsForeignLoadQoi *qoi = (VipsForeignLoadQoi *) object;
+
+	/* Ensure the source is set.
+	 */
+	if( !qoi->source ) {
+		vips_error( "VipsForeignLoadQoi",
+			_( "no source set" ), NULL );
+		return( -1 );
+	}
+
+	/* Chain up to the parent class.
+	 */
+	if( VIPS_OBJECT_CLASS( vips_foreign_load_qoi_parent_class )->
+		build( object ) )
 		return( -1 );
 
 	return( 0 );
@@ -270,6 +293,10 @@ vips_foreign_load_qoi_class_init( VipsForeignLoadQoiClass *class )
 	load_class->load = vips_foreign_load_qoi_load;
 
 }
+
+/* QOI file suffixes.
+ */
+const char *vips__qoi_suffs[] = { ".qoi", NULL };
 
 static void
 vips_foreign_load_qoi_init( VipsForeignLoadQoi *qoi )
