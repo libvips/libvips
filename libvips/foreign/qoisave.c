@@ -268,7 +268,7 @@ vips_foreign_save_qoi_target_class_init(
 	object_class->nickname = "qoisave_target";
 	object_class->build = vips_foreign_save_qoi_target_build;
 
-	foreign_class->suffs = vips__save_qoi_suffs;
+	foreign_class->suffs = vips__qoi_suffs;
 
 	VIPS_ARG_OBJECT( class, "target", 1,
 		_( "Target" ),

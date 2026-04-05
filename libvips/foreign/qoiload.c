@@ -61,6 +61,8 @@ typedef struct _VipsForeignLoadQoi {
 	int height;
 	int bands;
 
+	int scale;
+
 	gboolean have_read_header;
 
 
@@ -174,7 +176,7 @@ vips_foreign_load_qoi_header( VipsForeignLoad *load )
 	return( 0 );
 }
 
-/* Read a qoi/pgm file using mmap().
+/* Read a qoi file using mmap().
  */
 static VipsImage *
 vips_foreign_load_qoi_map( VipsForeignLoadQoi *qoi )
@@ -188,17 +190,16 @@ vips_foreign_load_qoi_map( VipsForeignLoadQoi *qoi )
 	printf( "vips_foreign_load_qoi_map:\n" );
 #endif /*DEBUG*/
 
-	vips_sbuf_unbuffer( qoi->sbuf );
 	header_offset = vips_source_seek( qoi->source, 0, SEEK_CUR );
 	data = vips_source_map( qoi->source, &length );
 	if( header_offset < 0 || 
 		!data )
 		return( NULL );
-	data += header_offset;
-       	length -= header_offset;
+	data = (char *) data + header_offset;
+	length -= header_offset;
 
 	if( !(out = vips_image_new_from_memory( data, length,
-		qoi->width, qoi->height, qoi->bands, qoi->format )) )
+		qoi->width, qoi->height, qoi->bands, VIPS_FORMAT_UCHAR )) )
 		return( NULL );
 
 	vips_foreign_load_qoi_set_image_metadata( qoi, out );
