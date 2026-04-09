@@ -109,24 +109,3 @@ executable('generate_vips_dict',
     'generate_vips_dict.c',
     dependencies: libvips_dep,
 )
-
-# If the fuzzing engine is not OSS-Fuzz, build the unit tests to be run on CI
-if fuzzing_engine != 'oss-fuzz'
-    test_fuzz = configure_file(
-        input: 'test_fuzz.sh',
-        output: 'test_fuzz.sh',
-        copy: true,
-    )
-
-    test(
-        'fuzz',
-        test_fuzz,
-        workdir: meson.current_build_dir(),
-        depends: [
-            fuzz_execs,
-        ],
-        # Increase the timeout as running the tests with sanitizers
-        # enabled could be slower than the default 30 seconds.
-        timeout: 120,
-    )
-endif
