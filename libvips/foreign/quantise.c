@@ -223,7 +223,7 @@ vips__quantise_image_quantize(VipsQuantiseImage *const input_image,
 	VipsQuantiseAttr *const options, VipsQuantiseResult **result_output)
 {
 	*result_output = quantizr_quantize(input_image, options);
-	return 0;
+	return *result_output != NULL ? 0 : 1;
 }
 
 VipsQuantiseError
