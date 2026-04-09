@@ -186,7 +186,11 @@ vips_foreign_load_qoi_header(VipsForeignLoad *load)
 	if (vips_foreign_load_qoi_parse_header(qoi))
 		return (-1);
 
-	// load->out->Xsize = 333; // load->Xsize = 333; return (0);
+	load->out->Xsize = qoi->width;
+	load->out->Ysize = qoi->height;
+	load->out->Bands = qoi->bands;
+	load->out->BandFmt = VIPS_FORMAT_UCHAR;
+	return (0);
 }
 
 static int
@@ -324,24 +328,24 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 	/* Mark header read */
 	qoi->have_read_header = TRUE;
 	out = t[0];
+
 	if (
-		vips_image_write(out, load->real)) {
+		vips_image_write(t[0], load->real)) {
 		return -1;
 	}
 
-	// write headers
+	/* // write headers
 	vips_image_init_fields(load->out,
 		desc.width, desc.height,
 		desc.channels,
 		VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
-		1.0, 1.0);
+		1.0, 1.0); */
 
 	// TODO: load->out should only get the header written into
 	// vips_image_write(out, load->out);
 
-	// load->out->Xsize = 343;
 	/* VIPS now owns decoded_data, do not free it */
 	return 0;
 }
