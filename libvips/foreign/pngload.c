@@ -65,6 +65,14 @@ typedef struct _VipsForeignLoadPng {
 	 */
 	gboolean unlimited;
 
+	/* Load this page (frame number, numbered from zero).
+	 */
+	int page;
+
+	/* Load this many pages (-1 for all).
+	 */
+	int n;
+
 } VipsForeignLoadPng;
 
 typedef VipsForeignLoadClass VipsForeignLoadPngClass;
@@ -123,7 +131,8 @@ vips_foreign_load_png_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
-	if (vips__png_header_source(png->source, load->out, png->unlimited))
+	if (vips__png_header_source(png->source, load->out,
+			png->page, png->n, png->unlimited))
 		return -1;
 
 	return 0;
@@ -135,7 +144,7 @@ vips_foreign_load_png_load(VipsForeignLoad *load)
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
 
 	if (vips__png_read_source(png->source, load->real,
-			load->fail_on, png->unlimited))
+			png->page, png->n, load->fail_on, png->unlimited))
 		return -1;
 
 	return 0;
@@ -174,12 +183,27 @@ vips_foreign_load_png_class_init(VipsForeignLoadPngClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadPng, unlimited),
 		FALSE);
 #endif
+
+	VIPS_ARG_INT(class, "page", 20,
+		_("Page"),
+		_("First page to load"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadPng, page),
+		0, 100000, 0);
+
+	VIPS_ARG_INT(class, "n", 21,
+		_("n"),
+		_("Number of pages to load, -1 for all"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadPng, n),
+		-1, 100000, 1);
 }
 
 static void
 vips_foreign_load_png_init(VipsForeignLoadPng *png)
 {
 	png->unlimited = vips_unlimited_get();
+	png->n = 1;
 }
 
 typedef struct _VipsForeignLoadPngSource {
@@ -417,9 +441,17 @@ vips_foreign_load_png_buffer_init(VipsForeignLoadPngBuffer *buffer)
  * block some denial of service attacks. Set @unlimited to disable these
  * limits.
  *
+ * Use @page to set the first page (frame) to load, and @n to set the number
+ * of pages to load. Set @n to -1 to load all pages from @page onwards. By
+ * default, only the first page is loaded.
+ *
+ * For animated PNGs (APNG), pages are stacked vertically in the output image.
+ *
  * ::: tip "Optional arguments"
  *     * @fail_on: [enum@FailOn], types of read error to fail on
  *     * @unlimited: `gboolean`, Remove all denial of service limits
+ *     * @page: `gint`, first page to load
+ *     * @n: `gint`, number of pages to load, -1 for all
  *
  * ::: seealso
  *     [ctor@Image.new_from_file].
