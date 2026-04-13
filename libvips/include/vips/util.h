@@ -64,6 +64,36 @@ extern "C" {
 #define VIPS_ABS(V) (((V) >= 0) ? (V) : -(V))
 #define VIPS_FABS(V) fabs((V)) VIPS_DEPRECATED_MACRO_FOR(fabs)
 
+/* Copy a single pixel, optimised for common pixel sizes.
+ */
+#define VIPS_MEMCPY(Q, P, N) \
+	G_STMT_START \
+	{ \
+		switch (N) { \
+		case 1: \
+			(Q)[0] = (P)[0]; \
+			break; \
+		case 2: \
+			*((guint16 *) (Q)) = *((guint16 *) (P)); \
+			break; \
+		case 3: \
+			(Q)[0] = (P)[0]; \
+			(Q)[1] = (P)[1]; \
+			(Q)[2] = (P)[2]; \
+			break; \
+		case 4: \
+			*((guint32 *) (Q)) = *((guint32 *) (P)); \
+			break; \
+		case 8: \
+			*((guint64 *) (Q)) = *((guint64 *) (P)); \
+			break; \
+		default: \
+			memcpy((Q), (P), (N)); \
+			break; \
+		} \
+	} \
+	G_STMT_END
+
 // is something (eg. a pointer) N aligned
 #define VIPS_ALIGNED(P, N) ((((guint64) (P)) & ((N) - 1)) == 0)
 

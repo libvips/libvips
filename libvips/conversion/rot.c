@@ -78,6 +78,7 @@
 
 #include "pconversion.h"
 
+
 typedef struct _VipsRot {
 	VipsConversion parent_instance;
 
@@ -146,8 +147,7 @@ vips_rot90_gen(VipsRegion *out_region,
 			need.top + need.height - 1);
 
 		for (x = le; x < ri; x++) {
-			for (i = 0; i < ps; i++)
-				q[i] = p[i];
+			VIPS_MEMCPY(q, p, ps);
 
 			q += ps;
 			p -= ls;
@@ -209,8 +209,7 @@ vips_rot180_gen(VipsRegion *out_region,
 		/* Blap across!
 		 */
 		for (x = le; x < ri; x++) {
-			for (i = 0; i < ps; i++)
-				q[i] = p[i];
+			VIPS_MEMCPY(q, p, ps);
 
 			q += ps;
 			p -= ps;
@@ -271,8 +270,7 @@ vips_rot270_gen(VipsRegion *out_region,
 			need.top);
 
 		for (x = le; x < ri; x++) {
-			for (i = 0; i < ps; i++)
-				q[i] = p[i];
+			VIPS_MEMCPY(q, p, ps);
 
 			q += ps;
 			p += ls;

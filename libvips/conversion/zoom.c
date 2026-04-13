@@ -71,6 +71,8 @@
 
 #include "pconversion.h"
 
+
+
 typedef struct _VipsZoom {
 	VipsConversion parent_instance;
 
@@ -128,8 +130,7 @@ vips_zoom_paint_whole(VipsRegion *out_region, VipsRegion *ir, VipsZoom *zoom,
 			/* Copy each pel xfac times.
 			 */
 			for (z = 0; z < zoom->xfac; z++) {
-				for (i = 0; i < ps; i++)
-					r[i] = p[i];
+				VIPS_MEMCPY(r, p, ps);
 
 				r += ps;
 			}
