@@ -366,6 +366,56 @@ class TestConversion:
             pixel = im(30, 30)
             assert_almost_equal_objects(pixel, [20, 0, 41])
 
+    def test_reduce_colours(self):
+        im = pyvips.Image.new_from_file(JPEG_FILE)
+
+        # Opaque RGB → 3-band sRGB output (alpha dropped).
+        out = im.reduce_colours(16)
+        assert out.width == im.width
+        assert out.height == im.height
+        assert out.bands == 3
+        assert out.format == "uchar"
+        assert out.interpretation == "srgb"
+
+        # n=1 → every pixel takes the single palette entry.
+        out = im.reduce_colours(1)
+        assert out.bands == 3
+        sample = tuple(out(0, 0))
+        assert tuple(out(im.width // 2, im.height // 2)) == sample
+        assert tuple(out(im.width - 1, im.height - 1)) == sample
+
+        # RGBA with mid alpha → 4-band output (alpha kept).
+        rgba = im.bandjoin(128)
+        out = rgba.reduce_colours(8)
+        assert out.bands == 4
+
+        # Fully-transparent RGBA → 4-band output, alpha stays 0. RGB is
+        # backend-specific (built-in collapses to 0; libimagequant may
+        # preserve a centroid of the original RGB values), so only assert
+        # the alpha invariant.
+        rgba0 = im.bandjoin(0)
+        out = rgba0.reduce_colours(4)
+        assert out.bands == 4
+        assert out.extract_band(3).max() == 0.0
+
+        # Mono input → 3-band sRGB after vips__quantise_image converts.
+        mono = im.extract_band(0)
+        out = mono.reduce_colours(8)
+        assert out.bands == 3
+
+        # n=256 (max) — output mean per band stays within a few levels.
+        out = im.reduce_colours(256)
+        assert out.bands == 3
+        for b in range(3):
+            diff = abs(out.extract_band(b).avg() -
+                       im.extract_band(b).avg())
+            assert diff < 5.0
+
+        # 16-bit input → uchar output (vips__quantise_image casts).
+        im16 = pyvips.Image.new_from_file(PNG_FILE)
+        out = im16.reduce_colours(8)
+        assert out.format == "uchar"
+
     def test_flatten(self):
         for fmt in unsigned_formats + [pyvips.BandFormat.SHORT,
                                        pyvips.BandFormat.INT] + float_formats:
