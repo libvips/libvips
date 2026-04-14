@@ -79,6 +79,7 @@ extract, insert and join pairs of images in various ways.
 * [func@Image.composite]
 * [method@Image.composite2]
 * [method@Image.falsecolour]
+* [method@Image.reduce_colours]
 * [method@Image.gamma]
 
 ## Enumerations
