@@ -6,6 +6,11 @@ race_top:vips_*_dispose
 # using thread-local regions in generate functions is fine
 race_top:vips_*_gen
 
+# libimagequant n=1 scan callback is a thread-local sink reader; TSAN
+# can't see the happens-before from main's vips_sink dispatch through
+# the threadset wakeup chain, same false positive as vips_*_gen
+race_top:liq_n1_scan
+
 # these helpers are used by the above generate functions
 race_top:make_firstlast
 race_top:reduce_sum

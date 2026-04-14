@@ -551,6 +551,15 @@ liq_row_cb(liq_color row_out[], int row, int width, void *user_info)
 }
 #endif /*HAVE_IMAGEQUANT*/
 
+/* Forward decl for the n=1 helper. Each backend provides its own
+ * implementation further down (libimagequant and quantizr via custom
+ * sink passes that reproduce their native single-cluster math; built-in
+ * Wu via a thin wrapper around vips__builtin_quantise_stream). Used to
+ * skip the wasteful remap step when colours==1.
+ */
+static int vips__quantise_palette_single(VipsImage *in,
+	VipsQuantisePalette *out);
+
 int
 vips__quantise_image(VipsImage *in,
 	VipsImage **index_out, VipsImage **palette_out,
@@ -592,6 +601,41 @@ vips__quantise_image(VipsImage *in,
 		}
 		added_alpha = TRUE;
 		in = quantise->t[1];
+	}
+
+	/* max_colors == 1: the remap step is a no-op (every pixel maps to
+	 * the lone palette entry) so skip it. Each backend's native
+	 * single-cluster centroid math lives in vips__quantise_palette_single.
+	 *
+	 * threshold_alpha is ignored on this path. The only caller that
+	 * sets it (cgifsave) goes through the low-level vips__builtin_*
+	 * API directly with max_colors >= 2, never via this entry point.
+	 */
+	if (colours == 1) {
+		if (vips__quantise_palette_single(in, &builtin_pal)) {
+			vips_error("quantise", "%s",
+				_("quantisation failed"));
+			vips__quantise_free(quantise);
+			return -1;
+		}
+
+		index = quantise->t[3] = vips_image_new_memory();
+		vips_image_init_fields(index,
+			in->Xsize, in->Ysize, 1, VIPS_FORMAT_UCHAR,
+			VIPS_CODING_NONE, VIPS_INTERPRETATION_B_W,
+			1.0, 1.0);
+
+		if (vips_image_write_prepare(index)) {
+			vips__quantise_free(quantise);
+			return -1;
+		}
+
+		memset(VIPS_IMAGE_ADDR(index, 0, 0), 0,
+			VIPS_IMAGE_N_PELS(index));
+
+		lp = &builtin_pal;
+
+		goto build_palette;
 	}
 
 #if !defined(HAVE_IMAGEQUANT) && !defined(HAVE_QUANTIZR)
@@ -778,6 +822,7 @@ vips__quantise_image(VipsImage *in,
 	lp = vips__quantise_get_palette(quantise->quantisation_result);
 #endif
 
+build_palette:
 	palette = quantise->t[4] = vips_image_new_memory();
 	vips_image_init_fields(palette, lp->count, 1, 4,
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB,
@@ -807,3 +852,268 @@ vips__quantise_image(VipsImage *in,
 
 	return 0;
 }
+
+/* n=1 helper: produce a single-entry palette using each backend's own
+ * single-cluster centroid math. Called from vips__quantise_image() (and
+ * later from vips__quantise_palette()) when colours==1, so that the
+ * remap step can be skipped — every pixel maps to index 0 anyway.
+ *
+ * libimagequant and quantizr both reject max_colors < 2 in their own
+ * APIs, so for those backends we reproduce the algorithm directly via a
+ * threaded vips_sink pass. The built-in Wu backend supports
+ * max_colors=1 natively, so its implementation just calls the existing
+ * vips__builtin_quantise_stream() and discards the unused exact_map.
+ */
+#ifdef HAVE_IMAGEQUANT
+/* n=1 for libimagequant backend.
+ *
+ * libimagequant's set_max_colors rejects values < 2 (src/attr.rs:92-98), so
+ * we can't ask the library for a single-colour palette directly. Reproduce
+ * exactly what its 1-cluster centroid would be: alpha-premultiplied mean
+ * in gamma-1.2539 perceptual space, then unpremultiplied and inverse-
+ * gamma'd back to sRGB.
+ *
+ * Per pixel (α_norm = a/255):
+ *     f.r += α_norm * lut[r];  similarly g, b
+ *     f.a += α_norm
+ * Final (the W_R/W_G/W_B/W_A weights in src/pal.rs cancel for n=1):
+ *     r_linear = sum_fr / sum_fa
+ *     r_srgb   = round(max(0, r_linear)^(1/1.2539) * 256)  (clamped)
+ *     a_srgb   = round(sum_fa / n_pels * 256)
+ * Matches src/pal.rs:164-172 (from_rgba) and src/pal.rs:143-162 (to_rgb)
+ * with `INTERNAL_GAMMA / user_gamma = 0.57 / 0.45455 ≈ 1.2539`.
+ */
+#define LIQ_GAMMA_FWD 1.2539
+
+static double liq_gamma_lut[256];
+static GOnce liq_gamma_lut_once = G_ONCE_INIT;
+
+static void *
+liq_gamma_lut_build(void *user)
+{
+	int i;
+
+	for (i = 0; i < 256; i++)
+		liq_gamma_lut[i] = pow(i / 255.0, LIQ_GAMMA_FWD);
+
+	return NULL;
+}
+
+typedef struct {
+	double sum_fr, sum_fg, sum_fb, sum_fa;
+	guint64 n_pels;
+} LiqN1Seq;
+
+static void *
+liq_n1_start(VipsImage *im, void *a, void *b)
+{
+	return g_new0(LiqN1Seq, 1);
+}
+
+static int
+liq_n1_scan(VipsRegion *region, void *seq, void *a, void *b, gboolean *stop)
+{
+	LiqN1Seq *thr = (LiqN1Seq *) seq;
+	VipsRect *area = &region->valid;
+	int y, x;
+
+	for (y = 0; y < area->height; y++) {
+		const VipsPel *p = VIPS_REGION_ADDR(region,
+			area->left, area->top + y);
+
+		for (x = 0; x < area->width; x++) {
+			double alpha = p[3] / 255.0;
+
+			thr->sum_fr += alpha * liq_gamma_lut[p[0]];
+			thr->sum_fg += alpha * liq_gamma_lut[p[1]];
+			thr->sum_fb += alpha * liq_gamma_lut[p[2]];
+			thr->sum_fa += alpha;
+			thr->n_pels++;
+			p += 4;
+		}
+	}
+
+	return 0;
+}
+
+static int
+liq_n1_stop(void *seq, void *a, void *b)
+{
+	LiqN1Seq *thr = (LiqN1Seq *) seq;
+	LiqN1Seq *main = (LiqN1Seq *) b;
+
+	main->sum_fr += thr->sum_fr;
+	main->sum_fg += thr->sum_fg;
+	main->sum_fb += thr->sum_fb;
+	main->sum_fa += thr->sum_fa;
+	main->n_pels += thr->n_pels;
+
+	g_free(thr);
+	return 0;
+}
+
+static inline unsigned char
+liq_finalise_channel(double sum_fc, double sum_fa)
+{
+	double linear = sum_fc / sum_fa;
+	double srgb;
+
+	if (linear < 0)
+		linear = 0;
+	srgb = pow(linear, 1.0 / LIQ_GAMMA_FWD) * 256.0;
+	if (srgb < 0)
+		srgb = 0;
+	if (srgb > 255)
+		srgb = 255;
+
+	return (unsigned char) (srgb + 0.5);
+}
+
+static int
+vips__quantise_palette_single(VipsImage *in, VipsQuantisePalette *out)
+{
+	LiqN1Seq main = { 0 };
+	double mean_fa;
+
+	VIPS_ONCE(&liq_gamma_lut_once, liq_gamma_lut_build, NULL);
+
+	if (vips_sink(in, liq_n1_start, liq_n1_scan, liq_n1_stop, &main, &main))
+		return -1;
+
+	out->count = 1;
+
+	if (main.n_pels == 0 || main.sum_fa <= 0) {
+		/* No pixels, or fully transparent: collapse to (0,0,0,0). */
+		out->entries[0].r = 0;
+		out->entries[0].g = 0;
+		out->entries[0].b = 0;
+		out->entries[0].a = 0;
+		return 0;
+	}
+
+	out->entries[0].r = liq_finalise_channel(main.sum_fr, main.sum_fa);
+	out->entries[0].g = liq_finalise_channel(main.sum_fg, main.sum_fa);
+	out->entries[0].b = liq_finalise_channel(main.sum_fb, main.sum_fa);
+
+	mean_fa = (main.sum_fa / (double) main.n_pels) * 256.0;
+	if (mean_fa < 0)
+		mean_fa = 0;
+	if (mean_fa > 255)
+		mean_fa = 255;
+	out->entries[0].a = (unsigned char) (mean_fa + 0.5);
+
+	return 0;
+}
+#elif defined(HAVE_QUANTIZR)
+/* n=1 for quantizr backend.
+ *
+ * quantizr's set_max_colors rejects values < 2 (src/options.rs:23-31), so
+ * we can't ask the library for a single-colour palette directly. Reproduce
+ * exactly what its 1-cluster centroid would be: arithmetic per-band mean
+ * over the histogram, where pixels with α=0 are normalised to (0,0,0,0)
+ * before accumulation (matches src/histogram.rs:36-50 + src/cluster.rs:38-66
+ * + src/colormap.rs:138-145).
+ */
+typedef struct {
+	guint64 sum_r, sum_g, sum_b, sum_a;
+	guint64 n_pels;
+} QzN1Seq;
+
+static void *
+qz_n1_start(VipsImage *im, void *a, void *b)
+{
+	return g_new0(QzN1Seq, 1);
+}
+
+static int
+qz_n1_scan(VipsRegion *region, void *seq, void *a, void *b, gboolean *stop)
+{
+	QzN1Seq *thr = (QzN1Seq *) seq;
+	VipsRect *area = &region->valid;
+	int y, x;
+
+	for (y = 0; y < area->height; y++) {
+		const VipsPel *p = VIPS_REGION_ADDR(region,
+			area->left, area->top + y);
+
+		for (x = 0; x < area->width; x++) {
+			if (p[3] != 0) {
+				thr->sum_r += p[0];
+				thr->sum_g += p[1];
+				thr->sum_b += p[2];
+				thr->sum_a += p[3];
+			}
+			thr->n_pels++;
+			p += 4;
+		}
+	}
+
+	return 0;
+}
+
+static int
+qz_n1_stop(void *seq, void *a, void *b)
+{
+	QzN1Seq *thr = (QzN1Seq *) seq;
+	QzN1Seq *main = (QzN1Seq *) b;
+
+	main->sum_r += thr->sum_r;
+	main->sum_g += thr->sum_g;
+	main->sum_b += thr->sum_b;
+	main->sum_a += thr->sum_a;
+	main->n_pels += thr->n_pels;
+
+	g_free(thr);
+	return 0;
+}
+
+static int
+vips__quantise_palette_single(VipsImage *in, VipsQuantisePalette *out)
+{
+	QzN1Seq main = { 0 };
+
+	if (vips_sink(in, qz_n1_start, qz_n1_scan, qz_n1_stop, &main, &main))
+		return -1;
+
+	out->count = 1;
+	if (main.n_pels == 0) {
+		out->entries[0].r = 0;
+		out->entries[0].g = 0;
+		out->entries[0].b = 0;
+		out->entries[0].a = 0;
+	}
+	else {
+		out->entries[0].r = (unsigned char)
+			((main.sum_r + main.n_pels / 2) / main.n_pels);
+		out->entries[0].g = (unsigned char)
+			((main.sum_g + main.n_pels / 2) / main.n_pels);
+		out->entries[0].b = (unsigned char)
+			((main.sum_b + main.n_pels / 2) / main.n_pels);
+		out->entries[0].a = (unsigned char)
+			((main.sum_a + main.n_pels / 2) / main.n_pels);
+	}
+
+	return 0;
+}
+#else /*!HAVE_IMAGEQUANT && !HAVE_QUANTIZR*/
+/* n=1 for built-in Wu backend.
+ *
+ * Wu's wu_partition handles n_colors=1 trivially (single global box,
+ * loop doesn't run), and the streaming entry point already supports
+ * max_colors=1 after the clamp lift in quantise-builtin.c. Just call
+ * it and discard the unused exact_map.
+ */
+static int
+vips__quantise_palette_single(VipsImage *in, VipsQuantisePalette *out)
+{
+	GHashTable *exact_map;
+
+	if (vips__builtin_quantise_stream(in, 1, 0, out, &exact_map))
+		return -1;
+
+	if (exact_map)
+		g_hash_table_destroy(exact_map);
+
+	return 0;
+}
+#endif /*HAVE_IMAGEQUANT || HAVE_QUANTIZR*/

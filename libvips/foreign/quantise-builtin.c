@@ -1543,8 +1543,8 @@ vips__builtin_quantise_stream(VipsImage *in,
 
 	*exact_map_out = NULL;
 
-	if (max_colors < 2)
-		max_colors = 2;
+	if (max_colors < 1)
+		max_colors = 1;
 	if (max_colors > MAX_COLORS)
 		max_colors = MAX_COLORS;
 
@@ -1607,6 +1607,12 @@ vips__builtin_quantise_stream(VipsImage *in,
 	hist = state.hist;
 	has_transparent = state.has_transparent;
 
+	/* For max_colors==1 we can't afford to burn a slot on transparent:
+	 * fold the transparent semantic into the single output entry. A
+	 * fully-transparent image still collapses to (0,0,0,0).
+	 */
+	gboolean want_transparent_slot = has_transparent && max_colors > 1;
+
 	/* Few-colours fast path: use exact sRGB values as palette.
 	 * Store internally in perceptual space (via perceptual_fwd)
 	 * so the palette is consistent with wu_box_color's output.
@@ -1615,12 +1621,21 @@ vips__builtin_quantise_stream(VipsImage *in,
 	if (state.exact) {
 		GHashTableIter iter;
 		gpointer key;
-		int first = has_transparent ? 1 : 0;
+		int first = want_transparent_slot ? 1 : 0;
 
 		n_colors = state.n_exact + first;
+
+		/* max_colors==1 + fully-transparent image: emit a single
+		 * (0,0,0,0) entry instead of the empty palette that the
+		 * normal code path would produce.
+		 */
+		if (max_colors == 1 && has_transparent && n_colors == 0)
+			n_colors = 1;
+
 		entries = g_new(PaletteEntry, n_colors);
 
-		if (has_transparent)
+		if (want_transparent_slot ||
+			(max_colors == 1 && has_transparent && state.n_exact == 0))
 			entries[0] = (PaletteEntry) { 0, 0, 0, 0 };
 
 		/* Build palette (sRGB) and RGBA→index map. */
@@ -1647,7 +1662,7 @@ vips__builtin_quantise_stream(VipsImage *in,
 				GUINT_TO_POINTER(rgba),
 				GINT_TO_POINTER(i));
 		}
-		if (has_transparent)
+		if (want_transparent_slot)
 			g_hash_table_insert(state.exact,
 				GUINT_TO_POINTER(0),
 				GINT_TO_POINTER(0));
@@ -1695,25 +1710,36 @@ vips__builtin_quantise_stream(VipsImage *in,
 
 	wu_cumulate_moments(hist);
 
-	visible_colours = has_transparent
+	visible_colours = want_transparent_slot
 		? VIPS_MAX(max_colors - 1, 1)
 		: max_colors;
 
 	boxes = g_new(WuBox, visible_colours);
 	n_colors = wu_partition(hist, boxes, visible_colours);
 
-	entries = g_new(PaletteEntry, n_colors + (has_transparent ? 1 : 0));
-	if (has_transparent)
+	entries = g_new(PaletteEntry, n_colors + (want_transparent_slot ? 1 : 0));
+	if (want_transparent_slot)
 		entries[0] = (PaletteEntry) { 0, 0, 0, 0 };
 	for (i = 0; i < n_colors; i++)
 		wu_box_color(hist, &boxes[i],
-			&entries[i + (has_transparent ? 1 : 0)]);
-	if (has_transparent)
+			&entries[i + (want_transparent_slot ? 1 : 0)]);
+
+	/* max_colors==1 + fully-transparent: wu_box_color's empty-box fallback
+	 * is (0, 0, 0, PERCEPTUAL_RANGE) which inverts to opaque black. Force
+	 * (0,0,0,0) so the single entry matches the transparent semantic.
+	 */
+	if (max_colors == 1 && has_transparent && n_colors == 1 &&
+		vol(hist->wt, &boxes[0]) == 0)
+		entries[0] = (PaletteEntry) { 0, 0, 0, 0 };
+
+	if (want_transparent_slot)
 		n_colors++;
 
-	/* K-means refinement.
+	/* K-means refinement. Skip for n_colors==1: Wu's single box already
+	 * produced the exact perceptual mean, and kmeans_hamerly would loop
+	 * uselessly assigning every cell to the only centroid.
 	 */
-	if (KMEANS_PASSES > 0) {
+	if (KMEANS_PASSES > 0 && n_colors > 1) {
 		VipsPel *nearest_map = g_new(VipsPel, CACHE_SIZE);
 
 		kmeans_hamerly(state.cells, state.n_cells,
