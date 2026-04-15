@@ -311,10 +311,9 @@ vips_foreign_load_matrix_file_build(VipsObject *object)
 	VipsForeignLoadMatrix *matrix = (VipsForeignLoadMatrix *) object;
 	VipsForeignLoadMatrixFile *file = (VipsForeignLoadMatrixFile *) object;
 
-	if (file->filename)
-		if (!(matrix->source =
-					vips_source_new_from_file(file->filename)))
-			return -1;
+	if (file->filename &&
+		!(matrix->source = vips_source_new_from_file(file->filename)))
+		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_matrix_file_parent_class)
 		->build(object);

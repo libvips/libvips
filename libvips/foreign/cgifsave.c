@@ -986,8 +986,10 @@ vips_foreign_save_cgif_target_build(VipsObject *object)
 	VipsForeignSaveCgif *gif = (VipsForeignSaveCgif *) object;
 	VipsForeignSaveCgifTarget *target = (VipsForeignSaveCgifTarget *) object;
 
-	gif->target = target->target;
-	g_object_ref(gif->target);
+	if (target->target) {
+		gif->target = target->target;
+		g_object_ref(gif->target);
+	}
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_cgif_target_parent_class)
 		->build(object);
@@ -1035,11 +1037,12 @@ vips_foreign_save_cgif_file_build(VipsObject *object)
 	VipsForeignSaveCgif *gif = (VipsForeignSaveCgif *) object;
 	VipsForeignSaveCgifFile *file = (VipsForeignSaveCgifFile *) object;
 
-	if (!(gif->target = vips_target_new_to_file(file->filename)))
+	if (file->filename &&
+		!(gif->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_cgif_file_parent_class)
-			->build(object);
+		->build(object);
 }
 
 static void

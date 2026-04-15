@@ -306,14 +306,13 @@ vips_foreign_save_jpeg_target_build(VipsObject *object)
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegTarget *target = (VipsForeignSaveJpegTarget *) object;
 
-	jpeg->target = target->target;
-	g_object_ref(jpeg->target);
+	if (target->target) {
+		jpeg->target = target->target;
+		g_object_ref(jpeg->target);
+	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_target_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -362,14 +361,12 @@ vips_foreign_save_jpeg_file_build(VipsObject *object)
 	VipsForeignSaveJpeg *jpeg = (VipsForeignSaveJpeg *) object;
 	VipsForeignSaveJpegFile *file = (VipsForeignSaveJpegFile *) object;
 
-	if (!(jpeg->target = vips_target_new_to_file(file->filename)))
+	if (file->filename &&
+		!(jpeg->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_file_parent_class)
-			->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_save_jpeg_file_parent_class)
+		->build(object);
 }
 
 static void

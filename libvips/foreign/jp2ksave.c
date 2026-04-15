@@ -1037,7 +1037,8 @@ vips_foreign_save_jp2k_file_build(VipsObject *object)
 	VipsForeignSaveJp2k *jp2k = (VipsForeignSaveJp2k *) object;
 	VipsForeignSaveJp2kFile *file = (VipsForeignSaveJp2kFile *) object;
 
-	if (!(jp2k->target = vips_target_new_to_file(file->filename)))
+	if (file->filename &&
+		!(jp2k->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_jp2k_file_parent_class)

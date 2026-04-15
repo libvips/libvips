@@ -2627,8 +2627,10 @@ vips_foreign_save_dz_target_build(VipsObject *object)
 	VipsForeignSaveDz *dz = (VipsForeignSaveDz *) object;
 	VipsForeignSaveDzTarget *target = (VipsForeignSaveDzTarget *) object;
 
-	dz->target = target->target;
-	g_object_ref(dz->target);
+	if (target->target) {
+		dz->target = target->target;
+		g_object_ref(dz->target);
+	}
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_dz_target_parent_class)
 		->build(object);

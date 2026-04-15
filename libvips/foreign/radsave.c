@@ -185,10 +185,7 @@ vips_foreign_save_rad_target_build(VipsObject *object)
 			->build(object))
 		return -1;
 
-	if (vips__rad_save(save->ready, target->target))
-		return -1;
-
-	return 0;
+	return vips__rad_save(save->ready, target->target);
 }
 
 static void

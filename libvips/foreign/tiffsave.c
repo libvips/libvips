@@ -446,8 +446,10 @@ vips_foreign_save_tiff_target_build(VipsObject *object)
 	VipsForeignSaveTiffTarget *target =
 		(VipsForeignSaveTiffTarget *) object;
 
-	tiff->target = target->target;
-	g_object_ref(tiff->target);
+	if (target->target) {
+		tiff->target = target->target;
+		g_object_ref(tiff->target);
+	}
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_tiff_target_parent_class)
 		->build(object);
@@ -497,7 +499,8 @@ vips_foreign_save_tiff_file_build(VipsObject *object)
 	VipsForeignSaveTiff *tiff = (VipsForeignSaveTiff *) object;
 	VipsForeignSaveTiffFile *file = (VipsForeignSaveTiffFile *) object;
 
-	if (!(tiff->target = vips_target_new_to_file(file->filename)))
+	if (file->filename &&
+		!(tiff->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_tiff_file_parent_class)

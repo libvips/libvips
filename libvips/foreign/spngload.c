@@ -150,6 +150,9 @@ static VipsForeignFlags
 vips_foreign_load_png_get_flags(VipsForeignLoad *load)
 {
 	VipsForeignLoadPng *png = (VipsForeignLoadPng *) load;
+	
+	if (!png->source)
+		return 0;
 
 	return vips_foreign_load_png_get_flags_source(png->source);
 }

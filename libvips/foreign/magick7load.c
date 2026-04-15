@@ -329,8 +329,8 @@ vips_foreign_load_magick7_build(VipsObject *object)
 		magick_set_number_scenes(magick7->image_info,
 			magick7->page, magick7->n);
 
-	return VIPS_OBJECT_CLASS(vips_foreign_load_magick7_parent_class)->
-		build(object);
+	return VIPS_OBJECT_CLASS(vips_foreign_load_magick7_parent_class)
+		->build(object);
 }
 
 static void
