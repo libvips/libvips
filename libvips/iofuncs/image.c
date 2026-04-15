@@ -1527,11 +1527,13 @@ vips_image_preeval(VipsImage *image)
 
 		(void) vips_progress_add(image);
 
+#if VIPS_ENABLE_DEPRECATED
 		/* For vips7 compat, we also have to make sure ->time on the
 		 * image that was originally marked with
 		 * vips_image_set_progress() is valid.
 		 */
 		(void) vips_progress_add(image->progress_signal);
+#endif
 
 		if (!vips_image_get_typeof(image, "hide-progress"))
 			g_signal_emit(image->progress_signal,
@@ -1553,12 +1555,14 @@ vips_image_eval(VipsImage *image, guint64 processed)
 
 		vips_progress_update(image->time, processed);
 
+#if VIPS_ENABLE_DEPRECATED
 		/* For vips7 compat, update the ->time on the signalling image
 		 * too, even though it may have a different width/height to
 		 * the image we are actually generating.
 		 */
 		if (image->progress_signal->time != image->time)
 			vips_progress_update(image->progress_signal->time, processed);
+#endif
 
 		if (!vips_image_get_typeof(image, "hide-progress"))
 			g_signal_emit(image->progress_signal,
@@ -1583,6 +1587,7 @@ vips_image_posteval(VipsImage *image)
 		processed = image->time->tpels;
 		vips_progress_update(image->time, processed);
 
+#if VIPS_ENABLE_DEPRECATED
 		/* For vips7 compat, update the ->time on the signalling image
 		 * too, even though it may have a different width/height to
 		 * the image we are actually generating.
@@ -1590,6 +1595,7 @@ vips_image_posteval(VipsImage *image)
 		if (image->progress_signal->time != image->time)
 			vips_progress_update(image->progress_signal->time,
 				processed);
+#endif
 
 		if (!vips_image_get_typeof(image, "hide-progress"))
 			g_signal_emit(image->progress_signal,
@@ -1641,11 +1647,11 @@ vips_image_iskilled(VipsImage *image)
 {
 	gboolean kill;
 
-	kill = image->kill;
+	kill = g_atomic_int_get(&image->kill);
 
 	// check the image we are signalling progress on too
 	if (image->progress_signal)
-		kill |= image->progress_signal->kill;
+		kill |= g_atomic_int_get(&image->progress_signal->kill);
 
 	/* Has kill been set for this image? If yes, abort evaluation.
 	 */
@@ -1678,15 +1684,17 @@ vips_image_iskilled(VipsImage *image)
 void
 vips_image_set_kill(VipsImage *image, gboolean kill)
 {
+#ifdef VIPS_DEBUG
 	if (image->kill != kill)
-		VIPS_DEBUG_MSG("vips_image_set_kill: %s (%p) %d\n",
+		printf("vips_image_set_kill: %s (%p) %d\n",
 			image->filename, image, kill);
+#endif
 
-	image->kill = kill;
+	g_atomic_int_set(&image->kill, kill);
 
 	// set here too
 	if (image->progress_signal)
-		image->progress_signal->kill = kill;
+		g_atomic_int_set(&image->progress_signal->kill, kill);
 }
 
 /* Fills the given buffer with a temporary filename.
@@ -2526,13 +2534,11 @@ vips_image_set_delete_on_close(VipsImage *image, gboolean delete_on_close)
 guint64
 vips_get_disc_threshold(void)
 {
-	static gboolean done = FALSE;
+	static gsize initialized = 0;
 	static guint64 threshold;
 
-	if (!done) {
+	if (g_once_init_enter(&initialized)) {
 		const char *env;
-
-		done = TRUE;
 
 		/* 100mb default.
 		 */
@@ -2551,6 +2557,8 @@ vips_get_disc_threshold(void)
 #ifdef DEBUG
 		printf("vips_get_disc_threshold: %zd bytes\n", threshold);
 #endif /*DEBUG*/
+
+		g_once_init_leave(&initialized, TRUE);
 	}
 
 	return threshold;

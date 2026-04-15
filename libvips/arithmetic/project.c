@@ -207,7 +207,7 @@ vips_project_start(VipsStatistic *statistic)
  */
 static int
 vips_project_scan(VipsStatistic *statistic, void *seq,
-	int x, int y, void *in, int n)
+	int x, int y, void *in, int n, gboolean *stop)
 {
 	int nb = statistic->ready->Bands;
 	Histogram *hist = (Histogram *) seq;

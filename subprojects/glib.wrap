@@ -1,0 +1,11 @@
+[wrap-file]
+directory = glib-2.88.0
+source_url = https://download.gnome.org/sources/glib/2.88/glib-2.88.0.tar.xz
+source_fallback_url = https://wrapdb.mesonbuild.com/v2/glib_2.88.0-1/get_source/glib-2.88.0.tar.xz
+source_filename = glib-2.88.0.tar.xz
+source_hash = 3546251ccbb3744d4bc4eb48354540e1f6200846572bab68e3a2b7b2b64dfd07
+wrapdb_version = 2.88.0-1
+
+[provide]
+dependency_names = gthread-2.0, gobject-2.0, gmodule-no-export-2.0, gmodule-export-2.0, gmodule-2.0, glib-2.0, gio-2.0, gio-windows-2.0, gio-unix-2.0
+program_names = glib-genmarshal, glib-mkenums, glib-compile-schemas, glib-compile-resources, gio-querymodules, gdbus-codegen

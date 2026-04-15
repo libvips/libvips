@@ -255,7 +255,7 @@ vips_foreign_save_webp_pic_init(VipsForeignSaveWebp *webp, WebPPicture *pic)
 	pic->writer = WebPMemoryWrite;
 	pic->custom_ptr = (void *) &webp->memory_writer;
 	pic->progress_hook = vips_foreign_save_webp_progress_hook;
-	pic->user_data = (void *) save->in;
+	pic->user_data = (void *) save->ready;
 
 	/* Smart subsampling needs use_argb because it is applied during
 	 * RGB to YUV conversion.

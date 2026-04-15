@@ -1121,7 +1121,7 @@ image_strip_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	 * tiles across.
 	 */
 	if (strip->x / dz->tile_step >= level->tiles_across) {
-		*stop = TRUE;
+		g_atomic_int_set(stop, TRUE);
 #ifdef DEBUG_VERBOSE
 		printf("image_strip_allocate: done\n");
 #endif /*DEBUG_VERBOSE*/
@@ -1376,7 +1376,7 @@ image_strip_work(VipsThreadState *state, void *a)
 	/* killed is checked by sink_disc, but that's only once per strip, and
 	 * they can be huge. Check per output tile as well.
 	 */
-	if (vips_image_iskilled(save->in))
+	if (vips_image_iskilled(save->ready))
 		return -1;
 
 	/* We may be outside the real pixels.
@@ -1525,7 +1525,7 @@ direct_strip_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	 * tiles across.
 	 */
 	if (strip->x / dz->tile_step >= level->tiles_across) {
-		*stop = TRUE;
+		g_atomic_int_set(stop, TRUE);
 #ifdef DEBUG_VERBOSE
 		printf("direct_strip_allocate: done\n");
 #endif /*DEBUG_VERBOSE*/
@@ -1605,7 +1605,7 @@ direct_strip_work(VipsThreadState *state, void *a)
 	/* killed is checked by sink_disc, but that's only once per strip, and
 	 * they can be huge. Check per output tile as well.
 	 */
-	if (vips_image_iskilled(save->in))
+	if (vips_image_iskilled(save->ready))
 		return -1;
 
 	/* We may be outside the real pixels.
