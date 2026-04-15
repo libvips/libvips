@@ -2,6 +2,7 @@ tbd 8.18.3
 
 - invertlut: verify input mask positions [lovell]
 - bandjoin_const: fix possible OOB read with RAD/LABQ images [kleisauke]
+- object: guard against invalid interpolators [kleisauke]
 
 31/3/26 8.18.2
 
