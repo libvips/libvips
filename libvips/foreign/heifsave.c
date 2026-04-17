@@ -882,12 +882,13 @@ vips_foreign_save_heif_file_build(VipsObject *object)
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
 	VipsForeignSaveHeifFile *file = (VipsForeignSaveHeifFile *) object;
 
-	if (file->filename &&
-		!(heif->target = vips_target_new_to_file(file->filename)))
-		return -1;
+	if (file->filename) {
+		if (!(heif->target = vips_target_new_to_file(file->filename)))
+			return -1;
 
-	if (vips_iscasepostfix(file->filename, ".avif"))
-		heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
+		if (vips_iscasepostfix(file->filename, ".avif"))
+			heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_AV1;
+	}
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_heif_file_parent_class)
 		->build(object);

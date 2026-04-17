@@ -631,8 +631,7 @@ vips_foreign_load_nifti_file_build(VipsObject *object)
 	VipsForeignLoadNiftiFile *file = (VipsForeignLoadNiftiFile *) object;
 
 	if (file->filename &&
-		!(nifti->source =
-				vips_source_new_from_file(file->filename)))
+		!(nifti->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_nifti_file_parent_class)

@@ -92,6 +92,9 @@ vips_foreign_load_vips_get_flags(VipsForeignLoad *load)
 {
 	VipsForeignLoadVips *vips = (VipsForeignLoadVips *) load;
 
+	if (!vips->source)
+		return 0;
+
 	return vips_foreign_load_vips_get_flags_source(vips->source);
 }
 
