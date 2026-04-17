@@ -67,7 +67,7 @@
  *
  * An abstract base class for the various interpolation functions.
  *
- * Use `vips --list classes` to see all the interpolators available.
+ * Use `vips --list VipsInterpolate` to see all the interpolators available.
  *
  * An interpolator consists of a function to perform the interpolation, plus
  * some extra data fields which tells libvips how to call the function and

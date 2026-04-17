@@ -1941,10 +1941,29 @@ vips_object_set_argument_from_string(VipsObject *object,
 		g_value_init(&gvalue, VIPS_TYPE_SOURCE);
 		g_value_set_object(&gvalue, source);
 
-		/* Setting gvalue will have upped @out's count again,
+		/* Setting gvalue will have upped @source's count again,
 		 * go back to 1 so that gvalue has the only ref.
 		 */
 		g_object_unref(source);
+	}
+	else if (g_type_is_a(otype, VIPS_TYPE_INTERPOLATE)) {
+		VipsInterpolate *interpolate;
+
+		if (!value) {
+			vips_object_no_value(object, name);
+			return -1;
+		}
+
+		if (!(interpolate = vips_interpolate_new(value)))
+			return -1;
+
+		g_value_init(&gvalue, VIPS_TYPE_INTERPOLATE);
+		g_value_set_object(&gvalue, interpolate);
+
+		/* Setting gvalue will have upped @interpolate's count again,
+		 * go back to 1 so that gvalue has the only ref.
+		 */
+		g_object_unref(interpolate);
 	}
 	else if (g_type_is_a(otype, VIPS_TYPE_ARRAY_IMAGE)) {
 		/* We have to have a special case for this, we can't just rely
@@ -2676,7 +2695,7 @@ vips_object_to_string_optional(VipsObject *object,
  * @buf: write string here
  *
  * The inverse of [ctor@Object.new_from_string]: turn @object into eg.
- * `"VipsInterpolateSnohalo1(blur=.333333)"`.
+ * `"bicubic"`.
  */
 void
 vips_object_to_string(VipsObject *object, VipsBuf *buf)
