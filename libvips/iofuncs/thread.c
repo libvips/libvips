@@ -56,6 +56,10 @@
 #include <windows.h>
 #endif /*G_OS_WIN32*/
 
+#ifdef __APPLE__
+#include <sys/sysctl.h>
+#endif /*__APPLE__*/
+
 /* Maximum value we allow for VIPS_CONCURRENCY. We need to stop huge values
  * killing the system.
  */
@@ -175,8 +179,24 @@ vips__concurrency_get_default(void)
 				) &&
 		(x = atoi(str)) > 0)
 		nthr = x;
-	else
+	else {
 		nthr = g_get_num_processors();
+
+#ifdef __APPLE__
+		/* On Apple Silicon, prefer the number of performance cores to
+		 * avoid scheduling work on slower efficiency cores.
+		 */
+		{
+			int pcore_count = 0;
+			size_t len = sizeof(pcore_count);
+
+			if (sysctlbyname("hw.perflevel0.logicalcpu",
+					&pcore_count, &len, NULL, 0) == 0 &&
+				pcore_count > 0)
+				nthr = pcore_count;
+		}
+#endif /*__APPLE__*/
+	}
 
 	if (nthr < 1 ||
 		nthr > MAX_THREADS) {
