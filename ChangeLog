@@ -5,6 +5,7 @@ tbd 8.18.3
 - edge: ensure parent object is built [lovell]
 - object: guard against invalid interpolators [kleisauke]
 - foreign: guard against NULL filenames [kleisauke]
+- stdif: verify window dimensions are smaller than image [lovell]
 
 31/3/26 8.18.2
 
