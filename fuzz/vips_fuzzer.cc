@@ -38,6 +38,11 @@ LLVMFuzzerInitialize(int *argc, char ***argv)
 		"VipsForeignPrintMatrix",
 		"VipsForeignSaveJpegMime",
 		"VipsForeignSaveWebpMime",
+		/* dzsave writes a .dzi sidecar and a _files/ tile directory
+		 * alongside the primary path; a single g_unlink can't clean
+		 * that up, so the tmpdir would grow each iteration.
+		 */
+		"VipsForeignSaveDzFile",
 	};
 	for (const char *operation : blocklist)
 		vips_operation_block_set(operation, TRUE);
