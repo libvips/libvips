@@ -99,7 +99,7 @@ vips_stdif_generate(VipsRegion *out_region,
 	VipsImage *in = (VipsImage *) a;
 	VipsStdif *stdif = (VipsStdif *) b;
 	int bands = in->Bands;
-	int npel = stdif->width * stdif->width;
+	int npel = stdif->width * stdif->height;
 
 	VipsRect irect;
 	int y;
@@ -231,8 +231,8 @@ vips_stdif_build(VipsObject *object)
 	if (vips_check_format(class->nickname, in, VIPS_FORMAT_UCHAR))
 		return -1;
 
-	if (stdif->width > in->Xsize ||
-		stdif->height > in->Ysize) {
+	if (stdif->width >= in->Xsize ||
+		stdif->height >= in->Ysize) {
 		vips_error(class->nickname, "%s", _("window too large"));
 		return -1;
 	}
