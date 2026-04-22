@@ -714,10 +714,9 @@ vips_foreign_load_gif_file_build(VipsObject *object)
 	VipsForeignLoadNsgif *gif = (VipsForeignLoadNsgif *) object;
 	VipsForeignLoadNsgifFile *file = (VipsForeignLoadNsgifFile *) object;
 
-	if (file->filename)
-		if (!(gif->source =
-					vips_source_new_from_file(file->filename)))
-			return -1;
+	if (file->filename &&
+		!(gif->source = vips_source_new_from_file(file->filename)))
+		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_file_parent_class)
 		->build(object);

@@ -291,12 +291,11 @@ vips_foreign_load_webp_file_build(VipsObject *object)
 	VipsForeignLoadWebpFile *file = (VipsForeignLoadWebpFile *) object;
 
 	if (file->filename &&
-		!(webp->source =
-				vips_source_new_from_file(file->filename)))
+		!(webp->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_webp_file_parent_class)
-			->build(object);
+		->build(object);
 }
 
 static gboolean

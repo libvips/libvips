@@ -790,8 +790,10 @@ vips_foreign_save_spng_target_build(VipsObject *object)
 	VipsForeignSaveSpngTarget *target =
 		(VipsForeignSaveSpngTarget *) object;
 
-	spng->target = target->target;
-	g_object_ref(spng->target);
+	if (target->target) {
+		spng->target = target->target;
+		g_object_ref(spng->target);
+	}
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_spng_target_parent_class)
 		->build(object);
@@ -840,7 +842,8 @@ vips_foreign_save_spng_file_build(VipsObject *object)
 	VipsForeignSaveSpng *spng = (VipsForeignSaveSpng *) object;
 	VipsForeignSaveSpngFile *file = (VipsForeignSaveSpngFile *) object;
 
-	if (!(spng->target = vips_target_new_to_file(file->filename)))
+	if (file->filename &&
+		!(spng->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_spng_file_parent_class)

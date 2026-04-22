@@ -130,6 +130,9 @@ static VipsForeignFlags
 vips_foreign_load_tiff_get_flags(VipsForeignLoad *load)
 {
 	VipsForeignLoadTiff *tiff = (VipsForeignLoadTiff *) load;
+	
+	if (!tiff->source)
+		return 0;
 
 	return vips_foreign_load_tiff_get_flags_source(tiff->source);
 }
@@ -329,8 +332,7 @@ vips_foreign_load_tiff_file_build(VipsObject *object)
 	VipsForeignLoadTiffFile *file = (VipsForeignLoadTiffFile *) object;
 
 	if (file->filename &&
-		!(tiff->source =
-				vips_source_new_from_file(file->filename)))
+		!(tiff->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_tiff_file_parent_class)

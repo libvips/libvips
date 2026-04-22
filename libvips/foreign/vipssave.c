@@ -167,7 +167,8 @@ vips_foreign_save_vips_file_build(VipsObject *object)
 	VipsForeignSaveVips *vips = (VipsForeignSaveVips *) object;
 	VipsForeignSaveVipsFile *file = (VipsForeignSaveVipsFile *) object;
 
-	if (!(vips->target = vips_target_new_to_file(file->filename)))
+	if (file->filename &&
+		!(vips->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_vips_file_parent_class)
@@ -219,8 +220,10 @@ vips_foreign_save_vips_target_build(VipsObject *object)
 	VipsForeignSaveVipsTarget *target =
 		(VipsForeignSaveVipsTarget *) object;
 
-	vips->target = target->target;
-	g_object_ref(vips->target);
+	if (target->target) {
+		vips->target = target->target;
+		g_object_ref(vips->target);
+	}
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_vips_target_parent_class)
 		->build(object);

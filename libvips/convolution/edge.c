@@ -187,6 +187,9 @@ vips_edge_build(VipsObject *object)
 {
 	VipsEdge *edge = (VipsEdge *) object;
 
+	if (VIPS_OBJECT_CLASS(vips_edge_parent_class)->build(object))
+		return -1;
+
 	if (edge->in->BandFmt == VIPS_FORMAT_UCHAR) {
 		if (vips_edge_build_uchar(edge))
 			return -1;

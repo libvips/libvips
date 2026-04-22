@@ -1406,7 +1406,8 @@ vips_foreign_save_jxl_file_build(VipsObject *object)
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
 	VipsForeignSaveJxlFile *file = (VipsForeignSaveJxlFile *) object;
 
-	if (!(jxl->target = vips_target_new_to_file(file->filename)))
+	if (file->filename &&
+		!(jxl->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_jxl_file_parent_class)
