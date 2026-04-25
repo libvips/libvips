@@ -387,13 +387,11 @@ vips_bandjoin_const_build(VipsObject *object)
 	VipsBandary *bandary = (VipsBandary *) object;
 	VipsBandjoinConst *bandjoin = (VipsBandjoinConst *) object;
 
-	double *c;
-	int n;
-
 	if (bandjoin->c &&
 		bandjoin->in) {
-		c = vips_array_double_get(bandjoin->c, &n);
+		int n;
 
+		(void) vips_array_double_get(bandjoin->c, &n);
 		if (n == 0)
 			return vips_bandary_copy(bandary);
 		else {
@@ -410,9 +408,11 @@ vips_bandjoin_const_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_bandjoin_const_parent_class)->build(object))
 		return -1;
 
+	int n;
+	double *c = vips_array_double_get(bandjoin->c, &n);
 	if (!(bandjoin->c_ready = vips__vector_to_pels(class->nickname,
-			  n, bandary->ready[0]->BandFmt, bandary->ready[0]->Coding,
-			  c, NULL, n)))
+			n, bandary->ready[0]->BandFmt, bandary->ready[0]->Coding,
+			c, NULL, n)))
 		return -1;
 
 	return 0;
