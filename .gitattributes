@@ -16,4 +16,3 @@ libvips/foreign/libnsgif/*	linguist-vendored
 .gitignore					export-ignore
 .gitkeep					export-ignore
 .github/					export-ignore
-fuzz/vips_fuzzer_corpus/	export-ignore
