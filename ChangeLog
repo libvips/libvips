@@ -7,6 +7,7 @@ tbd 8.18.3
 - foreign: guard against NULL filenames [kleisauke]
 - stdif: verify window dimensions are smaller than image [lovell]
 - dcrawload: add support for non-square pixels [jcupitt]
+- image_sanity: ensure scanlines fit in INT_MAX [Niels Provos]
 
 31/3/26 8.18.2
 
