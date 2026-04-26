@@ -1,5 +1,9 @@
 #include <vips/vips.h>
 
+#if defined(__has_feature) && __has_feature(thread_sanitizer)
+#include "tsan_config.h"
+#endif
+
 #define MAX_ARG_LEN 4096 // =VIPS_PATH_MAX
 
 extern "C" int

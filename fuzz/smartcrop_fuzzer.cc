@@ -1,5 +1,9 @@
 #include <vips/vips.h>
 
+#if defined(__has_feature) && __has_feature(thread_sanitizer)
+#include "tsan_config.h"
+#endif
+
 extern "C" int
 LLVMFuzzerInitialize(int *argc, char ***argv)
 {
