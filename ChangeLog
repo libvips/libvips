@@ -5,7 +5,7 @@ tbd 8.18.3
 - edge: ensure parent object is built [lovell]
 - object: guard against invalid interpolators [kleisauke]
 - foreign: guard against NULL filenames [kleisauke]
-- stdif: verify window dimensions are smaller than image [lovell]
+- stdif: expand input by one column [lovell]
 - dcrawload: add support for non-square pixels [jcupitt]
 
 31/3/26 8.18.2
