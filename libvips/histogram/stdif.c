@@ -86,18 +86,59 @@ typedef VipsOperationClass VipsStdifClass;
 
 G_DEFINE_TYPE(VipsStdif, vips_stdif, VIPS_TYPE_OPERATION);
 
-/* How ugly and stupid.
+/* Our sequence value.
  */
-#define MAX_BANDS (100)
+typedef struct {
+	VipsRegion *ir; /* Input region */
+
+	/* The sums for each band.
+	 */
+	unsigned int *sum;
+	unsigned int *sum2;
+} VipsStdifSequence;
+
+static int
+vips_stdif_stop(void *vseq, void *a, void *b)
+{
+	VipsStdifSequence *seq = (VipsStdifSequence *) vseq;
+
+	VIPS_UNREF(seq->ir);
+	VIPS_FREE(seq->sum);
+	VIPS_FREE(seq->sum2);
+
+	return 0;
+}
+
+static void *
+vips_stdif_start(VipsImage *out, void *a, void *b)
+{
+	VipsImage *in = (VipsImage *) a;
+	VipsStdifSequence *seq;
+
+	if (!(seq = VIPS_NEW(out, VipsStdifSequence)))
+		return NULL;
+	seq->ir = NULL;
+	seq->sum = NULL;
+	seq->sum2 = NULL;
+
+	if (!(seq->ir = vips_region_new(in)) ||
+		!(seq->sum = VIPS_ARRAY(NULL, in->Bands, unsigned int)) ||
+		!(seq->sum2 = VIPS_ARRAY(NULL, in->Bands, unsigned int))) {
+		vips_stdif_stop(seq, NULL, NULL);
+		return NULL;
+	}
+
+	return seq;
+}
 
 static int
 vips_stdif_generate(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
 {
-	VipsRect *r = &out_region->valid;
-	VipsRegion *ir = (VipsRegion *) vseq;
+	VipsStdifSequence *seq = (VipsStdifSequence *) vseq;
 	VipsImage *in = (VipsImage *) a;
 	VipsStdif *stdif = (VipsStdif *) b;
+	VipsRect *r = &out_region->valid;
 	int bands = in->Bands;
 	int npel = stdif->width * stdif->height;
 
@@ -112,16 +153,16 @@ vips_stdif_generate(VipsRegion *out_region,
 	irect.top = out_region->valid.top;
 	irect.width = out_region->valid.width + stdif->width;
 	irect.height = out_region->valid.height + stdif->height;
-	if (vips_region_prepare(ir, &irect))
+	if (vips_region_prepare(seq->ir, &irect))
 		return -1;
 
-	lsk = VIPS_REGION_LSKIP(ir);
-	centre = lsk * (stdif->height / 2) + stdif->width / 2;
+	lsk = VIPS_REGION_LSKIP(seq->ir);
+	centre = lsk * (stdif->height / 2) + bands * (stdif->width / 2);
 
 	for (y = 0; y < r->height; y++) {
 		/* Get input and output pointers for this line.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR(ir, r->left, r->top + y);
+		VipsPel *p = VIPS_REGION_ADDR(seq->ir, r->left, r->top + y);
 		VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		double f1 = stdif->a * stdif->m0;
@@ -134,15 +175,12 @@ vips_stdif_generate(VipsRegion *out_region,
 		/* We will get int overflow for windows larger than about 256
 		 * x 256, sadly.
 		 */
-		unsigned int sum[MAX_BANDS];
-		unsigned int sum2[MAX_BANDS];
 
 		/* Find sum, sum of squares for the start of this line.
 		 */
-		for (b = 0; b < bands; b++) {
-			memset(sum, 0, bands * sizeof(unsigned int));
-			memset(sum2, 0, bands * sizeof(unsigned int));
-		}
+		memset(seq->sum, 0, bands * sizeof(unsigned int));
+		memset(seq->sum2, 0, bands * sizeof(unsigned int));
+
 		p1 = p;
 		for (j = 0; j < stdif->height; j++) {
 			i = 0;
@@ -150,8 +188,8 @@ vips_stdif_generate(VipsRegion *out_region,
 				for (b = 0; b < bands; b++) {
 					int t = p1[i++];
 
-					sum[b] += t;
-					sum2[b] += t * t;
+					seq->sum[b] += t;
+					seq->sum2[b] += t * t;
 				}
 			}
 
@@ -164,15 +202,15 @@ vips_stdif_generate(VipsRegion *out_region,
 			for (b = 0; b < bands; b++) {
 				/* Find stats.
 				 */
-				double mean = (double) sum[b] / npel;
-				double var = (double) sum2[b] / npel -
+				double mean = (double) seq->sum[b] / npel;
+				double var = (double) seq->sum2[b] / npel -
 					(mean * mean);
 				double sig = sqrt(var);
 
 				/* Transform.
 				 */
 				double res = f1 + f2 * mean +
-					((double) p[centre] - mean) *
+					((double) p[centre + b] - mean) *
 						(f3 / (stdif->s0 + stdif->b * sig));
 
 				/* And write.
@@ -193,11 +231,11 @@ vips_stdif_generate(VipsRegion *out_region,
 					int t1 = p1[0];
 					int t2 = p1[bands * stdif->width];
 
-					sum[b] -= t1;
-					sum2[b] -= t1 * t1;
+					seq->sum[b] -= t1;
+					seq->sum2[b] -= t1 * t1;
 
-					sum[b] += t2;
-					sum2[b] += t2 * t2;
+					seq->sum[b] += t2;
+					seq->sum2[b] += t2 * t2;
 
 					p1 += lsk;
 				}
@@ -236,10 +274,6 @@ vips_stdif_build(VipsObject *object)
 		vips_error(class->nickname, "%s", _("window too large"));
 		return -1;
 	}
-	if (in->Bands > MAX_BANDS) {
-		vips_error(class->nickname, "%s", _("too many bands"));
-		return -1;
-	}
 
 	/* Expand the input.
 	 */
@@ -263,9 +297,9 @@ vips_stdif_build(VipsObject *object)
 	stdif->out->Ysize -= stdif->height - 1;
 
 	if (vips_image_generate(stdif->out,
-			vips_start_one,
+			vips_stdif_start,
 			vips_stdif_generate,
-			vips_stop_one,
+			vips_stdif_stop,
 			in, stdif))
 		return -1;
 
@@ -388,13 +422,14 @@ vips_stdif_init(VipsStdif *stdif)
  *
  * Try:
  *
- * ```
- * vips stdif $VIPSHOME/pics/huysum.v fred.v 0.5 128 0.5 50 11 11
+ * ```bash
+ * $ vips stdif $VIPSHOME/pics/huysum.v fred.v 0.5 128 0.5 50 11 11
  * ```
  *
- * The operation works on one-band uchar images only, and writes a one-band
- * uchar image as its result. The output image has the same size as the
- * input.
+ * It works for uchar images only, with any number of bands.
+ * The input is expanded by copying edge pixels before performing the
+ * operation so that the output image has the same size as the input.
+ * Edge pixels in the output image are therefore only approximate.
  *
  * ::: tip "Optional arguments"
  *     * @a: `gdouble`, weight of new mean
