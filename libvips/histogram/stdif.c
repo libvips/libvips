@@ -231,8 +231,8 @@ vips_stdif_build(VipsObject *object)
 	if (vips_check_format(class->nickname, in, VIPS_FORMAT_UCHAR))
 		return -1;
 
-	if (stdif->width >= in->Xsize ||
-		stdif->height >= in->Ysize) {
+	if (stdif->width > in->Xsize ||
+		stdif->height > in->Ysize) {
 		vips_error(class->nickname, "%s", _("window too large"));
 		return -1;
 	}
@@ -245,7 +245,7 @@ vips_stdif_build(VipsObject *object)
 	 */
 	if (vips_embed(in, &t[1],
 			stdif->width / 2, stdif->height / 2,
-			in->Xsize + stdif->width - 1, in->Ysize + stdif->height - 1,
+			in->Xsize + stdif->width, in->Ysize + stdif->height - 1,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
 		return -1;
@@ -259,7 +259,7 @@ vips_stdif_build(VipsObject *object)
 	if (vips_image_pipelinev(stdif->out,
 			VIPS_DEMAND_STYLE_FATSTRIP, in, NULL))
 		return -1;
-	stdif->out->Xsize -= stdif->width - 1;
+	stdif->out->Xsize -= stdif->width;
 	stdif->out->Ysize -= stdif->height - 1;
 
 	if (vips_image_generate(stdif->out,
