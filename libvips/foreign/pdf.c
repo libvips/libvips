@@ -51,21 +51,6 @@ const char *vips__pdf_suffs[] = {
 	NULL
 };
 
-gboolean
-vips__pdf_is_a_buffer(const void *buf, size_t len)
-{
-	const char *str = (const char *) buf;
-
-	if (len < 4)
-		return FALSE;
-
-	for (size_t i = 0; i < len - 4; i++)
-		if (vips_isprefix("%PDF", str + i))
-			return TRUE;
-
-	return FALSE;
-}
-
 /* PDF v2 allows for offset headers, ie. there may be any number of
  * characters of padding before the "%PDF" file marker. These can be
  * arbitrary printer control characters, whitespace, etc.
@@ -73,10 +58,23 @@ vips__pdf_is_a_buffer(const void *buf, size_t len)
  * In practice, the amount of padding is usually small (less than 32
  * bytes).
  *
- * Another strategy is to look for "%EOF" in the final 1k of the file, but of
- * course that won't work well for streamed data.
+ * Another strategy would be to look for "%EOF" in the final 1k of the file,
+ * but of course that wouldn't work for streamed data.
  */
 #define MAX_OFFSET (32)
+
+gboolean
+vips__pdf_is_a_buffer(const void *buf, size_t len)
+{
+	const char *str = (const char *) buf;
+
+	if (len >= 4)
+		for (size_t i = 0; i < VIPS_MIN(MAX_OFFSET, len - 4); i++)
+			if (vips_isprefix("%PDF", str + i))
+				return TRUE;
+
+	return FALSE;
+}
 
 gboolean
 vips__pdf_is_a_file(const char *filename)
