@@ -693,6 +693,11 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 			sizeof_image > G_MAXSIZE - 16))
 		vips_buf_appends(buf, "dimension overflow\n");
 
+	/* And a scanline has to fit in INT_MAX.
+	 */
+	if (ls >= INT_MAX)
+		vips_buf_appends(buf, "dimension overflow\n");
+
 	/* These checks are expensive -- only do in leakcheck mode.
 	 */
 	if (vips__leak) {
