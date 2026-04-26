@@ -8,6 +8,7 @@ tbd 8.18.3
 - stdif: expand input by one column [lovell]
 - dcrawload: add support for non-square pixels [jcupitt]
 - image_sanity: ensure scanlines fit in INT_MAX [Niels Provos]
+- rank: expand input by one column [kleisauke]
 
 31/3/26 8.18.2
 
