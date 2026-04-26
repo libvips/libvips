@@ -139,38 +139,38 @@ vips_stdif_generate(VipsRegion *out_region,
 	VipsImage *in = (VipsImage *) a;
 	VipsStdif *stdif = (VipsStdif *) b;
 	VipsRect *r = &out_region->valid;
-	int bands = in->Bands;
-	int npel = stdif->width * stdif->height;
+	const int bands = in->Bands;
+	const int npel = stdif->width * stdif->height;
 
-	VipsRect irect;
-	int y;
+	VipsRect s;
 	int lsk;
 	int centre; /* Offset to move to centre of window */
 
-	/* What part of ir do we need?
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
 	 */
-	irect.left = out_region->valid.left;
-	irect.top = out_region->valid.top;
-	irect.width = out_region->valid.width + stdif->width;
-	irect.height = out_region->valid.height + stdif->height;
-	if (vips_region_prepare(seq->ir, &irect))
+	s = *r;
+	s.width += stdif->width - 1;
+	s.height += stdif->height - 1;
+	if (vips_region_prepare(seq->ir, &s))
 		return -1;
 
 	lsk = VIPS_REGION_LSKIP(seq->ir);
 	centre = lsk * (stdif->height / 2) + bands * (stdif->width / 2);
 
-	for (y = 0; y < r->height; y++) {
+	for (int y = 0; y < r->height; y++) {
 		/* Get input and output pointers for this line.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR(seq->ir, r->left, r->top + y);
-		VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+		VipsPel *restrict p =
+			VIPS_REGION_ADDR(seq->ir, r->left, r->top + y);
+		VipsPel *restrict q =
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		double f1 = stdif->a * stdif->m0;
 		double f2 = 1.0 - stdif->a;
 		double f3 = stdif->b * stdif->s0;
 
-		VipsPel *p1;
-		int x, i, j, b;
+		VipsPel *restrict p1;
 
 		/* We will get int overflow for windows larger than about 256
 		 * x 256, sadly.
@@ -182,11 +182,13 @@ vips_stdif_generate(VipsRegion *out_region,
 		memset(seq->sum2, 0, bands * sizeof(unsigned int));
 
 		p1 = p;
-		for (j = 0; j < stdif->height; j++) {
+		for (int j = 0; j < stdif->height; j++) {
+			int i;
+
 			i = 0;
-			for (x = 0; x < stdif->width; x++) {
-				for (b = 0; b < bands; b++) {
-					int t = p1[i++];
+			for (int x = 0; x < stdif->width; x++) {
+				for (int b = 0; b < bands; b++, i++) {
+					int t = p1[i];
 
 					seq->sum[b] += t;
 					seq->sum2[b] += t * t;
@@ -198,8 +200,8 @@ vips_stdif_generate(VipsRegion *out_region,
 
 		/* Loop for output pels.
 		 */
-		for (x = 0; x < r->width; x++) {
-			for (b = 0; b < bands; b++) {
+		for (int x = 0; x < r->width; x++) {
+			for (int b = 0; b < bands; b++) {
 				/* Find stats.
 				 */
 				double mean = (double) seq->sum[b] / npel;
@@ -216,20 +218,20 @@ vips_stdif_generate(VipsRegion *out_region,
 				/* And write.
 				 */
 				if (res < 0.0)
-					*q++ = 0;
+					q[b] = 0;
 				else if (res >= 256.0)
-					*q++ = 255;
+					q[b] = 255;
 				else
-					*q++ = res + 0.5;
+					q[b] = res + 0.5;
 
-				/* Adapt sums - remove the pels from the left
-				 * hand column, add in pels for a new
-				 * right-hand column.
+				/* Adapt sums -- remove the pels from the left hand column,
+				 * add in pels for a new right-hand column.
 				 */
-				p1 = p;
-				for (j = 0; j < stdif->height; j++) {
+				const int next = bands * stdif->width;
+				p1 = p + b;
+				for (int j = 0; j < stdif->height; j++) {
 					int t1 = p1[0];
-					int t2 = p1[bands * stdif->width];
+					int t2 = p1[next];
 
 					seq->sum[b] -= t1;
 					seq->sum2[b] -= t1 * t1;
@@ -239,9 +241,10 @@ vips_stdif_generate(VipsRegion *out_region,
 
 					p1 += lsk;
 				}
-
-				p += 1;
 			}
+
+			p += bands;
+			q += bands;
 		}
 	}
 
@@ -269,8 +272,8 @@ vips_stdif_build(VipsObject *object)
 	if (vips_check_format(class->nickname, in, VIPS_FORMAT_UCHAR))
 		return -1;
 
-	if (stdif->width >= in->Xsize ||
-		stdif->height >= in->Ysize) {
+	if (stdif->width > in->Xsize ||
+		stdif->height > in->Ysize) {
 		vips_error(class->nickname, "%s", _("window too large"));
 		return -1;
 	}
@@ -279,7 +282,7 @@ vips_stdif_build(VipsObject *object)
 	 */
 	if (vips_embed(in, &t[1],
 			stdif->width / 2, stdif->height / 2,
-			in->Xsize + stdif->width - 1, in->Ysize + stdif->height - 1,
+			in->Xsize + stdif->width, in->Ysize + stdif->height - 1,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
 		return -1;
@@ -293,7 +296,7 @@ vips_stdif_build(VipsObject *object)
 	if (vips_image_pipelinev(stdif->out,
 			VIPS_DEMAND_STYLE_FATSTRIP, in, NULL))
 		return -1;
-	stdif->out->Xsize -= stdif->width - 1;
+	stdif->out->Xsize -= stdif->width;
 	stdif->out->Ysize -= stdif->height - 1;
 
 	if (vips_image_generate(stdif->out,
@@ -316,6 +319,7 @@ vips_stdif_class_init(VipsStdifClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
@@ -323,6 +327,8 @@ vips_stdif_class_init(VipsStdifClass *class)
 	object_class->nickname = "stdif";
 	object_class->description = _("statistical difference");
 	object_class->build = vips_stdif_build;
+
+	operation_class->flags = VIPS_OPERATION_SEQUENTIAL;
 
 	VIPS_ARG_IMAGE(class, "in", 1,
 		_("Input"),
