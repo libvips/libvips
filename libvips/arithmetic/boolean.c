@@ -499,7 +499,7 @@ vips_boolean_const_build(VipsObject *object)
 \
 		for (i = 0, x = 0; x < width; x++) \
 			for (b = 0; b < bands; b++, i++) \
-				q[i] = p[i] OP c[b]; \
+				q[i] = ((unsigned int) p[i]) OP c[b]; \
 	}
 
 #define FLOOPC(TYPE, OP) \
@@ -510,7 +510,7 @@ vips_boolean_const_build(VipsObject *object)
 \
 		for (i = 0, x = 0; x < width; x++) \
 			for (b = 0; b < bands; b++, i++) \
-				q[i] = ((int) p[i]) OP((int) c[b]); \
+				q[i] = ((unsigned int) p[i]) OP c[b]; \
 	}
 
 static void
