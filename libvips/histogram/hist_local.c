@@ -102,15 +102,12 @@ vips_hist_local_stop(void *vseq, void *a, void *b)
 	VipsImage *in = (VipsImage *) a;
 
 	VIPS_UNREF(seq->ir);
-	if (seq->hist &&
-		in) {
-		int i;
 
-		for (i = 0; i < in->Bands; i++)
+	if (seq->hist &&
+		in)
+		for (int i = 0; i < in->Bands; i++)
 			VIPS_FREE(seq->hist[i]);
-	}
 	VIPS_FREE(seq->hist);
-	VIPS_FREE(seq);
 
 	return 0;
 }
@@ -121,9 +118,7 @@ vips_hist_local_start(VipsImage *out, void *a, void *b)
 	VipsImage *in = (VipsImage *) a;
 	VipsHistLocalSequence *seq;
 
-	int i;
-
-	if (!(seq = VIPS_NEW(NULL, VipsHistLocalSequence)))
+	if (!(seq = VIPS_NEW(out, VipsHistLocalSequence)))
 		return NULL;
 	seq->ir = NULL;
 	seq->hist = NULL;
@@ -134,7 +129,7 @@ vips_hist_local_start(VipsImage *out, void *a, void *b)
 		return NULL;
 	}
 
-	for (i = 0; i < in->Bands; i++)
+	for (int i = 0; i < in->Bands; i++)
 		if (!(seq->hist[i] = VIPS_ARRAY(NULL, 256, unsigned int))) {
 			vips_hist_local_stop(seq, NULL, NULL);
 			return NULL;
@@ -154,24 +149,23 @@ vips_hist_local_generate(VipsRegion *out_region,
 	const int bands = in->Bands;
 	const int max_slope = local->max_slope;
 
-	VipsRect irect;
-	int y;
+	VipsRect s;
 	int lsk;
 	int centre; /* Offset to move to centre of window */
 
-	/* What part of ir do we need?
+	/* Prepare the section of the input image we need. A little larger
+	 * than the section of the output image we are producing.
 	 */
-	irect.left = r->left;
-	irect.top = r->top;
-	irect.width = r->width + local->width;
-	irect.height = r->height + local->height;
-	if (vips_region_prepare(seq->ir, &irect))
+	s = *r;
+	s.width += local->width - 1;
+	s.height += local->height - 1;
+	if (vips_region_prepare(seq->ir, &s))
 		return -1;
 
 	lsk = VIPS_REGION_LSKIP(seq->ir);
 	centre = lsk * (local->height / 2) + bands * (local->width / 2);
 
-	for (y = 0; y < r->height; y++) {
+	for (int y = 0; y < r->height; y++) {
 		/* Get input and output pointers for this line.
 		 */
 		VipsPel *restrict p =
@@ -180,16 +174,18 @@ vips_hist_local_generate(VipsRegion *out_region,
 			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		VipsPel *restrict p1;
-		int x, i, j, b;
 
 		/* Find histogram for the start of this line.
 		 */
-		for (b = 0; b < bands; b++)
+		for (int b = 0; b < bands; b++)
 			memset(seq->hist[b], 0, 256 * sizeof(unsigned int));
 		p1 = p;
-		for (j = 0; j < local->height; j++) {
-			for (i = 0, x = 0; x < local->width; x++)
-				for (b = 0; b < bands; b++, i++)
+		for (int j = 0; j < local->height; j++) {
+			int i;
+
+			i = 0;
+			for (int x = 0; x < local->width; x++)
+				for (int b = 0; b < bands; b++, i++)
 					seq->hist[b][p1[i]] += 1;
 
 			p1 += lsk;
@@ -197,8 +193,8 @@ vips_hist_local_generate(VipsRegion *out_region,
 
 		/* Loop for output pels.
 		 */
-		for (x = 0; x < r->width; x++) {
-			for (b = 0; b < bands; b++) {
+		for (int x = 0; x < r->width; x++) {
+			for (int b = 0; b < bands; b++) {
 				/* Sum histogram up to current pel.
 				 */
 				unsigned int *restrict hist = seq->hist[b];
@@ -208,22 +204,21 @@ vips_hist_local_generate(VipsRegion *out_region,
 
 				sum = 0;
 
-				/* For CLAHE we need to limit the height of the
-				 * hist to limit the amount we boost the
-				 * contrast by.
+				/* For CLAHE we need to limit the height of the hist to limit
+				 * the amount we boost the contrast by.
 				 */
 				if (max_slope > 0) {
+					int i;
 					int sum_over;
 
 					sum_over = 0;
 
-					/* Must be <= target, since a cum hist
-					 * always includes the current element.
+					/* Must be <= target, since a cum hist always includes
+					 * the current element.
 					 */
 					for (i = 0; i <= target; i++) {
 						if (hist[i] > max_slope) {
-							sum_over += hist[i] -
-								max_slope;
+							sum_over += hist[i] - max_slope;
 							sum += max_slope;
 						}
 						else
@@ -232,39 +227,34 @@ vips_hist_local_generate(VipsRegion *out_region,
 
 					for (; i < 256; i++) {
 						if (hist[i] > max_slope)
-							sum_over += hist[i] -
-								max_slope;
+							sum_over += hist[i] - max_slope;
 					}
 
-					/* The extra clipped off bit from the
-					 * top of the hist is spread over all
-					 * bins equally, then summed to target.
+					/* The extra clipped off bit from the top of the hist is
+					 * spread over all bins equally, then summed to target.
 					 */
 					sum += (target + 1) * sum_over / 256;
 				}
 				else {
 					sum = 0;
-					for (i = 0; i <= target; i++)
+					for (int i = 0; i <= target; i++)
 						sum += hist[i];
 				}
 
-				/* This can't overflow, even in
-				 * contrast-limited mode.
+				/* This can't overflow, even in contrast-limited mode.
 				 *
-				 * Scale by 255, not 256, or we'll get
-				 * overflow.
+				 * Scale by 255, not 256, or we'll get overflow.
 				 */
-				q[b] = 255 * sum /
-					(local->width * local->height);
+				q[b] = 255 * sum / (local->width * local->height);
 
-				/* Adapt histogram -- remove the pels from
-				 * the left hand column, add in pels for a
-				 * new right-hand column.
+				/* Adapt histogram -- remove the pels from the left hand column,
+				 * add in pels for a new right-hand column.
 				 */
+				const int next = bands * local->width;
 				p1 = p + b;
-				for (j = 0; j < local->height; j++) {
+				for (int j = 0; j < local->height; j++) {
 					hist[p1[0]] -= 1;
-					hist[p1[bands * local->width]] += 1;
+					hist[p1[next]] += 1;
 
 					p1 += lsk;
 				}
@@ -309,7 +299,7 @@ vips_hist_local_build(VipsObject *object)
 	 */
 	if (vips_embed(in, &t[1],
 			local->width / 2, local->height / 2,
-			in->Xsize + local->width - 1, in->Ysize + local->height - 1,
+			in->Xsize + local->width, in->Ysize + local->height - 1,
 			"extend", VIPS_EXTEND_MIRROR,
 			NULL))
 		return -1;
@@ -323,7 +313,7 @@ vips_hist_local_build(VipsObject *object)
 	if (vips_image_pipelinev(local->out,
 			VIPS_DEMAND_STYLE_FATSTRIP, in, NULL))
 		return -1;
-	local->out->Xsize -= local->width - 1;
+	local->out->Xsize -= local->width;
 	local->out->Ysize -= local->height - 1;
 
 	if (vips_image_generate(local->out,
