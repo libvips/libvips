@@ -294,16 +294,23 @@ if not quantisation_package.found()
     endif
 endif
 
-cgif_dep = disabler()
-if quantisation_package.found()
-    cgif_dep = dependency('cgif', version: '>=0.2.0', required: get_option('cgif'))
-    if cgif_dep.found()
-        external_deps += cgif_dep
-        cfg_var.set('HAVE_CGIF', true)
-        cfg_var.set('HAVE_CGIF_ATTR_NO_LOOP', cc.get_define('CGIF_ATTR_NO_LOOP', prefix: '#include <cgif.h>', dependencies: cgif_dep) != '')
-        cfg_var.set('HAVE_CGIF_FRAME_ATTR_INTERLACED', cc.get_define('CGIF_FRAME_ATTR_INTERLACED', prefix: '#include <cgif.h>', dependencies: cgif_dep) != '')
-        cfg_var.set('HAVE_CGIF_GEN_KEEP_IDENT_FRAMES', cc.get_define('CGIF_GEN_KEEP_IDENT_FRAMES', prefix: '#include <cgif.h>', dependencies: cgif_dep) != '')
-    endif
+# Always have quantisation support (builtin Wu quantiser fallback)
+if cfg_var.has('HAVE_IMAGEQUANT')
+    quantisation_name = 'imagequant'
+elif cfg_var.has('HAVE_QUANTIZR')
+    quantisation_name = 'quantizr'
+else
+    quantisation_name = 'builtin'
+    quantisation_package = declare_dependency()
+endif
+
+cgif_dep = dependency('cgif', version: '>=0.2.0', required: get_option('cgif'))
+if cgif_dep.found()
+    external_deps += cgif_dep
+    cfg_var.set('HAVE_CGIF', true)
+    cfg_var.set('HAVE_CGIF_ATTR_NO_LOOP', cc.get_define('CGIF_ATTR_NO_LOOP', prefix: '#include <cgif.h>', dependencies: cgif_dep) != '')
+    cfg_var.set('HAVE_CGIF_FRAME_ATTR_INTERLACED', cc.get_define('CGIF_FRAME_ATTR_INTERLACED', prefix: '#include <cgif.h>', dependencies: cgif_dep) != '')
+    cfg_var.set('HAVE_CGIF_GEN_KEEP_IDENT_FRAMES', cc.get_define('CGIF_GEN_KEEP_IDENT_FRAMES', prefix: '#include <cgif.h>', dependencies: cgif_dep) != '')
 endif
 
 libexif_dep = dependency('libexif', version: '>=0.6', required: get_option('exif'))
@@ -723,7 +730,7 @@ build_features = {
      'JXL load/save': ['libjxl', libjxl_found ? libjxl_dep : disabler(), libjxl_module],
      'JPEG2000 load/save': ['OpenJPEG', libopenjp2_dep],
      'PNG load/save': ['libpng or spng', png_package],
-     'image quantisation': ['imagequant or quantizr', quantisation_package],
+     'image quantisation': [quantisation_name, quantisation_package],
      'TIFF load/save': ['libtiff', libtiff_dep],
      'image pyramid save': ['libarchive', libarchive_dep],
      'HEIC/AVIF load/save': ['libheif', libheif_dep, libheif_module],
