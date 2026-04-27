@@ -362,7 +362,7 @@ magick_ismagick(const unsigned char *bytes, size_t length)
 	 */
 	return !magick_block(bytes, length) &&
 		(magick_sniff(bytes, length) ||
-		GetImageMagick(bytes, length, format));
+		 GetImageMagick(bytes, length, format));
 }
 
 int
