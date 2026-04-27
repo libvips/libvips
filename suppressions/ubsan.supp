@@ -1,2 +1,5 @@
 # https://github.com/libexif/libexif/pull/147
 undefined:libexif.so
+
+# https://github.com/libvips/libvips/issues/4960
+shift-exponent:libvips/arithmetic/boolean.c
