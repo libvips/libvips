@@ -309,7 +309,7 @@ vips_hist_local_build(VipsObject *object)
 	 */
 	if (vips_embed(in, &t[1],
 			local->width / 2, local->height / 2,
-			in->Xsize + local->width - 1, in->Ysize + local->height - 1,
+			in->Xsize + local->width, in->Ysize + local->height - 1,
 			"extend", VIPS_EXTEND_MIRROR,
 			NULL))
 		return -1;
@@ -323,7 +323,7 @@ vips_hist_local_build(VipsObject *object)
 	if (vips_image_pipelinev(local->out,
 			VIPS_DEMAND_STYLE_FATSTRIP, in, NULL))
 		return -1;
-	local->out->Xsize -= local->width - 1;
+	local->out->Xsize -= local->width;
 	local->out->Ysize -= local->height - 1;
 
 	if (vips_image_generate(local->out,
