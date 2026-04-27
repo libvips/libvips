@@ -82,7 +82,7 @@ typedef struct _FuzzCtx {
 	const guint8 *pending_data; // Bytes to lazily write to input_filename
 	size_t pending_size;
 	char *input_filename;  // /tmp path holding the raw fuzz bytes, or NULL
-	gboolean input_written; // TRUE iff input_filename was written ok
+	gboolean input_written; // TRUE if input_filename was written ok
 	gboolean input_tried;	// TRUE once we've tried to materialise input
 	char *output_filename; // /tmp path handed to save ops, or NULL
 } FuzzCtx;
