@@ -38,6 +38,11 @@ LLVMFuzzerInitialize(int *argc, char ***argv)
 		"VipsForeignPrintMatrix",
 		"VipsForeignSaveJpegMime",
 		"VipsForeignSaveWebpMime",
+		/* dzsave writes a .dzi sidecar and a _files/ tile directory
+		 * alongside the primary path; a single g_unlink can't clean
+		 * that up, so the tmpdir would grow each iteration.
+		 */
+		"VipsForeignSaveDzFile",
 	};
 	for (const char *operation : blocklist)
 		vips_operation_block_set(operation, TRUE);
@@ -74,7 +79,39 @@ typedef struct _FuzzCtx {
 	int n_string_args;
 	int string_idx; // Next string argument to consume
 	gboolean failed;
+	const guint8 *pending_data; // Bytes to lazily write to input_filename
+	size_t pending_size;
+	char *input_filename;  // /tmp path holding the raw fuzz bytes, or NULL
+	gboolean input_written; // TRUE if input_filename was written ok
+	gboolean input_tried;	// TRUE once we've tried to materialise input
+	char *output_filename; // /tmp path handed to save ops, or NULL
 } FuzzCtx;
+
+// Lazily write the pending fuzz bytes to a unique /tmp file. Returns the
+// path, or NULL if size is zero or the write failed.
+static const char *
+EnsureInputFile(FuzzCtx *ctx)
+{
+	if (ctx->input_written)
+		return ctx->input_filename;
+	if (ctx->input_tried)
+		return nullptr;
+	ctx->input_tried = TRUE;
+
+	if (ctx->pending_size == 0)
+		return nullptr;
+
+	ctx->input_filename = vips__temp_name("%s");
+	if (!ctx->input_filename)
+		return nullptr;
+	if (!g_file_set_contents(ctx->input_filename,
+			reinterpret_cast<const char *>(ctx->pending_data),
+			ctx->pending_size, nullptr))
+		return nullptr;
+
+	ctx->input_written = TRUE;
+	return ctx->input_filename;
+}
 
 /* Count how many required input arguments need a string value (i.e. are
  * not image, array-of-images, source, target, or blob).
@@ -169,15 +206,34 @@ SetRequiredInput(VipsObject *object,
 		}
 		const char *value = ctx->string_args[ctx->string_idx++];
 
-		/* Prevent file-based save operations from writing to
-		 * fuzzer-controlled paths.
+		/* Never let fuzzer-controlled strings reach the filesystem via
+		 * a filename arg. Route loads at our fuzz-data temp file and
+		 * saves at a unique /tmp output file we'll unlink afterwards.
+		 * The temp files are materialised lazily so ops that don't
+		 * touch a filename pay no IO cost.
 		 */
 		if (strcmp(name, "filename") == 0) {
+			GType self_type = G_TYPE_FROM_INSTANCE(object);
 			GType foreign_save = g_type_from_name("VipsForeignSave");
+			GType foreign_load = g_type_from_name("VipsForeignLoad");
+
 			if (foreign_save &&
-				g_type_is_a(G_TYPE_FROM_INSTANCE(object),
-					foreign_save))
+				g_type_is_a(self_type, foreign_save)) {
+				if (!ctx->output_filename)
+					ctx->output_filename =
+						vips__temp_name("%s");
+				value = ctx->output_filename
+					? ctx->output_filename
+					: "/dev/null";
+			}
+			else if (foreign_load &&
+				g_type_is_a(self_type, foreign_load)) {
+				const char *path = EnsureInputFile(ctx);
+				value = path ? path : "/dev/null";
+			}
+			else {
 				value = "/dev/null";
+			}
 		}
 
 		if (vips_object_set_argument_from_string(object, name,
@@ -326,6 +382,11 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		g_free(line);
 	}
 
+	// Stash the remaining bytes so EnsureInputFile() can lazily
+	// materialise them to a /tmp file if a load op actually needs one.
+	ctx.pending_data = data;
+	ctx.pending_size = size;
+
 	// Try to load an image from the remaining data.
 	if (size > 0 &&
 		((ctx.source = vips_source_new_from_memory(data, size))) &&
@@ -392,6 +453,15 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 		g_free(opt_values[i]);
 	}
 	g_free(option_string);
+
+	if (ctx.output_filename) {
+		g_unlink(ctx.output_filename);
+		g_free(ctx.output_filename);
+	}
+	if (ctx.input_filename) {
+		g_unlink(ctx.input_filename);
+		g_free(ctx.input_filename);
+	}
 
 	vips_error_clear();
 
