@@ -234,8 +234,16 @@ cmake \
 cmake --build . --target install
 popd
 
+if [ "$SANITIZER" = "undefined" ]; then
+  # Allow UBSan shift errors to be recoverable to ensure our suppression rules
+  # apply. OSS-Fuzz uses `-fno-sanitize-recover=shift` by default.
+  export CFLAGS+=" -fsanitize-recover=shift"
+  export CXXFLAGS+=" -fsanitize-recover=shift"
+fi
+
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
+export CPPFLAGS+=" -DSUPPRESSIONS_DIR='\"$OUT/suppressions\"'"
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debug \
   -Dbackend_max_links=4 -Dexamples=false -Dman=false -Dpo=false \
   -Dtests=false -Dtools=false -Dcplusplus=false -Dmodules=disabled -Dfuzz=true \
@@ -280,3 +288,6 @@ rm -v $OUT/generate_vips_dict
 # Copy options and remaining dictionary files to $OUT
 find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT \;
 find fuzz -name '*_fuzzer.options' -exec cp -v '{}' $OUT \;
+
+# Copy sanitizer suppressions to $OUT
+cp -vr suppressions/ $OUT
