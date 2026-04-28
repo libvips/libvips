@@ -10,6 +10,7 @@ histogram_sources = files(
     'hist_match.c',
     'hist_local.c',
     'percent.c',
+    'percent_lum.c',
     'hist_ismonotonic.c',
     'hist_entropy.c',
     'stdif.c',
