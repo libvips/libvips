@@ -396,8 +396,7 @@ vips_foreign_save_uhdr_set_compressed_base(VipsForeignSaveUhdr *uhdr,
 
 // save hdr
 static int
-vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image,
-	float peak_nits)
+vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 {
 	uhdr_error_info_t error_info;
 
@@ -406,18 +405,6 @@ vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image,
 	uhdr_enc_set_output_format(uhdr->enc, UHDR_CODEC_JPG);
 	uhdr_enc_set_gainmap_scale_factor(uhdr->enc, uhdr->gainmap_scale_factor);
 	uhdr_enc_set_using_multi_channel_gainmap(uhdr->enc, 0);
-
-	/* Tell libuhdr the actual content peak so it sizes
-	 * hdr_capacity_max correctly. Without this it defaults to
-	 * 10 000 nits (PQ maximum) which wastes gainmap precision
-	 * and under-boosts on real displays.
-	 */
-	error_info =
-		uhdr_enc_set_target_display_peak_brightness(uhdr->enc, peak_nits);
-	if (error_info.error_code) {
-		vips__uhdr_error(&error_info);
-		return -1;
-	}
 
 	// attach the gainmap, if we have one
 	if (vips_image_get_typeof(image, "gainmap-data") &&
@@ -533,14 +520,6 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 		VIPS_UNREF(image);
 		image = x;
 
-		double peak_y;
-		if (vips_percent_lum(image, 99.0, &peak_y,
-				"max", 10000.0 / 80.0, NULL)) {
-			VIPS_UNREF(image);
-			return -1;
-		}
-		float peak_nits = VIPS_CLIP(203.0, peak_y * 80.0, 10000.0);
-
 		/* Rescale from scRGB (1.0 = 80 nits) to libuhdr's UHDR_CT_LINEAR
 		 * convention (1.0 = 203 nits, the ITU-R BT.2408 reference white).
 		 */
@@ -561,7 +540,7 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 			image = x;
 		}
 
-		if (vips_foreign_save_uhdr_hdr(uhdr, image, peak_nits)) {
+		if (vips_foreign_save_uhdr_hdr(uhdr, image)) {
 			VIPS_UNREF(image);
 			return -1;
 		}
