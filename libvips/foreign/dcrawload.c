@@ -121,6 +121,64 @@ vips_foreign_load_dcraw_close(VipsImage *image,
 }
 
 static int
+vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(raw);
+
+	int result;
+
+	VIPS_FREEF(libraw_close, raw->raw_processor);
+
+	raw->raw_processor = libraw_init(0);
+	if (!raw->raw_processor) {
+		vips_error(class->nickname, "%s", _("unable to initialize libraw"));
+		return -1;
+	}
+
+	if (raw->bitdepth != 8 &&
+		raw->bitdepth != 16) {
+		vips_error(class->nickname, "%s", _("bad bitdepth"));
+		return -1;
+	}
+	raw->raw_processor->params.output_bps = raw->bitdepth;
+
+	/* Apply camera white balance.
+	 */
+	raw->raw_processor->params.use_camera_wb = 1;
+
+	/* Don't autorotate, we set EXIF rotation later instead. If we enable
+	 * autorotate, then the image size reported during libraw_open_buffer()
+	 * may not match the decoded size.
+	 */
+	raw->raw_processor->params.user_flip = 0;
+
+	/* We can use the libraw file interface for filename sources. This
+	 * interface can often read more metadata, since it can open secondary
+	 * files.
+	 */
+	if (vips_source_is_file(raw->source)) {
+		const char *filename =
+			vips_connection_filename(VIPS_CONNECTION(raw->source));
+
+		result = libraw_open_file(raw->raw_processor, filename);
+	}
+	else {
+		size_t length;
+		const void *data;
+
+		if (!(data = vips_source_map(raw->source, &length)))
+			return -1;
+		result = libraw_open_buffer(raw->raw_processor, data, length);
+	}
+	if (result != LIBRAW_SUCCESS) {
+		vips_foreign_load_dcraw_error(raw, _("unable to read"), result);
+		return -1;
+	}
+
+	return 0;
+}
+
+static int
 vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	VipsImage *image)
 {
@@ -278,67 +336,25 @@ static int
 vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadDcRaw *raw = (VipsForeignLoadDcRaw *) load;
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(raw);
 
-	int result;
-
-	raw->raw_processor = libraw_init(0);
-	if (!raw->raw_processor) {
-		vips_error(class->nickname, "%s", _("unable to initialize libraw"));
+	if (vips_foreign_load_dcraw_open(raw))
 		return -1;
-	}
 
-	if (raw->bitdepth != 8 &&
-		raw->bitdepth != 16) {
-		vips_error(class->nickname, "%s", _("bad bitdepth"));
-		return -1;
-	}
-	raw->raw_processor->params.output_bps = raw->bitdepth;
-
-	/* Apply camera white balance.
+	/* Predict output image size. This will change eg. ->sizes.iheight etc.
+	 * and prevent _unpack() from running, sadly. Our _load() method will
+	 * reopen the file.
 	 */
-	raw->raw_processor->params.use_camera_wb = 1;
+	libraw_adjust_sizes_info_only(raw->raw_processor);
 
-	/* Don't autorotate, we set EXIF rotation later instead. If we enable
-	 * autorotate, then the image size reported during libraw_open_buffer()
-	 * may not match the decoded size.
+	/* All dcraw cameras will output 1 or 3 bands. colors here refers to the
+	 * number of filters on the sensor, so more than 1 means rgb output.
 	 */
-	raw->raw_processor->params.user_flip = 0;
-
-	/* We can use the libraw file interface for filename sources. This
-	 * interface can often read more metadata, since it can open secondary
-	 * files.
-	 */
-	if (vips_source_is_file(raw->source)) {
-		const char *filename =
-			vips_connection_filename(VIPS_CONNECTION(raw->source));
-
-		result = libraw_open_file(raw->raw_processor, filename);
-	}
-	else {
-		size_t length;
-		const void *data;
-
-		if (!(data = vips_source_map(raw->source, &length)))
-			return -1;
-		result = libraw_open_buffer(raw->raw_processor, data, length);
-	}
-	if (result != LIBRAW_SUCCESS) {
-		vips_foreign_load_dcraw_error(raw, _("unable to read"), result);
-		return -1;
-	}
-
-	/* Cameras with non-square pixels have eg. 0.5 in pixel_aspect, meaning
-	 * the output image will be stretched vertically by 2 during
-	 * postprocessing.
-	 */
-	int stretched_height = rint(raw->raw_processor->sizes.iheight /
-		raw->raw_processor->sizes.pixel_aspect);
+	int bands = raw->raw_processor->idata.colors > 1 ? 3 : 1;
 
 	vips_image_init_fields(load->out,
 		raw->raw_processor->sizes.iwidth,
-		stretched_height,
-		raw->raw_processor->idata.colors,
+		raw->raw_processor->sizes.iheight,
+		bands,
 		raw->bitdepth > 8 ?
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
@@ -348,6 +364,10 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 
 	if (vips_foreign_load_dcraw_set_metadata(raw, load->out))
 		return -1;
+
+	// no longer valid, since we have called libraw_adjust_sizes_info_only()
+	// on it
+	VIPS_FREEF(libraw_close, raw->raw_processor);
 
 	return 0;
 }
@@ -359,7 +379,11 @@ vips_foreign_load_dcraw_load(VipsForeignLoad *load)
 
 	int result;
 
-	g_assert(raw->raw_processor);
+	/* We must reopen, since libraw_adjust_sizes_info_only() will prevent
+	 * unpacking from working.
+	 */
+	if (vips_foreign_load_dcraw_open(raw))
+		return -1;
 
 	result = libraw_unpack(raw->raw_processor);
 	if (result != LIBRAW_SUCCESS) {
