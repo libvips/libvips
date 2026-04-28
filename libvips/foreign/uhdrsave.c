@@ -457,99 +457,6 @@ vips_foreign_save_uhdr_sdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 	return 0;
 }
 
-/* 1024 bins covering [0, 130] scRGB = [0, 10400] nits, ~10 nits per bin
- */
-#define PEAK_NITS_BINS 1024
-#define PEAK_NITS_MAX_SCRGB 130.0f
-
-typedef struct _PeakNitsAccum {
-	guint64 bins[PEAK_NITS_BINS];
-	guint64 count;
-} PeakNitsAccum;
-
-static void *
-peak_nits_start(VipsImage *image, void *a, void *b)
-{
-	return g_new0(PeakNitsAccum, 1);
-}
-
-static int
-peak_nits_scan(VipsRegion *region, void *seq, void *a, void *b, gboolean *stop)
-{
-	PeakNitsAccum *accum = (PeakNitsAccum *) seq;
-	VipsRect *r = &region->valid;
-	const int bands = region->im->Bands;
-	const float scale = (float) PEAK_NITS_BINS / PEAK_NITS_MAX_SCRGB;
-
-	for (int y = 0; y < r->height; y++) {
-		float *p = (float *) VIPS_REGION_ADDR(region, r->left, r->top + y);
-
-		for (int x = 0; x < r->width; x++) {
-			float Y = 0.2126f * p[0] + 0.7152f * p[1] + 0.0722f * p[2];
-			int bin = (int) (Y * scale);
-			bin = VIPS_CLIP(0, bin, PEAK_NITS_BINS - 1);
-			accum->bins[bin]++;
-			p += bands;
-		}
-
-		accum->count += r->width;
-	}
-
-	return 0;
-}
-
-static int
-peak_nits_stop(void *seq, void *a, void *b)
-{
-	PeakNitsAccum *thread = (PeakNitsAccum *) seq;
-	PeakNitsAccum *total = (PeakNitsAccum *) a;
-
-	for (int i = 0; i < PEAK_NITS_BINS; i++)
-		total->bins[i] += thread->bins[i];
-	total->count += thread->count;
-
-	g_free(thread);
-	return 0;
-}
-
-/* Single-pass 99th-percentile BT.709 luminance estimation.
- *
- * Uses luminance rather than per-channel max because out-of-gamut
- * colours after primaries conversion can have individual channels far
- * above the actual brightness.
- */
-static int
-vips_foreign_save_uhdr_peak_nits(VipsImage *image, float *out)
-{
-	PeakNitsAccum accum = { { 0 }, 0 };
-
-	if (vips_image_pio_input(image))
-		return -1;
-
-	if (vips_sink(image,
-			peak_nits_start, peak_nits_scan, peak_nits_stop,
-			&accum, NULL))
-		return -1;
-
-	/* Walk histogram to find 99th percentile.
-	 */
-	guint64 target = (guint64) (accum.count * 0.99);
-	guint64 cumul = 0;
-	int bin;
-	for (bin = 0; bin < PEAK_NITS_BINS; bin++) {
-		cumul += accum.bins[bin];
-		if (cumul >= target)
-			break;
-	}
-
-	float peak_nits =
-		(bin + 0.5f) * (PEAK_NITS_MAX_SCRGB / PEAK_NITS_BINS) * 80.0f;
-	peak_nits = VIPS_CLIP(203.0f, peak_nits, 10000.0f);
-
-	*out = peak_nits;
-	return 0;
-}
-
 static int
 vips_foreign_save_uhdr_build(VipsObject *object)
 {
@@ -626,11 +533,13 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 		VIPS_UNREF(image);
 		image = x;
 
-		float peak_nits;
-		if (vips_foreign_save_uhdr_peak_nits(image, &peak_nits)) {
+		double peak_y;
+		if (vips_percent_lum(image, 99.0, &peak_y,
+				"max", 10000.0 / 80.0, NULL)) {
 			VIPS_UNREF(image);
 			return -1;
 		}
+		float peak_nits = VIPS_CLIP(203.0, peak_y * 80.0, 10000.0);
 
 		/* Rescale from scRGB (1.0 = 80 nits) to libuhdr's UHDR_CT_LINEAR
 		 * convention (1.0 = 203 nits, the ITU-R BT.2408 reference white).
