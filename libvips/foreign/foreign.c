@@ -986,6 +986,14 @@ vips_foreign_load_iscompat(VipsForeignLoad *load, VipsImage *image)
 		vips_error(class->nickname, "%s",
 			_("images do not match between header and load"));
 
+#ifdef DEBUG
+		printf("vips_foreign_load_iscompat: geometry change\n");
+		printf("\theader reported: ");
+		vips_object_print_summary(VIPS_OBJECT(image));
+		printf("\tload reported: ");
+		vips_object_print_summary(VIPS_OBJECT(load->real));
+#endif /*DEBUG*/
+
 		return FALSE;
 	}
 

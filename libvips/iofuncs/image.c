@@ -683,11 +683,14 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 	 * whether the VIPS_IMAGE_SIZEOF_PEL(), VIPS_IMAGE_SIZEOF_LINE()
 	 * and VIPS_IMAGE_SIZEOF_IMAGE() macros can be safely used.
 	 *
+	 * A scanline (i.e. `es * bands * width`) has to fit in INT_MAX.
+	 *
 	 * Also ensure that vips_tracked_malloc(VIPS_IMAGE_SIZEOF_IMAGE(image))
 	 * can be called safely for setbuf types.
 	 */
 	if (!g_uint64_checked_mul(&ps, es, image->Bands) ||
 		!g_uint64_checked_mul(&ls, ps, image->Xsize) ||
+		ls >= INT_MAX ||
 		!g_uint64_checked_mul(&sizeof_image, ls, image->Ysize) ||
 		(image->dtype == VIPS_IMAGE_SETBUF &&
 			sizeof_image > G_MAXSIZE - 16))

@@ -328,9 +328,16 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 		return -1;
 	}
 
+	/* Cameras with non-square pixels have eg. 0.5 in pixel_aspect, meaning
+	 * the output image will be stretched vertically by 2 during
+	 * postprocessing.
+	 */
+	int stretched_height = rint(raw->raw_processor->sizes.iheight /
+		raw->raw_processor->sizes.pixel_aspect);
+
 	vips_image_init_fields(load->out,
 		raw->raw_processor->sizes.iwidth,
-		raw->raw_processor->sizes.iheight,
+		stretched_height,
 		raw->raw_processor->idata.colors,
 		raw->bitdepth > 8 ?
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
