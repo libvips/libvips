@@ -164,11 +164,39 @@ vips_embed_base_copy_pixel(VipsEmbedBase *base,
 {
 	const int bs = VIPS_IMAGE_SIZEOF_PEL(base->in);
 
-	int x, b;
+	int x;
 
-	for (x = 0; x < n; x++)
-		for (b = 0; b < bs; b++)
-			*q++ = p[b];
+	switch (bs) {
+	case 1:
+		memset(q, p[0], n);
+		break;
+	case 2:
+		for (x = 0; x < n; x++)
+			((guint16 *)q)[x] = *(guint16 *)p;
+		break;
+	case 3:
+		for (x = 0; x < n; x++) {
+			q[0] = p[0];
+			q[1] = p[1];
+			q[2] = p[2];
+			q += 3;
+		}
+		break;
+	case 4:
+		for (x = 0; x < n; x++)
+			((guint32 *)q)[x] = *(guint32 *)p;
+		break;
+	case 8:
+		for (x = 0; x < n; x++)
+			((guint64 *)q)[x] = *(guint64 *)p;
+		break;
+	default:
+		for (x = 0; x < n; x++) {
+			memcpy(q, p, bs);
+			q += bs;
+		}
+		break;
+	}
 }
 
 /* Paint r of region or. It's a border area, lying entirely within
