@@ -164,6 +164,66 @@ G_DEFINE_TYPE(VipsFlatten, vips_flatten, VIPS_TYPE_CONVERSION);
 		} \
 	}
 
+/* Fast UCHAR path for black background: replace per-pixel double division
+ * with a 256-entry LUT.
+ */
+static int
+vips_flatten_black_gen_uchar(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
+{
+	VipsRegion *ir = (VipsRegion *) vseq;
+	VipsFlatten *flatten = (VipsFlatten *) b;
+	VipsRect *r = &out_region->valid;
+	int width = r->width;
+	int bands = ir->im->Bands;
+	double max_alpha = flatten->max_alpha;
+
+	int x, y, i;
+
+	float factor_lut[256];
+	for (i = 0; i < 256; i++)
+		factor_lut[i] = (float) ((double) i / max_alpha);
+
+	if (vips_region_prepare(ir, r))
+		return -1;
+
+	for (y = 0; y < r->height; y++) {
+		unsigned char *restrict p =
+			(unsigned char *) VIPS_REGION_ADDR(ir, r->left,
+				r->top + y);
+		unsigned char *restrict q =
+			(unsigned char *) VIPS_REGION_ADDR(out_region, r->left,
+				r->top + y);
+
+		if (bands == 4) {
+			for (x = 0; x < width; x++) {
+				float f = factor_lut[p[3]];
+
+				q[0] = p[0] * f;
+				q[1] = p[1] * f;
+				q[2] = p[2] * f;
+
+				p += 4;
+				q += 3;
+			}
+		}
+		else {
+			for (x = 0; x < width; x++) {
+				float f = factor_lut[p[bands - 1]];
+				int b;
+
+				for (b = 0; b < bands - 1; b++)
+					q[b] = p[b] * f;
+
+				p += bands;
+				q += bands - 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 static int
 vips_flatten_black_gen(VipsRegion *out_region,
 	void *vseq, void *a, void *b, gboolean *stop)
@@ -221,6 +281,72 @@ vips_flatten_black_gen(VipsRegion *out_region,
 		case VIPS_FORMAT_DPCOMPLEX:
 		default:
 			g_assert_not_reached();
+		}
+	}
+
+	return 0;
+}
+
+/* Fast UCHAR path for any background: replace per-pixel double division
+ * with a 256-entry LUT.
+ */
+static int
+vips_flatten_gen_uchar(VipsRegion *out_region,
+	void *vseq, void *a, void *b, gboolean *stop)
+{
+	VipsRegion *ir = (VipsRegion *) vseq;
+	VipsFlatten *flatten = (VipsFlatten *) b;
+	VipsRect *r = &out_region->valid;
+	int width = r->width;
+	int bands = ir->im->Bands;
+	double max_alpha = flatten->max_alpha;
+
+	int x, y, i;
+
+	float alpha_lut[256];
+	float nalpha_lut[256];
+	for (i = 0; i < 256; i++) {
+		alpha_lut[i] = (float) ((double) i / max_alpha);
+		nalpha_lut[i] = (float) ((max_alpha - (double) i) / max_alpha);
+	}
+
+	if (vips_region_prepare(ir, r))
+		return -1;
+
+	for (y = 0; y < r->height; y++) {
+		unsigned char *restrict p =
+			(unsigned char *) VIPS_REGION_ADDR(ir, r->left,
+				r->top + y);
+		unsigned char *restrict q =
+			(unsigned char *) VIPS_REGION_ADDR(out_region, r->left,
+				r->top + y);
+		unsigned char *restrict bg = (unsigned char *) flatten->ink;
+
+		if (bands == 4) {
+			for (x = 0; x < width; x++) {
+				float fa = alpha_lut[p[3]];
+				float fn = nalpha_lut[p[3]];
+
+				q[0] = p[0] * fa + bg[0] * fn;
+				q[1] = p[1] * fa + bg[1] * fn;
+				q[2] = p[2] * fa + bg[2] * fn;
+
+				p += 4;
+				q += 3;
+			}
+		}
+		else {
+			for (x = 0; x < width; x++) {
+				float fa = alpha_lut[p[bands - 1]];
+				float fn = nalpha_lut[p[bands - 1]];
+				int b;
+
+				for (b = 0; b < bands - 1; b++)
+					q[b] = p[b] * fa + bg[b] * fn;
+
+				p += bands;
+				q += bands - 1;
+			}
 		}
 	}
 
@@ -363,7 +489,11 @@ vips_flatten_build(VipsObject *object)
 
 	if (black) {
 		if (vips_image_generate(t[2],
-				vips_start_one, vips_flatten_black_gen, vips_stop_one,
+				vips_start_one,
+				in->BandFmt == VIPS_FORMAT_UCHAR
+					? vips_flatten_black_gen_uchar
+					: vips_flatten_black_gen,
+				vips_stop_one,
 				in, flatten))
 			return -1;
 		in = t[2];
@@ -377,7 +507,11 @@ vips_flatten_build(VipsObject *object)
 			return -1;
 
 		if (vips_image_generate(t[2],
-				vips_start_one, vips_flatten_gen, vips_stop_one, in, flatten))
+				vips_start_one,
+				in->BandFmt == VIPS_FORMAT_UCHAR
+					? vips_flatten_gen_uchar
+					: vips_flatten_gen,
+				vips_stop_one, in, flatten))
 			return -1;
 		in = t[2];
 	}
