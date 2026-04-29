@@ -291,6 +291,3 @@ rm -v $OUT/generate_vips_dict
 # Copy options and remaining dictionary files to $OUT
 find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT \;
 find fuzz -name '*_fuzzer.options' -exec cp -v '{}' $OUT \;
-
-# Copy sanitizer suppressions to $OUT
-cp -vr suppressions/ $OUT
