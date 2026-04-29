@@ -340,6 +340,13 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 	if (vips_foreign_load_dcraw_open(raw))
 		return -1;
 
+	/* Attach metadata before predicting the output size, since
+	 * libraw_adjust_sizes_info_only() will change things like orientation as
+	 * well.
+	 */
+	if (vips_foreign_load_dcraw_set_metadata(raw, load->out))
+		return -1;
+
 	/* Predict output image size. This will change eg. ->sizes.iheight etc.
 	 * and prevent _unpack() from running, sadly. Our _load() method will
 	 * reopen the file.
@@ -362,11 +369,11 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 		1.0, 1.0);
 	load->out->Type = vips_image_guess_interpretation(load->out);
 
-	if (vips_foreign_load_dcraw_set_metadata(raw, load->out))
-		return -1;
-
-	// no longer valid, since we have called libraw_adjust_sizes_info_only()
-	// on it
+	/* This is no longer valid, since we have called
+	 * libraw_adjust_sizes_info_only() on it.
+	 *
+	 * We can close and possibly save a file descriptor.
+	 */
 	VIPS_FREEF(libraw_close, raw->raw_processor);
 
 	return 0;
