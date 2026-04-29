@@ -1,30 +1,52 @@
 #pragma once
 
-#include <unistd.h>
-
-/* Only supported since clang >= 14.0.
- */
-#if __has_attribute(disable_sanitizer_instrumentation)
-#define DISABLE_SANITIZER_INSTRUMENTATION \
-	__attribute__((disable_sanitizer_instrumentation))
-#else
-#define DISABLE_SANITIZER_INSTRUMENTATION
+// `#embed` requires C23 support. However, this file is only included when
+// building with `-Dfuzz=true`, so it ought to be safe.
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wc23-extensions"
 #endif
 
-#define DEFINE_SANITIZER_OPTS(FN, SUPP_FILE, ...) \
-	extern "C" const char * \
-	FN() DISABLE_SANITIZER_INSTRUMENTATION \
-	{ \
-		return access(SUPP_FILE, R_OK) == 0 \
-			? "suppressions=" SUPP_FILE __VA_ARGS__ \
-			: "" __VA_ARGS__; \
-	}
+extern "C" const char *
+__asan_default_suppressions()
+{
+	static const char asan_suppressions[] = {
+#embed "../suppressions/asan.supp"
+		, 0 // ensure null-terminated string
+	};
 
-#ifndef SUPPRESSIONS_DIR
-#define SUPPRESSIONS_DIR "./suppressions"
-#endif
+	return asan_suppressions;
+}
 
-DEFINE_SANITIZER_OPTS(__asan_default_options, SUPPRESSIONS_DIR "/asan.supp")
-DEFINE_SANITIZER_OPTS(__lsan_default_options, SUPPRESSIONS_DIR "/lsan.supp")
-DEFINE_SANITIZER_OPTS(__tsan_default_options, SUPPRESSIONS_DIR "/tsan.supp")
-DEFINE_SANITIZER_OPTS(__ubsan_default_options, SUPPRESSIONS_DIR "/ubsan.supp")
+extern "C" const char *
+__lsan_default_suppressions()
+{
+	static const char lsan_suppressions[] = {
+#embed "../suppressions/lsan.supp"
+		, 0
+	};
+
+	return lsan_suppressions;
+}
+
+extern "C" const char *
+__tsan_default_suppressions()
+{
+	static const char tsan_suppressions[] = {
+#embed "../suppressions/tsan.supp"
+		, 0
+	};
+
+	return tsan_suppressions;
+}
+
+// Requires https://github.com/llvm/llvm-project/pull/194862
+extern "C" const char *
+__ubsan_default_suppressions()
+{
+	static const char ubsan_suppressions[] = {
+#embed "../suppressions/ubsan.supp"
+		, 0
+	};
+
+	return ubsan_suppressions;
+}
