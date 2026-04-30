@@ -228,6 +228,21 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 			q[x] = ((sum[x] + amend) * multiplier) >> 24; \
 	}
 
+/* Fixed-point arithmetic path for ushort averages. Avoids per-pixel
+ * integer division by using multiply-shift.
+ */
+#define USHORT_AVG() \
+	{ \
+		int *restrict sum = (int *) seq->sum + sz * y; \
+		unsigned short *restrict q = (unsigned short *) out; \
+		int amend = shrink->vshrink / 2; \
+		guint64 multiplier = \
+			((1ULL << 32) + shrink->vshrink - 1) / shrink->vshrink; \
+\
+		for (x = 0; x < sz; x++) \
+			q[x] = ((gint64) (sum[x] + amend) * multiplier) >> 32; \
+	}
+
 /* Integer average.
  */
 #define IAVG(ACC_TYPE, TYPE) \
@@ -246,9 +261,10 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 	{ \
 		double *restrict sum = (double *) seq->sum + sz * y; \
 		TYPE *restrict q = (TYPE *) out; \
+		const double inv_vshrink = 1.0 / shrink->vshrink; \
 \
 		for (x = 0; x < sz; x++) \
-			q[x] = sum[x] / shrink->vshrink; \
+			q[x] = sum[x] * inv_vshrink; \
 	}
 
 /* Average the line of sums to out.
@@ -273,7 +289,7 @@ vips_shrinkv_write_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 		IAVG(int, char);
 		break;
 	case VIPS_FORMAT_USHORT:
-		IAVG(int, unsigned short);
+		USHORT_AVG();
 		break;
 	case VIPS_FORMAT_SHORT:
 		IAVG(int, short);
