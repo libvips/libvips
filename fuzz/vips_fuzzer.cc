@@ -10,6 +10,8 @@
  *   Remaining bytes: raw image data (decoded via vips_image_new_from_buffer)
  */
 
+#include "config.h"
+
 #include <vips/vips.h>
 
 #define MAX_LINE_LEN 4096 // =VIPS_PATH_MAX

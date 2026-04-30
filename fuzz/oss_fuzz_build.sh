@@ -234,6 +234,17 @@ cmake \
 cmake --build . --target install
 popd
 
+if [ "$SANITIZER" = "undefined" ]; then
+  # Allow UBSan shift errors to be recoverable to ensure our suppression rules
+  # are enforced. OSS-Fuzz uses `-fno-sanitize-recover=shift` by default.
+  #export CFLAGS+=" -fsanitize-recover=shift"
+  #export CXXFLAGS+=" -fsanitize-recover=shift"
+  # FIXME: Once PR https://github.com/llvm/llvm-project/pull/194862 is merged
+  # and available in OSS-Fuzz we can re-enable the above flags instead.
+  export CFLAGS+=" -fsanitize-ignorelist=$PWD/suppressions/ubsan_ignorelist.txt"
+  export CXXFLAGS+=" -fsanitize-ignorelist=$PWD/suppressions/ubsan_ignorelist.txt"
+fi
+
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
 meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debug \
