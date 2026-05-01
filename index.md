@@ -47,7 +47,7 @@ Node.js)](https://www.npmjs.org/package/sharp),
 [Ruby on Rails](http://edgeguides.rubyonrails.org/active_storage_overview.html),
 [CarrierWave](https://github.com/carrierwaveuploader/carrierwave#using-vips),
 [MediaWiki](https://www.mediawiki.org/wiki/Extension:Thumbro), and others.
-The official libvips GUI is [nip2](https://github.com/libvips/nip2),
+The official libvips GUI is [nip4](https://github.com/libvips/nip4),
 a strange combination of a spreadsheet and a photo editor.
 
 The [download area]({{ site.github.releases_url }}) has the
