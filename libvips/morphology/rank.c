@@ -119,6 +119,7 @@ vips_rank_stop(void *vseq, void *a, void *b)
 		for (int i = 0; i < in->Bands; i++)
 			VIPS_FREE(seq->hist[i]);
 	VIPS_FREE(seq->hist);
+	VIPS_FREE(seq);
 
 	return 0;
 }
@@ -130,7 +131,7 @@ vips_rank_start(VipsImage *out, void *a, void *b)
 	VipsRank *rank = (VipsRank *) b;
 	VipsRankSequence *seq;
 
-	if (!(seq = VIPS_NEW(out, VipsRankSequence)))
+	if (!(seq = VIPS_NEW(NULL, VipsRankSequence)))
 		return NULL;
 	seq->ir = NULL;
 	seq->sort = NULL;

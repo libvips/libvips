@@ -130,6 +130,7 @@ vips_convf_stop(void *vseq, void *a, void *b)
 	VipsConvfSequence *seq = (VipsConvfSequence *) vseq;
 
 	VIPS_UNREF(seq->ir);
+	VIPS_FREE(seq);
 
 	return 0;
 }
@@ -143,7 +144,7 @@ vips_convf_start(VipsImage *out, void *a, void *b)
 	VipsConvf *convf = (VipsConvf *) b;
 	VipsConvfSequence *seq;
 
-	if (!(seq = VIPS_NEW(out, VipsConvfSequence)))
+	if (!(seq = VIPS_NEW(NULL, VipsConvfSequence)))
 		return NULL;
 
 	seq->convf = convf;
