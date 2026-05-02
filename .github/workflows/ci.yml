@@ -14,19 +14,24 @@ jobs:
         include:
           - name: "Linux x64 (Ubuntu 24.04) - GCC 14"
             os: ubuntu-24.04
-            build: { cc: gcc-14, cxx: g++-14, linker: ld, docs: true }
+            build: { cc: gcc-14, cxx: g++-14, linker: ld }
+            extra_meson_args: -Ddocs=true
 
           - name: "Linux x64 (Ubuntu 24.04) - Clang 19 with ASan and UBSan"
             os: ubuntu-24.04
             build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'address,undefined' }
+            extra_meson_args: -Dintrospection=disabled
 
-          - name: "Linux x64 (Ubuntu 24.04) - Clang 19 with TSan"
-            os: ubuntu-24.04
-            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'thread' }
+          # We cannot reliably test this if GLib is built without TSan instrumentation.
+          #- name: "Linux x64 (Ubuntu 24.04) - Clang 19 with TSan"
+          #  os: ubuntu-24.04
+          #  build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'thread' }
+          #  extra_meson_args: -Dintrospection=disabled
 
           - name: "macOS arm64 (15) - Xcode 16"
             os: macos-15
             build: { cc: clang, cxx: clang++, linker: ld.lld }
+            extra_meson_args: -Dintrospection=disabled
 
     env:
       CC: ${{ matrix.build.cc }}
@@ -113,8 +118,7 @@ jobs:
           meson setup build
             -Ddebug=true
             -Dmagick=disabled
-            -Ddocs=${{ matrix.build.docs || 'false' }}
-            -Dintrospection=${{ matrix.build.docs && 'enabled' || 'disabled' }}
+            ${{ matrix.extra_meson_args }}
             -Db_sanitize=${{ matrix.build.sanitize || 'none' }}
             -Db_lundef=${{ matrix.build.sanitize && 'false' || 'true' }}
           || (cat build/meson-logs/meson-log.txt && exit 1)
