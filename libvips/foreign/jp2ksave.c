@@ -852,6 +852,11 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 	if (jp2k->subsample)
 		jp2k->save_as_ycc = TRUE;
 
+	/* Our rgb->ycc only works for exactly 3 bands.
+	 */
+	jp2k->save_as_ycc = jp2k->save_as_ycc && save->ready->Bands == 3;
+	jp2k->subsample = jp2k->subsample && jp2k->save_as_ycc;
+
 	/* Set parameters for compressor.
 	 */
 	opj_set_default_encoder_parameters(&jp2k->parameters);
