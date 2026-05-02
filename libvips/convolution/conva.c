@@ -794,6 +794,7 @@ vips_conva_stop(void *vseq, void *a, void *b)
 	VipsConvaSeq *seq = (VipsConvaSeq *) vseq;
 
 	VIPS_UNREF(seq->ir);
+	VIPS_FREE(seq);
 
 	return 0;
 }
@@ -808,7 +809,7 @@ vips_conva_start(VipsImage *out, void *a, void *b)
 
 	VipsConvaSeq *seq;
 
-	seq = VIPS_NEW(out, VipsConvaSeq);
+	seq = VIPS_NEW(NULL, VipsConvaSeq);
 	seq->conva = conva;
 	seq->ir = vips_region_new(in);
 

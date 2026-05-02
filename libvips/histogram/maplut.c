@@ -125,7 +125,7 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 	VipsImage *in = (VipsImage *) a;
 	VipsMaplutSequence *seq;
 
-	if (!(seq = VIPS_NEW(out, VipsMaplutSequence)))
+	if (!(seq = VIPS_NEW(NULL, VipsMaplutSequence)))
 		return NULL;
 
 	/* Init!
@@ -538,6 +538,7 @@ vips_maplut_stop(void *vseq, void *a, void *b)
 	maplut->overflow += seq->overflow;
 
 	VIPS_UNREF(seq->ir);
+	VIPS_FREE(seq);
 
 	return 0;
 }

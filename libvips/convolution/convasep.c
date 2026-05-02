@@ -359,6 +359,7 @@ vips_convasep_stop(void *vseq, void *a, void *b)
 	VIPS_FREE(seq->start);
 	VIPS_FREE(seq->end);
 	VIPS_FREE(seq->sum);
+	VIPS_FREE(seq);
 
 	return 0;
 }
@@ -373,7 +374,7 @@ vips_convasep_start(VipsImage *out, void *a, void *b)
 
 	VipsConvasepSeq *seq;
 
-	if (!(seq = VIPS_NEW(out, VipsConvasepSeq)))
+	if (!(seq = VIPS_NEW(NULL, VipsConvasepSeq)))
 		return NULL;
 
 	/* Init!

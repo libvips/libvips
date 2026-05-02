@@ -1971,7 +1971,7 @@ rtiff_seq_start(VipsImage *out, void *a, void *b)
 	Rtiff *rtiff = (Rtiff *) a;
 	RtiffSeq *seq;
 
-	if (!(seq = VIPS_NEW(out, RtiffSeq)))
+	if (!(seq = VIPS_NEW(NULL, RtiffSeq)))
 		return NULL;
 	seq->rtiff = rtiff;
 	if (!(seq->buf = vips_malloc(NULL, rtiff->header.tile_size)))
@@ -2575,6 +2575,7 @@ rtiff_seq_stop(void *vseq, void *a, void *b)
 
 	VIPS_FREE(seq->buf);
 	VIPS_FREE(seq->compressed_buf);
+	VIPS_FREE(seq);
 
 	return 0;
 }

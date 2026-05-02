@@ -186,6 +186,7 @@ vips_reducev_stop(void *vseq, void *a, void *b)
 	VIPS_FREE(seq->t1);
 	VIPS_FREE(seq->t2);
 #endif /*HAVE_ORC*/
+	VIPS_FREE(seq);
 
 	return 0;
 }
@@ -198,7 +199,7 @@ vips_reducev_start(VipsImage *out, void *a, void *b)
 
 	VipsReducevSequence *seq;
 
-	if (!(seq = VIPS_NEW(out, VipsReducevSequence)))
+	if (!(seq = VIPS_NEW(NULL, VipsReducevSequence)))
 		return nullptr;
 
 	/* Init!
