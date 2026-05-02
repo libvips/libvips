@@ -575,6 +575,7 @@ vips_arithmetic_operation_init(void)
 	extern GType vips_project_get_type(void);
 	extern GType vips_profile_get_type(void);
 	extern GType vips_measure_get_type(void);
+	extern GType vips_dominant_colours_get_type(void);
 	extern GType vips_getpoint_get_type(void);
 	extern GType vips_round_get_type(void);
 	extern GType vips_relational_get_type(void);
@@ -617,6 +618,7 @@ vips_arithmetic_operation_init(void)
 	vips_project_get_type();
 	vips_profile_get_type();
 	vips_measure_get_type();
+	vips_dominant_colours_get_type();
 	vips_getpoint_get_type();
 	vips_round_get_type();
 	vips_relational_get_type();
