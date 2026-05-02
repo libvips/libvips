@@ -10,6 +10,7 @@ tbd 8.18.3
 - image_sanity: ensure scanlines fit in INT_MAX [Niels Provos]
 - rank: expand input by one column [kleisauke]
 - hist_local: expand input by one column [kleisauke]
+- fix possible null-pointer dereference in quantizr backend [felixbuenemann]
 - jp2ksave: fix OOB read during chroma subsampling [dloebl]
 
 31/3/26 8.18.2
