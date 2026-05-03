@@ -284,8 +284,10 @@ for fuzzer in $OUT/*_fuzzer; do
   ln -sf "seed_corpus.zip" "$OUT/${target}_seed_corpus.zip"
 done
 
-# Generate dictionary for vips_fuzzer
+# Generate dictionary for vips_fuzzer (also shared with vips_chain_fuzzer,
+# which uses the same op-name / argument / enum vocabulary).
 LD_LIBRARY_PATH="$OUT/lib" $OUT/generate_vips_dict > "$OUT/vips_fuzzer.dict"
+cp -v "$OUT/vips_fuzzer.dict" "$OUT/vips_chain_fuzzer.dict"
 rm -v $OUT/generate_vips_dict
 
 # Copy options and remaining dictionary files to $OUT
