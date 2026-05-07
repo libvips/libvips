@@ -837,7 +837,7 @@ vips_foreign_save_jp2k_build(VipsObject *object)
 		break;
 
 	case VIPS_FOREIGN_SUBSAMPLE_ON:
-		jp2k->subsample = TRUE;
+		jp2k->subsample = save->ready->Bands == 3;
 		break;
 
 	case VIPS_FOREIGN_SUBSAMPLE_OFF:

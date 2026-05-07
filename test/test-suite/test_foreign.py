@@ -1924,6 +1924,11 @@ class TestForeign:
         im = pyvips.Image.black(22, 3, bands=3)
         im.jp2ksave_buffer(subsample_mode="on")
 
+        # regression test for heap buffer overflow with chroma subsampling
+        # on non-RGB images, see https://github.com/libvips/libvips/pull/5030
+        im = pyvips.Image.black(32, 32, bands=1)
+        im.jp2ksave_buffer(subsample_mode="on")
+
         # enabling lossless should mean a bigger buffer
         b1 = self.colour.jp2ksave_buffer(lossless=False)
         b2 = self.colour.jp2ksave_buffer(lossless=True)
