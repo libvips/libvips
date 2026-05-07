@@ -22,6 +22,7 @@ date-tbd 8.19.0
 - uhdrsave: add existing JPEG options for base image [lovell]
 - csvload: add maximum limit on column count [lovell]
 - pdfload_buffer: only search the first few bytes in is_a [violetviolinist]
+- add percent_lum: find threshold for percent of pixels by BT.709 luminance [mertalev]
 
 tbd 8.18.3
 
