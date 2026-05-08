@@ -163,7 +163,7 @@ vips_boolean_build(VipsObject *object)
 	{ \
 		TYPE *restrict left = (TYPE *) in[0]; \
 		TYPE *restrict right = (TYPE *) in[1]; \
-		int *restrict q = (int *) out; \
+		TYPE *restrict q = (TYPE *) out; \
 \
 		for (x = 0; x < sz; x++) \
 			q[x] = FN(left[x], right[x]); \
