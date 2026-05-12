@@ -232,7 +232,7 @@ class TestCICP:
                 continue
             im = make_cicp_image(val, val, val, transfer=transfer)
             scrgb = im.CICP2scRGB()
-            result = scrgb.scRGB2CICP(PRIMARIES_BT709, transfer, 0, 1)
+            result = scrgb.scRGB2CICP(transfer_characteristics=transfer)
             pixel = result(0, 0)
             assert abs(pixel[0] - val) <= 1, \
                 f"{name} at {val}: got {pixel[0]}, expected {val}"
@@ -245,7 +245,8 @@ class TestCICP:
         im = make_cicp_image(200, 100, 50, primaries=primaries,
                              transfer=TRANSFER_LINEAR)
         scrgb = im.CICP2scRGB()
-        result = scrgb.scRGB2CICP(primaries, TRANSFER_LINEAR, 0, 1)
+        result = scrgb.scRGB2CICP(colour_primaries=primaries,
+                                   transfer_characteristics=TRANSFER_LINEAR)
         pixel = result(0, 0)
         assert abs(pixel[0] - 200) <= 1, \
             f"{name} R: got {pixel[0]}, expected 200"
@@ -258,7 +259,7 @@ class TestCICP:
     def test_scRGB2CICP_output_format_8bit(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
             + [0.5, 0.5, 0.5]
-        result = im.scRGB2CICP(PRIMARIES_BT709, TRANSFER_SRGB, 0, 1)
+        result = im.scRGB2CICP()
         assert result.format == "uchar"
         assert result.bands == 3
 
@@ -266,8 +267,7 @@ class TestCICP:
     def test_scRGB2CICP_output_format_16bit(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
             + [0.5, 0.5, 0.5]
-        result = im.scRGB2CICP(PRIMARIES_BT709, TRANSFER_SRGB, 0, 1,
-                                depth=16)
+        result = im.scRGB2CICP(depth=16)
         assert result.format == "ushort"
         assert result.bands == 3
 
@@ -275,7 +275,8 @@ class TestCICP:
     def test_scRGB2CICP_metadata_set(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
             + [0.5, 0.5, 0.5]
-        result = im.scRGB2CICP(PRIMARIES_BT2020, TRANSFER_PQ, 0, 1)
+        result = im.scRGB2CICP(colour_primaries=PRIMARIES_BT2020,
+                                transfer_characteristics=TRANSFER_PQ)
         assert result.get("cicp-colour-primaries") == PRIMARIES_BT2020
         assert result.get("cicp-transfer-characteristics") == TRANSFER_PQ
         assert result.get("cicp-matrix-coefficients") == 0
@@ -287,8 +288,7 @@ class TestCICP:
         im = make_cicp_image(ushort_val, ushort_val, ushort_val,
                              transfer=TRANSFER_SRGB, fmt="ushort")
         scrgb = im.CICP2scRGB()
-        result = scrgb.scRGB2CICP(PRIMARIES_BT709, TRANSFER_SRGB, 0, 1,
-                                   depth=16)
+        result = scrgb.scRGB2CICP(depth=16)
         pixel = result(0, 0)
         assert abs(pixel[0] - ushort_val) <= 1
 
@@ -298,7 +298,8 @@ class TestCICP:
                              primaries=PRIMARIES_BT2020,
                              transfer=TRANSFER_PQ)
         scrgb = im.CICP2scRGB()
-        result = scrgb.scRGB2CICP(PRIMARIES_BT2020, TRANSFER_PQ, 0, 1)
+        result = scrgb.scRGB2CICP(colour_primaries=PRIMARIES_BT2020,
+                                   transfer_characteristics=TRANSFER_PQ)
         pixel = result(0, 0)
         assert abs(pixel[0] - 128) <= 1
         assert abs(pixel[1] - 100) <= 1
@@ -310,7 +311,8 @@ class TestCICP:
                              primaries=PRIMARIES_DISPLAY_P3,
                              transfer=TRANSFER_HLG)
         scrgb = im.CICP2scRGB()
-        result = scrgb.scRGB2CICP(PRIMARIES_DISPLAY_P3, TRANSFER_HLG, 0, 1)
+        result = scrgb.scRGB2CICP(colour_primaries=PRIMARIES_DISPLAY_P3,
+                                   transfer_characteristics=TRANSFER_HLG)
         pixel = result(0, 0)
         assert abs(pixel[0] - 180) <= 1
         assert abs(pixel[1] - 120) <= 1

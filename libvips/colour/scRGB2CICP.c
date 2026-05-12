@@ -48,10 +48,10 @@ typedef struct _VipsscRGB2CICP {
 
 	int depth;
 
-	int colour_primaries;
-	int transfer_characteristics;
-	int matrix_coefficients;
-	int full_range_flag;
+	VipsCICPColourPrimaries colour_primaries;
+	VipsCICPTransferCharacteristics transfer_characteristics;
+	VipsCICPMatrixCoefficients matrix_coefficients;
+	gboolean full_range;
 
 	/* Conversion matrix from BT.709 (scRGB) to target primaries.
 	 */
@@ -139,7 +139,7 @@ static const float BT709_to_EBU3213[9] = {
 };
 
 static const float *
-vips_scRGB2CICP_get_matrix(int primaries)
+vips_scRGB2CICP_get_matrix(VipsCICPColourPrimaries primaries)
 {
 	switch (primaries) {
 	case VIPS_CICP_COLOUR_PRIMARIES_BT2020:
@@ -461,9 +461,9 @@ vips_scRGB2CICP_build(VipsObject *object)
 		return -1;
 	}
 
-	if (cicp->full_range_flag != 1) {
+	if (!cicp->full_range) {
 		vips_error(class->nickname, "%s",
-			_("only full-range-flag 1 is currently supported"));
+			_("only full-range TRUE is currently supported"));
 		return -1;
 	}
 
@@ -493,7 +493,7 @@ vips_scRGB2CICP_build(VipsObject *object)
 	vips_image_set_int(colour->out,
 		"cicp-matrix-coefficients", cicp->matrix_coefficients);
 	vips_image_set_int(colour->out,
-		"cicp-full-range-flag", cicp->full_range_flag);
+		"cicp-full-range-flag", cicp->full_range ? 1 : 0);
 
 	return 0;
 }
@@ -526,40 +526,43 @@ vips_scRGB2CICP_class_init(VipsscRGB2CICPClass *class)
 
 	colour_class->process_line = vips_scRGB2CICP_line;
 
+	VIPS_ARG_ENUM(class, "colour_primaries", 2,
+		_("Colour primaries"),
+		_("CICP colour primaries (H.273 Table 2)"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsscRGB2CICP, colour_primaries),
+		VIPS_TYPE_CICP_COLOUR_PRIMARIES,
+		VIPS_CICP_COLOUR_PRIMARIES_BT709);
+
+	VIPS_ARG_ENUM(class, "transfer_characteristics", 3,
+		_("Transfer characteristics"),
+		_("CICP transfer characteristics (H.273 Table 3)"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsscRGB2CICP, transfer_characteristics),
+		VIPS_TYPE_CICP_TRANSFER_CHARACTERISTICS,
+		VIPS_CICP_TRANSFER_SRGB);
+
+	VIPS_ARG_ENUM(class, "matrix_coefficients", 4,
+		_("Matrix coefficients"),
+		_("CICP matrix coefficients (H.273 Table 4)"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsscRGB2CICP, matrix_coefficients),
+		VIPS_TYPE_CICP_MATRIX_COEFFICIENTS,
+		VIPS_CICP_MATRIX_RGB);
+
+	VIPS_ARG_BOOL(class, "full_range", 5,
+		_("Full range flag"),
+		_("CICP full range flag"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsscRGB2CICP, full_range),
+		TRUE);
+
 	VIPS_ARG_INT(class, "depth", 130,
 		_("Depth"),
 		_("Output device space depth in bits"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsscRGB2CICP, depth),
 		8, 16, 8);
-
-	VIPS_ARG_INT(class, "colour-primaries", 2,
-		_("Colour primaries"),
-		_("CICP colour primaries code (H.273 Table 2)"),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsscRGB2CICP, colour_primaries),
-		0, 255, VIPS_CICP_COLOUR_PRIMARIES_BT709);
-
-	VIPS_ARG_INT(class, "transfer-characteristics", 3,
-		_("Transfer characteristics"),
-		_("CICP transfer characteristics code (H.273 Table 3)"),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsscRGB2CICP, transfer_characteristics),
-		0, 255, VIPS_CICP_TRANSFER_SRGB);
-
-	VIPS_ARG_INT(class, "matrix-coefficients", 4,
-		_("Matrix coefficients"),
-		_("CICP matrix coefficients code (H.273 Table 4)"),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsscRGB2CICP, matrix_coefficients),
-		0, 255, VIPS_CICP_MATRIX_RGB);
-
-	VIPS_ARG_INT(class, "full-range-flag", 5,
-		_("Full range flag"),
-		_("CICP full range flag"),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsscRGB2CICP, full_range_flag),
-		0, 1, 1);
 }
 
 static void
@@ -569,27 +572,27 @@ vips_scRGB2CICP_init(VipsscRGB2CICP *cicp)
 	cicp->colour_primaries = VIPS_CICP_COLOUR_PRIMARIES_BT709;
 	cicp->transfer_characteristics = VIPS_CICP_TRANSFER_SRGB;
 	cicp->matrix_coefficients = VIPS_CICP_MATRIX_RGB;
-	cicp->full_range_flag = 1;
+	cicp->full_range = TRUE;
 }
 
 /**
  * vips_scRGB2CICP: (method)
  * @in: input image
  * @out: (out): output image
- * @colour_primaries: CICP colour primaries code (H.273 Table 2)
- * @transfer_characteristics: CICP transfer characteristics code (H.273 Table 3)
- * @matrix_coefficients: CICP matrix coefficients code (H.273 Table 4)
- * @full_range_flag: CICP full range flag (0 or 1)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * Transform an scRGB image to CICP signal. The target colour encoding
- * is specified via the CICP code point arguments.
+ * is specified via the optional CICP arguments.
  *
- * Currently only @matrix_coefficients 0 (identity/RGB) and
- * @full_range_flag 1 are supported.
+ * Currently only @matrix_coefficients %VIPS_CICP_MATRIX_RGB and
+ * @full_range %TRUE are supported.
  *
  * ::: tip "Optional arguments"
- *     * @depth: `gint`, output depth in bits (8 or 16)
+ *     * @colour_primaries: #VipsCICPColourPrimaries, target primaries (default %VIPS_CICP_COLOUR_PRIMARIES_BT709)
+ *     * @transfer_characteristics: #VipsCICPTransferCharacteristics, target transfer (default %VIPS_CICP_TRANSFER_SRGB)
+ *     * @matrix_coefficients: #VipsCICPMatrixCoefficients, target matrix (default %VIPS_CICP_MATRIX_RGB)
+ *     * @full_range: `gboolean`, full-range output (default %TRUE)
+ *     * @depth: `gint`, output depth in bits, 8 or 16 (default 8)
  *
  * ::: seealso
  *     [method@Image.CICP2scRGB], [method@Image.scRGB2sRGB].
@@ -597,17 +600,13 @@ vips_scRGB2CICP_init(VipsscRGB2CICP *cicp)
  * Returns: 0 on success, -1 on error.
  */
 int
-vips_scRGB2CICP(VipsImage *in, VipsImage **out,
-	int colour_primaries, int transfer_characteristics,
-	int matrix_coefficients, int full_range_flag, ...)
+vips_scRGB2CICP(VipsImage *in, VipsImage **out, ...)
 {
 	va_list ap;
 	int result;
 
-	va_start(ap, full_range_flag);
-	result = vips_call_split("scRGB2CICP", ap, in, out,
-		colour_primaries, transfer_characteristics,
-		matrix_coefficients, full_range_flag);
+	va_start(ap, out);
+	result = vips_call_split("scRGB2CICP", ap, in, out);
 	va_end(ap);
 
 	return result;
