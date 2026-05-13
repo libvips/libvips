@@ -188,7 +188,7 @@ vips_foreign_save_uhdr_set_raw_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 		.w = image->Xsize,
 		.h = image->Ysize,
 		.planes[0] = (void *)
-			VIPS_ARRAY(uhdr, image->Xsize * image->Ysize * 8, VipsPel),
+			VIPS_ARRAY(uhdr, 8 * VIPS_IMAGE_N_PELS(image), VipsPel),
 		.stride[0] = image->Xsize,
 	};
 	if (!hdr_image.planes[0])

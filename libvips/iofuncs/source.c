@@ -975,7 +975,7 @@ vips_source_read_to_memory(VipsSource *source)
 		gint64 bytes_read;
 
 		bytes_read = vips_source_read(source, q,
-			VIPS_MAX(4096, source->length - read_position));
+			VIPS_MIN(4096, source->length - read_position));
 		if (bytes_read == -1) {
 			VIPS_FREEF(g_byte_array_unref, byte_array);
 			return -1;
