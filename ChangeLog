@@ -19,6 +19,7 @@ tbd 8.18.3
 - radload: deprecate old-style scanline read [Himanshu Anand]
 - source: fix max/min confusion [Himanshu Anand]
 - uhdrsave: use macro to size buffer [Himanshu Anand]
+- draw_mask: fix support for packed LABQ images [lovell]
 
 31/3/26 8.18.2
 
