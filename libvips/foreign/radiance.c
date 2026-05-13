@@ -34,6 +34,8 @@
  * 	- sync with radiance 5.3
  * 15/07/24 kleisauke
  * 	- sync with radiance 5.4
+ * 12/05/26
+ *	- deprecate old-style scanline read
  */
 
 /*
@@ -364,29 +366,34 @@ getheader(VipsSbuf *sbuf, gethfunc *f, void *p)
 static int
 scanline_read_old(VipsSbuf *sbuf, COLR *scanline, int width)
 {
-	int rshift;
+#ifdef ENABLE_DEPRECATED
+	int rshift = 0;
+	COLR *q = scanline;
+	int n = width;
 
-	rshift = 0;
-
-	while (width > 0) {
+	while (n > 0) {
 		if (VIPS_SBUF_REQUIRE(sbuf, 4))
 			return -1;
 
-		scanline[0][RED] = VIPS_SBUF_FETCH(sbuf);
-		scanline[0][GRN] = VIPS_SBUF_FETCH(sbuf);
-		scanline[0][BLU] = VIPS_SBUF_FETCH(sbuf);
-		scanline[0][EXP] = VIPS_SBUF_FETCH(sbuf);
+		q[0][RED] = VIPS_SBUF_FETCH(sbuf);
+		q[0][GRN] = VIPS_SBUF_FETCH(sbuf);
+		q[0][BLU] = VIPS_SBUF_FETCH(sbuf);
+		q[0][EXP] = VIPS_SBUF_FETCH(sbuf);
 
-		if (scanline[0][RED] == 1 &&
-			scanline[0][GRN] == 1 &&
-			scanline[0][BLU] == 1) {
-			guint i;
+		if (q[0][RED] == 1 &&
+			q[0][GRN] == 1 &&
+			q[0][BLU] == 1) {
+			if (q == scanline) {
+				vips_error("rad2vips",
+					"%s", _("RLE repeat at start of scanline"));
+				return -1;
+			}
 
-			for (i = ((guint32) scanline[0][EXP] << rshift);
-				 i > 0 && width > 0; i--) {
-				copycolr(scanline[0], scanline[-1]);
-				scanline += 1;
-				width -= 1;
+			for (guint i = ((guint32) q[0][EXP] << rshift);
+				 i > 0 && n > 0; i--) {
+				copycolr(q[0], q[-1]);
+				q += 1;
+				n -= 1;
 			}
 
 			rshift += 8;
@@ -397,13 +404,19 @@ scanline_read_old(VipsSbuf *sbuf, COLR *scanline, int width)
 				return -1;
 		}
 		else {
-			scanline += 1;
-			width -= 1;
+			q += 1;
+			n -= 1;
 			rshift = 0;
 		}
 	}
 
 	return 0;
+#else /*!ENABLE_DEPRECATED*/
+	/* Old-style radiance read is deprecated.
+	 */
+	vips_error("rad2vips", "%s", _("deprecated old-style RAD scanline"));
+	return -1;
+#endif /*ENABLE_DEPRECATED*/
 }
 
 /* Read a single encoded scanline.
@@ -431,8 +444,7 @@ scanline_read(VipsSbuf *sbuf, COLR *scanline, int width)
 	scanline[0][EXP] = VIPS_SBUF_FETCH(sbuf);
 	if (scanline[0][GRN] != 2 ||
 		scanline[0][BLU] & 128)
-		return scanline_read_old(sbuf,
-			scanline + 1, width - 1);
+		return scanline_read_old(sbuf, scanline + 1, width - 1);
 
 	if (((scanline[0][BLU] << 8) | scanline[0][EXP]) != width) {
 		vips_error("rad2vips", "%s", _("scanline length mismatch"));
