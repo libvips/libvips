@@ -145,14 +145,16 @@ vips_draw_mask_draw_labq(VipsImage *image, VipsImage *mask, VipsPel *ink,
 {
 	int width = image_clip->width;
 	int height = image_clip->height;
-	int bands = image->Bands;
+	int bands = 3;
 
 	float *lab_buffer;
+	float lab_ink[3];
 	int y;
 
 	if (!(lab_buffer = VIPS_ARRAY(NULL, width * 3, float)))
 		return -1;
 
+	vips__LabQ2Lab_vec(lab_ink, ink, 1);
 	for (y = 0; y < height; y++) {
 		VipsPel *to = VIPS_IMAGE_ADDR(image,
 			image_clip->left,
@@ -162,7 +164,7 @@ vips_draw_mask_draw_labq(VipsImage *image, VipsImage *mask, VipsPel *ink,
 			y + mask_clip->top);
 
 		vips__LabQ2Lab_vec(lab_buffer, to, width);
-		DBLEND(float, lab_buffer, (double *) ink);
+		DBLEND(float, lab_buffer, lab_ink);
 		vips__Lab2LabQ_vec(to, lab_buffer, width);
 	}
 

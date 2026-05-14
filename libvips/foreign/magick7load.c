@@ -452,12 +452,11 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 	printf("image->rows = %zd\n", image->rows);
 #endif /*DEBUG*/
 
-	/* Ysize updated below once we have worked out how many frames to load.
+	/* Ysize updated again below once we have worked out how many frames to
+	 * load.
 	 */
-	out->Coding = VIPS_CODING_NONE;
 	out->Xsize = image->columns;
 	out->Ysize = image->rows;
-	magick7->frame_height = image->rows;
 	out->Bands = magick7_get_bands(image);
 	if (out->Xsize <= 0 ||
 		out->Ysize <= 0 ||
@@ -470,6 +469,9 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 			out->Xsize, out->Ysize, out->Bands);
 		return -1;
 	}
+
+	out->Coding = VIPS_CODING_NONE;
+	magick7->frame_height = image->rows;
 
 	/* Depth can be 'fractional'. You'd think we should use
 	 * GetImageDepth() but that seems to compute something very complex.
@@ -539,37 +541,6 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 	// revise the interpretation if it seems crazy
 	out->Type = vips_image_guess_interpretation(out);
 
-	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
-		return -1;
-
-	/* Get all the string metadata.
-	 */
-	ResetImagePropertyIterator(image);
-	while ((key = GetNextImageProperty(image))) {
-		char name_text[256];
-		VipsBuf name = VIPS_BUF_STATIC(name_text);
-		const char *value;
-
-		value = GetImageProperty(image, key, magick7->exception);
-		if (!value) {
-			vips_foreign_load_magick7_error(magick7);
-			return -1;
-		}
-		vips_buf_appendf(&name, "magick-%s", key);
-		vips_image_set_string(out, vips_buf_all(&name), value);
-	}
-
-	/* Set vips metadata from ImageMagick profiles.
-	 */
-	if (magick_set_vips_profile(out, image))
-		return -1;
-
-	/* Something like "BMP".
-	 */
-	if (strlen(magick7->image->magick) > 0)
-		vips_image_set_string(out, "magick-format",
-			magick7->image->magick);
-
 	magick7->n_pages = GetImageListLength(GetFirstImageInList(image));
 #ifdef DEBUG
 	printf("image has %d pages\n", magick7->n_pages);
@@ -615,11 +586,47 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 	/* So we can finally set the height.
 	 */
 	if (magick7->n_frames > 1) {
-		vips_image_set_int(out, VIPS_META_PAGE_HEIGHT, out->Ysize);
-		out->Ysize *= magick7->n_frames;
+		vips_image_set_int(out, VIPS_META_PAGE_HEIGHT, magick7->frame_height);
+
+		guint64 total_y;
+		if (!g_uint64_checked_mul(&total_y,
+			(guint64)out->Ysize, magick7->n_frames) ||
+			total_y > VIPS_MAX_COORD) {
+			vips_error(class->nickname, "%s", _("image dimensions overflow"));
+			return -1;
+		}
+
+		out->Ysize = total_y;
 	}
 
 	vips_image_set_int(out, VIPS_META_N_PAGES, magick7->n_pages);
+
+	/* Get all the string metadata.
+	 */
+	ResetImagePropertyIterator(image);
+	while ((key = GetNextImageProperty(image))) {
+		char name_text[256];
+		VipsBuf name = VIPS_BUF_STATIC(name_text);
+		const char *value;
+
+		value = GetImageProperty(image, key, magick7->exception);
+		if (!value) {
+			vips_foreign_load_magick7_error(magick7);
+			return -1;
+		}
+		vips_buf_appendf(&name, "magick-%s", key);
+		vips_image_set_string(out, vips_buf_all(&name), value);
+	}
+
+	/* Set vips metadata from ImageMagick profiles.
+	 */
+	if (magick_set_vips_profile(out, image))
+		return -1;
+
+	/* Something like "BMP".
+	 */
+	if (strlen(magick7->image->magick) > 0)
+		vips_image_set_string(out, "magick-format", magick7->image->magick);
 
 	vips_image_set_int(out, VIPS_META_ORIENTATION,
 		VIPS_CLIP(1, image->orientation, 8));
@@ -727,8 +734,8 @@ vips_foreign_load_magick7_load(VipsForeignLoadMagick7 *magick7)
 	printf("vips_foreign_load_magick7_load: %p\n", magick7);
 #endif /*DEBUG*/
 
-	if (vips_foreign_load_magick7_parse(magick7,
-			magick7->image, load->out))
+	if (vips_foreign_load_magick7_parse(magick7, magick7->image, load->out) ||
+		vips_image_pipelinev(load->out, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
 		return -1;
 
 	/* Record frame pointers.
