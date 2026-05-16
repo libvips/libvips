@@ -230,9 +230,11 @@ generate_filenames(const char *path, char *header, char *image)
 	vips__change_suffix(path, image, FILENAME_MAX, ".img", olds, 2);
 }
 
-/* str is a str which may not be NULL-terminated. Return a pointer to a static
- * buffer with a NULL-terminated version so we can safely printf() the string.
- * Also, make sure the string is plain ascii.
+/* str may not be NULL-terminated. mx is from dsr_header and is compile-time
+ * and under 80.
+ *
+ * Return a pointer to a static buffer with a NULL-terminated version so we
+ * can safely printf() the string. Also, make sure the string is plain ascii.
  */
 static char *
 getstr(int mx, const char *str)
