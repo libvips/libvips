@@ -151,7 +151,7 @@ vips_stdif_generate(VipsRegion *out_region,
 	 * than the section of the output image we are producing.
 	 */
 	s = *r;
-	s.width += stdif->width - 1;
+	s.width += stdif->width;
 	s.height += stdif->height - 1;
 	if (vips_region_prepare(seq->ir, &s))
 		return -1;

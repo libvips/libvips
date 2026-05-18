@@ -158,7 +158,7 @@ vips_hist_local_generate(VipsRegion *out_region,
 	 * than the section of the output image we are producing.
 	 */
 	s = *r;
-	s.width += local->width - 1;
+	s.width += local->width;
 	s.height += local->height - 1;
 	if (vips_region_prepare(seq->ir, &s))
 		return -1;
