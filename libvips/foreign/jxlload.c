@@ -250,8 +250,11 @@ vips_foreign_load_jxl_set_box_buffer(VipsForeignLoadJxl *jxl)
 
 	*jxl->box_data = new_data;
 
-	JxlDecoderSetBoxBuffer(jxl->decoder,
-		new_data + box_size, INPUT_BUFFER_SIZE);
+	if (JxlDecoderSetBoxBuffer(jxl->decoder,
+			new_data + box_size, INPUT_BUFFER_SIZE) != JXL_DEC_SUCCESS) {
+		vips_foreign_load_jxl_error(jxl, "JxlDecoderSetBoxBuffer");
+		return -1;
+	}
 
 	return 0;
 }
@@ -508,8 +511,9 @@ vips_foreign_load_jxl_process(VipsForeignLoadJxl *jxl)
 			return JXL_DEC_ERROR;
 
 		if (jxl->bytes_in_buffer)
-			JxlDecoderSetInput(jxl->decoder,
-				jxl->input_buffer, jxl->bytes_in_buffer);
+			if (JxlDecoderSetInput(jxl->decoder,
+					jxl->input_buffer, jxl->bytes_in_buffer) != JXL_DEC_SUCCESS)
+				return JXL_DEC_ERROR;
 
 		if (!bytes_read)
 			JxlDecoderCloseInput(jxl->decoder);
@@ -854,7 +858,11 @@ vips_foreign_load_jxl_header(VipsForeignLoad *load)
 
 	if (vips_foreign_load_jxl_fill_input(jxl, 0) < 0)
 		return -1;
-	JxlDecoderSetInput(jxl->decoder, jxl->input_buffer, jxl->bytes_in_buffer);
+	if (JxlDecoderSetInput(jxl->decoder,
+			jxl->input_buffer, jxl->bytes_in_buffer) != JXL_DEC_SUCCESS) {
+		vips_foreign_load_jxl_error(jxl, "JxlDecoderSetInput");
+		return -1;
+	}
 
 	jxl->frame_count = 0;
 
@@ -1061,8 +1069,11 @@ vips_foreign_load_jxl_load(VipsForeignLoad *load)
 
 	if (vips_foreign_load_jxl_fill_input(jxl, 0) < 0)
 		return -1;
-	JxlDecoderSetInput(jxl->decoder,
-		jxl->input_buffer, jxl->bytes_in_buffer);
+	if (JxlDecoderSetInput(jxl->decoder,
+			jxl->input_buffer, jxl->bytes_in_buffer) != JXL_DEC_SUCCESS) {
+		vips_foreign_load_jxl_error(jxl, "JxlDecoderSetInput");
+		return -1;
+	}
 
 	if (jxl->n > 1) {
 		if (vips_image_generate(t[0],
