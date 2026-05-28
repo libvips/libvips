@@ -57,6 +57,8 @@
 
 #include "pconversion.h"
 
+
+
 typedef struct _VipsSubsample {
 	VipsConversion parent_instance;
 
@@ -131,8 +133,7 @@ vips_subsample_line_gen(VipsRegion *out_region,
 			 */
 			p = VIPS_REGION_ADDR(ir, s.left, s.top);
 			for (z = 0; z < ow; z++) {
-				for (k = 0; k < ps; k++)
-					q[k] = p[k];
+				VIPS_MEMCPY(q, p, ps);
 
 				q += ps;
 				p += ps * subsample->xfac;

@@ -65,6 +65,7 @@
 
 #include "pconversion.h"
 
+
 typedef struct _VipsFlip {
 	VipsConversion parent_instance;
 
@@ -169,13 +170,8 @@ vips_flip_horizontal_gen(VipsRegion *out_region,
 		q = VIPS_REGION_ADDR(out_region, le, y);
 
 		for (x = le; x < ri; x++) {
-			/* Copy the pel.
-			 */
-			for (z = 0; z < ps; z++)
-				q[z] = p[z];
+			VIPS_MEMCPY(q, p, ps);
 
-			/* Skip forwards in out, back in in.
-			 */
 			q += ps;
 			p -= ps;
 		}
