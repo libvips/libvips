@@ -79,7 +79,14 @@ vips__archive_free(VipsArchive *archive)
 	VIPS_FREE(archive);
 }
 
-static ssize_t
+#if ARCHIVE_VERSION_NUMBER >= 3002000
+/* la_ssize_t requires libarchive >= v3.2.0.
+ * https://github.com/libarchive/libarchive/pull/558
+ */
+static la_ssize_t
+#else
+static __LA_SSIZE_T
+#endif
 zip_write_target_cb(struct archive *a, void *client_data,
 	const void *data, size_t length)
 {
