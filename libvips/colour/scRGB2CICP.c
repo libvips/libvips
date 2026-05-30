@@ -51,7 +51,6 @@ typedef struct _VipsscRGB2CICP {
 	VipsCICPColourPrimaries colour_primaries;
 	VipsCICPTransferCharacteristics transfer_characteristics;
 	VipsCICPMatrixCoefficients matrix_coefficients;
-	gboolean full_range;
 
 	/* Conversion matrix from BT.709 (scRGB) to target primaries.
 	 */
@@ -414,18 +413,12 @@ vips_scRGB2CICP_build(VipsObject *object)
 
 	/* TODO: implement matrix coefficients and narrow-range
 	 * quantization. For now, only identity matrix (0) with
-	 * full range (1) is supported.
+	 * full range is supported.
 	 */
 	if (cicp->matrix_coefficients != VIPS_CICP_MATRIX_RGB) {
 		vips_error(class->nickname, "%s",
 			_("only matrix-coefficients 0 (identity/RGB) "
 			  "is currently supported"));
-		return -1;
-	}
-
-	if (!cicp->full_range) {
-		vips_error(class->nickname, "%s",
-			_("only full-range TRUE is currently supported"));
 		return -1;
 	}
 
@@ -445,8 +438,7 @@ vips_scRGB2CICP_build(VipsObject *object)
 		"cicp-transfer-characteristics", cicp->transfer_characteristics);
 	vips_image_set_int(colour->out,
 		"cicp-matrix-coefficients", cicp->matrix_coefficients);
-	vips_image_set_int(colour->out,
-		"cicp-full-range-flag", cicp->full_range ? 1 : 0);
+	vips_image_set_int(colour->out, "cicp-full-range-flag", 1);
 
 	return 0;
 }
@@ -491,13 +483,6 @@ vips_scRGB2CICP_class_init(VipsscRGB2CICPClass *class)
 		VIPS_TYPE_CICP_MATRIX_COEFFICIENTS,
 		VIPS_CICP_MATRIX_RGB);
 
-	VIPS_ARG_BOOL(class, "full_range", 5,
-		_("Full range flag"),
-		_("CICP full range flag"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsscRGB2CICP, full_range),
-		TRUE);
-
 	VIPS_ARG_INT(class, "depth", 130,
 		_("Depth"),
 		_("Output device space depth in bits"),
@@ -513,7 +498,6 @@ vips_scRGB2CICP_init(VipsscRGB2CICP *cicp)
 	cicp->colour_primaries = VIPS_CICP_COLOUR_PRIMARIES_BT709;
 	cicp->transfer_characteristics = VIPS_CICP_TRANSFER_SRGB;
 	cicp->matrix_coefficients = VIPS_CICP_MATRIX_RGB;
-	cicp->full_range = TRUE;
 }
 
 /**
@@ -526,13 +510,12 @@ vips_scRGB2CICP_init(VipsscRGB2CICP *cicp)
  * is specified via the optional CICP arguments.
  *
  * Currently only @matrix_coefficients %VIPS_CICP_MATRIX_RGB and
- * @full_range %TRUE are supported.
+ * full-range output is supported.
  *
  * ::: tip "Optional arguments"
  *     * @colour_primaries: #VipsCICPColourPrimaries, target primaries (default %VIPS_CICP_COLOUR_PRIMARIES_BT709)
  *     * @transfer_characteristics: #VipsCICPTransferCharacteristics, target transfer (default %VIPS_CICP_TRANSFER_SRGB)
  *     * @matrix_coefficients: #VipsCICPMatrixCoefficients, target matrix (default %VIPS_CICP_MATRIX_RGB)
- *     * @full_range: `gboolean`, full-range output (default %TRUE)
  *     * @depth: `gint`, output depth in bits, 8 or 16 (default 8)
  *
  * ::: seealso
