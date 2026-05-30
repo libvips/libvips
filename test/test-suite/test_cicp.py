@@ -238,6 +238,23 @@ class TestCICP:
                 f"{name} at {val}: got {pixel[0]}, expected {val}"
 
     @skip_if_no("scRGB2CICP")
+    @pytest.mark.parametrize("transfer,name", [
+        (TRANSFER_PQ, "PQ"),
+        (TRANSFER_HLG, "HLG"),
+        (TRANSFER_SRGB, "sRGB"),
+    ])
+    def test_transfer_shadow_roundtrip(self, transfer, name):
+        for val in range(1, 4096, 37):
+            im = make_cicp_image(val, val, val, transfer=transfer,
+                                 fmt="ushort")
+            scrgb = im.CICP2scRGB()
+            result = scrgb.scRGB2CICP(transfer_characteristics=transfer,
+                                       depth=16)
+            got = result(0, 0)[0]
+            assert abs(got - val) <= 1, \
+                f"{name} shadow at {val}/65535: got {got}, expected {val}"
+
+    @skip_if_no("scRGB2CICP")
     @pytest.mark.parametrize("primaries,name,_expected,_tolerance",
                              PRIMARIES_MATRIX_CASES,
                              ids=[c[1] for c in PRIMARIES_MATRIX_CASES])

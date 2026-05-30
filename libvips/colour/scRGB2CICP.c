@@ -62,18 +62,6 @@ typedef struct _VipsscRGB2CICP {
 	 */
 	float luminance_coeffs[3];
 
-	/* Pre-computed forward transfer function LUT. Maps
-	 * normalised linear [0, 1] to signal [0, 1], where
-	 * the normalisation factor is 1/max_linear.
-	 */
-	float *transfer_lut;
-	float max_linear;
-
-	/* LUT for HLG inverse OOTF: maps (Y_d/alpha) in [0, 1]
-	 * to (Y_d/alpha)^(1/gamma), with linear interpolation.
-	 */
-	float *ootf_lut;
-
 } VipsscRGB2CICP;
 
 typedef VipsColourCodeClass VipsscRGB2CICPClass;
@@ -256,16 +244,14 @@ vips_hlg_oetf(float L)
  *   Y_s = (Y_d / alpha)^(1/gamma)
  *   E_s = F_d * Y_s / Y_d
  *
- * Uses a pre-computed LUT for (Y_d/alpha)^(1/gamma) with linear
- * interpolation. Y_d/alpha is in [0, 1] for well-formed content.
- *
  * Input/output are in target primaries (after BT.709 -> target matrix).
  */
 static inline void
 vips_hlg_inverse_ootf(float *r, float *g, float *b,
-	const float *luminance, const float *ootf_lut)
+	const float *luminance)
 {
 	const float alpha = 1000.0f / SDR_WHITE;
+	const float inv_gamma = 1.0f / 1.2f;
 
 	float Y_d = luminance[0] * *r + luminance[1] * *g + luminance[2] * *b;
 
@@ -276,7 +262,7 @@ vips_hlg_inverse_ootf(float *r, float *g, float *b,
 		return;
 	}
 
-	float Y_s = vips_cicp_lut_interpolate(ootf_lut, Y_d / alpha);
+	float Y_s = powf(Y_d / alpha, inv_gamma);
 	float factor = Y_s / Y_d;
 
 	*r *= factor;
@@ -348,39 +334,15 @@ vips_scRGB2CICP_transfer(VipsCICPTransferCharacteristics transfer, float L)
 	}
 }
 
-static inline float
-vips_scRGB2CICP_max_linear(VipsCICPTransferCharacteristics transfer)
-{
-	return transfer == VIPS_CICP_TRANSFER_PQ ? 10000.0f / SDR_WHITE : 1.0f;
-}
-
-/* Build a forward transfer function LUT that maps normalised
- * linear [0, max_linear] to signal [0, 1].
- */
-static float *
-vips_scRGB2CICP_build_lut(VipsCICPTransferCharacteristics transfer,
-	float max_linear)
-{
-	float *lut = g_new(float, VIPS_CICP_LUT_SIZE);
-	const float scale = max_linear / (VIPS_CICP_LUT_SIZE - 1);
-
-	for (int i = 0; i < VIPS_CICP_LUT_SIZE; i++)
-		lut[i] = vips_scRGB2CICP_transfer(transfer, i * scale);
-
-	return lut;
-}
-
 #define SCRGB2CICP_LOOP(TYPE, MAX_VAL) \
 { \
 	float *restrict p = (float *) in[0]; \
 	TYPE *restrict q = (TYPE *) out; \
 	const float *matrix = cicp->conversion_matrix; \
 	const float *luminance = cicp->luminance_coeffs; \
-	const float *restrict transfer_lut = cicp->transfer_lut; \
-	const float *ootf_lut = cicp->ootf_lut; \
-	const gboolean is_hlg = \
-		(cicp->transfer_characteristics == VIPS_CICP_TRANSFER_HLG); \
-	const float norm = 1.0f / cicp->max_linear; \
+	const VipsCICPTransferCharacteristics transfer = \
+		cicp->transfer_characteristics; \
+	const gboolean is_hlg = (transfer == VIPS_CICP_TRANSFER_HLG); \
 	const float scale = (float) MAX_VAL; \
 \
 	for (int i = 0; i < width; i++) { \
@@ -393,11 +355,11 @@ vips_scRGB2CICP_build_lut(VipsCICPTransferCharacteristics transfer,
 		vips_cicp_apply_matrix(matrix, r, g, b, &tr, &tg, &tb); \
 \
 		if (is_hlg) \
-			vips_hlg_inverse_ootf(&tr, &tg, &tb, luminance, ootf_lut); \
+			vips_hlg_inverse_ootf(&tr, &tg, &tb, luminance); \
 \
-		float vr = vips_cicp_lut_interpolate(transfer_lut, tr * norm); \
-		float vg = vips_cicp_lut_interpolate(transfer_lut, tg * norm); \
-		float vb = vips_cicp_lut_interpolate(transfer_lut, tb * norm); \
+		float vr = vips_scRGB2CICP_transfer(transfer, tr); \
+		float vg = vips_scRGB2CICP_transfer(transfer, tg); \
+		float vb = vips_scRGB2CICP_transfer(transfer, tb); \
 \
 		int ir = (int) (vr * scale + 0.5f); \
 		int ig = (int) (vg * scale + 0.5f); \
@@ -474,15 +436,6 @@ vips_scRGB2CICP_build(VipsObject *object)
 		vips_cicp_get_luminance(cicp->colour_primaries),
 		3 * sizeof(float));
 
-	cicp->max_linear = vips_scRGB2CICP_max_linear(
-		cicp->transfer_characteristics);
-	cicp->transfer_lut = vips_scRGB2CICP_build_lut(
-		cicp->transfer_characteristics, cicp->max_linear);
-
-	if (cicp->transfer_characteristics == VIPS_CICP_TRANSFER_HLG)
-		cicp->ootf_lut = vips_cicp_build_power_lut(
-			1.0f / 1.2f, 1.0f);
-
 	if (VIPS_OBJECT_CLASS(vips_scRGB2CICP_parent_class)->build(object))
 		return -1;
 
@@ -499,24 +452,12 @@ vips_scRGB2CICP_build(VipsObject *object)
 }
 
 static void
-vips_scRGB2CICP_dispose(GObject *gobject)
-{
-	VipsscRGB2CICP *cicp = (VipsscRGB2CICP *) gobject;
-
-	VIPS_FREE(cicp->transfer_lut);
-	VIPS_FREE(cicp->ootf_lut);
-
-	G_OBJECT_CLASS(vips_scRGB2CICP_parent_class)->dispose(gobject);
-}
-
-static void
 vips_scRGB2CICP_class_init(VipsscRGB2CICPClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
-	gobject_class->dispose = vips_scRGB2CICP_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 

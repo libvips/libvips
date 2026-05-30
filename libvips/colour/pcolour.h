@@ -296,49 +296,6 @@ vips_cicp_get_luminance(int colour_primaries)
 	}
 }
 
-/* LUT size for CICP transfer / OOTF tables.
- */
-#define VIPS_CICP_LUT_SIZE 4096
-
-/* Build a LUT for f(t) = scale * t^exponent, t in [0, 1].
- * Used by HLG forward OOTF (exponent=0.2, scale=1000/80)
- * and HLG inverse OOTF (exponent=1/1.2, scale=1).
- */
-static inline float *
-vips_cicp_build_power_lut(float exponent, float scale)
-{
-	float *lut = g_new(float, VIPS_CICP_LUT_SIZE);
-
-	lut[0] = 0.0f;
-	for (int i = 1; i < VIPS_CICP_LUT_SIZE; i++)
-		lut[i] = scale *
-			powf((float) i / (VIPS_CICP_LUT_SIZE - 1), exponent);
-
-	return lut;
-}
-
-/* Linearly interpolate a LUT on the domain [0, 1].
- * Returns lut[0] for t <= 0; extrapolates from the last
- * segment for t slightly above 1.
- */
-static inline float
-vips_cicp_lut_interpolate(const float *lut, float t)
-{
-	float idx = t * (VIPS_CICP_LUT_SIZE - 1);
-
-	if (idx <= 0.0f)
-		return lut[0];
-
-	int lo = (int) idx;
-
-	if (lo >= VIPS_CICP_LUT_SIZE - 1)
-		lo = VIPS_CICP_LUT_SIZE - 2;
-
-	float frac = idx - lo;
-
-	return lut[lo] + frac * (lut[lo + 1] - lut[lo]);
-}
-
 static inline void
 vips_cicp_apply_matrix(const float *matrix, float r, float g, float b,
 	float *out_r, float *out_g, float *out_b)

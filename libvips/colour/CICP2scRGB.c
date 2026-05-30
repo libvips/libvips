@@ -71,11 +71,6 @@ typedef struct _VipsCICP2scRGB {
 	float *transfer_lut;
 	int lut_size;
 
-	/* LUT for HLG OOTF: maps Y_s in [0,1] to
-	 * scale * Y_s^(gamma-1), with linear interpolation.
-	 */
-	float *ootf_lut;
-
 } VipsCICP2scRGB;
 
 typedef VipsColourClass VipsCICP2scRGBClass;
@@ -221,14 +216,13 @@ vips_hlg_inverse_oetf(float E)
  *   Y_s = luminance using source primaries' coefficients
  *
  * Output scaled by 1/SDR_WHITE so that 1.0 = 80 nits.
- *
- * Uses a pre-computed LUT for powf(Y_s, gamma-1) with linear
- * interpolation. Y_s is in [0, 1] (scene-linear after inverse OETF).
  */
 static inline void
-vips_hlg_ootf(float *r, float *g, float *b,
-	const float *luminance, const float *ootf_lut)
+vips_hlg_ootf(float *r, float *g, float *b, const float *luminance)
 {
+	const float alpha = 1000.0f / SDR_WHITE;
+	const float gamma_minus_1 = 0.2f;
+
 	float Y_s = luminance[0] * *r + luminance[1] * *g + luminance[2] * *b;
 
 	if (Y_s <= 0.0f) {
@@ -238,7 +232,7 @@ vips_hlg_ootf(float *r, float *g, float *b,
 		return;
 	}
 
-	float factor = vips_cicp_lut_interpolate(ootf_lut, Y_s);
+	float factor = alpha * powf(Y_s, gamma_minus_1);
 
 	*r *= factor;
 	*g *= factor;
@@ -382,7 +376,7 @@ vips_CICP2scRGB_build_lut(VipsCICPTransferCharacteristics transfer, int n)
 		p += 3; \
 \
 		if (is_hlg) \
-			vips_hlg_ootf(&r, &g, &b, luminance, cicp->ootf_lut); \
+			vips_hlg_ootf(&r, &g, &b, luminance); \
 \
 		vips_cicp_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]); \
 \
@@ -444,10 +438,6 @@ vips_CICP2scRGB_build(VipsObject *object)
 		cicp->transfer_lut = vips_CICP2scRGB_build_lut(
 			cicp->transfer_characteristics, cicp->lut_size);
 
-		if (cicp->transfer_characteristics == VIPS_CICP_TRANSFER_HLG)
-			cicp->ootf_lut = vips_cicp_build_power_lut(
-				0.2f, 1000.0f / SDR_WHITE);
-
 		colour->in[0] = cicp->in;
 		g_object_ref(cicp->in);
 	}
@@ -472,7 +462,6 @@ vips_CICP2scRGB_dispose(GObject *gobject)
 	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) gobject;
 
 	VIPS_FREE(cicp->transfer_lut);
-	VIPS_FREE(cicp->ootf_lut);
 
 	G_OBJECT_CLASS(vips_CICP2scRGB_parent_class)->dispose(gobject);
 }
