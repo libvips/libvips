@@ -5,9 +5,6 @@ title: Batch mode for nip4
 nip4 has a new and much nicer batch mode (compared to nip2). This post tries
 to explain how it works with some examples.
 
-NOTE: most of these examples don't work properly in the current nip4, there's
-a fixed up version coming in a day or two.
-
 ## Snip
 
 nip4 now ships with a new command-line program, called snip. This is an
