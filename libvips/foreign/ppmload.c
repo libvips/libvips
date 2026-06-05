@@ -447,10 +447,19 @@ static int
 vips_foreign_load_ppm_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) load;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(ppm);
 
 	if (!ppm->have_read_header &&
 		vips_foreign_load_ppm_parse_header(ppm))
 		return 0;
+
+	if (ppm->width <= 0 ||
+		ppm->height <= 0 ||
+		ppm->width > VIPS_MAX_COORD ||
+		ppm->height > VIPS_MAX_COORD) {
+		vips_error(class->nickname, "%s", _("bad image dimensions"));
+		return -1;
+	}
 
 	vips_foreign_load_ppm_set_image(ppm, load->out);
 

@@ -24,6 +24,7 @@ tbd 8.18.3
 - buildlut: check upper bound of x range [lovell]
 - jxl: ensure status codes are propagated [lovell]
 - archive: fix compatibility with MSVC [eunos-1128]
+- ppmload: check image dimensions [lovell]
 
 31/3/26 8.18.2
 
