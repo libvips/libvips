@@ -403,7 +403,7 @@ vips_foreign_load_ppm_get_flags(VipsForeignLoad *load)
 	VipsForeignFlags flags;
 
 	if (vips_foreign_load_ppm_parse_header(ppm))
-		return -1;
+		return 0;
 
 	flags = 0;
 
