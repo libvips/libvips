@@ -261,18 +261,12 @@ find build/fuzz -maxdepth 1 -executable -type f -exec cp -v '{}' $OUT \;
 mkdir -p $OUT/lib
 cp $WORK/lib/*.so $OUT/lib
 
-if [ -d "$SRC/seed-corpora" ]; then
-  pushd $SRC/seed-corpora
-  zip -rq $OUT/seed_corpus.zip \
-    afl-testcases/{gif*,jpeg*,png,tiff,webp} \
-    common \
-    vips
-  popd
-else
-  zip -rq $OUT/seed_corpus.zip \
-    $SRC/afl-testcases/{gif*,jpeg*,png,tiff,webp} \
-    fuzz/*_fuzzer_corpus
-fi
+pushd $SRC/seed-corpora
+zip -rq $OUT/seed_corpus.zip \
+  afl-testcases/{gif*,jpeg*,png,tiff,webp} \
+  common \
+  vips
+popd
 
 # Merge the test images in the seed corpus, exclude files larger than 4k
 find test/test-suite/images -type f -size -4k | \
