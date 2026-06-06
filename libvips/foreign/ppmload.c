@@ -460,6 +460,7 @@ static int
 vips_foreign_load_ppm_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadPpm *ppm = (VipsForeignLoadPpm *) load;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(ppm);
 
 	if (vips_foreign_load_ppm_parse_header(ppm) ||
 		vips_foreign_load_ppm_set_image(ppm, load->out))
