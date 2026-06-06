@@ -79,14 +79,7 @@ vips__archive_free(VipsArchive *archive)
 	VIPS_FREE(archive);
 }
 
-#if ARCHIVE_VERSION_NUMBER >= 3002000
-/* la_ssize_t requires libarchive >= v3.2.0.
- * https://github.com/libarchive/libarchive/pull/558
- */
 static la_ssize_t
-#else
-static __LA_SSIZE_T
-#endif
 zip_write_target_cb(struct archive *a, void *client_data,
 	const void *data, size_t length)
 {
@@ -160,10 +153,6 @@ vips__archive_new_to_target(VipsTarget *target,
 	if (compression == -1)
 		compression = 6; /* Z_DEFAULT_COMPRESSION */
 
-#if ARCHIVE_VERSION_NUMBER >= 3002000
-	/* Deflate compression requires libarchive >= v3.2.0.
-	 * https://github.com/libarchive/libarchive/pull/84
-	 */
 	char compression_string[2] = { '0' + compression, 0 };
 	if (archive_write_set_format_option(archive->archive, "zip",
 			"compression-level", compression_string)) {
@@ -171,10 +160,6 @@ vips__archive_new_to_target(VipsTarget *target,
 		vips__archive_free(archive);
 		return NULL;
 	}
-#else
-	if (compression > 0)
-		g_warning("libarchive >= v3.2.0 required for Deflate compression");
-#endif
 
 	/* Do not pad last block.
 	 */
