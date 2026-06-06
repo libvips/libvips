@@ -1018,7 +1018,6 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 				JXL_ENC_FRAME_SETTING_RESPONSIVE, 1) != JXL_ENC_SUCCESS ||
 			JxlEncoderFrameSettingsSetOption(frame_settings,
 				JXL_ENC_FRAME_SETTING_GROUP_ORDER, 1) != JXL_ENC_SUCCESS) {
-			VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
 			vips_foreign_save_jxl_error(jxl, "JxlEncoderFrameSettings");
 			return -1;
 		}
