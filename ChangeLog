@@ -26,6 +26,7 @@
 - archive: fix compatibility with MSVC [eunos-1128]
 - ppmload: check image dimensions [lovell]
 - thumbnail: better pyr detection [Niels Provos]
+- jpegsave: fix scrgb save with uhdr disabled [jcupitt]
 
 31/3/26 8.18.2
 

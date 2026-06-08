@@ -132,6 +132,12 @@ static VipsBandFormat bandfmt_jpeg[10] = {
 	/* Promotion: */ UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
 
+#ifdef HAVE_UHDR
+static const gboolean have_uhdr = TRUE;
+#else
+static const gboolean have_uhdr = FALSE;
+#endif
+
 static int
 vips_foreign_save_jpeg_build(VipsObject *object)
 {
@@ -148,8 +154,9 @@ vips_foreign_save_jpeg_build(VipsObject *object)
 		jpeg->subsample_mode = jpeg->no_subsample ?
 			VIPS_FOREIGN_SUBSAMPLE_OFF : VIPS_FOREIGN_SUBSAMPLE_AUTO;
 
-	if (vips_image_get_typeof(save->ready, "gainmap-data") ||
-		save->ready->Type == VIPS_INTERPRETATION_scRGB) {
+	if (have_uhdr &&
+		(vips_image_get_typeof(save->ready, "gainmap-data") ||
+		 save->ready->Type == VIPS_INTERPRETATION_scRGB)) {
 		/* Pass on to uhdrsave.
 		 */
 		if (vips_uhdrsave_target(save->ready, jpeg->target,
