@@ -16,6 +16,7 @@
 - heifload: tighten limits on memory use [provos]
 - boolean: fix heap-buffer-overflow in lshift [dloebl]
 - magickload: check animation height [Himanshu Anand]
+- source: fix max/min confusion [Himanshu Anand]
 - uhdrsave: use macro to size buffer [Himanshu Anand]
 - draw_mask: fix support for packed LABQ images [lovell]
 - reduceh: fix possible OOB read in Highway path [kleisauke]
