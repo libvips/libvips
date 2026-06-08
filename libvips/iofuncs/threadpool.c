@@ -647,10 +647,11 @@ vips_threadpool_run(VipsImage *im,
 	pool->work = work;
 	pool->a = a;
 
-	/* Start with half of the max number of threads, then let it drift up
+	/* Start with a single thread, then let it drift up
 	 * and down with load.
 	 */
 	for (n_working = 0; n_working < 1 + pool->max_workers / 2; n_working++)
+	// for (n_working = 0; n_working < 1; n_working++)
 		if (vips_worker_new(pool)) {
 			vips_threadpool_free(pool);
 			return -1;
