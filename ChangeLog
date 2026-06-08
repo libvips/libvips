@@ -42,7 +42,6 @@ date-tbd 8.19.0
 - heifload: tighten limits on memory use [provos]
 - boolean: fix heap-buffer-overflow in lshift [dloebl]
 - magickload: check animation height [Himanshu Anand]
-- radload: deprecate old-style scanline read [Himanshu Anand]
 - source: fix max/min confusion [Himanshu Anand]
 - uhdrsave: use macro to size buffer [Himanshu Anand]
 - draw_mask: fix support for packed LABQ images [lovell]
@@ -52,6 +51,7 @@ date-tbd 8.19.0
 - archive: fix compatibility with MSVC [eunos-1128]
 - ppmload: check image dimensions [lovell]
 - thumbnail: better pyr detection [Niels Provos]
+- jpegsave: fix scrgb save with uhdr disabled [jcupitt]
 
 31/3/26 8.18.2
 

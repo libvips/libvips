@@ -361,12 +361,11 @@ getheader(VipsSbuf *sbuf, gethfunc *f, void *p)
 	return 0;
 }
 
-/* Read a single scanline, encoded in the old style.
+/* Read a single scanline, encoded in the old style, or unencoded.
  */
 static int
 scanline_read_old(VipsSbuf *sbuf, COLR *scanline, int width)
 {
-#ifdef ENABLE_DEPRECATED
 	int rshift = 0;
 	COLR *q = scanline;
 	int n = width;
@@ -411,12 +410,6 @@ scanline_read_old(VipsSbuf *sbuf, COLR *scanline, int width)
 	}
 
 	return 0;
-#else /*!ENABLE_DEPRECATED*/
-	/* Old-style radiance read is deprecated.
-	 */
-	vips_error("rad2vips", "%s", _("deprecated old-style RAD scanline"));
-	return -1;
-#endif /*ENABLE_DEPRECATED*/
 }
 
 /* Read a single encoded scanline.
