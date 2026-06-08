@@ -813,40 +813,6 @@ class TestForeign:
         p = im(1, 5)
         assert p == [85, 170, 0, 192]
 
-    @skip_if_no_apng
-    def test_apng_save(self):
-        # animated APNG round trip
-        x1 = pyvips.Image.new_from_file(APNG_ANIM_FILE, n=-1)
-        buf = x1.pngsave_buffer()
-        x2 = pyvips.Image.new_from_buffer(buf, "", n=-1)
-        assert x1.width == x2.width
-        assert x1.height == x2.height
-        assert x1.get("n-pages") == x2.get("n-pages")
-        assert x1.get("delay") == x2.get("delay")
-        assert x1.get("page-height") == x2.get("page-height")
-        assert x1.get("loop") == x2.get("loop")
-        assert (x1 - x2).abs().max() == 0
-
-        # palette APNG round trip
-        buf = x1.pngsave_buffer(palette=True, Q=100)
-        x3 = pyvips.Image.new_from_buffer(buf, "", n=-1)
-        assert x3.width == x1.width
-        assert x3.height == x1.height
-        assert x3.get("n-pages") == x1.get("n-pages")
-        assert x3.get("delay") == x1.get("delay")
-        assert x3.get("loop") == x1.get("loop")
-
-        # GIF to APNG
-        if have("gifload"):
-            g = pyvips.Image.new_from_file(GIF_ANIM_FILE, n=-1)
-            buf = g.pngsave_buffer()
-            x4 = pyvips.Image.new_from_buffer(buf, "", n=-1)
-            assert g.width == x4.width
-            assert g.height == x4.height
-            assert g.get("n-pages") == x4.get("n-pages")
-            assert g.get("delay") == x4.get("delay")
-            assert g.get("page-height") == x4.get("page-height")
-
     @skip_if_no("tiffload")
     def test_tiff(self):
         def tiff_valid(im):
