@@ -231,11 +231,17 @@ typedef struct {
 
 	int *delays;			/* per-frame delay in ms */
 
-	/* Compositing canvas (RGBA or GA, full frame size).
+	/* We track three images during APNG decode:
+	 *	- frame, the current frame from the PNG file
+	 *	- canvas, the composited frame (the evolving decode state)
+	 *	- previous, the save buffer from the previous canvas state
+	 *
+	 * and previous has an x, y position, so we know where in the canvas it
+	 * came from.
 	 */
+	VipsImage *frame;
 	VipsImage *canvas;
-	int canvas_width;
-	int canvas_height;
+	VipsImage *previous;
 
 	/* Current frame number (0-based, relative to file).
 	 */
@@ -654,62 +660,58 @@ apng_scan_delays(Read *read)
 	return 0;
 }
 
-/* Apply the previous frame's dispose operation to the canvas.
+/* Clear a rect of the canvas.
  */
 static void
-apng_apply_dispose(Read *read)
+apng_clear(Read *read, VipsRect *r)
 {
-	ViupsRect *dispose = &read->dispose_rect;
-	ViupsRect *previous = &read->previous_rect;
+	g_assert (r->left >= 0);
+	g_assert (r->left + r->width < read->canvas_width);
+	g_assert (r->top >= 0);
+	g_assert (r->top + r->height < read->canvas_height);
 
-	switch (read->dispose_op) {
-	case PNG_fcTL_DISPOSE_OP_NONE:
-		/* Leave canvas as-is.
-		 */
-		break;
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
 
-	case PNG_fcTL_DISPOSE_OP_BACKGROUND:
-	{
-		/* Clear the previous frame's region to transparent zeros.
-		 */
-		size_t ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
+	for (int y = 0; y < r->height; y++) {
+		VipsPel *q = VIPS_IMAGE_ADDR(read->canvas, r->left, r->top + y);
 
-		for (int y = 0; y < dispose->height; y++) {
-			VipsPel *q = VIPS_IMAGE_ADDR(read->canvas,
-				dispose->left, dispose->top + y);
-
-			memset(q, 0, dispose->width * ps);
-		}
-		break;
+		memset(q, 0, r->width * ps);
 	}
+}
 
-	case PNG_fcTL_DISPOSE_OP_PREVIOUS:
-		/* Restore previously saved canvas region.
-		 */
-		if (read->previous_canvas_data) {
-			size_t ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
+/* Copy the previous frame to (x, y) in the canvas.
+ */
+static void
+apng_copy_previous(Read *read, int target_x, int target_y)
+{
+	VipsRect *previous = &read->previous_rect;
 
-			for (int y = 0; y < previous->height; y++) {
-				VipsPel *p =
-					read->previous_canvas_data + y * previous->width * ps,
-				VipsPel *q = VIPS_IMAGE_ADDR(read->canvas,
-					previous->left, previous->top + y);
+	g_assert (read->previous_canvas_data);
+	g_assert (target_x >= 0);
+	g_assert (target_x + previous->width < read->canvas_width);
+	g_assert (target_y >= 0);
+	g_assert (target_y + previous->height < read->canvas_height);
 
-				memcpy(q, p, previous->width * ps);
-			}
-		}
-		break;
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
 
-	default:
-		break;
+	for (int y = 0; y < previous->height; y++) {
+		VipsPel *p = read->previous_canvas_data + y * previous->width * ps,
+		VipsPel *q = VIPS_IMAGE_ADDR(read->canvas, target_x, target_y + y);
+
+		memcpy(q, p, previous->width * ps);
 	}
 }
 
 /* Save a region of the canvas for DISPOSE_OP_PREVIOUS.
  */
-static int
-apng_save_canvas_region(Read *read, VipsRect *rect)
+static void
+apng_save_previous(Read *read, VipsRect *rect)
 {
+	g_assert (rect->left >= 0);
+	g_assert (rect->left + rect->width < read->canvas_width);
+	g_assert (rect->top >= 0);
+	g_assert (rect->top + rect->height < read->canvas_height);
+
 	size_t ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
 	size_t size = ps * rect->width * rect->height;
 	read->previous_canvas_data = g_realloc(read->previous_canvas_data, size);
@@ -722,82 +724,123 @@ apng_save_canvas_region(Read *read, VipsRect *rect)
 	}
 
 	read->previous_rect = *rect;
-
-	return 0;
 }
 
-/* Alpha-over composite of a single pixel, 8-bit.
+/* Blend the previous frame into the canvas.
  */
 static void
-apng_blend_pixel8(VipsPel *restrict bottom, const VipsPel *restrict top,
-	int bands)
+apng_blend_pixel8(VipsPel *restrict q, const VipsPel *restrict p, int bands)
 {
-	int aT = top[bands - 1];
-	int aB;
-	int aR;
-	int b;
-
-	if (aT == 0)
+	int aA = p[bands - 1];
+	if (aA == 0)
 		return;
-
-	if (aT == 255) {
-		memcpy(bottom, top, bands);
+	if (aA == 255) {
+		memcpy(q, p, bands);
 		return;
 	}
 
-	aB = bottom[bands - 1];
-	/* fac = aB * (255 - aT) / 255, then aR = aT + fac
-	 */
-	int fac = (aB * (255 - aT) + 127) / 255;
-	aR = aT + fac;
+	int aB = q[bands - 1];
+
+	int fac = (aB * (255 - aA) + 127) / 255;
+	int aR = aA + fac;
 
 	if (aR == 0) {
-		memset(bottom, 0, bands);
+		memset(q, 0, bands);
 		return;
 	}
 
-	for (b = 0; b < bands - 1; b++)
-		bottom[b] = ((top[b] * aT + bottom[b] * fac) * 255 /
-						 aR +
-					 127) /
-			255;
-	bottom[bands - 1] = aR;
+	for (int b = 0; b < bands - 1; b++)
+		q[b] = (255 * (p[b] * aA + q[b] * fac) / aR + 127) / 255;
+
+	q[bands - 1] = aR;
 }
 
-/* Alpha-over composite of a single pixel, 16-bit.
+/* Blend the previous frame into the canvas.
  */
 static void
-apng_blend_pixel16(VipsPel *restrict bottom_bytes,
-	const VipsPel *restrict top_bytes, int bands)
+apng_blend_pixel16(VipsPel *q, const VipsPel *p, int bands)
 {
-	guint16 *bottom = (guint16 *) bottom_bytes;
-	const guint16 *top = (const guint16 *) top_bytes;
+	guint16 *restrict q16 = (guint16 *) q;
+	guint16 *restrict p16 = (guint16 *) p;
 
-	guint32 aT = top[bands - 1];
-	guint32 aB;
-	guint32 aR;
-	int b;
-
-	if (aT == 0)
+	int aA = p16[bands - 1];
+	if (aA == 0)
 		return;
-
-	if (aT == 65535) {
-		memcpy(bottom, top, bands * sizeof(guint16));
+	if (aA == 65535) {
+		memcpy(q, p, bands * 2);
 		return;
 	}
 
-	aB = bottom[bands - 1];
-	guint32 fac = (guint32) (aB * (65535 - aT) + 32767) / 65535;
-	aR = aT + fac;
+	int aB = q16[bands - 1];
+
+	int fac = (aB * (65535 - aA) + 16384) / 65535;
+	int aR = aA + fac;
 
 	if (aR == 0) {
-		memset(bottom, 0, bands * sizeof(guint16));
+		memset(q, 0, bands * 2);
 		return;
 	}
 
-	for (b = 0; b < bands - 1; b++)
-		bottom[b] = (guint16) ((top[b] * aT + bottom[b] * fac) / aR);
-	bottom[bands - 1] = (guint16) aR;
+	for (int b = 0; b < bands - 1; b++)
+		q16[b] = (65535 * (p16[b] * aA + q16[b] * fac) / aR + 16384) / 65535;
+
+	q16[bands - 1] = aR;
+}
+
+/* Blend the previous frame at (x, y) in the canvas.
+ */
+static void
+apng_blend_previous(Read *read, int target_x, int target_y)
+{
+	VipsRect *previous = &read->previous_rect;
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
+	gboolean is_16bit = read->canvas->BandFmt == VIPS_FORMAT_USHORT;
+
+	g_assert (read->previous_canvas_data);
+	g_assert (target_x >= 0);
+	g_assert (target_x + previous->width < read->canvas_width);
+	g_assert (target_y >= 0);
+	g_assert (target_y + previous->height < read->canvas_height);
+
+	for (int y = 0; y < previous->height; y++) {
+		VipsPel *p = read->previous_canvas_data + y * previous->width * ps,
+		VipsPel *q = VIPS_IMAGE_ADDR(read->canvas, target_x, target_y + y);
+
+		for (int x = 0; x < previous->width; x++) {
+			if (is_16bit)
+				apng_blend_pixel16(q, p, bands);
+			else
+				apng_blend_pixel8(q, p, bands);
+
+			q += ps;
+			p += ps;
+		}
+	}
+}
+
+/* Apply the previous frame's dispose operation to the canvas.
+ */
+static void
+apng_apply_dispose(Read *read)
+{
+	switch (read->dispose_op) {
+	case PNG_fcTL_DISPOSE_OP_NONE:
+		/* Leave canvas as-is.
+		 */
+		break;
+
+	case PNG_fcTL_DISPOSE_OP_BACKGROUND:
+		apng_clear(read, &read->dispose_rect);
+		break;
+
+	case PNG_fcTL_DISPOSE_OP_PREVIOUS:
+		apng_copy_previous(read,
+			read->previous_rect.left, read->previous_rect.top)
+		break;
+
+	default:
+		break;
+	}
 }
 
 /* Composite a decoded sub-frame onto the canvas at the given offset.
@@ -816,9 +859,10 @@ apng_composite_frame(Read *read, VipsPel *frame_data,
 	/* If next dispose is PREVIOUS, save the canvas region first.
 	 */
 	if (dispose_op == PNG_fcTL_DISPOSE_OP_PREVIOUS)
-		apng_save_canvas_region(read, &frame_rect);
+		apng_save_previous(read, &frame_rect);
 
 	if (blend_op == PNG_fcTL_BLEND_OP_SOURCE) {
+
 		/* Direct copy at offset.
 		 */
 		int y;
