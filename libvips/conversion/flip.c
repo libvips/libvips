@@ -136,7 +136,6 @@ vips_flip_horizontal_gen(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	VipsRect in;
 	VipsPel *p, *q;
-	int x, y, z;
 
 	int le = r->left;
 	int ri = VIPS_RECT_RIGHT(r);
@@ -165,11 +164,11 @@ vips_flip_horizontal_gen(VipsRegion *out_region,
 
 	/* Loop, copying and reversing lines.
 	 */
-	for (y = to; y < bo; y++) {
+	for (int y = to; y < bo; y++) {
 		p = VIPS_REGION_ADDR(ir, lastx, y);
 		q = VIPS_REGION_ADDR(out_region, le, y);
 
-		for (x = le; x < ri; x++) {
+		for (int x = le; x < ri; x++) {
 			VIPS_MEMCPY(q, p, ps);
 
 			q += ps;
