@@ -114,7 +114,7 @@ you must follow:
 1. Keep changes narrow and limited. Do **NOT** use LLM/GenAI tools to
    generate broad rewrites, large refactorings, or style changes.
 1. Do **NOT** submit generated code, documentation, or tests that you
-   don’t understand.
+   don't understand.
 1. Do **NOT** fabricate benchmarks, bug reports, test results, code
    samples, or reproducers.
 1. Do **NOT** include private code, credentials, tokens, or any other
