@@ -118,6 +118,7 @@ The colour spaces supported by libvips are:
 * [method@Image.XYZ2scRGB]
 * [method@Image.scRGB2sRGB]
 * [method@Image.scRGB2BW]
+* [method@Image.scRGB2CICP]
 * [method@Image.sRGB2scRGB]
 * [method@Image.scRGB2XYZ]
 * [method@Image.HSV2sRGB]
