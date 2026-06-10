@@ -93,7 +93,7 @@ options:
 - Regular development pull requests: use "Squash and merge" to keep a clean,
   linear history.
 - Backport pull requests: use "Rebase and merge" to avoid duplicate references
-  and unnecessary `Co-authored-by:` lines in commit messages.
+  and unnecessary "Co-authored-by:" lines in commit messages.
 
 ## AI Contribution Policy
 
