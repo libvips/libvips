@@ -22,9 +22,14 @@ date-tbd 8.19.0
 - uhdrsave: add existing JPEG options for base image [lovell]
 - csvload: add maximum limit on column count [lovell]
 - pdfload_buffer: only search the first few bytes in is_a [violetviolinist]
+<<<<<<< perf-conversion
 - add VIPS_MEMCPY() [kleisauke]
+=======
+- heifload: allow mif2 and mif3 "brand" images e.g. mini box [lovell]
+- add vips_scRGB2CICP [mertalev]
+>>>>>>> master
 
-tbd 8.18.3
+6/6/26 8.18.3
 
 - invertlut: verify input mask positions [lovell]
 - bandjoin_const: fix possible OOB read with RAD/LABQ images [kleisauke]
@@ -42,10 +47,16 @@ tbd 8.18.3
 - heifload: tighten limits on memory use [provos]
 - boolean: fix heap-buffer-overflow in lshift [dloebl]
 - magickload: check animation height [Himanshu Anand]
-- radload: deprecate old-style scanline read [Himanshu Anand]
 - source: fix max/min confusion [Himanshu Anand]
 - uhdrsave: use macro to size buffer [Himanshu Anand]
 - draw_mask: fix support for packed LABQ images [lovell]
+- reduceh: fix possible OOB read in Highway path [kleisauke]
+- buildlut: check upper bound of x range [lovell]
+- jxl: ensure status codes are propagated [lovell]
+- archive: fix compatibility with MSVC [eunos-1128]
+- ppmload: check image dimensions [lovell]
+- thumbnail: better pyr detection [Niels Provos]
+- jpegsave: fix scrgb save with uhdr disabled [jcupitt]
 
 31/3/26 8.18.2
 

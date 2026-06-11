@@ -102,6 +102,14 @@ class TestResample:
                 d = abs(shr.avg() - im.avg())
                 assert d == 0
 
+        # https://github.com/libvips/libvips/issues/4864
+        if have("ppmload"):
+            im = pyvips.Image.new_from_buffer(b'P6\n2 2\n255\n'
+                                              b'\xff\x00\x00' b'\x00\xff\x00'
+                                              b'\x00\x00\xff' b'\xff\xff\x00', "")
+            im2 = im.reduceh(1.5, kernel="nearest")
+            assert im2.width == 1
+
     def test_resize(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
         im2 = im.resize(0.25)

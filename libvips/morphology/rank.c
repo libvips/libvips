@@ -435,7 +435,7 @@ vips_rank_generate(VipsRegion *out_region,
 	 * than the section of the output image we are producing.
 	 */
 	s = *r;
-	s.width += rank->width - 1;
+	s.width += rank->width;
 	s.height += rank->height - 1;
 	if (vips_region_prepare(ir, &s))
 		return -1;

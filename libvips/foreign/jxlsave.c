@@ -282,6 +282,17 @@ vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
 	return TRUE;
 }
 
+static void
+vips_foreign_save_jxl_error(VipsForeignSaveJxl *jxl, const char *details)
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jxl);
+
+	/* TODO ... libjxl seems to have no way to get error messages at the
+	 * moment.
+	 */
+	vips_error(class->nickname, "%s error", details);
+}
+
 #ifdef HAVE_LIBJXL_0_9
 static void *
 vips_foreign_save_jxl_get_buffer(void *opaque, size_t *size)
@@ -316,17 +327,21 @@ vips_foreign_save_jxl_set_finalized_position(void *opaque, uint64_t position)
 	// don't need this
 }
 
-static void
+static int
 vips_foreign_save_jxl_set_output_processor(VipsForeignSaveJxl *jxl)
 {
-	JxlEncoderSetOutputProcessor(jxl->encoder,
-		(struct JxlEncoderOutputProcessor) {
-		.opaque = jxl,
-		.get_buffer = vips_foreign_save_jxl_get_buffer,
-		.release_buffer = vips_foreign_save_jxl_output_release_buffer,
-		.seek = vips_foreign_save_jxl_seek,
-		.set_finalized_position = vips_foreign_save_jxl_set_finalized_position,
-	});
+	if (JxlEncoderSetOutputProcessor(jxl->encoder,
+			(struct JxlEncoderOutputProcessor) {
+				.opaque = jxl,
+				.get_buffer = vips_foreign_save_jxl_get_buffer,
+				.release_buffer = vips_foreign_save_jxl_output_release_buffer,
+				.seek = vips_foreign_save_jxl_seek,
+				.set_finalized_position = vips_foreign_save_jxl_set_finalized_position,
+			}) != JXL_ENC_SUCCESS) {
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderSetOutputProcessor");
+		return -1;
+	}
+	return 0;
 }
 
 static void
@@ -458,17 +473,6 @@ vips_foreign_save_jxl_set_input_source(VipsForeignSaveJxl *jxl)
 	};
 }
 #endif /*defined(HAVE_LIBJXL_0_9)*/
-
-static void
-vips_foreign_save_jxl_error(VipsForeignSaveJxl *jxl, const char *details)
-{
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jxl);
-
-	/* TODO ... libjxl seems to have no way to get error messages at the
-	 * moment.
-	 */
-	vips_error(class->nickname, "%s error", details);
-}
 
 #ifdef DEBUG
 static void
@@ -868,23 +872,32 @@ vips_foreign_save_jxl_save_page(VipsForeignSaveJxl *jxl,
 
 	JxlEncoderFrameSettings *frame_settings =
 		JxlEncoderFrameSettingsCreate(jxl->encoder, NULL);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier);
-	JxlEncoderSetFrameDistance(frame_settings,
-		jxl->distance);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
-	JxlEncoderSetFrameLossless(frame_settings,
-		jxl->lossless);
+	if (JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier) != JXL_ENC_SUCCESS ||
+		JxlEncoderSetFrameDistance(frame_settings,
+			jxl->distance) != JXL_ENC_SUCCESS ||
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort) != JXL_ENC_SUCCESS ||
+		JxlEncoderSetFrameLossless(frame_settings,
+			jxl->lossless) != JXL_ENC_SUCCESS) {
+		VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderFrameSettings");
+		return -1;
+	}
+
 	if (jxl->interlace) {
-		JxlEncoderFrameSettingsSetOption(frame_settings,
-			JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, 1);
-		JxlEncoderFrameSettingsSetOption(frame_settings,
-			JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, 1);
-		JxlEncoderFrameSettingsSetOption(frame_settings,
-			JXL_ENC_FRAME_SETTING_RESPONSIVE, 1);
-		JxlEncoderFrameSettingsSetOption(frame_settings,
-			JXL_ENC_FRAME_SETTING_GROUP_ORDER, 1);
+		if (JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, 1) != JXL_ENC_SUCCESS ||
+			JxlEncoderFrameSettingsSetOption(frame_settings,
+				JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, 1) != JXL_ENC_SUCCESS ||
+			JxlEncoderFrameSettingsSetOption(frame_settings,
+				JXL_ENC_FRAME_SETTING_RESPONSIVE, 1) != JXL_ENC_SUCCESS ||
+			JxlEncoderFrameSettingsSetOption(frame_settings,
+				JXL_ENC_FRAME_SETTING_GROUP_ORDER, 1) != JXL_ENC_SUCCESS) {
+			VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderFrameSettings");
+			return -1;
+		}
 	}
 
 	if (jxl->info.have_animation) {
@@ -895,11 +908,15 @@ vips_foreign_save_jxl_save_page(VipsForeignSaveJxl *jxl,
 		else
 			header.duration = vips_foreign_save_jxl_get_delay(jxl, n);
 
-		JxlEncoderSetFrameHeader(frame_settings, &header);
+		if (JxlEncoderSetFrameHeader(frame_settings, &header) != JXL_ENC_SUCCESS) {
+			VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetFrameHeader");
+			return -1;
+		}
 	}
 
 	if (JxlEncoderAddChunkedFrame(frame_settings,
-		n == jxl->page_count - 1, jxl->input_source)) {
+		n == jxl->page_count - 1, jxl->input_source) != JXL_ENC_SUCCESS) {
 		VIPS_FREEF(g_hash_table_destroy, jxl->tile_hash);
 		vips_foreign_save_jxl_error(jxl, "JxlEncoderAddImageFrame");
 		return -1;
@@ -918,7 +935,8 @@ vips_foreign_save_jxl_save_page(VipsForeignSaveJxl *jxl,
 static int
 vips_foreign_save_jxl_save(VipsForeignSaveJxl *jxl, VipsImage *in)
 {
-	vips_foreign_save_jxl_set_output_processor(jxl);
+	if (vips_foreign_save_jxl_set_output_processor(jxl))
+		return -1;
 	vips_foreign_save_jxl_set_input_source(jxl);
 
 	for (int n = 0; n < jxl->page_count; n++) {
@@ -980,28 +998,39 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 {
 	JxlEncoderFrameSettings *frame_settings =
 		JxlEncoderFrameSettingsCreate(jxl->encoder, NULL);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier);
-	JxlEncoderSetFrameDistance(frame_settings, jxl->distance);
-	JxlEncoderFrameSettingsSetOption(frame_settings,
-		JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort);
-	JxlEncoderSetFrameLossless(frame_settings, jxl->lossless);
+
+	if (JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_DECODING_SPEED, jxl->tier) != JXL_ENC_SUCCESS ||
+		JxlEncoderSetFrameDistance(frame_settings, jxl->distance) != JXL_ENC_SUCCESS ||
+		JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_EFFORT, jxl->effort) != JXL_ENC_SUCCESS ||
+		JxlEncoderSetFrameLossless(frame_settings, jxl->lossless) != JXL_ENC_SUCCESS) {
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderFrameSettings");
+		return -1;
+	}
+
 	if (jxl->interlace) {
-		JxlEncoderFrameSettingsSetOption(frame_settings,
-			JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, 1);
-		JxlEncoderFrameSettingsSetOption(frame_settings,
-			JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, 1);
-		JxlEncoderFrameSettingsSetOption(frame_settings,
-			JXL_ENC_FRAME_SETTING_RESPONSIVE, 1);
-		JxlEncoderFrameSettingsSetOption(frame_settings,
-			JXL_ENC_FRAME_SETTING_GROUP_ORDER, 1);
+		if (JxlEncoderFrameSettingsSetOption(frame_settings,
+			JXL_ENC_FRAME_SETTING_PROGRESSIVE_DC, 1) != JXL_ENC_SUCCESS ||
+			JxlEncoderFrameSettingsSetOption(frame_settings,
+				JXL_ENC_FRAME_SETTING_QPROGRESSIVE_AC, 1) != JXL_ENC_SUCCESS ||
+			JxlEncoderFrameSettingsSetOption(frame_settings,
+				JXL_ENC_FRAME_SETTING_RESPONSIVE, 1) != JXL_ENC_SUCCESS ||
+			JxlEncoderFrameSettingsSetOption(frame_settings,
+				JXL_ENC_FRAME_SETTING_GROUP_ORDER, 1) != JXL_ENC_SUCCESS) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderFrameSettings");
+			return -1;
+		}
 	}
 
 #ifdef HAVE_LIBJXL_0_8
 	const JxlBitDepth bitdepth = {
 		.type = JXL_BIT_DEPTH_FROM_CODESTREAM,
 	};
-	JxlEncoderSetFrameBitDepth(frame_settings, &bitdepth);
+	if (JxlEncoderSetFrameBitDepth(frame_settings, &bitdepth) != JXL_ENC_SUCCESS) {
+		vips_foreign_save_jxl_error(jxl, "JxlEncoderSetFrameBitDepth");
+		return -1;
+	}
 #endif
 
 	if (jxl->info.have_animation) {
@@ -1013,7 +1042,10 @@ vips_foreign_save_jxl_add_frame(VipsForeignSaveJxl *jxl)
 			header.duration =
 				vips_foreign_save_jxl_get_delay(jxl, jxl->page_number);
 
-		JxlEncoderSetFrameHeader(frame_settings, &header);
+		if (JxlEncoderSetFrameHeader(frame_settings, &header) != JXL_ENC_SUCCESS) {
+			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetFrameHeader");
+			return -1;
+		}
 	}
 
 	if (JxlEncoderAddImageFrame(frame_settings, &jxl->format,

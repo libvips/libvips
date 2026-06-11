@@ -391,6 +391,8 @@ static const char *heif_magic[] = {
 	"ftyphevm", /* Multiview sequence */
 	"ftyphevs", /* Scalable sequence */
 	"ftypmif1", /* Nokia alpha_ image */
+	"ftypmif2", /* mif1 plus rref and iscl boxes */
+	"ftypmif3", /* Low-overhead mini box */
 	"ftypmsf1", /* Nokia animation image */
 	"ftypavif"	/* AV1 image format */
 };
