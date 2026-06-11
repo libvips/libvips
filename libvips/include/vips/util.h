@@ -64,48 +64,27 @@ extern "C" {
 #define VIPS_ABS(V) (((V) >= 0) ? (V) : -(V))
 #define VIPS_FABS(V) fabs((V)) VIPS_DEPRECATED_MACRO_FOR(fabs)
 
-/* memcpy(), but with fast paths for small copies.
+/* Inline fast paths for small memcpy() operations.
+ *
+ * N must not have side effects (e.g. N++).
  */
 #define VIPS_MEMCPY(Q, P, N) \
-    G_STMT_START \
-    { \
-        switch (N) { \
-        case 8: \
-            *((guint64 *) (Q)) = *((guint64 *) (P)); \
-            break; \
-\
-        case 7: \
-            ((guint8 *) (Q))[6] = ((guint8 *) (P))[6]; \
-\
-        case 6: \
-            ((guint8 *) (Q))[5] = ((guint8 *) (P))[5]; \
-\
-        case 5: \
-            ((guint8 *) (Q))[4] = ((guint8 *) (P))[4]; \
-\
-        case 4: \
-            *((guint32 *) (Q)) = *((guint32 *) (P)); \
-            break; \
-\
-        case 3: \
-            ((guint8 *) (Q))[2] = ((guint8 *) (P))[2]; \
-\
-        case 2: \
-            *((guint16 *) (Q)) = *((guint16 *) (P)); \
-            break; \
-\
-        case 1: \
-            ((guint8 *) (Q))[0] = ((guint8 *) (P))[0]; \
-\
-        case 0: \
-            break; \
-\
-        default: \
-            memcpy((Q), (P), (N)); \
-            break; \
-        } \
-    } \
-    G_STMT_END
+	G_STMT_START \
+	{ \
+		switch (N) { \
+		case 8: memcpy((Q), (P), 8); break; \
+		case 7: memcpy((Q), (P), 7); break; \
+		case 6: memcpy((Q), (P), 6); break; \
+		case 5: memcpy((Q), (P), 5); break; \
+		case 4: memcpy((Q), (P), 4); break; \
+		case 3: memcpy((Q), (P), 3); break; \
+		case 2: memcpy((Q), (P), 2); break; \
+		case 1: memcpy((Q), (P), 1); break; \
+		case 0: break; \
+		default: memcpy((Q), (P), (N)); break; \
+		} \
+	} \
+	G_STMT_END
 
 // is something (eg. a pointer) N aligned
 #define VIPS_ALIGNED(P, N) ((((guint64) (P)) & ((N) - 1)) == 0)

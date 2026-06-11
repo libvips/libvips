@@ -22,6 +22,7 @@ date-tbd 8.19.0
 - uhdrsave: add existing JPEG options for base image [lovell]
 - csvload: add maximum limit on column count [lovell]
 - pdfload_buffer: only search the first few bytes in is_a [violetviolinist]
+- add VIPS_MEMCPY() [kleisauke]
 
 tbd 8.18.3
 
