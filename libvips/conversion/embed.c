@@ -162,13 +162,12 @@ static void
 vips_embed_base_copy_pixel(VipsEmbedBase *base,
 	VipsPel *q, VipsPel *p, int n)
 {
-	const int bs = VIPS_IMAGE_SIZEOF_PEL(base->in);
+	const size_t ps = VIPS_IMAGE_SIZEOF_PEL(base->in);
 
-	int x, b;
-
-	for (x = 0; x < n; x++)
-		for (b = 0; b < bs; b++)
-			*q++ = p[b];
+	for (int x = 0; x < n; x++) {
+		VIPS_MEMCPY(q, p, ps);
+		q += ps;
+	}
 }
 
 /* Paint r of region or. It's a border area, lying entirely within
@@ -183,7 +182,6 @@ vips_embed_base_paint_edge(VipsEmbedBase *base,
 
 	VipsRect todo;
 	VipsPel *q;
-	int y;
 
 	VIPS_GATE_START("vips_embed_base_paint_edge: work");
 
@@ -206,7 +204,7 @@ vips_embed_base_paint_edge(VipsEmbedBase *base,
 	if (i == 1 || i == 3) {
 		/* Vertical line of pixels to copy.
 		 */
-		for (y = 0; y < todo.height; y++) {
+		for (int y = 0; y < todo.height; y++) {
 			q = VIPS_REGION_ADDR(out_region, todo.left, todo.top + y);
 			vips_embed_base_copy_pixel(base, q, p, todo.width);
 			p += plsk;
@@ -215,7 +213,7 @@ vips_embed_base_paint_edge(VipsEmbedBase *base,
 	else {
 		/* Horizontal line of pixels to copy.
 		 */
-		for (y = 0; y < todo.height; y++) {
+		for (int y = 0; y < todo.height; y++) {
 			q = VIPS_REGION_ADDR(out_region, todo.left, todo.top + y);
 			memcpy(q, p, (size_t) bs * todo.width);
 		}
@@ -233,7 +231,6 @@ vips_embed_base_gen(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 
 	VipsRect ovl;
-	int i;
 	VipsPel *p;
 	int plsk;
 	int ink;
@@ -281,7 +278,7 @@ vips_embed_base_gen(VipsRegion *out_region,
 
 		/* Paint the borders a solid value.
 		 */
-		for (i = 0; i < 8; i++)
+		for (int i = 0; i < 8; i++)
 			vips_region_paint(out_region, &base->border[i], ink);
 
 		VIPS_GATE_STOP("vips_embed_base_gen: work1");
@@ -293,7 +290,7 @@ vips_embed_base_gen(VipsRegion *out_region,
 
 		/* Paint the borders a solid value.
 		 */
-		for (i = 0; i < 8; i++)
+		for (int i = 0; i < 8; i++)
 			vips_region_paint_pel(out_region, &base->border[i], base->ink);
 
 		VIPS_GATE_STOP("vips_embed_base_gen: work2");
@@ -303,7 +300,7 @@ vips_embed_base_gen(VipsRegion *out_region,
 	case VIPS_EXTEND_COPY:
 		/* Extend the borders.
 		 */
-		for (i = 0; i < 8; i++) {
+		for (int i = 0; i < 8; i++) {
 			VipsRect todo;
 			VipsRect edge;
 
@@ -317,8 +314,7 @@ vips_embed_base_gen(VipsRegion *out_region,
 				 * that.
 				 */
 				if (!vips_rect_isempty(&ovl)) {
-					p = VIPS_REGION_ADDR(out_region,
-						edge.left, edge.top);
+					p = VIPS_REGION_ADDR(out_region, edge.left, edge.top);
 					plsk = VIPS_REGION_LSKIP(out_region);
 				}
 				else {
@@ -329,13 +325,11 @@ vips_embed_base_gen(VipsRegion *out_region,
 					edge.top -= base->y;
 					if (vips_region_prepare(ir, &edge))
 						return -1;
-					p = VIPS_REGION_ADDR(ir,
-						edge.left, edge.top);
+					p = VIPS_REGION_ADDR(ir, edge.left, edge.top);
 					plsk = VIPS_REGION_LSKIP(ir);
 				}
 
-				vips_embed_base_paint_edge(base,
-					out_region, i, &todo, p, plsk);
+				vips_embed_base_paint_edge(base, out_region, i, &todo, p, plsk);
 			}
 		}
 
@@ -414,14 +408,10 @@ vips_embed_base_build(VipsObject *object)
 		if (
 			/* Make a 2x2 mirror tile.
 			 */
-			vips_flip(base->in, &t[0],
-				VIPS_DIRECTION_HORIZONTAL, NULL) ||
-			vips_join(base->in, t[0], &t[1],
-				VIPS_DIRECTION_HORIZONTAL, NULL) ||
-			vips_flip(t[1], &t[2],
-				VIPS_DIRECTION_VERTICAL, NULL) ||
-			vips_join(t[1], t[2], &t[3],
-				VIPS_DIRECTION_VERTICAL, NULL) ||
+			vips_flip(base->in, &t[0], VIPS_DIRECTION_HORIZONTAL, NULL) ||
+			vips_join(base->in, t[0], &t[1], VIPS_DIRECTION_HORIZONTAL, NULL) ||
+			vips_flip(t[1], &t[2], VIPS_DIRECTION_VERTICAL, NULL) ||
+			vips_join(t[1], t[2], &t[3], VIPS_DIRECTION_VERTICAL, NULL) ||
 
 			/* Repeat, then cut out the centre.
 			 */
@@ -434,8 +424,7 @@ vips_embed_base_build(VipsObject *object)
 			/* Overwrite the centre with the in, much faster
 			 * for centre pixels.
 			 */
-			vips_insert(t[5], base->in, &t[6],
-				base->x, base->y, NULL) ||
+			vips_insert(t[5], base->in, &t[6], base->x, base->y, NULL) ||
 
 			vips_image_write(t[6], conversion->out))
 			return -1;
@@ -475,8 +464,7 @@ vips_embed_base_build(VipsObject *object)
 		 * and remove this test.
 		 */
 		if (vips_rect_isempty(&base->rsub)) {
-			vips_error(class->nickname,
-				"%s", _("bad dimensions"));
+			vips_error(class->nickname, "%s", _("bad dimensions"));
 			return -1;
 		}
 
