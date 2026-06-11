@@ -22,12 +22,9 @@ date-tbd 8.19.0
 - uhdrsave: add existing JPEG options for base image [lovell]
 - csvload: add maximum limit on column count [lovell]
 - pdfload_buffer: only search the first few bytes in is_a [violetviolinist]
-<<<<<<< perf-conversion
 - add VIPS_MEMCPY() [kleisauke]
-=======
 - heifload: allow mif2 and mif3 "brand" images e.g. mini box [lovell]
 - add vips_scRGB2CICP [mertalev]
->>>>>>> master
 
 6/6/26 8.18.3
 
