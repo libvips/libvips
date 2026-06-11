@@ -492,6 +492,11 @@ vips_foreign_save_png_buffer_init(VipsForeignSavePngBuffer *buffer)
  * XMP metadata is written to the XMP chunk. PNG comments are written to
  * separate text chunks.
  *
+ * If the image has a page height set (so it is a stack of frames, perhaps
+ * from an animated GIF or WebP load), an animated PNG (APNG) is written,
+ * using the "delay" and "loop" metadata for frame timing. This needs
+ * libvips to be compiled with an APNG-capable libpng.
+ *
  * ::: tip "Optional arguments"
  *     * @compression: `gint`, compression level
  *     * @interlace: `gboolean`, interlace image

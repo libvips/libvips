@@ -814,6 +814,51 @@ class TestForeign:
         assert p == [85, 170, 0, 192]
 
     @skip_if_no_apng
+    def test_apng_hidden_first_frame(self):
+        # 4x4 canvas. The first frame is hidden: an IDAT (all white)
+        # which is not part of the animation. Then 2 animation frames:
+        # frame 0: full red, 100 ms
+        # frame 1: green 2x2 at (1,1), 200 ms
+        im = pyvips.Image.new_from_file(APNG_HIDDEN_FRAME_FILE, n=-1)
+        assert im.get("n-pages") == 2
+        assert im.height == 8
+        assert im.get("delay") == [100, 200]
+
+        # the hidden white frame must not appear
+        assert im(0, 0) == [255, 0, 0, 255]
+        assert im(0, 4) == [255, 0, 0, 255]
+        assert im(1, 5) == [0, 255, 0, 255]
+
+    @skip_if_no_apng
+    def test_apng_opaque(self):
+        # 4x4 canvas, fully opaque RGB, no alpha anywhere in the file:
+        # frame 0: full blue, dispose=BACKGROUND
+        # frame 1: yellow 2x2 at (0,0) over the cleared canvas
+        im = pyvips.Image.new_from_file(APNG_OPAQUE_FILE, n=-1)
+
+        # the output gains an alpha channel: dispose leaves transparent
+        # areas even though every frame is solid
+        assert im.bands == 4
+        assert im(0, 0) == [0, 0, 255, 255]
+        assert im(0, 4) == [255, 255, 0, 255]
+        assert im(3, 7) == [0, 0, 0, 0]
+
+    @skip_if_no_apng
+    def test_apng_16bit(self):
+        # 4x4 canvas, 16-bit RGBA:
+        # frame 0: half-alpha red
+        # frame 1: half-alpha green 2x2 at (1,1), blend=OVER
+        im = pyvips.Image.new_from_file(APNG_16BIT_FILE, n=-1)
+        assert im.format == "ushort"
+        assert im(0, 0) == [65535, 0, 0, 32768]
+        assert im(0, 4) == [65535, 0, 0, 32768]
+
+        # green over red, both half alpha; allow 1 LSB of rounding
+        p = im(1, 5)
+        expected = [21845, 43690, 0, 49152]
+        assert all(abs(a - b) <= 1 for a, b in zip(p, expected))
+
+    @skip_if_no_apng
     def test_apng_save(self):
         # animated APNG round trip
         x1 = pyvips.Image.new_from_file(APNG_ANIM_FILE, n=-1)

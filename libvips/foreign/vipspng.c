@@ -218,44 +218,41 @@ typedef struct {
 	gint64 bytes_in_buffer;
 
 #ifdef PNG_APNG_SUPPORTED
-	/* APNG animation fields.
+	/* APNG animation state.
 	 */
 	int page;		/* first frame to load */
-	int n;			/* number of frames to load */
+	int n;			/* number of frames to load, -1 for all */
 
-	int frame_count;	/* total frames in file */
-	int num_plays;		/* loop count (0 = infinite) */
-	gboolean is_animated;	/* TRUE if APNG with multiple frames */
+	gboolean is_animated;	/* more than one frame wanted */
+	int frame_count;	/* number of frames in the animation */
+	int num_plays;		/* loop count, 0 for forever */
+	int *delays;		/* per-frame delay in milliseconds */
 
-	int *delays;		/* per-frame delay in ms */
-
-	/* Compositing canvas (RGBA or GA, full frame size).
+	/* The canvas we composite frames onto. All canvas pixel access is
+	 * via apng_canvas_clear/copy/paste/blend(), which clip against the
+	 * canvas edges.
 	 */
 	VipsImage *canvas;
 	int canvas_width;
 	int canvas_height;
+	int canvas_bands;
 
-	/* Current frame number (0-based, relative to file).
+	/* Frames decompress to this buffer before being composited. A
+	 * frame can never be larger than the canvas.
+	 */
+	VipsPel *frame_buffer;
+
+	/* Number of frames composited to the canvas so far.
 	 */
 	int frame_no;
 
-	/* Previous frame's dispose method and rect for dispose handling.
+	/* How to dispose of the previous frame's area before compositing
+	 * the next one, and the saved canvas pixels DISPOSE_OP_PREVIOUS
+	 * restores.
 	 */
 	int dispose_op;
 	VipsRect dispose_rect;
-
-	/* Saved canvas data for DISPOSE_OP_PREVIOUS.
-	 */
-	VipsPel *previous_canvas_data;
-	VipsRect previous_rect;
-
-	/* Output bands: canvas always has alpha, but we may strip it.
-	 */
-	gboolean has_alpha;
-
-	/* Number of bands and format of the canvas.
-	 */
-	int canvas_bands;
+	VipsPel *previous_pixels;
 #endif /*PNG_APNG_SUPPORTED*/
 
 } Read;
@@ -277,7 +274,8 @@ read_destroy(Read *read)
 #ifdef PNG_APNG_SUPPORTED
 	VIPS_FREE(read->delays);
 	VIPS_UNREF(read->canvas);
-	VIPS_FREE(read->previous_canvas_data);
+	VIPS_FREE(read->frame_buffer);
+	VIPS_FREE(read->previous_pixels);
 #endif /*PNG_APNG_SUPPORTED*/
 }
 
@@ -352,20 +350,19 @@ read_new(VipsSource *source, VipsImage *out,
 #ifdef PNG_APNG_SUPPORTED
 	read->page = page;
 	read->n = n;
+	read->is_animated = FALSE;
 	read->frame_count = 0;
 	read->num_plays = 0;
-	read->is_animated = FALSE;
 	read->delays = NULL;
 	read->canvas = NULL;
 	read->canvas_width = 0;
 	read->canvas_height = 0;
+	read->canvas_bands = 0;
+	read->frame_buffer = NULL;
 	read->frame_no = 0;
 	read->dispose_op = PNG_fcTL_DISPOSE_OP_NONE;
 	memset(&read->dispose_rect, 0, sizeof(VipsRect));
-	read->previous_canvas_data = NULL;
-	memset(&read->previous_rect, 0, sizeof(VipsRect));
-	read->has_alpha = FALSE;
-	read->canvas_bands = 0;
+	read->previous_pixels = NULL;
 #endif /*PNG_APNG_SUPPORTED*/
 
 	g_object_ref(source);
@@ -603,21 +600,99 @@ vips__set_text(VipsImage *out, int i, const char *key, const char *text)
 
 #ifdef PNG_APNG_SUPPORTED
 
-/* Convert APNG delay fraction to milliseconds.
- * Per spec, if delay_den is 0, treat as 100.
+/* Fetch a big-endian number from a byte stream.
  */
-static int
-apng_delay_to_ms(png_uint_16 delay_num, png_uint_16 delay_den)
+static guint32
+apng_get_u32(const unsigned char *p)
 {
-	if (delay_den == 0)
-		delay_den = 100;
-
-	return (int) ((double) delay_num / delay_den * 1000.0 + 0.5);
+	return ((guint32) p[0] << 24) | ((guint32) p[1] << 16) |
+		((guint32) p[2] << 8) | p[3];
 }
 
-/* Scan raw PNG chunks from the source to extract all fcTL delays.
- * This avoids needing to read pixel data just to get frame timing.
- * Must be called after read->delays is allocated with frame_count entries.
+static guint32
+apng_get_u16(const unsigned char *p)
+{
+	return ((guint32) p[0] << 8) | p[1];
+}
+
+/* TRUE for an animated read: an APNG where the animation has more than one
+ * frame, or where more than one frame has been requested. We can call this
+ * as soon as png_read_info() has run.
+ */
+static gboolean
+apng_is_animated(Read *read)
+{
+	png_uint_32 num_frames;
+	png_uint_32 num_plays;
+
+	if (!png_get_valid(read->pPng, read->pInfo, PNG_INFO_acTL) ||
+		!png_get_acTL(read->pPng, read->pInfo, &num_frames, &num_plays))
+		return FALSE;
+
+	/* libpng counts a hidden first frame (an IDAT which is not part of
+	 * the animation) in num_frames, but it is not a page we can return.
+	 */
+	if (png_get_first_frame_is_hidden(read->pPng, read->pInfo))
+		num_frames -= 1;
+
+	return num_frames > 1 || read->n > 1;
+}
+
+/* Parse the acTL animation control chunk and resolve the page/n frame
+ * request. @height is the height of a single frame.
+ */
+static int
+apng_parse_actl(Read *read, png_uint_32 height)
+{
+	png_uint_32 num_frames;
+	png_uint_32 num_plays;
+
+	png_get_acTL(read->pPng, read->pInfo, &num_frames, &num_plays);
+	if (png_get_first_frame_is_hidden(read->pPng, read->pInfo))
+		num_frames -= 1;
+
+	/* We make an array of per-frame delays, and the frames we load are
+	 * stacked vertically in the output image, so we must bound the
+	 * frame count.
+	 */
+	if (num_frames > VIPS_MAX_COORD / height) {
+		vips_error("png2vips", "%s", _("image dimensions too large"));
+		return -1;
+	}
+
+	read->frame_count = num_frames;
+	read->num_plays = num_plays;
+
+	if (read->n == -1)
+		read->n = read->frame_count - read->page;
+
+	if (read->page < 0 ||
+		read->n <= 0 ||
+		read->page + read->n > read->frame_count) {
+		vips_error("png2vips", "%s", _("bad page number"));
+		return -1;
+	}
+
+	/* We read frames with png_read_row(), which can't do interlaced
+	 * images.
+	 */
+	if (png_get_interlace_type(read->pPng, read->pInfo) !=
+		PNG_INTERLACE_NONE) {
+		vips_error("png2vips",
+			"%s", _("interlaced APNG not supported"));
+		return -1;
+	}
+
+	return 0;
+}
+
+/* Scan the PNG chunks in the source and build the frame delay array from
+ * the timing fields of the fcTL frame control chunks. libpng only hands us
+ * frame timing as pixels are decoded, but we want all the delays at header
+ * time, like the GIF and WebP loaders.
+ *
+ * There is one fcTL for every frame in the animation (a hidden first frame
+ * has no fcTL).
  */
 static int
 apng_scan_delays(Read *read)
@@ -625,360 +700,379 @@ apng_scan_delays(Read *read)
 	const unsigned char *data;
 	size_t size;
 	size_t offset;
-	int fctl_index = 0;
-	int first_frame_hidden;
+	guint32 length;
+	int frame;
 
-	data = vips_source_map(read->source, &size);
-	if (!data)
+	if (!(data = vips_source_map(read->source, &size)))
 		return -1;
 
-	first_frame_hidden = png_get_first_frame_is_hidden(
-		read->pPng, read->pInfo);
+	read->delays = VIPS_ARRAY(NULL, read->frame_count, int);
 
-	/* Skip PNG signature (8 bytes).
+	/* A chunk is 4 bytes of length, 4 bytes of type, the data, then a
+	 * 4 byte CRC. Step along the chunks from just past the 8 byte PNG
+	 * signature and pick the delay out of each fcTL.
 	 */
-	offset = 8;
+	frame = 0;
+	for (offset = 8;
+		offset + 12 <= size && frame < read->frame_count;
+		offset += 12 + length) {
+		const unsigned char *chunk = data + offset;
 
-	while (offset + 12 <= size &&
-		fctl_index < read->frame_count +
-			(first_frame_hidden ? 1 : 0)) {
-		guint32 chunk_length =
-			GUINT32_FROM_BE(*(guint32 *) (data + offset));
-		const unsigned char *chunk_type = data + offset + 4;
+		length = apng_get_u32(chunk);
+		if (length > size - offset - 12) {
+			g_warning("pngload: truncated chunk at offset %zu",
+				offset);
+			break;
+		}
 
-		if (memcmp(chunk_type, "fcTL", 4) == 0 &&
-			chunk_length >= 26 &&
-			offset + 8 + chunk_length <= size) {
-			const unsigned char *d = data + offset + 8;
-			guint16 delay_num =
-				GUINT16_FROM_BE(*(guint16 *) (d + 20));
-			guint16 delay_den =
-				GUINT16_FROM_BE(*(guint16 *) (d + 22));
+		if (memcmp(chunk + 4, "fcTL", 4) == 0) {
+			if (length < 26) {
+				g_warning("pngload: malformed fcTL chunk "
+					"at offset %zu", offset);
+				break;
+			}
 
-			/* Skip the hidden first frame's fcTL.
+			int num = apng_get_u16(chunk + 8 + 20);
+			int den = apng_get_u16(chunk + 8 + 22);
+
+			/* A zero denominator means 1/100 s, see the spec.
 			 */
-			if (first_frame_hidden && fctl_index == 0) {
-				fctl_index++;
-			}
-			else {
-				int idx = first_frame_hidden
-					? fctl_index - 1
-					: fctl_index;
+			if (den == 0)
+				den = 100;
 
-				if (idx < read->frame_count)
-					read->delays[idx] =
-						apng_delay_to_ms(
-							delay_num,
-							delay_den);
-				fctl_index++;
-			}
+			read->delays[frame] = (int) rint(1000.0 * num / den);
+			frame += 1;
 		}
+	}
 
-		/* Next chunk: 4 (length) + 4 (type) + data + 4 (CRC).
-		 */
-		offset += 12 + chunk_length;
+	if (frame < read->frame_count) {
+		g_warning("pngload: found %d of %d fcTL chunks",
+			frame, read->frame_count);
+		if (read->fail_on >= VIPS_FAIL_ON_ERROR) {
+			vips_error("png2vips", "%s", _("malformed APNG"));
+			return -1;
+		}
 	}
 
 	return 0;
 }
 
-/* Apply the previous frame's dispose operation to the canvas.
+/* Composite an 8-bit pixel: top over bottom, non-premultiplied alpha,
+ * writing the result to bottom.
  */
 static void
-apng_apply_dispose(Read *read)
+apng_blend_pixel8(VipsPel *bottom, const VipsPel *top, int bands)
 {
-	switch (read->dispose_op) {
-	case PNG_fcTL_DISPOSE_OP_NONE:
-		/* Leave canvas as-is.
-		 */
-		break;
+	int top_alpha = top[bands - 1];
 
-	case PNG_fcTL_DISPOSE_OP_BACKGROUND:
-	{
-		/* Clear the previous frame's region to transparent zeros.
-		 */
-		int y;
-		int ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
-
-		for (y = 0; y < read->dispose_rect.height; y++) {
-			VipsPel *q = VIPS_IMAGE_ADDR(read->canvas,
-				read->dispose_rect.left,
-				read->dispose_rect.top + y);
-			memset(q, 0,
-				(size_t) read->dispose_rect.width * ps);
-		}
-		break;
-	}
-
-	case PNG_fcTL_DISPOSE_OP_PREVIOUS:
-		/* Restore previously saved canvas region.
-		 */
-		if (read->previous_canvas_data) {
-			int y;
-			int ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
-
-			for (y = 0; y < read->previous_rect.height; y++) {
-				VipsPel *q = VIPS_IMAGE_ADDR(read->canvas,
-					read->previous_rect.left,
-					read->previous_rect.top + y);
-				memcpy(q,
-					read->previous_canvas_data +
-						(size_t) y *
-							read->previous_rect.width * ps,
-					(size_t) read->previous_rect.width * ps);
-			}
-		}
-		break;
-
-	default:
-		break;
-	}
-}
-
-/* Save a region of the canvas for DISPOSE_OP_PREVIOUS.
- */
-static int
-apng_save_canvas_region(Read *read, VipsRect *rect)
-{
-	int ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
-	size_t size = (size_t) rect->width * rect->height * ps;
-	int y;
-
-	read->previous_canvas_data = g_realloc(
-		read->previous_canvas_data, size);
-	read->previous_rect = *rect;
-
-	for (y = 0; y < rect->height; y++) {
-		VipsPel *p = VIPS_IMAGE_ADDR(read->canvas,
-			rect->left, rect->top + y);
-		memcpy(read->previous_canvas_data +
-				(size_t) y * rect->width * ps,
-			p, (size_t) rect->width * ps);
-	}
-
-	return 0;
-}
-
-/* Alpha-over composite of a single pixel, 8-bit.
- */
-static void
-apng_blend_pixel8(VipsPel *restrict bottom, const VipsPel *restrict top,
-	int bands)
-{
-	int aT = top[bands - 1];
-	int aB;
-	int aR;
-	int b;
-
-	if (aT == 0)
+	/* Transparent over anything leaves bottom unchanged.
+	 */
+	if (top_alpha == 0)
 		return;
 
-	if (aT == 255) {
+	/* Solid over anything is a copy.
+	 */
+	if (top_alpha == 255) {
 		memcpy(bottom, top, bands);
 		return;
 	}
 
-	aB = bottom[bands - 1];
-	/* fac = aB * (255 - aT) / 255, then aR = aT + fac
+	/* Bottom shows through by its own alpha times the top
+	 * transparency, so the result alpha is at least top_alpha and
+	 * can't be zero.
 	 */
-	int fac = (aB * (255 - aT) + 127) / 255;
-	aR = aT + fac;
-
-	if (aR == 0) {
-		memset(bottom, 0, bands);
-		return;
-	}
-
-	for (b = 0; b < bands - 1; b++)
-		bottom[b] = ((top[b] * aT + bottom[b] * fac) * 255 /
-						 aR +
-					 127) /
-			255;
-	bottom[bands - 1] = aR;
-}
-
-/* Alpha-over composite of a single pixel, 16-bit.
- */
-static void
-apng_blend_pixel16(VipsPel *restrict bottom_bytes,
-	const VipsPel *restrict top_bytes, int bands)
-{
-	guint16 *bottom = (guint16 *) bottom_bytes;
-	const guint16 *top = (const guint16 *) top_bytes;
-
-	guint32 aT = top[bands - 1];
-	guint32 aB;
-	guint32 aR;
+	int bottom_factor =
+		(bottom[bands - 1] * (255 - top_alpha) + 127) / 255;
+	int alpha = top_alpha + bottom_factor;
 	int b;
 
-	if (aT == 0)
+	for (b = 0; b < bands - 1; b++)
+		bottom[b] = (top[b] * top_alpha +
+			bottom[b] * bottom_factor + alpha / 2) / alpha;
+	bottom[bands - 1] = alpha;
+}
+
+/* As apng_blend_pixel8(), but 16-bit. 64-bit intermediates, since products
+ * can reach 2^32.
+ */
+static void
+apng_blend_pixel16(VipsPel *bottom_pel, const VipsPel *top_pel, int bands)
+{
+	guint16 *bottom = (guint16 *) bottom_pel;
+	const guint16 *top = (const guint16 *) top_pel;
+
+	guint64 top_alpha = top[bands - 1];
+
+	if (top_alpha == 0)
 		return;
 
-	if (aT == 65535) {
+	if (top_alpha == 65535) {
 		memcpy(bottom, top, bands * sizeof(guint16));
 		return;
 	}
 
-	aB = bottom[bands - 1];
-	guint32 fac = (guint32) (aB * (65535 - aT) + 32767) / 65535;
-	aR = aT + fac;
-
-	if (aR == 0) {
-		memset(bottom, 0, bands * sizeof(guint16));
-		return;
-	}
+	guint64 bottom_factor =
+		(bottom[bands - 1] * (65535 - top_alpha) + 32767) / 65535;
+	guint64 alpha = top_alpha + bottom_factor;
+	int b;
 
 	for (b = 0; b < bands - 1; b++)
-		bottom[b] = (guint16) ((top[b] * aT + bottom[b] * fac) / aR);
-	bottom[bands - 1] = (guint16) aR;
+		bottom[b] = (top[b] * top_alpha +
+			bottom[b] * bottom_factor + alpha / 2) / alpha;
+	bottom[bands - 1] = alpha;
 }
 
-/* Composite a decoded sub-frame onto the canvas at the given offset.
+/* The four functions which touch canvas pixels: clear, copy, paste and
+ * blend. They all clip against the canvas edges, so they can never read or
+ * write out of bounds.
+ *
+ * Pixel buffers are rect->width by rect->height pels in scanline order.
+ */
+
+/* Set a rect of the canvas to 0, ie. transparent black.
  */
 static void
-apng_composite_frame(Read *read, VipsPel *frame_data,
-	int frame_width, int frame_height,
-	int x_offset, int y_offset,
-	png_byte blend_op, png_byte dispose_op)
+apng_canvas_clear(Read *read, const VipsRect *rect)
 {
-	int ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
-	int canvas_bands = read->canvas_bands;
-	gboolean is_16bit = read->canvas->BandFmt == VIPS_FORMAT_USHORT;
-	VipsRect frame_rect = { x_offset, y_offset, frame_width, frame_height };
+	VipsImage *canvas = read->canvas;
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL(canvas);
+	VipsRect canvas_rect = { 0, 0, canvas->Xsize, canvas->Ysize };
 
-	/* If next dispose is PREVIOUS, save the canvas region first.
-	 */
-	if (dispose_op == PNG_fcTL_DISPOSE_OP_PREVIOUS)
-		apng_save_canvas_region(read, &frame_rect);
+	VipsRect clip;
+	int y;
 
-	if (blend_op == PNG_fcTL_BLEND_OP_SOURCE) {
-		/* Direct copy at offset.
-		 */
-		int y;
+	vips_rect_intersectrect(rect, &canvas_rect, &clip);
+	for (y = 0; y < clip.height; y++)
+		memset(VIPS_IMAGE_ADDR(canvas, clip.left, clip.top + y),
+			0, ps * clip.width);
+}
 
-		for (y = 0; y < frame_height; y++) {
-			VipsPel *q = VIPS_IMAGE_ADDR(read->canvas,
-				x_offset, y_offset + y);
-			VipsPel *p = frame_data +
-				(size_t) y * frame_width * ps;
-			memcpy(q, p, (size_t) frame_width * ps);
-		}
+/* Copy a rect of the canvas to a buffer.
+ */
+static void
+apng_canvas_copy(Read *read, const VipsRect *rect, VipsPel *buffer)
+{
+	VipsImage *canvas = read->canvas;
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL(canvas);
+	VipsRect canvas_rect = { 0, 0, canvas->Xsize, canvas->Ysize };
+
+	VipsRect clip;
+	int y;
+
+	vips_rect_intersectrect(rect, &canvas_rect, &clip);
+	for (y = 0; y < clip.height; y++) {
+		VipsPel *p = VIPS_IMAGE_ADDR(canvas,
+			clip.left, clip.top + y);
+		VipsPel *q = buffer + ps * (clip.left - rect->left +
+			(size_t) rect->width * (clip.top - rect->top + y));
+
+		memcpy(q, p, ps * clip.width);
 	}
-	else {
-		/* BLEND_OP_OVER: alpha-over compositing.
-		 */
-		int x, y;
+}
 
-		for (y = 0; y < frame_height; y++) {
-			VipsPel *q = VIPS_IMAGE_ADDR(read->canvas,
-				x_offset, y_offset + y);
-			VipsPel *p = frame_data +
-				(size_t) y * frame_width * ps;
+/* Paste a buffer of pixels into the canvas at a position.
+ */
+static void
+apng_canvas_paste(Read *read, const VipsPel *buffer, const VipsRect *rect)
+{
+	VipsImage *canvas = read->canvas;
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL(canvas);
+	VipsRect canvas_rect = { 0, 0, canvas->Xsize, canvas->Ysize };
 
-			for (x = 0; x < frame_width; x++) {
-				if (is_16bit)
-					apng_blend_pixel16(q, p, canvas_bands);
-				else
-					apng_blend_pixel8(q, p, canvas_bands);
+	VipsRect clip;
+	int y;
 
-				q += ps;
-				p += ps;
-			}
+	vips_rect_intersectrect(rect, &canvas_rect, &clip);
+	for (y = 0; y < clip.height; y++) {
+		const VipsPel *p = buffer + ps * (clip.left - rect->left +
+			(size_t) rect->width * (clip.top - rect->top + y));
+		VipsPel *q = VIPS_IMAGE_ADDR(canvas,
+			clip.left, clip.top + y);
+
+		memcpy(q, p, ps * clip.width);
+	}
+}
+
+/* Blend a buffer of pixels onto the canvas at a position.
+ */
+static void
+apng_canvas_blend(Read *read, const VipsPel *buffer, const VipsRect *rect)
+{
+	VipsImage *canvas = read->canvas;
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL(canvas);
+	gboolean sixteenbit = canvas->BandFmt == VIPS_FORMAT_USHORT;
+	VipsRect canvas_rect = { 0, 0, canvas->Xsize, canvas->Ysize };
+
+	VipsRect clip;
+	int x, y;
+
+	vips_rect_intersectrect(rect, &canvas_rect, &clip);
+	for (y = 0; y < clip.height; y++) {
+		const VipsPel *p = buffer + ps * (clip.left - rect->left +
+			(size_t) rect->width * (clip.top - rect->top + y));
+		VipsPel *q = VIPS_IMAGE_ADDR(canvas,
+			clip.left, clip.top + y);
+
+		for (x = 0; x < clip.width; x++) {
+			if (sixteenbit)
+				apng_blend_pixel16(q, p, canvas->Bands);
+			else
+				apng_blend_pixel8(q, p, canvas->Bands);
+
+			p += ps;
+			q += ps;
 		}
 	}
 }
 
-/* Read the next frame from the APNG, apply dispose/blend, update canvas.
+/* Dispose of the previous frame, ie. ready the canvas for the next one.
+ */
+static void
+apng_dispose(Read *read)
+{
+	switch (read->dispose_op) {
+	case PNG_fcTL_DISPOSE_OP_BACKGROUND:
+		apng_canvas_clear(read, &read->dispose_rect);
+		break;
+
+	case PNG_fcTL_DISPOSE_OP_PREVIOUS:
+		apng_canvas_paste(read,
+			read->previous_pixels, &read->dispose_rect);
+		break;
+
+	default:
+		/* DISPOSE_OP_NONE: leave the canvas as it is.
+		 */
+		break;
+	}
+}
+
+/* Decode the next frame and composite it onto the canvas.
  */
 static int
-apng_read_next_frame(Read *read)
+apng_read_frame(Read *read)
 {
-	png_uint_32 next_frame_width, next_frame_height;
-	png_uint_32 next_frame_x_offset, next_frame_y_offset;
-	png_uint_16 next_frame_delay_num, next_frame_delay_den;
-	png_byte next_frame_dispose_op, next_frame_blend_op;
-	int ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
-	VipsPel *frame_data;
+	size_t ps = VIPS_IMAGE_SIZEOF_PEL(read->canvas);
+
+	png_uint_32 width, height, x_offset, y_offset;
+	png_uint_16 delay_num, delay_den;
+	png_byte dispose_op, blend_op;
+	VipsRect frame_rect;
 	int y;
 
-	/* Apply previous frame's dispose operation.
-	 */
-	apng_apply_dispose(read);
+	apng_dispose(read);
 
-	/* Catch PNG errors.
-	 */
 	if (setjmp(png_jmpbuf(read->pPng)))
 		return -1;
 
-	/* Read the frame control information.
-	 */
 	png_read_frame_head(read->pPng, read->pInfo);
 	png_get_next_frame_fcTL(read->pPng, read->pInfo,
-		&next_frame_width, &next_frame_height,
-		&next_frame_x_offset, &next_frame_y_offset,
-		&next_frame_delay_num, &next_frame_delay_den,
-		&next_frame_dispose_op, &next_frame_blend_op);
+		&width, &height, &x_offset, &y_offset,
+		&delay_num, &delay_den, &dispose_op, &blend_op);
 
-	/* DISPOSE_OP_PREVIOUS on the first frame is treated as
-	 * DISPOSE_OP_BACKGROUND per spec.
+	/* The frame must lie inside the canvas. libpng checks this too,
+	 * but the canvas functions clip, so a bad frame could otherwise be
+	 * silently truncated.
 	 */
-	if (read->frame_no == 0 &&
-		next_frame_dispose_op == PNG_fcTL_DISPOSE_OP_PREVIOUS)
-		next_frame_dispose_op = PNG_fcTL_DISPOSE_OP_BACKGROUND;
-
-	/* Validate sub-frame fits within canvas bounds.
-	 */
-	if (next_frame_width == 0 ||
-		next_frame_height == 0 ||
-		next_frame_x_offset + next_frame_width >
-			(png_uint_32) read->canvas_width ||
-		next_frame_y_offset + next_frame_height >
-			(png_uint_32) read->canvas_height) {
-		vips_error("pngload", "%s", _("bad APNG frame geometry"));
+	if (width == 0 ||
+		height == 0 ||
+		(gint64) x_offset + width > read->canvas_width ||
+		(gint64) y_offset + height > read->canvas_height) {
+		vips_error("png2vips", "%s", _("bad APNG frame geometry"));
 		return -1;
 	}
 
-	/* Read the sub-frame pixel data into a temporary buffer.
+	frame_rect.left = x_offset;
+	frame_rect.top = y_offset;
+	frame_rect.width = width;
+	frame_rect.height = height;
+
+	/* DISPOSE_OP_PREVIOUS on the first frame means
+	 * DISPOSE_OP_BACKGROUND, see the spec.
 	 */
-	frame_data = g_malloc((size_t) next_frame_width *
-		next_frame_height * ps);
+	if (read->frame_no == 0 &&
+		dispose_op == PNG_fcTL_DISPOSE_OP_PREVIOUS)
+		dispose_op = PNG_fcTL_DISPOSE_OP_BACKGROUND;
 
-	for (y = 0; y < (int) next_frame_height; y++) {
-		png_bytep row = frame_data +
-			(size_t) y * next_frame_width * ps;
-		png_read_row(read->pPng, row, NULL);
-	}
-
-	/* Composite onto canvas.
+	/* If this frame will dispose to PREVIOUS, save the canvas area it
+	 * covers so we can restore it before the next frame.
 	 */
-	apng_composite_frame(read, frame_data,
-		next_frame_width, next_frame_height,
-		next_frame_x_offset, next_frame_y_offset,
-		next_frame_blend_op, next_frame_dispose_op);
+	if (dispose_op == PNG_fcTL_DISPOSE_OP_PREVIOUS)
+		apng_canvas_copy(read, &frame_rect, read->previous_pixels);
 
-	g_free(frame_data);
+	for (y = 0; y < (int) height; y++)
+		png_read_row(read->pPng,
+			read->frame_buffer + ps * y * width, NULL);
 
-	/* Record dispose state for next frame.
-	 */
-	read->dispose_op = next_frame_dispose_op;
-	read->dispose_rect.left = next_frame_x_offset;
-	read->dispose_rect.top = next_frame_y_offset;
-	read->dispose_rect.width = next_frame_width;
-	read->dispose_rect.height = next_frame_height;
+	if (blend_op == PNG_fcTL_BLEND_OP_OVER)
+		apng_canvas_blend(read, read->frame_buffer, &frame_rect);
+	else
+		apng_canvas_paste(read, read->frame_buffer, &frame_rect);
 
-	/* Store delay.
-	 */
-	if (read->delays)
-		read->delays[read->frame_no] =
-			apng_delay_to_ms(next_frame_delay_num,
-				next_frame_delay_den);
-
+	read->dispose_op = dispose_op;
+	read->dispose_rect = frame_rect;
 	read->frame_no += 1;
 
 	return 0;
 }
 
-/* Sequential generate callback for APNG reading, one line at a time.
+/* A hidden first frame is an IDAT which is not part of the animation. It
+ * has no fcTL and is always the full canvas size. Decode and discard it.
+ */
+static int
+apng_skip_hidden_frame(Read *read)
+{
+	int y;
+
+	if (setjmp(png_jmpbuf(read->pPng)))
+		return -1;
+
+	png_read_frame_head(read->pPng, read->pInfo);
+	for (y = 0; y < read->canvas_height; y++)
+		png_read_row(read->pPng, read->frame_buffer, NULL);
+
+	return 0;
+}
+
+/* Allocate the canvas and work buffers, and position the read on the
+ * first frame the user asked for. @header is the image png2vips_header()
+ * filled in.
+ */
+static int
+apng_read_start(Read *read, VipsImage *header)
+{
+	VipsRect canvas_rect = { 0, 0, read->canvas_width, read->canvas_height };
+
+	int i;
+
+	read->canvas = vips_image_new_memory();
+	vips_image_init_fields(read->canvas,
+		read->canvas_width, read->canvas_height, read->canvas_bands,
+		header->BandFmt, VIPS_CODING_NONE, header->Type,
+		header->Xres, header->Yres);
+	if (vips_image_write_prepare(read->canvas))
+		return -1;
+	apng_canvas_clear(read, &canvas_rect);
+
+	read->frame_buffer = g_malloc(VIPS_IMAGE_SIZEOF_IMAGE(read->canvas));
+	read->previous_pixels = g_malloc(VIPS_IMAGE_SIZEOF_IMAGE(read->canvas));
+
+	if (png_get_first_frame_is_hidden(read->pPng, read->pInfo) &&
+		apng_skip_hidden_frame(read))
+		return -1;
+
+	/* Decode up to our start frame.
+	 */
+	for (i = 0; i < read->page; i++)
+		if (apng_read_frame(read))
+			return -1;
+
+	return 0;
+}
+
+/* Generate the output image, one scanline at a time. Pages are stacked
+ * vertically, so we decode the next frame each time the read crosses a
+ * frame boundary.
  */
 static int
 apng_generate(VipsRegion *out_region,
@@ -987,10 +1081,12 @@ apng_generate(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	Read *read = (Read *) a;
 
-	/* Frame number (0-based relative to file) for this line.
+	/* The frame this scanline is from, and the line within that frame.
 	 */
-	int frame = r->top / read->canvas_height + read->page;
+	int frame = read->page + r->top / read->canvas_height;
 	int line = r->top % read->canvas_height;
+
+	VipsRect line_rect = { 0, line, read->canvas_width, 1 };
 
 #ifdef DEBUG
 	printf("apng_generate: line %d, frame %d\n", r->top, frame);
@@ -998,49 +1094,21 @@ apng_generate(VipsRegion *out_region,
 
 	g_assert(r->height == 1);
 
-	while (read->frame_no < frame + 1) {
-		if (apng_read_next_frame(read))
-			return -1;
-	}
-
-	/* Copy from canvas to output.
+	/* We are inside a vips_sequential(), so lines must arrive in order.
 	 */
-	if (read->has_alpha) {
-		memcpy(VIPS_REGION_ADDR(out_region, 0, r->top),
-			VIPS_IMAGE_ADDR(read->canvas, 0, line),
-			VIPS_IMAGE_SIZEOF_LINE(read->canvas));
+	if (r->top != read->y_pos) {
+		vips_error("png2vips",
+			_("out of order read at line %d"), read->y_pos);
+		return -1;
 	}
-	else {
-		/* Strip alpha channel.
-		 */
-		int x;
-		VipsPel *p = VIPS_IMAGE_ADDR(read->canvas, 0, line);
-		VipsPel *q = VIPS_REGION_ADDR(out_region, 0, r->top);
-		int canvas_bands = read->canvas_bands;
-		int out_bands = canvas_bands - 1;
+	read->y_pos += 1;
 
-		if (read->canvas->BandFmt == VIPS_FORMAT_USHORT) {
-			guint16 *pp = (guint16 *) p;
-			guint16 *qq = (guint16 *) q;
+	while (read->frame_no <= frame)
+		if (apng_read_frame(read))
+			return -1;
 
-			for (x = 0; x < r->width; x++) {
-				int b;
-				for (b = 0; b < out_bands; b++)
-					qq[b] = pp[b];
-				pp += canvas_bands;
-				qq += out_bands;
-			}
-		}
-		else {
-			for (x = 0; x < r->width; x++) {
-				int b;
-				for (b = 0; b < out_bands; b++)
-					q[b] = p[b];
-				p += canvas_bands;
-				q += out_bands;
-			}
-		}
-	}
+	apng_canvas_copy(read, &line_rect,
+		VIPS_REGION_ADDR(out_region, 0, r->top));
 
 	return 0;
 }
@@ -1156,6 +1224,42 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 		!vips_amiMSBfirst())
 		png_set_swap(read->pPng);
 
+#ifdef PNG_APNG_SUPPORTED
+	/* For an animated read, the frames we load are stacked vertically
+	 * in the output image, and the image always gains an alpha channel,
+	 * since frame compositing can leave transparent areas even when
+	 * every frame is solid.
+	 *
+	 * This must happen before png_read_update_info() so that the alpha
+	 * channel is part of the decode.
+	 */
+	read->is_animated = apng_is_animated(read);
+	if (read->is_animated) {
+		if (apng_parse_actl(read, height))
+			return -1;
+
+		if (bands == 1 || bands == 3) {
+			png_set_add_alpha(read->pPng,
+				bitdepth > 8 ? 0xffff : 0xff,
+				PNG_FILLER_AFTER);
+			bands += 1;
+		}
+
+		read->canvas_width = width;
+		read->canvas_height = height;
+		read->canvas_bands = bands;
+
+		height *= read->n;
+	}
+	else if (read->page != 0 ||
+		(read->n != 1 && read->n != -1)) {
+		/* A plain PNG (or a single-frame APNG) has just one page.
+		 */
+		vips_error("png2vips", "%s", _("bad page number"));
+		return -1;
+	}
+#endif /*PNG_APNG_SUPPORTED*/
+
 	/* Get resolution. Default to 72 pixels per inch, the usual png value.
 	 */
 	unit_type = PNG_RESOLUTION_METER;
@@ -1229,8 +1333,8 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 	 *
 	 * Only set this for libpng 1.6+.
 	 *
-	 * Don't call this for animated reads — APNG frame reading manages
-	 * interlace internally via png_read_frame_head/png_read_row.
+	 * Don't call this for animated reads: they are never interlaced (we
+	 * reject interlaced APNGs), and we read frames with png_read_row().
 	 */
 #if PNG_LIBPNG_VER > 10600
 #ifdef PNG_APNG_SUPPORTED
@@ -1346,136 +1450,16 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 #endif /*PNG_bKGD_SUPPORTED*/
 
 #ifdef PNG_APNG_SUPPORTED
-	/* Detect APNG animation.
-	 */
-	if (png_get_valid(read->pPng, read->pInfo, PNG_INFO_acTL)) {
-		png_uint_32 num_frames, num_plays;
-		int first_frame_hidden;
-		int frame_count;
+	if (read->is_animated) {
+		vips_image_set_int(out, VIPS_META_N_PAGES, read->frame_count);
+		vips_image_set_int(out,
+			VIPS_META_PAGE_HEIGHT, read->canvas_height);
+		vips_image_set_int(out, "loop", read->num_plays);
 
-		png_get_acTL(read->pPng, read->pInfo,
-			&num_frames, &num_plays);
-
-		first_frame_hidden =
-			png_get_first_frame_is_hidden(read->pPng, read->pInfo);
-
-		frame_count = num_frames;
-		if (first_frame_hidden)
-			frame_count -= 1;
-
-		/* Sanity-check frame count. We allocate a delays array
-		 * of frame_count ints, so reject absurd values early.
-		 */
-		if (frame_count <= 0 ||
-			(guint64) frame_count * height >= VIPS_MAX_COORD) {
-			vips_error("png2vips", "%s",
-				_("image dimensions too large"));
+		if (apng_scan_delays(read))
 			return -1;
-		}
-
-		/* If frame_count > 1, or if the user explicitly asked for
-		 * multiple frames, treat as animated.
-		 */
-		read->frame_count = frame_count;
-		read->num_plays = num_plays;
-
-		/* Resolve n=-1 to mean "all frames from page onwards".
-		 */
-		if (read->n == -1)
-			read->n = frame_count - read->page;
-
-		/* Validate page/n.
-		 */
-		if (read->page < 0 ||
-			read->n <= 0 ||
-			read->page + read->n > frame_count) {
-			vips_error("png2vips", "%s", _("bad page number"));
-			return -1;
-		}
-
-		/* Check stacked output height fits in coord range.
-		 */
-		if ((guint64) read->n * height >= VIPS_MAX_COORD) {
-			vips_error("png2vips", "%s",
-				_("image dimensions too large"));
-			return -1;
-		}
-
-		if (frame_count > 1 || read->n > 1) {
-			read->is_animated = TRUE;
-
-			/* For animation, we need alpha for compositing.
-			 * Force to RGBA or GA.
-			 */
-			if (bands < 3) {
-				/* Greyscale: need GA (2 bands).
-				 */
-				if (bands == 1) {
-					png_set_add_alpha(read->pPng,
-						bitdepth > 8 ? 0xFFFF : 0xFF,
-						PNG_FILLER_AFTER);
-					bands = 2;
-				}
-				read->canvas_bands = 2;
-			}
-			else {
-				/* RGB: need RGBA (4 bands).
-				 */
-				if (bands == 3) {
-					png_set_add_alpha(read->pPng,
-						bitdepth > 8 ? 0xFFFF : 0xFF,
-						PNG_FILLER_AFTER);
-					bands = 4;
-				}
-				read->canvas_bands = 4;
-			}
-
-			/* Check if the original had alpha.
-			 */
-			read->has_alpha =
-				color_type == PNG_COLOR_TYPE_GRAY_ALPHA ||
-				color_type == PNG_COLOR_TYPE_RGB_ALPHA ||
-				png_get_valid(read->pPng, read->pInfo,
-					PNG_INFO_tRNS);
-
-			read->canvas_width = width;
-			read->canvas_height = height;
-
-			/* Re-set the VIPS header for animated output:
-			 * height = n * canvas_height, bands may have
-			 * changed.
-			 */
-			vips_image_init_fields(out,
-				width, (guint64) read->n * height, bands,
-				bitdepth > 8
-					? VIPS_FORMAT_USHORT
-					: VIPS_FORMAT_UCHAR,
-				VIPS_CODING_NONE, interpretation,
-				Xres, Yres);
-
-			/* Set animation metadata.
-			 */
-			vips_image_set_int(out,
-				VIPS_META_N_PAGES, frame_count);
-			vips_image_set_int(out,
-				VIPS_META_PAGE_HEIGHT, height);
-			vips_image_set_int(out, "loop", num_plays);
-
-			/* Allocate delays array and scan fcTL chunks from
-			 * the raw PNG data to fill it. This lets us know
-			 * delays at header time (like GIF/WebP loaders)
-			 * without reading pixel data.
-			 */
-			read->delays = VIPS_ARRAY(NULL, frame_count, int);
-			if (!read->delays)
-				return -1;
-			memset(read->delays, 0,
-				frame_count * sizeof(int));
-			if (apng_scan_delays(read))
-				return -1;
-			vips_image_set_array_int(out, "delay",
-				read->delays, frame_count);
-		}
+		vips_image_set_array_int(out, "delay",
+			read->delays, read->frame_count);
 	}
 #endif /*PNG_APNG_SUPPORTED*/
 
@@ -1595,65 +1579,11 @@ png2vips_image(Read *read, VipsImage *out)
 		vips_object_local_array(VIPS_OBJECT(out), 3);
 
 #ifdef PNG_APNG_SUPPORTED
-	/* Read the header first so is_animated is set.
-	 */
-	t[0] = vips_image_new();
-	if (png2vips_header(read, t[0], FALSE))
-		return -1;
-
-	if (read->is_animated) {
-		int first_frame_hidden;
-		int i;
-
-		/* png_read_update_info() was already called in
-		 * png2vips_header() when header_only is FALSE.
-		 */
-
-		/* Allocate the compositing canvas.
-		 */
-		read->canvas = vips_image_new_memory();
-		vips_image_init_fields(read->canvas,
-			read->canvas_width, read->canvas_height,
-			read->canvas_bands,
-			t[0]->BandFmt,
-			VIPS_CODING_NONE, t[0]->Type,
-			t[0]->Xres, t[0]->Yres);
-		if (vips_image_write_prepare(read->canvas))
-			return -1;
-
-		/* Clear canvas to transparent zeros.
-		 */
-		memset(VIPS_IMAGE_ADDR(read->canvas, 0, 0), 0,
-			VIPS_IMAGE_SIZEOF_IMAGE(read->canvas));
-
-		/* If the first frame is hidden (IDAT is not part of the
-		 * animation), we need to read and discard it.
-		 */
-		first_frame_hidden = png_get_first_frame_is_hidden(
-			read->pPng, read->pInfo);
-		if (first_frame_hidden) {
-			if (apng_read_next_frame(read))
-				return -1;
-
-			/* Reset canvas and frame_no for the actual animation.
-			 */
-			memset(VIPS_IMAGE_ADDR(read->canvas, 0, 0), 0,
-				VIPS_IMAGE_SIZEOF_IMAGE(read->canvas));
-			read->frame_no = 0;
-			read->dispose_op = PNG_fcTL_DISPOSE_OP_NONE;
-		}
-
-		/* Skip frames before the requested page.
-		 */
-		for (i = 0; i < read->page; i++) {
-			if (apng_read_next_frame(read))
-				return -1;
-		}
-
-		/* Set up the generate pipeline. Delays are already set
-		 * on t[0] by png2vips_header via apng_scan_delays.
-		 */
-		if (vips_image_generate(t[0],
+	if (apng_is_animated(read)) {
+		t[0] = vips_image_new();
+		if (png2vips_header(read, t[0], FALSE) ||
+			apng_read_start(read, t[0]) ||
+			vips_image_generate(t[0],
 				NULL, apng_generate, NULL,
 				read, NULL) ||
 			vips_sequential(t[0], &t[1], NULL) ||
@@ -1662,40 +1592,7 @@ png2vips_image(Read *read, VipsImage *out)
 
 		return 0;
 	}
-
-	/* Not animated — fall through to normal read, but we already
-	 * called png2vips_header on t[0] (with header_only=FALSE, so
-	 * png_read_update_info was called). Don't call it again.
-	 */
-	if (interlace_type != PNG_INTERLACE_NONE) {
-		/* Need a memory image for interlace. Copy fields from
-		 * t[0] which already has the header set.
-		 */
-		t[2] = t[0];
-		t[0] = vips_image_new_memory();
-		vips_image_init_fields(t[0],
-			t[2]->Xsize, t[2]->Ysize, t[2]->Bands,
-			t[2]->BandFmt, t[2]->Coding, t[2]->Type,
-			t[2]->Xres, t[2]->Yres);
-		if (vips_image_write_prepare(t[0]) ||
-			png2vips_interlace(read, t[0]) ||
-			vips_image_write(t[0], out))
-			return -1;
-	}
-	else {
-		if (vips_image_generate(t[0],
-				NULL, png2vips_generate, NULL,
-				read, NULL) ||
-			vips_sequential(t[0], &t[1],
-				"tile_height", VIPS__FATSTRIP_HEIGHT,
-				NULL) ||
-			vips_image_write(t[1], out))
-			return -1;
-	}
-
-	return 0;
-}
-#else /*!PNG_APNG_SUPPORTED*/
+#endif /*PNG_APNG_SUPPORTED*/
 
 	if (interlace_type != PNG_INTERLACE_NONE) {
 		/* Arg awful interlaced image. We have to load to a huge mem
@@ -1722,7 +1619,6 @@ png2vips_image(Read *read, VipsImage *out)
 
 	return 0;
 }
-#endif /*PNG_APNG_SUPPORTED*/
 
 gboolean
 vips__png_ispng_source(VipsSource *source)
@@ -1801,16 +1697,14 @@ typedef struct {
 	png_bytep *row_pointer;
 
 #ifdef PNG_APNG_SUPPORTED
-	/* APNG write state.
+	/* For animated (APNG) write: the height of each frame, and the
+	 * frame delays in ms (points at the "delay" metadata, owned by the
+	 * image).
 	 */
-	int page_height;	/* height of each frame */
-	int n_frames;		/* number of frames */
-	VipsPel *frame_bytes;	/* accumulation buffer for one frame */
-	int write_y;		/* current y within frame */
-	int page_number;	/* current frame being written */
-	int *delays;		/* per-frame delay in ms */
-	int delay_length;	/* length of delays array */
-	int loop;		/* loop count */
+	gboolean animated;
+	int page_height;
+	int *delays;
+	int delay_length;
 #endif /*PNG_APNG_SUPPORTED*/
 } Write;
 
@@ -1825,10 +1719,6 @@ write_destroy(Write *write)
 	if (write->pPng)
 		png_destroy_write_struct(&write->pPng, &write->pInfo);
 	VIPS_FREE(write->row_pointer);
-
-#ifdef PNG_APNG_SUPPORTED
-	VIPS_FREE(write->frame_bytes);
-#endif /*PNG_APNG_SUPPORTED*/
 
 	VIPS_FREE(write);
 }
@@ -1917,6 +1807,61 @@ write_png_block(VipsRegion *region, VipsRect *area, void *a)
 
 	return 0;
 }
+
+#ifdef PNG_APNG_SUPPORTED
+/* As write_png_block(), but for animated writes: open and close frames as
+ * we pass frame boundaries.
+ */
+static int
+write_apng_block(VipsRegion *region, VipsRect *area, void *a)
+{
+	Write *write = (Write *) a;
+
+	int i;
+
+	/* The area to write is always a set of complete scanlines.
+	 */
+	g_assert(area->left == 0);
+	g_assert(area->width == region->im->Xsize);
+	g_assert(area->top + area->height <= region->im->Ysize);
+
+	/* Catch PNG errors.
+	 */
+	if (setjmp(png_jmpbuf(write->pPng)))
+		return -1;
+
+	for (i = 0; i < area->height; i++) {
+		int y = area->top + i;
+
+		if (y % write->page_height == 0) {
+			int frame = y / write->page_height;
+
+			/* The delay metadata is in ms, fcTL wants a 16-bit
+			 * fraction.
+			 */
+			int delay = 0;
+			if (frame < write->delay_length)
+				delay = write->delays[frame];
+			delay = VIPS_CLIP(0, delay, 65535);
+
+			png_write_frame_head(write->pPng, write->pInfo, NULL,
+				region->im->Xsize, write->page_height,
+				0, 0,
+				delay, 1000,
+				PNG_fcTL_DISPOSE_OP_NONE,
+				PNG_fcTL_BLEND_OP_SOURCE);
+		}
+
+		png_write_row(write->pPng,
+			(png_bytep) VIPS_REGION_ADDR(region, 0, y));
+
+		if (y % write->page_height == write->page_height - 1)
+			png_write_frame_tail(write->pPng, write->pInfo);
+	}
+
+	return 0;
+}
+#endif /*PNG_APNG_SUPPORTED*/
 
 static void
 vips__png_set_text(png_structp pPng, png_infop pInfo,
@@ -2026,14 +1971,36 @@ write_vips(Write *write,
 {
 	VipsImage *in = write->in;
 
+	int height;
 	int color_type;
 	int interlace_type;
+	VipsRegionWrite write_fn;
 	int i, nb_passes;
 
 	g_assert(in->BandFmt == VIPS_FORMAT_UCHAR ||
 		in->BandFmt == VIPS_FORMAT_USHORT);
 	g_assert(in->Coding == VIPS_CODING_NONE);
 	g_assert(in->Bands > 0 && in->Bands < 5);
+
+#ifdef PNG_APNG_SUPPORTED
+	/* If a smaller page height has been set, the image is a stack of
+	 * frames and we write an animated PNG. Animations can't be
+	 * interlaced.
+	 */
+	write->page_height = vips_image_get_page_height(in);
+	write->animated = write->page_height < in->Ysize;
+	if (write->animated) {
+		if (interlace) {
+			g_warning("disabling interlace for animated PNG");
+			interlace = FALSE;
+		}
+
+		if (vips_image_get_typeof(in, "delay") &&
+			vips_image_get_array_int(in, "delay",
+				&write->delays, &write->delay_length))
+			return -1;
+	}
+#endif /*PNG_APNG_SUPPORTED*/
 
 	/* Catch PNG errors.
 	 */
@@ -2103,14 +2070,35 @@ write_vips(Write *write,
 	 */
 	png_set_user_limits(write->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD);
 
+	/* For an animation, IHDR is the size of just one frame.
+	 */
+	height = in->Ysize;
+#ifdef PNG_APNG_SUPPORTED
+	if (write->animated)
+		height = write->page_height;
+#endif /*PNG_APNG_SUPPORTED*/
+
 	png_set_IHDR(write->pPng, write->pInfo,
-		in->Xsize, in->Ysize, bitdepth, color_type, interlace_type,
+		in->Xsize, height, bitdepth, color_type, interlace_type,
 		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
 	/* Set resolution. libpng uses pixels per meter.
 	 */
 	png_set_pHYs(write->pPng, write->pInfo,
 		rint(in->Xres * 1000), rint(in->Yres * 1000), PNG_RESOLUTION_METER);
+
+#ifdef PNG_APNG_SUPPORTED
+	if (write->animated) {
+		int loop;
+
+		loop = 0;
+		if (vips_image_get_typeof(in, "loop"))
+			vips_image_get_int(in, "loop", &loop);
+
+		png_set_acTL(write->pPng, write->pInfo,
+			in->Ysize / write->page_height, loop);
+	}
+#endif /*PNG_APNG_SUPPORTED*/
 
 	/* Metadata
 	 */
@@ -2275,10 +2263,18 @@ write_vips(Write *write,
 	else
 		nb_passes = 1;
 
+	/* Animated writes need fcTL chunks inserted between frames.
+	 */
+	write_fn = write_png_block;
+#ifdef PNG_APNG_SUPPORTED
+	if (write->animated)
+		write_fn = write_apng_block;
+#endif /*PNG_APNG_SUPPORTED*/
+
 	/* Write data.
 	 */
 	for (i = 0; i < nb_passes; i++)
-		if (vips_sink_disc(in, write_png_block, write))
+		if (vips_sink_disc(in, write_fn, write))
 			return -1;
 
 	/* The setjmp() was held by our background writer: reset it.
@@ -2290,323 +2286,6 @@ write_vips(Write *write,
 
 	return 0;
 }
-
-#ifdef PNG_APNG_SUPPORTED
-
-/* sink_disc callback for APNG write: accumulate scanlines into frames.
- */
-static int
-write_apng_block(VipsRegion *region, VipsRect *area, void *a)
-{
-	Write *write = (Write *) a;
-	int ps = VIPS_IMAGE_SIZEOF_PEL(region->im);
-	int i;
-
-	g_assert(area->left == 0);
-	g_assert(area->width == region->im->Xsize);
-
-	for (i = 0; i < area->height; i++) {
-		memcpy(write->frame_bytes +
-				(size_t) write->write_y * region->im->Xsize * ps,
-			VIPS_REGION_ADDR(region, 0, area->top + i),
-			(size_t) region->im->Xsize * ps);
-
-		write->write_y += 1;
-
-		if (write->write_y >= write->page_height) {
-			/* We have a complete frame. Write it out.
-			 */
-			int delay_ms;
-			png_uint_16 delay_num, delay_den;
-			int y;
-
-			/* Get delay for this frame.
-			 */
-			if (write->delays &&
-				write->page_number < write->delay_length)
-				delay_ms = write->delays[write->page_number];
-			else
-				delay_ms = 0;
-			delay_num = delay_ms;
-			delay_den = 1000;
-
-			/* Catch PNG errors.
-			 */
-			if (setjmp(png_jmpbuf(write->pPng)))
-				return -1;
-
-			png_write_frame_head(write->pPng, write->pInfo,
-				NULL, /* row_pointers - not needed here */
-				region->im->Xsize, /* width */
-				write->page_height, /* height */
-				0, 0, /* x_offset, y_offset */
-				delay_num, delay_den,
-				PNG_fcTL_DISPOSE_OP_NONE,
-				PNG_fcTL_BLEND_OP_SOURCE);
-
-			for (y = 0; y < write->page_height; y++) {
-				png_bytep row = write->frame_bytes +
-					(size_t) y * region->im->Xsize * ps;
-				png_write_row(write->pPng, row);
-			}
-
-			png_write_frame_tail(write->pPng, write->pInfo);
-
-			write->page_number += 1;
-			write->write_y = 0;
-		}
-	}
-
-	return 0;
-}
-
-/* Write a VIPS image as APNG.
- */
-static int
-write_vips_apng(Write *write,
-	int compress, const char *profile, VipsForeignPngFilter filter,
-	gboolean palette, int Q, double dither, int bitdepth, int effort)
-{
-	VipsImage *in = write->in;
-	int color_type;
-	int page_height;
-	int n_frames;
-	int i;
-
-	page_height = vips_image_get_page_height(in);
-	n_frames = in->Ysize / page_height;
-
-	write->page_height = page_height;
-	write->n_frames = n_frames;
-	write->page_number = 0;
-	write->write_y = 0;
-
-	/* Get delay array from metadata.
-	 */
-	write->delays = NULL;
-	write->delay_length = 0;
-	if (vips_image_get_typeof(in, "delay")) {
-		int *delays;
-		int delay_length;
-
-		if (vips_image_get_array_int(in, "delay",
-				&delays, &delay_length))
-			return -1;
-		write->delays = delays;
-		write->delay_length = delay_length;
-	}
-
-	/* Get loop count.
-	 */
-	write->loop = 0;
-	if (vips_image_get_typeof(in, "loop"))
-		vips_image_get_int(in, "loop", &write->loop);
-
-	/* Catch PNG errors.
-	 */
-	if (setjmp(png_jmpbuf(write->pPng)))
-		return -1;
-
-	if (vips_image_pio_input(in))
-		return -1;
-
-	/* Set compression parameters.
-	 */
-	png_set_compression_level(write->pPng, compress);
-	png_set_filter(write->pPng, 0, filter);
-
-	switch (in->Bands) {
-	case 1:
-		color_type = PNG_COLOR_TYPE_GRAY;
-		break;
-	case 2:
-		color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
-		break;
-	case 3:
-		color_type = PNG_COLOR_TYPE_RGB;
-		break;
-	case 4:
-		color_type = PNG_COLOR_TYPE_RGB_ALPHA;
-		break;
-	default:
-		vips_error("vips2png",
-			_("can't save %d band image as png"), in->Bands);
-		return -1;
-	}
-
-#ifdef HAVE_QUANTIZATION
-	if (palette)
-		color_type = PNG_COLOR_TYPE_PALETTE;
-#else
-	if (palette)
-		g_warning("ignoring palette (no quantisation support)");
-#endif /*HAVE_QUANTIZATION*/
-
-	/* libpng has a default soft limit of 1m pixels per axis.
-	 */
-	png_set_user_limits(write->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD);
-
-	/* IHDR uses page_height as the image height.
-	 */
-	png_set_IHDR(write->pPng, write->pInfo,
-		in->Xsize, page_height, bitdepth, color_type,
-		PNG_INTERLACE_NONE,
-		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
-
-	/* Set resolution.
-	 */
-	png_set_pHYs(write->pPng, write->pInfo,
-		rint(in->Xres * 1000), rint(in->Yres * 1000),
-		PNG_RESOLUTION_METER);
-
-	/* Set APNG animation control.
-	 */
-	png_set_acTL(write->pPng, write->pInfo, n_frames, write->loop);
-
-	/* Metadata.
-	 */
-	if (vips_image_get_typeof(in, VIPS_META_XMP_NAME)) {
-		const void *data;
-		size_t length;
-		char *str;
-
-		if (vips_image_get_blob(in, VIPS_META_XMP_NAME,
-				&data, &length))
-			return -1;
-
-		str = g_malloc(length + 1);
-		g_strlcpy(str, data, length + 1);
-		vips__png_set_text(write->pPng, write->pInfo,
-			"XML:com.adobe.xmp", str);
-		g_free(str);
-	}
-
-#ifdef PNG_eXIf_SUPPORTED
-	if (vips_image_get_typeof(in, VIPS_META_EXIF_NAME)) {
-		const void *data;
-		size_t length;
-
-		if (vips_image_get_blob(in, VIPS_META_EXIF_NAME,
-				&data, &length))
-			return -1;
-
-		if (length >= 6 &&
-			vips_isprefix("Exif", (char *) data)) {
-			data = (char *) data + 6;
-			length -= 6;
-		}
-
-		png_set_eXIf_1(write->pPng, write->pInfo,
-			length, (png_bytep) data);
-	}
-#endif /*PNG_eXIf_SUPPORTED*/
-
-	if (vips_image_map(in, write_png_comment, write))
-		return -1;
-
-	/* ICC profile.
-	 */
-	if (profile) {
-		if (vips_png_add_custom_icc(write, profile))
-			return -1;
-	}
-	else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-		if (vips_png_add_original_icc(write))
-			return -1;
-	}
-
-	/* Restore setjmp after profile writers.
-	 */
-	if (setjmp(png_jmpbuf(write->pPng)))
-		return -1;
-
-#ifdef HAVE_QUANTIZATION
-	if (palette) {
-		VipsImage *im_index;
-		VipsImage *im_palette;
-		int palette_count;
-		png_color *png_palette;
-		png_byte *png_trans;
-		int trans_count;
-
-		if (vips__quantise_image(in, &im_index, &im_palette,
-				1 << bitdepth, Q, dither, effort, FALSE))
-			return -1;
-
-		palette_count = im_palette->Xsize;
-
-		g_assert(palette_count <= PNG_MAX_PALETTE_LENGTH);
-
-		png_palette = (png_color *) png_malloc(write->pPng,
-			palette_count * sizeof(png_color));
-		png_trans = (png_byte *) png_malloc(write->pPng,
-			palette_count * sizeof(png_byte));
-		trans_count = 0;
-		for (i = 0; i < palette_count; i++) {
-			VipsPel *p =
-				(VipsPel *) VIPS_IMAGE_ADDR(im_palette, i, 0);
-			png_color *col = &png_palette[i];
-
-			col->red = p[0];
-			col->green = p[1];
-			col->blue = p[2];
-			png_trans[i] = p[3];
-			if (p[3] != 255)
-				trans_count = i + 1;
-		}
-
-		png_set_PLTE(write->pPng, write->pInfo,
-			png_palette, palette_count);
-		if (trans_count)
-			png_set_tRNS(write->pPng, write->pInfo,
-				png_trans, trans_count, NULL);
-
-		png_free(write->pPng, (void *) png_palette);
-		png_free(write->pPng, (void *) png_trans);
-
-		VIPS_UNREF(im_palette);
-
-		VIPS_UNREF(write->memory);
-		write->memory = im_index;
-		in = write->memory;
-	}
-#endif /*HAVE_QUANTIZATION*/
-
-	png_write_info(write->pPng, write->pInfo);
-
-	/* If we're an intel byte order CPU and this is a 16bit image, we need
-	 * to swap bytes.
-	 */
-	if (bitdepth > 8 &&
-		!vips_amiMSBfirst())
-		png_set_swap(write->pPng);
-
-	/* If bitdepth is 1/2/4, pack pixels into bytes.
-	 */
-	png_set_packing(write->pPng);
-
-	/* Allocate frame buffer.
-	 */
-	write->frame_bytes = g_malloc(
-		(size_t) in->Xsize * page_height *
-		VIPS_IMAGE_SIZEOF_PEL(in));
-
-	/* Write data via sink_disc.
-	 */
-	if (vips_sink_disc(in, write_apng_block, write))
-		return -1;
-
-	/* Reset setjmp after sink_disc.
-	 */
-	if (setjmp(png_jmpbuf(write->pPng)))
-		return -1;
-
-	png_write_end(write->pPng, write->pInfo);
-
-	return 0;
-}
-
-#endif /*PNG_APNG_SUPPORTED*/
 
 int
 vips__png_write_target(VipsImage *in, VipsTarget *target,
@@ -2620,40 +2299,6 @@ vips__png_write_target(VipsImage *in, VipsTarget *target,
 
 	if (!(write = write_new(in, target)))
 		return -1;
-
-#ifdef PNG_APNG_SUPPORTED
-	/* Detect animation: page_height != image height means we have
-	 * multiple pages stacked vertically.
-	 */
-	{
-		int page_height = vips_image_get_page_height(in);
-
-		if (page_height != in->Ysize) {
-			if (interlace) {
-				g_warning("disabling interlace for animated PNG");
-				interlace = FALSE;
-			}
-
-			if (write_vips_apng(write,
-					compression, profile, filter, palette,
-					Q, dither, bitdepth, effort)) {
-				write_destroy(write);
-				vips_error("vips2png",
-					_("unable to write to target %s"),
-					vips_connection_nick(
-						VIPS_CONNECTION(target)));
-				return -1;
-			}
-
-			write_destroy(write);
-
-			if (vips_target_end(target))
-				return -1;
-
-			return 0;
-		}
-	}
-#endif /*PNG_APNG_SUPPORTED*/
 
 	if (write_vips(write,
 			compression, interlace, profile, filter, palette,
