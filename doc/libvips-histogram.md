@@ -24,6 +24,7 @@ CIELAB images, but might be useful elsewhere.
 
 * [method@Image.maplut]
 * [method@Image.percent]
+* [method@Image.percent_lum]
 * [method@Image.stdif]
 * [method@Image.hist_cum]
 * [method@Image.hist_norm]

@@ -45,6 +45,9 @@ VIPS_API
 int vips_percent(VipsImage *in, double percent, int *threshold, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_percent_lum(VipsImage *in, double percent, double *threshold, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 int vips_stdif(VipsImage *in, VipsImage **out, int width, int height, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
