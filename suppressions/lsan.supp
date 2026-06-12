@@ -2,15 +2,9 @@
 leak:PyMem_RawCalloc
 leak:PyMem_RawMalloc
 
-# Known leaks in Fontconfig, most likely false positives due to
+# Reported leaks in Fontconfig are likely false positives due to
 # missing instrumentation (i.e. it's build without ASan/LSan).
-leak:FcConfigSubstituteWithPat
-leak:FcDefaultSubstitute
-leak:FcFontSetList
-leak:FcFontSetMatch
-leak:FcInit
-leak:FcPatternBuild
-leak:FcValueSave
+leak:libfontconfig.so.1
 
 # Freed on exit, see:
 # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=36298#c1
