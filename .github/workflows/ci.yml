@@ -12,20 +12,20 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: "Linux x64 (Ubuntu 24.04) - GCC 14"
-            os: ubuntu-24.04
-            build: { cc: gcc-14, cxx: g++-14, linker: ld }
+          - name: "Linux x64 (Ubuntu 26.04) - GCC 15"
+            os: ubuntu-26.04
+            build: { cc: gcc-15, cxx: g++-15, linker: ld }
             extra_meson_args: -Ddocs=true
 
-          - name: "Linux x64 (Ubuntu 24.04) - Clang 19 with ASan and UBSan"
-            os: ubuntu-24.04
-            build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'address,undefined' }
+          - name: "Linux x64 (Ubuntu 26.04) - Clang 22 with ASan and UBSan"
+            os: ubuntu-26.04
+            build: { cc: clang-22, cxx: clang++-22, linker: ld.lld-22, sanitize: 'address,undefined' }
             extra_meson_args: -Dintrospection=disabled
 
           # We cannot reliably test this if GLib is built without TSan instrumentation.
-          #- name: "Linux x64 (Ubuntu 24.04) - Clang 19 with TSan"
-          #  os: ubuntu-24.04
-          #  build: { cc: clang-19, cxx: clang++-19, linker: ld.lld-19, sanitize: 'thread' }
+          #- name: "Linux x64 (Ubuntu 26.04) - Clang 22 with TSan"
+          #  os: ubuntu-26.04
+          #  build: { cc: clang-22, cxx: clang++-22, linker: ld.lld-22, sanitize: 'thread' }
           #  extra_meson_args: -Dintrospection=disabled
 
           - name: "macOS arm64 (15) - Xcode 16"
@@ -48,16 +48,17 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install \
-            meson gi-docgen pkg-config \
+            meson pkgconf \
+            gi-docgen gobject-introspection \
             libarchive-dev libcfitsio-dev libcgif-dev \
             libexif-dev libexpat1-dev libffi-dev \
             libfftw3-dev libheif-dev libheif-plugin-aomenc \
-            libheif-plugin-x265 libhwy-dev libimagequant-dev \
-            libjpeg-dev libjxl-dev liblcms2-dev \
-            libmatio-dev libnifti-dev libopenexr-dev \
-            libopenjp2-7-dev libopenslide-dev libpango1.0-dev \
-            libpng-dev libpoppler-glib-dev librsvg2-dev \
-            libtiff5-dev libwebp-dev
+            libhwy-dev libimagequant-dev libjpeg-dev \
+            libjxl-dev liblcms2-dev libmatio-dev \
+            libnifti-dev libopenexr-dev libopenjp2-7-dev \
+            libopenslide-dev libpango1.0-dev libpng-dev \
+            libpoppler-glib-dev librsvg2-dev libtiff5-dev \
+            libwebp-dev
 
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
@@ -76,10 +77,6 @@ jobs:
             mozjpeg openexr openjpeg openslide pango \
             poppler webp
 
-      - name: Install Clang 19
-        if: runner.os == 'Linux' && matrix.build.cc == 'clang-19'
-        run: sudo apt-get install clang-19 libclang-rt-19-dev lld-19 llvm-19
-
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
         run: |
@@ -88,7 +85,9 @@ jobs:
       - name: Prepare sanitizers environment
         if: matrix.build.sanitize
         run: |
-          echo "CPPFLAGS=-g -fno-omit-frame-pointer -fno-sanitize=function -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION" >> $GITHUB_ENV
+          # FIXME: remove `-DHWY_BROKEN_TARGETS=(HWY_AVX3|HWY_AVX3_DL)` once Highway is updated to 1.4.0
+          # https://github.com/google/highway/issues/2705
+          echo "CPPFLAGS=-g -fno-omit-frame-pointer -fno-sanitize=function -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -DHWY_BROKEN_TARGETS=(HWY_AVX3|HWY_AVX3_DL)" >> $GITHUB_ENV
           echo "LDFLAGS=-g -shared-libsan" >> $GITHUB_ENV
           # Glib is built without -fno-omit-frame-pointer. We need
           # to disable the fast unwinder to get full stacktraces.
@@ -98,6 +97,8 @@ jobs:
           # Ensure UBSan issues causes the program to abort.
           echo "UBSAN_OPTIONS=suppressions=${{ github.workspace }}/suppressions/ubsan.supp:halt_on_error=1:abort_on_error=1:print_stacktrace=1" >> $GITHUB_ENV
           echo "$(dirname $($CC -print-prog-name=llvm-symbolizer))" >> $GITHUB_PATH
+          # https://wiki.ubuntu.com/PythonDebugPackages
+          sudo apt-get install python3-dbg
 
       - name: Prepare ASan/UBSan
         if: matrix.build.sanitize == 'address,undefined'
@@ -146,4 +147,5 @@ jobs:
         env:
           VIPS_LEAK: 1
           LD_PRELOAD: ${{ env.SANITIZE_DSO }}
-        run: python3 -m pytest -sv --log-cli-level=WARNING test/test-suite
+          PYTHON: ${{ matrix.build.sanitize && 'python3-dbg' || 'python3' }}
+        run: $PYTHON -m pytest -sv --log-cli-level=WARNING test/test-suite

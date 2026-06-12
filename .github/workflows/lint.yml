@@ -6,7 +6,7 @@ permissions: {}
 
 jobs:
   cpp-linter:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v6
       - uses: cpp-linter/cpp-linter-action@v2
@@ -15,7 +15,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           style: file
-          version: 19 # Ubuntu 24.04 provides clang-format-19
+          version: 22 # Ubuntu 26.04 provides clang-format-22
           tidy-checks: '-*' # disable clang-tidy
           lines-changed-only: true
           # ignore bundled files
