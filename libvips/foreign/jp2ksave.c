@@ -335,7 +335,7 @@ vips_foreign_save_jp2k_rgb_to_ycc(VipsRegion *region,
 			for (z = 0; z < dx; z++) \
 				sum += ap[z]; \
 \
-			tq[x] = ((guint64)(sum + n_pels / 2) / n_pels) >> 32; \
+			tq[x] = (sum + n_pels / 2) / n_pels; \
 			ap += comp->dx; \
 		} \
 	}
