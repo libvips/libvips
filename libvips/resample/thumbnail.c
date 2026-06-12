@@ -891,7 +891,7 @@ vips_thumbnail_build(VipsObject *object)
 			 */
 			if (vips_unpremultiply(in, &t[6], "uchar", TRUE, NULL))
 				return -1;
-			in = t[3];
+			in = t[6];
 		}
 		else {
 			if (vips_unpremultiply(in, &t[6], NULL) ||
