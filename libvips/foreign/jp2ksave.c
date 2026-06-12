@@ -306,8 +306,7 @@ vips_foreign_save_jp2k_rgb_to_ycc(VipsRegion *region,
 	{ \
 		ACC_TYPE *acc = (ACC_TYPE *) accumulate; \
 		OUTPUT_TYPE *tq = (OUTPUT_TYPE *) q; \
-		const int dy = VIPS_MIN(comp->dy, \
-			tile->height - y * comp->dy); \
+		const int dy = VIPS_MIN(comp->dy, tile->height - y * comp->dy); \
 \
 		PIXEL_TYPE *tp; \
 		ACC_TYPE *ap; \
@@ -328,8 +327,7 @@ vips_foreign_save_jp2k_rgb_to_ycc(VipsRegion *region,
 \
 		ap = acc; \
 		for (x = 0; x < output_width; x++) { \
-			const int dx = VIPS_MIN(comp->dx, \
-				tile->width - x * comp->dx); \
+			const int dx = VIPS_MIN(comp->dx, tile->width - x * comp->dx); \
 			const int n_pels = dx * dy; \
 			ACC_TYPE sum; \
 \
@@ -337,7 +335,7 @@ vips_foreign_save_jp2k_rgb_to_ycc(VipsRegion *region,
 			for (z = 0; z < dx; z++) \
 				sum += ap[z]; \
 \
-			tq[x] = (sum + n_pels / 2) / n_pels; \
+			tq[x] = ((guint64)(sum + n_pels / 2) * n_pels_recip) >> 32; \
 			ap += comp->dx; \
 		} \
 	}

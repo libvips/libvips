@@ -136,11 +136,11 @@ vips_rot90_gen(VipsRegion *out_region,
 	for (int y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
-		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
+		VipsPel * restrict q = VIPS_REGION_ADDR(out_region, le, y);
 
 		/* Corresponding position in ir.
 		 */
-		VipsPel *p = VIPS_REGION_ADDR(ir,
+		VipsPel * restrict p = VIPS_REGION_ADDR(ir,
 			need.left + y - to,
 			need.top + need.height - 1);
 
