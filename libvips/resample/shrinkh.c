@@ -80,10 +80,10 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 		unsigned char *restrict p = (unsigned char *) in; \
 		unsigned char *restrict q = (unsigned char *) out; \
 \
-		for (x = 0; x < width; x++) { \
-			for (b = 0; b < BANDS; b++) { \
+		for (int x = 0; x < width; x++) { \
+			for (int b = 0; b < BANDS; b++) { \
 				int sum = amend; \
-				for (x1 = b; x1 < ne; x1 += BANDS) \
+				for (int x1 = b; x1 < ne; x1 += BANDS) \
 					sum += p[x1]; \
 				q[b] = (sum * multiplier) >> 24; \
 			} \
@@ -100,10 +100,10 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 		unsigned short *restrict p = (unsigned short *) in; \
 		unsigned short *restrict q = (unsigned short *) out; \
 \
-		for (x = 0; x < width; x++) { \
-			for (b = 0; b < BANDS; b++) { \
+		for (int x = 0; x < width; x++) { \
+			for (int b = 0; b < BANDS; b++) { \
 				int sum = amend; \
-				for (x1 = b; x1 < ne; x1 += BANDS) \
+				for (int x1 = b; x1 < ne; x1 += BANDS) \
 					sum += p[x1]; \
 				q[b] = ((gint64) sum * ushort_multiplier) >> 32; \
 			} \
@@ -119,10 +119,10 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 		TYPE *restrict p = (TYPE *) in; \
 		TYPE *restrict q = (TYPE *) out; \
 \
-		for (x = 0; x < width; x++) { \
-			for (b = 0; b < BANDS; b++) { \
+		for (int x = 0; x < width; x++) { \
+			for (int b = 0; b < BANDS; b++) { \
 				ACC_TYPE sum = amend; \
-				for (x1 = b; x1 < ne; x1 += BANDS) \
+				for (int x1 = b; x1 < ne; x1 += BANDS) \
 					sum += p[x1]; \
 				q[b] = sum / shrink->hshrink; \
 			} \
@@ -139,10 +139,10 @@ G_DEFINE_TYPE(VipsShrinkh, vips_shrinkh, VIPS_TYPE_RESAMPLE);
 		TYPE *restrict q = (TYPE *) out; \
 		const double inv_hshrink = 1.0 / shrink->hshrink; \
 \
-		for (x = 0; x < width; x++) { \
-			for (b = 0; b < bands; b++) { \
+		for (int x = 0; x < width; x++) { \
+			for (int b = 0; b < bands; b++) { \
 				double sum = 0.0; \
-				for (x1 = b; x1 < ne; x1 += bands) \
+				for (int x1 = b; x1 < ne; x1 += bands) \
 					sum += p[x1]; \
 				q[b] = sum * inv_hshrink; \
 			} \
@@ -165,9 +165,6 @@ vips_shrinkh_gen2(VipsShrinkh *shrink, VipsRegion *out_region, VipsRegion *ir,
 	VipsPel *in = VIPS_REGION_ADDR(ir, left * shrink->hshrink, top);
 
 	int amend = shrink->hshrink / 2;
-
-	int x;
-	int x1, b;
 
 	switch (resample->in->BandFmt) {
 	case VIPS_FORMAT_UCHAR: {
@@ -253,14 +250,12 @@ vips_shrinkh_gen(VipsRegion *out_region,
 	VipsRegion *ir = (VipsRegion *) seq;
 	VipsRect *r = &out_region->valid;
 
-	int y, y1;
-
 #ifdef DEBUG
 	printf("vips_shrinkh_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	for (y = 0; y < r->height; y += dy) {
+	for (int y = 0; y < r->height; y += dy) {
 		int chunk_height = VIPS_MIN(dy, r->height - y);
 
 		VipsRect s;
@@ -278,7 +273,7 @@ vips_shrinkh_gen(VipsRegion *out_region,
 
 		VIPS_GATE_START("vips_shrinkh_gen: work");
 
-		for (y1 = 0; y1 < chunk_height; y1++)
+		for (int y1 = 0; y1 < chunk_height; y1++)
 			vips_shrinkh_gen2(shrink, out_region, ir,
 				r->left, r->top + y + y1, r->width);
 
@@ -312,14 +307,12 @@ vips_shrinkh_uchar_vector_gen(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	const int bands = in->Bands;
 
-	int y, y1;
-
 #ifdef DEBUG
 	printf("vips_shrinkh_uchar_vector_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	for (y = 0; y < r->height; y += dy) {
+	for (int y = 0; y < r->height; y += dy) {
 		int chunk_height = VIPS_MIN(dy, r->height - y);
 
 		VipsRect s;
@@ -341,7 +334,7 @@ vips_shrinkh_uchar_vector_gen(VipsRegion *out_region,
 		VIPS_GATE_START("vips_shrinkh_uchar_vector_gen: work");
 
 		// each output line
-		for (y1 = 0; y1 < chunk_height; y1++) {
+		for (int y1 = 0; y1 < chunk_height; y1++) {
 			// top of this line in the output
 			int top = r->top + y + y1;
 
@@ -366,8 +359,7 @@ vips_shrinkh_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsResample *resample = VIPS_RESAMPLE(object);
 	VipsShrinkh *shrink = (VipsShrinkh *) object;
-	VipsImage **t = (VipsImage **)
-		vips_object_local_array(object, 2);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
 	VipsImage *in;
 	VipsGenerateFn generate;
@@ -378,8 +370,7 @@ vips_shrinkh_build(VipsObject *object)
 	in = resample->in;
 
 	if (shrink->hshrink < 1) {
-		vips_error(class->nickname,
-			"%s", _("shrink factors should be >= 1"));
+		vips_error(class->nickname, "%s", _("shrink factors should be >= 1"));
 		return -1;
 	}
 
@@ -389,9 +380,7 @@ vips_shrinkh_build(VipsObject *object)
 	/* We need new pixels at the right so that we don't have small chunks
 	 * to average down the right edge.
 	 */
-	if (vips_embed(in, &t[1],
-			0, 0,
-			in->Xsize + shrink->hshrink, in->Ysize,
+	if (vips_embed(in, &t[1], 0, 0, in->Xsize + shrink->hshrink, in->Ysize,
 			"extend", VIPS_EXTEND_COPY,
 			NULL))
 		return -1;
@@ -426,8 +415,7 @@ vips_shrinkh_build(VipsObject *object)
 		? ceil((double) resample->in->Xsize / shrink->hshrink)
 		: VIPS_ROUND_UINT((double) resample->in->Xsize / shrink->hshrink);
 	if (resample->out->Xsize <= 0) {
-		vips_error(class->nickname,
-			"%s", _("image has shrunk to nothing"));
+		vips_error(class->nickname, "%s", _("image has shrunk to nothing"));
 		return -1;
 	}
 
