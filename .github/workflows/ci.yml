@@ -28,8 +28,8 @@ jobs:
           #  build: { cc: clang-22, cxx: clang++-22, linker: ld.lld-22, sanitize: 'thread' }
           #  extra_meson_args: -Dintrospection=disabled
 
-          - name: "macOS arm64 (15) - Xcode 16"
-            os: macos-15
+          - name: "macOS arm64 (26) - Xcode 26"
+            os: macos-26
             build: { cc: clang, cxx: clang++, linker: ld.lld }
             extra_meson_args: -Dintrospection=disabled
 
