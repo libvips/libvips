@@ -523,7 +523,7 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 		/* Rescale from scRGB (1.0 = 80 nits) to libuhdr's UHDR_CT_LINEAR
 		 * convention (1.0 = 203 nits, the ITU-R BT.2408 reference white).
 		 */
-		if (vips_linear1(image, &x, 80.0 / 203.0, 0.0, NULL)) {
+		if (vips_linear1(image, &x, 1.0 / VIPS_UHDR_TO_SCRGB, 0.0, NULL)) {
 			VIPS_UNREF(image);
 			return -1;
 		}
