@@ -851,18 +851,13 @@ vips_thumbnail_build(VipsObject *object)
 		g_info("premultiplying alpha");
 		unpremultiplied_format = in->BandFmt;
 
-		if (in->BandFmt == VIPS_FORMAT_UCHAR) {
-			/* Fast path: stay in uchar.
-			 */
-			if (vips_premultiply(in, &t[3], "uchar", TRUE, NULL))
-				return -1;
-			in = t[3];
-		}
-		else {
-			if (vips_premultiply(in, &t[3], NULL))
-				return -1;
-			in = t[4];
-		}
+		if (vips_premultiply(in, &t[3],
+				/* Fast path: stay in uchar.
+				 */
+				"uchar", in->BandFmt == VIPS_FORMAT_UCHAR,
+				NULL))
+			return -1;
+		in = t[3];
 	}
 
 	if (vips_resize(in, &t[5], 1.0 / hshrink, "vscale", 1.0 / vshrink, NULL))
