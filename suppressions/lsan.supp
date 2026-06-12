@@ -1,6 +1,6 @@
 # Likely false positives
-leak:PyMem_Malloc
-leak:PyObject_Malloc
+leak:PyMem_RawCalloc
+leak:PyMem_RawMalloc
 
 # Known leaks in Fontconfig, most likely false positives due to
 # missing instrumentation (i.e. it's build without ASan/LSan).
