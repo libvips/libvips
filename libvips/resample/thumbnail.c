@@ -157,11 +157,6 @@ typedef struct _VipsThumbnail {
 	 */
 	gboolean page_pyramid;
 
-	/* Max alpha value for premultiply/unpremultiply, stored here so
-	 * gen functions can access it.
-	 */
-	double premultiply_max_alpha;
-
 } VipsThumbnail;
 
 typedef struct _VipsThumbnailClass {
@@ -679,133 +674,6 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	return im;
 }
 
-/* Premultiply UCHAR image, staying in UCHAR. Avoids the
- * UCHAR->FLOAT->UCHAR round-trip that vips_premultiply + vips_cast does.
- */
-static int
-vips_thumbnail_premultiply_uchar_gen(VipsRegion *out_region,
-	void *vseq, void *a, void *b, gboolean *stop)
-{
-	VipsRegion *ir = (VipsRegion *) vseq;
-	double max_alpha = *((double *) b);
-	VipsRect *r = &out_region->valid;
-	int width = r->width;
-	int bands = ir->im->Bands;
-
-	int x, y, i;
-
-	float nalpha_lut[256];
-	for (i = 0; i < 256; i++) {
-		double clip = VIPS_CLIP(0, i, max_alpha);
-		nalpha_lut[i] = (float) (clip / max_alpha);
-	}
-
-	if (vips_region_prepare(ir, r))
-		return -1;
-
-	for (y = 0; y < r->height; y++) {
-		unsigned char *restrict p =
-			(unsigned char *) VIPS_REGION_ADDR(ir, r->left,
-				r->top + y);
-		unsigned char *restrict q =
-			(unsigned char *) VIPS_REGION_ADDR(out_region, r->left,
-				r->top + y);
-
-		if (bands == 4) {
-			for (x = 0; x < width; x++) {
-				float f = nalpha_lut[p[3]];
-
-				q[0] = p[0] * f;
-				q[1] = p[1] * f;
-				q[2] = p[2] * f;
-				q[3] = p[3];
-
-				p += 4;
-				q += 4;
-			}
-		}
-		else {
-			for (x = 0; x < width; x++) {
-				float f = nalpha_lut[p[bands - 1]];
-
-				for (i = 0; i < bands - 1; i++)
-					q[i] = p[i] * f;
-				q[bands - 1] = p[bands - 1];
-
-				p += bands;
-				q += bands;
-			}
-		}
-	}
-
-	return 0;
-}
-
-/* Unpremultiply UCHAR image, staying in UCHAR.
- */
-static int
-vips_thumbnail_unpremultiply_uchar_gen(VipsRegion *out_region,
-	void *vseq, void *a, void *b, gboolean *stop)
-{
-	VipsRegion *ir = (VipsRegion *) vseq;
-	double max_alpha = *((double *) b);
-	VipsRect *r = &out_region->valid;
-	int width = r->width;
-	int bands = ir->im->Bands;
-
-	int x, y, i;
-
-	float factor_lut[256];
-	factor_lut[0] = 0;
-	for (i = 1; i < 256; i++)
-		factor_lut[i] = (float) (max_alpha / (double) i);
-
-	if (vips_region_prepare(ir, r))
-		return -1;
-
-	for (y = 0; y < r->height; y++) {
-		unsigned char *restrict p =
-			(unsigned char *) VIPS_REGION_ADDR(ir, r->left,
-				r->top + y);
-		unsigned char *restrict q =
-			(unsigned char *) VIPS_REGION_ADDR(out_region, r->left,
-				r->top + y);
-
-		if (bands == 4) {
-			for (x = 0; x < width; x++) {
-				float f = factor_lut[p[3]];
-
-				q[0] = VIPS_CLIP(0,
-					(int) (p[0] * f), max_alpha);
-				q[1] = VIPS_CLIP(0,
-					(int) (p[1] * f), max_alpha);
-				q[2] = VIPS_CLIP(0,
-					(int) (p[2] * f), max_alpha);
-				q[3] = VIPS_CLIP(0, p[3], max_alpha);
-
-				p += 4;
-				q += 4;
-			}
-		}
-		else {
-			for (x = 0; x < width; x++) {
-				float f = factor_lut[p[bands - 1]];
-
-				for (i = 0; i < bands - 1; i++)
-					q[i] = VIPS_CLIP(0,
-						(int) (p[i] * f), max_alpha);
-				q[bands - 1] = VIPS_CLIP(0,
-					p[bands - 1], max_alpha);
-
-				p += bands;
-				q += bands;
-			}
-		}
-	}
-
-	return 0;
-}
-
 static int
 vips_thumbnail_build(VipsObject *object)
 {
@@ -984,28 +852,14 @@ vips_thumbnail_build(VipsObject *object)
 		unpremultiplied_format = in->BandFmt;
 
 		if (in->BandFmt == VIPS_FORMAT_UCHAR) {
-			/* Fast path: premultiply in UCHAR directly, avoiding
-			 * the UCHAR->FLOAT->UCHAR round-trip.
+			/* Fast path: stay in uchar.
 			 */
-			thumbnail->premultiply_max_alpha =
-				vips_interpretation_max_alpha(in->Type);
-
-			t[3] = vips_image_new();
-			if (vips_image_pipelinev(t[3],
-					VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
+			if (vips_premultiply(in, &t[3], "uchar", TRUE, NULL))
 				return -1;
-			if (vips_image_generate(t[3],
-					vips_start_one,
-					vips_thumbnail_premultiply_uchar_gen,
-					vips_stop_one,
-					in, &thumbnail->premultiply_max_alpha))
-				return -1;
-			in = t[3];
 		}
 		else {
 			if (vips_premultiply(in, &t[3], NULL) ||
-				vips_cast(t[3], &t[4],
-					unpremultiplied_format, NULL))
+				vips_cast(t[3], &t[4], unpremultiplied_format, NULL))
 				return -1;
 			in = t[4];
 		}
@@ -1040,24 +894,12 @@ vips_thumbnail_build(VipsObject *object)
 		if (unpremultiplied_format == VIPS_FORMAT_UCHAR) {
 			/* Fast path: unpremultiply in UCHAR directly.
 			 */
-			t[6] = vips_image_new();
-			if (vips_image_pipelinev(t[6],
-					VIPS_DEMAND_STYLE_THINSTRIP,
-					in, NULL))
+			if (vips_unpremultiply(in, &t[6], "uchar", TRUE, NULL))
 				return -1;
-			if (vips_image_generate(t[6],
-					vips_start_one,
-					vips_thumbnail_unpremultiply_uchar_gen,
-					vips_stop_one,
-					in,
-					&thumbnail->premultiply_max_alpha))
-				return -1;
-			in = t[6];
 		}
 		else {
 			if (vips_unpremultiply(in, &t[6], NULL) ||
-				vips_cast(t[6], &t[7],
-					unpremultiplied_format, NULL))
+				vips_cast(t[6], &t[7], unpremultiplied_format, NULL))
 				return -1;
 			in = t[7];
 		}
