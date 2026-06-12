@@ -856,10 +856,10 @@ vips_thumbnail_build(VipsObject *object)
 			 */
 			if (vips_premultiply(in, &t[3], "uchar", TRUE, NULL))
 				return -1;
+			in = t[3];
 		}
 		else {
-			if (vips_premultiply(in, &t[3], NULL) ||
-				vips_cast(t[3], &t[4], unpremultiplied_format, NULL))
+			if (vips_premultiply(in, &t[3], NULL))
 				return -1;
 			in = t[4];
 		}
@@ -896,6 +896,7 @@ vips_thumbnail_build(VipsObject *object)
 			 */
 			if (vips_unpremultiply(in, &t[6], "uchar", TRUE, NULL))
 				return -1;
+			in = t[3];
 		}
 		else {
 			if (vips_unpremultiply(in, &t[6], NULL) ||
