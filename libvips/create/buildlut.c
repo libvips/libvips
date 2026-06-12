@@ -119,11 +119,11 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(lut);
 
 	int y;
-	int xlow, xhigh;
+	double xlow, xhigh;
 
 	/* Need xlow and xhigh to get the size of the LUT we build.
 	 */
-	xlow = xhigh = *VIPS_MATRIX(lut->mat, 0, 0);
+	xlow = xhigh = rint(*VIPS_MATRIX(lut->mat, 0, 0));
 	for (y = 0; y < lut->mat->Ysize; y++) {
 		double v = *VIPS_MATRIX(lut->mat, 0, y);
 
@@ -142,8 +142,15 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 		if (v > xhigh)
 			xhigh = v;
 	}
-	lut->xlow = xlow;
-	lut->lut_size = xhigh - xlow + 1;
+
+	if (xlow < INT_MIN || xhigh > INT_MAX ||
+		xhigh - xlow + 1 > VIPS_MAX_COORD) {
+		vips_error(class->nickname, "%s", _("x range too large"));
+		return -1;
+	}
+
+	lut->xlow = (int) xlow;
+	lut->lut_size = (int) (xhigh - xlow + 1);
 
 	if (lut->lut_size < 1) {
 		vips_error(class->nickname, "%s", _("x range too small"));

@@ -78,10 +78,10 @@ typedef enum {
 /* A field in the dsr header.
  */
 typedef struct {
-	const char *name; /* Eg. "header_key.sizeof_hdr" */
+	const char *name;		/* Eg. "header_key.sizeof_hdr" */
 	Type type;
-	glong offset; /* Offset in struct */
-	int len;	  /* Sizeof ... useful for string types */
+	glong offset;			/* Offset in struct */
+	int len;				/* Sizeof ... useful for string types */
 } Field;
 
 static Field dsr_header[] = {
@@ -230,26 +230,27 @@ generate_filenames(const char *path, char *header, char *image)
 	vips__change_suffix(path, image, FILENAME_MAX, ".img", olds, 2);
 }
 
-/* str is a str which may not be NULL-terminated. Return a pointer to a static
- * buffer with a NULL-terminated version so we can safely printf() the string.
- * Also, make sure the string is plain ascii.
+/* str may not be NULL-terminated. mx is from dsr_header and is compile-time
+ * and under 80.
+ *
+ * Return a pointer to a static buffer with a NULL-terminated version so we
+ * can safely printf() the string. Also, make sure the string is plain ascii.
  */
 static char *
 getstr(int mx, const char *str)
 {
-	static char buf[256];
-	int i;
-
 	g_assert(mx < 256);
 
+	static char buf[256];
 	g_strlcpy(buf, str, mx);
 	buf[mx] = '\0';
 
 	/* How annoying, patient_id has some funny ctrlchars in that mess up
 	 * xml encode later.
 	 */
-	for (i = 0; i < mx && buf[i]; i++)
-		if (!isascii(buf[i]) || buf[i] < 32)
+	for (int i = 0; i < mx && buf[i]; i++)
+		if (!isascii(buf[i]) ||
+			buf[i] < 32)
 			buf[i] = '@';
 
 	return buf;
@@ -259,9 +260,7 @@ getstr(int mx, const char *str)
 static void
 print_dsr(struct dsr *d)
 {
-	int i;
-
-	for (i = 0; i < VIPS_NUMBER(dsr_header); i++) {
+	for (int i = 0; i < VIPS_NUMBER(dsr_header); i++) {
 		printf("%s = ", dsr_header[i].name);
 
 		switch (dsr_header[i].type) {
@@ -304,8 +303,7 @@ read_header(const char *header)
 		return NULL;
 
 	if (len != sizeof(struct dsr)) {
-		vips_error("analyze2vips",
-			"%s", _("header file size incorrect"));
+		vips_error("analyze2vips", "%s", _("header file size incorrect"));
 		g_free(d);
 		return NULL;
 	}
@@ -318,22 +316,18 @@ read_header(const char *header)
 	 * swap?
 	 */
 	if (!vips_amiMSBfirst()) {
-		int i;
-
-		for (i = 0; i < VIPS_NUMBER(dsr_header); i++) {
+		for (int i = 0; i < VIPS_NUMBER(dsr_header); i++) {
 			unsigned char *p;
 
 			switch (dsr_header[i].type) {
 			case SHORT:
-				p = &G_STRUCT_MEMBER(unsigned char, d,
-					dsr_header[i].offset);
+				p = &G_STRUCT_MEMBER(unsigned char, d, dsr_header[i].offset);
 				vips__copy_2byte(TRUE, p, p);
 				break;
 
 			case INT:
 			case FLOAT:
-				p = &G_STRUCT_MEMBER(unsigned char, d,
-					dsr_header[i].offset);
+				p = &G_STRUCT_MEMBER(unsigned char, d, dsr_header[i].offset);
 				vips__copy_4byte(TRUE, p, p);
 				break;
 
@@ -348,8 +342,7 @@ read_header(const char *header)
 	}
 
 	if ((int) len != d->hk.sizeof_hdr) {
-		vips_error("analyze2vips",
-			"%s", _("header size incorrect"));
+		vips_error("analyze2vips", "%s", _("header size incorrect"));
 		g_free(d);
 		return NULL;
 	}
@@ -363,22 +356,31 @@ static int
 get_vips_properties(struct dsr *d,
 	int *width, int *height, int *bands, VipsBandFormat *fmt)
 {
-	int i;
-
-	if (d->dime.dim[0] < 2 || d->dime.dim[0] > 7) {
+	if (d->dime.dim[0] < 2 ||
+		d->dime.dim[0] > 7) {
 		vips_error("analyze2vips",
-			_("%d-dimensional images not supported"),
-			d->dime.dim[0]);
+			_("%d-dimensional images not supported"), d->dime.dim[0]);
 		return -1;
 	}
 
-	/* Size of base 2d images.
-	 */
-	*width = d->dime.dim[1];
-	*height = d->dime.dim[2];
+	gint64 final_width = d->dime.dim[1];
+	if (final_width <= 0 ||
+		final_width > VIPS_MAX_COORD) {
+		vips_error("analyze2vips", "%s", _("dimension overflow"));
+		return -1;
+	}
+	*width = final_width;
 
-	for (i = 3; i <= d->dime.dim[0]; i++)
-		*height *= d->dime.dim[i];
+	gint64 final_height = d->dime.dim[2];
+	for (int i = 3; i <= d->dime.dim[0]; i++) {
+		final_height *= d->dime.dim[i];
+		if (final_height <= 0 ||
+			final_height > VIPS_MAX_COORD) {
+			vips_error("analyze2vips", "%s", _("dimension overflow"));
+			return -1;
+		}
+	}
+	*height = final_height;
 
 	/* Check it's a datatype we can handle.
 	 */
@@ -437,42 +439,35 @@ get_vips_properties(struct dsr *d,
 static void
 attach_meta(VipsImage *out, struct dsr *d)
 {
-	int i;
-
 	vips_image_set_blob(out, "dsr",
 		(VipsCallbackFn) vips_area_free_cb, d, d->hk.sizeof_hdr);
 
-	for (i = 0; i < VIPS_NUMBER(dsr_header); i++) {
+	for (int i = 0; i < VIPS_NUMBER(dsr_header); i++) {
 		switch (dsr_header[i].type) {
 		case BYTE:
 			vips_image_set_int(out, dsr_header[i].name,
-				G_STRUCT_MEMBER(char, d,
-					dsr_header[i].offset));
+				G_STRUCT_MEMBER(char, d, dsr_header[i].offset));
 			break;
 
 		case SHORT:
 			vips_image_set_int(out, dsr_header[i].name,
-				G_STRUCT_MEMBER(short, d,
-					dsr_header[i].offset));
+				G_STRUCT_MEMBER(short, d, dsr_header[i].offset));
 			break;
 
 		case INT:
 			vips_image_set_int(out, dsr_header[i].name,
-				G_STRUCT_MEMBER(int, d,
-					dsr_header[i].offset));
+				G_STRUCT_MEMBER(int, d, dsr_header[i].offset));
 			break;
 
 		case FLOAT:
 			vips_image_set_double(out, dsr_header[i].name,
-				G_STRUCT_MEMBER(float, d,
-					dsr_header[i].offset));
+				G_STRUCT_MEMBER(float, d, dsr_header[i].offset));
 			break;
 
 		case STRING:
 			vips_image_set_string(out, dsr_header[i].name,
 				getstr(dsr_header[i].len,
-					&G_STRUCT_MEMBER(char, d,
-						dsr_header[i].offset)));
+					&G_STRUCT_MEMBER(char, d, dsr_header[i].offset)));
 			break;
 
 		default:
@@ -541,9 +536,7 @@ vips__analyze_read_header(const char *filename, VipsImage *out)
 	vips_image_init_fields(out,
 		width, height, bands, fmt,
 		VIPS_CODING_NONE,
-		bands == 1
-			? VIPS_INTERPRETATION_B_W
-			: VIPS_INTERPRETATION_sRGB,
+		bands == 1 ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0);
 
 	attach_meta(out, d);

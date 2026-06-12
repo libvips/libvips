@@ -316,7 +316,7 @@ vips__vector_to_pels(const char *domain,
 	{
 		int i;
 
-		printf("vips__vector_to_ink:\n");
+		printf("vips__vector_to_pels:\n");
 		printf("\t(real, imag) = ");
 		for (i = 0; i < n; i++)
 			printf("(%g, %g) ", real[i], imag ? imag[i] : 0);

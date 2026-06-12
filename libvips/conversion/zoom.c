@@ -71,6 +71,8 @@
 
 #include "pconversion.h"
 
+
+
 typedef struct _VipsZoom {
 	VipsConversion parent_instance;
 
@@ -104,8 +106,6 @@ vips_zoom_paint_whole(VipsRegion *out_region, VipsRegion *ir, VipsZoom *zoom,
 	const int itop = top / zoom->yfac;
 	const int ibottom = bottom / zoom->yfac;
 
-	int x, y, z, i;
-
 	/* We know this!
 	 */
 	g_assert(right > left && bottom > top &&
@@ -116,7 +116,7 @@ vips_zoom_paint_whole(VipsRegion *out_region, VipsRegion *ir, VipsZoom *zoom,
 
 	/* Loop over input, as we know we are all whole.
 	 */
-	for (y = itop; y < ibottom; y++) {
+	for (int y = itop; y < ibottom; y++) {
 		VipsPel *p = VIPS_REGION_ADDR(ir, ileft, y);
 		VipsPel *q = VIPS_REGION_ADDR(out_region, left, y * zoom->yfac);
 		VipsPel *r;
@@ -124,12 +124,11 @@ vips_zoom_paint_whole(VipsRegion *out_region, VipsRegion *ir, VipsZoom *zoom,
 		/* Expand the first line of pels.
 		 */
 		r = q;
-		for (x = ileft; x < iright; x++) {
+		for (int x = ileft; x < iright; x++) {
 			/* Copy each pel xfac times.
 			 */
-			for (z = 0; z < zoom->xfac; z++) {
-				for (i = 0; i < ps; i++)
-					r[i] = p[i];
+			for (int z = 0; z < zoom->xfac; z++) {
+				VIPS_MEMCPY(r, p, ps);
 
 				r += ps;
 			}
@@ -140,7 +139,7 @@ vips_zoom_paint_whole(VipsRegion *out_region, VipsRegion *ir, VipsZoom *zoom,
 		/* Copy the expanded line yfac-1 times.
 		 */
 		r = q + ls;
-		for (z = 1; z < zoom->yfac; z++) {
+		for (int z = 1; z < zoom->yfac; z++) {
 			memcpy(r, q, rs);
 			r += ls;
 		}

@@ -273,9 +273,11 @@ vips_thumbnail_get_pyramid_page(VipsThumbnail *thumbnail)
 	printf("vips_thumbnail_get_pyramid_page:\n");
 #endif /*DEBUG*/
 
-	/* Single-page docs can't be pyramids.
+	/* Single-page docs can't be pyramids, more than 30 levels will int
+	 * overflow.
 	 */
-	if (thumbnail->n_pages < 2)
+	if (thumbnail->n_pages < 2 ||
+		thumbnail->n_pages > 29)
 		return;
 
 	for (i = 0; i < thumbnail->n_pages; i++) {
@@ -332,6 +334,12 @@ vips_thumbnail_get_tiff_pyramid_subifd(VipsThumbnail *thumbnail)
 #ifdef DEBUG
 	printf("vips_thumbnail_get_tiff_pyramid_subifd:\n");
 #endif /*DEBUG*/
+
+	/* Very small pyramids are useless, large ones int overflow.
+	 */
+	if (thumbnail->n_subifds < 1 ||
+		thumbnail->n_subifds > 28)
+		return;
 
 	for (i = 0; i < thumbnail->n_subifds; i++) {
 		VipsImage *page;

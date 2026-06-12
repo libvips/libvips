@@ -78,6 +78,7 @@
 
 #include "pconversion.h"
 
+
 typedef struct _VipsRot {
 	VipsConversion parent_instance;
 
@@ -110,8 +111,6 @@ vips_rot90_gen(VipsRegion *out_region,
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
 
-	int x, y, i;
-
 	/* Pixel geometry.
 	 */
 	int ps, ls;
@@ -134,7 +133,7 @@ vips_rot90_gen(VipsRegion *out_region,
 
 	/* Rotate the bit we now have.
 	 */
-	for (y = to; y < bo; y++) {
+	for (int y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
 		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
@@ -145,9 +144,8 @@ vips_rot90_gen(VipsRegion *out_region,
 			need.left + y - to,
 			need.top + need.height - 1);
 
-		for (x = le; x < ri; x++) {
-			for (i = 0; i < ps; i++)
-				q[i] = p[i];
+		for (int x = le; x < ri; x++) {
+			VIPS_MEMCPY(q, p, ps);
 
 			q += ps;
 			p -= ls;
@@ -172,8 +170,6 @@ vips_rot180_gen(VipsRegion *out_region,
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
 
-	int x, y, i;
-
 	/* Pixel geometry.
 	 */
 	int ps;
@@ -195,7 +191,7 @@ vips_rot180_gen(VipsRegion *out_region,
 
 	/* Rotate the bit we now have.
 	 */
-	for (y = to; y < bo; y++) {
+	for (int y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
 		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
@@ -208,9 +204,8 @@ vips_rot180_gen(VipsRegion *out_region,
 
 		/* Blap across!
 		 */
-		for (x = le; x < ri; x++) {
-			for (i = 0; i < ps; i++)
-				q[i] = p[i];
+		for (int x = le; x < ri; x++) {
+			VIPS_MEMCPY(q, p, ps);
 
 			q += ps;
 			p -= ps;
@@ -235,8 +230,6 @@ vips_rot270_gen(VipsRegion *out_region,
 	int to = r->top;
 	int bo = VIPS_RECT_BOTTOM(r);
 
-	int x, y, i;
-
 	/* Pixel geometry.
 	 */
 	int ps, ls;
@@ -259,7 +252,7 @@ vips_rot270_gen(VipsRegion *out_region,
 
 	/* Rotate the bit we now have.
 	 */
-	for (y = to; y < bo; y++) {
+	for (int y = to; y < bo; y++) {
 		/* Start of this output line.
 		 */
 		VipsPel *q = VIPS_REGION_ADDR(out_region, le, y);
@@ -270,9 +263,8 @@ vips_rot270_gen(VipsRegion *out_region,
 			need.left + need.width - (y - to) - 1,
 			need.top);
 
-		for (x = le; x < ri; x++) {
-			for (i = 0; i < ps; i++)
-				q[i] = p[i];
+		for (int x = le; x < ri; x++) {
+			VIPS_MEMCPY(q, p, ps);
 
 			q += ps;
 			p += ls;

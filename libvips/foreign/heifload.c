@@ -356,9 +356,14 @@ vips_foreign_load_heif_build(VipsObject *object)
 		heif_context_set_maximum_image_size_limit(heif->ctx,
 			heif->unlimited ? USHRT_MAX : 0x4000);
 #ifdef HAVE_HEIF_MAX_TOTAL_MEMORY
-		if (!heif->unlimited)
-			heif_context_get_security_limits(heif->ctx)
-				->max_total_memory = 2UL * 1024 * 1024 * 1024;
+		if (!heif->unlimited) {
+			heif_security_limits *limits =
+				heif_context_get_security_limits(heif->ctx);
+
+			limits->max_total_memory = 2L * 1024 * 1024 * 1024;
+			limits->max_memory_block_size = 1024 * 1024 * 1024;
+			limits->max_items = 16;
+		}
 #endif /* HAVE_HEIF_MAX_TOTAL_MEMORY */
 #ifdef HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS
 		if (heif->unlimited)
@@ -386,6 +391,8 @@ static const char *heif_magic[] = {
 	"ftyphevm", /* Multiview sequence */
 	"ftyphevs", /* Scalable sequence */
 	"ftypmif1", /* Nokia alpha_ image */
+	"ftypmif2", /* mif1 plus rref and iscl boxes */
+	"ftypmif3", /* Low-overhead mini box */
 	"ftypmsf1", /* Nokia animation image */
 	"ftypavif"	/* AV1 image format */
 };
@@ -554,6 +561,7 @@ vips_foreign_load_heif_set_page(VipsForeignLoadHeif *heif,
 static int
 vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(heif);
 	VipsForeignLoad *load = (VipsForeignLoad *) heif;
 
 	int bands;
@@ -614,6 +622,11 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 
 		if (!length)
 			continue;
+		if (!heif->unlimited &&
+			length > 64 * 1024 * 1024) {
+			vips_error(class->nickname, "%s", _("metadata block too large"));
+			return -1;
+		}
 		if (!(data = VIPS_ARRAY(NULL, length, unsigned char)))
 			return -1;
 		error = heif_image_handle_get_metadata(heif->handle, id[i], data);

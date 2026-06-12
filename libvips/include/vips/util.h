@@ -64,6 +64,28 @@ extern "C" {
 #define VIPS_ABS(V) (((V) >= 0) ? (V) : -(V))
 #define VIPS_FABS(V) fabs((V)) VIPS_DEPRECATED_MACRO_FOR(fabs)
 
+/* Inline fast paths for small memcpy() operations.
+ *
+ * N must not have side effects (e.g. N++).
+ */
+#define VIPS_MEMCPY(Q, P, N) \
+	G_STMT_START \
+	{ \
+		switch (N) { \
+		case 8: memcpy((Q), (P), 8); break; \
+		case 7: memcpy((Q), (P), 7); break; \
+		case 6: memcpy((Q), (P), 6); break; \
+		case 5: memcpy((Q), (P), 5); break; \
+		case 4: memcpy((Q), (P), 4); break; \
+		case 3: memcpy((Q), (P), 3); break; \
+		case 2: memcpy((Q), (P), 2); break; \
+		case 1: memcpy((Q), (P), 1); break; \
+		case 0: break; \
+		default: memcpy((Q), (P), (N)); break; \
+		} \
+	} \
+	G_STMT_END
+
 // is something (eg. a pointer) N aligned
 #define VIPS_ALIGNED(P, N) ((((guint64) (P)) & ((N) - 1)) == 0)
 

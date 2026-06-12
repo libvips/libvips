@@ -356,7 +356,10 @@ vips_reduceh_uchar_vector_gen(VipsRegion *out_region, void *seq,
 
 	s.left = r->left * reduceh->residual_hshrink - reduceh->hoffset;
 	s.top = r->top;
-	s.width = r->width * reduceh->residual_hshrink + reduceh->n_point;
+	/* Request one extra input pixel on the right so the Highway path can
+	 * safely process a full SIMD vector.
+	 */
+	s.width = (r->width + 1) * reduceh->residual_hshrink + reduceh->n_point;
 	s.height = r->height;
 	if (vips_region_prepare(ir, &s))
 		return -1;
