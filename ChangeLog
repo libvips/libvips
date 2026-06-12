@@ -23,8 +23,9 @@ date-tbd 8.19.0
 - csvload: add maximum limit on column count [lovell]
 - pdfload_buffer: only search the first few bytes in is_a [violetviolinist]
 - add VIPS_MEMCPY() [kleisauke]
-- heifload: allow mif2 and mif3 "brand" images e.g. mini box [lovell]
+- heifload: allow mif2 and mif3 "brand" images eg. mini box [lovell]
 - add vips_scRGB2CICP [mertalev]
+- add uchar options to premultiply and unpremultiply [jcupitt]
 
 6/6/26 8.18.3
 

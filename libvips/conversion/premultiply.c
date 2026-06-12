@@ -64,6 +64,11 @@ typedef struct _VipsPremultiply {
 	VipsImage *in;
 
 	double max_alpha;
+	gboolean uchar;
+
+	/* LUT for fast uchar -> uchar path. 8.8 bits of precision.
+	 */
+	int scale[256];
 
 } VipsPremultiply;
 
@@ -78,11 +83,12 @@ G_DEFINE_TYPE(VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION);
 		IN *restrict p = (IN *) in; \
 		OUT *restrict q = (OUT *) out; \
 \
-		for (x = 0; x < width; x++) { \
+		for (int x = 0; x < width; x++) { \
 			IN alpha = p[bands - 1]; \
 			IN clip_alpha = VIPS_CLIP(0, alpha, max_alpha); \
 			OUT nalpha = (OUT) clip_alpha / max_alpha; \
 \
+			int i; \
 			for (i = 0; i < bands - 1; i++) \
 				q[i] = p[i] * nalpha; \
 			q[i] = alpha; \
@@ -99,7 +105,7 @@ G_DEFINE_TYPE(VipsPremultiply, vips_premultiply, VIPS_TYPE_CONVERSION);
 		IN *restrict p = (IN *) in; \
 		OUT *restrict q = (OUT *) out; \
 \
-		for (x = 0; x < width; x++) { \
+		for (int x = 0; x < width; x++) { \
 			IN alpha = p[3]; \
 			IN clip_alpha = VIPS_CLIP(0, alpha, max_alpha); \
 			OUT nalpha = (OUT) clip_alpha / max_alpha; \
@@ -137,53 +143,69 @@ vips_premultiply_gen(VipsRegion *out_region,
 	int bands = im->Bands;
 	double max_alpha = premultiply->max_alpha;
 
-	int x, y, i;
-
 	if (vips_region_prepare(ir, r))
 		return -1;
 
-	for (y = 0; y < r->height; y++) {
-		VipsPel *in = VIPS_REGION_ADDR(ir, r->left, r->top + y);
-		VipsPel *out = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+	for (int y = 0; y < r->height; y++) {
+		VipsPel * restrict in =
+			VIPS_REGION_ADDR(ir, r->left, r->top + y);
+		VipsPel * restrict out =
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
-		switch (im->BandFmt) {
-		case VIPS_FORMAT_UCHAR:
-			PRE(unsigned char, float);
-			break;
+		if (premultiply->uchar &&
+			im->BandFmt == VIPS_FORMAT_UCHAR)
+			// fast uchar -> uchar path
+			for (int x = 0; x < width; x++) {
+				VipsPel alpha = in[bands - 1];
+				int scale = premultiply->scale[alpha];
 
-		case VIPS_FORMAT_CHAR:
-			PRE(signed char, float);
-			break;
+				int i;
+				for (i = 0; i < bands - 1; i++)
+					out[i] = (in[i] * scale + 128) >> 8;
+				out[i] = alpha;
 
-		case VIPS_FORMAT_USHORT:
-			PRE(unsigned short, float);
-			break;
+				in += bands;
+				out += bands;
+			}
+		else
+			switch (im->BandFmt) {
+			case VIPS_FORMAT_UCHAR:
+				PRE(unsigned char, float);
+				break;
 
-		case VIPS_FORMAT_SHORT:
-			PRE(signed short, float);
-			break;
+			case VIPS_FORMAT_CHAR:
+				PRE(signed char, float);
+				break;
 
-		case VIPS_FORMAT_UINT:
-			PRE(unsigned int, float);
-			break;
+			case VIPS_FORMAT_USHORT:
+				PRE(unsigned short, float);
+				break;
 
-		case VIPS_FORMAT_INT:
-			PRE(signed int, float);
-			break;
+			case VIPS_FORMAT_SHORT:
+				PRE(signed short, float);
+				break;
 
-		case VIPS_FORMAT_FLOAT:
-			PRE(float, float);
-			break;
+			case VIPS_FORMAT_UINT:
+				PRE(unsigned int, float);
+				break;
 
-		case VIPS_FORMAT_DOUBLE:
-			PRE(double, double);
-			break;
+			case VIPS_FORMAT_INT:
+				PRE(signed int, float);
+				break;
 
-		case VIPS_FORMAT_COMPLEX:
-		case VIPS_FORMAT_DPCOMPLEX:
-		default:
-			g_assert_not_reached();
-		}
+			case VIPS_FORMAT_FLOAT:
+				PRE(float, float);
+				break;
+
+			case VIPS_FORMAT_DOUBLE:
+				PRE(double, double);
+				break;
+
+			case VIPS_FORMAT_COMPLEX:
+			case VIPS_FORMAT_DPCOMPLEX:
+			default:
+				g_assert_not_reached();
+			}
 	}
 
 	return 0;
@@ -226,7 +248,17 @@ vips_premultiply_build(VipsObject *object)
 	if (!vips_object_argument_isset(object, "max_alpha"))
 		premultiply->max_alpha = vips_interpretation_max_alpha(in->Type); // FIXME: Invalidates operation cache
 
-	if (in->BandFmt == VIPS_FORMAT_DOUBLE)
+	if (premultiply->uchar &&
+		in->BandFmt == VIPS_FORMAT_UCHAR) {
+		conversion->out->BandFmt = VIPS_FORMAT_UCHAR;
+
+		for (int i = 0; i < 256; i++) {
+			double clip = VIPS_CLIP(0, i, premultiply->max_alpha);
+
+			premultiply->scale[i] = 256 * clip / premultiply->max_alpha;
+		}
+	}
+	else if (in->BandFmt == VIPS_FORMAT_DOUBLE)
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;
 	else
 		conversion->out->BandFmt = VIPS_FORMAT_FLOAT;
@@ -269,6 +301,14 @@ vips_premultiply_class_init(VipsPremultiplyClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsPremultiply, max_alpha),
 		0, 100000000, 255);
+
+	VIPS_ARG_BOOL(class, "uchar", 116,
+		_("uchar"),
+		_("Output should be uchar"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsPremultiply, uchar),
+		FALSE);
+
 }
 
 static void
@@ -301,6 +341,10 @@ vips_premultiply_init(VipsPremultiply *premultiply)
  * The result is
  * [enum@Vips.BandFormat.FLOAT] unless the input format is
  * [enum@Vips.BandFormat.DOUBLE], in which case the output is double as well.
+ *
+ * Set @uchar to generate [enum@Vips.BandFormat.UCHAR] output if the input is
+ * also [enum@Vips.BandFormat.UCHAR]. See the same option in
+ * [method@Image.unpremultiply].
  *
  * @max_alpha has the default value 255, or 65535 for images tagged as
  * [enum@Vips.Interpretation.RGB16] or [enum@Vips.Interpretation.GREY16], and
