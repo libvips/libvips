@@ -11,8 +11,8 @@ to remove all single isolated pixels from the result.
 If you combine the morphological operators with the mask rotators
 ([method@Image.rot45], for example) and apply them repeatedly, you can
 achieve very complicated effects: you can thin, prune, fill, open edges,
-close gaps, and many others. For example, see “Fundamentals of Digital
-Image Processing” by A. Jain, pp 384-388, Prentice-Hall, 1989 for more
+close gaps, and many others. For example, see "Fundamentals of Digital
+Image Processing" by A. Jain, pp 384-388, Prentice-Hall, 1989 for more
 ideas.
 
 Beware that libvips reverses the usual image processing convention, by
