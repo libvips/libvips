@@ -30,7 +30,7 @@ avoid any formatting mismatch with our [GitHub Actions lint check](
 
 `clang-format` can be used via the `git-clang-format` script. On some systems,
 it may already be installed (or be installable via your package manager). If
-so, you can simply run it – the following commands will format only the code
+so, you can simply run it - the following commands will format only the code
 on the staged changes:
 ```shell
 # Stage original changes
@@ -49,7 +49,7 @@ Alternatively, you can format only the code changed in the most recent commit:
 $ git clang-format HEAD~1
 ```
 
-Note that this modifies the files, but doesn't commit them – you'll likely want
+Note that this modifies the files, but doesn't commit them - you'll likely want
 to run:
 ```shell
 $ git commit --amend -a

@@ -162,16 +162,16 @@ For example:
 
 ```console
 $ vipsthumbnail 42-32157534.jpg
-$ ls -l tn_42-32157534.jpg
--rw-r–r– 1 john john 6682 Nov 12 21:27 tn_42-32157534.jpg
+$ du -b tn_42-32157534.jpg
+6682	tn_42-32157534.jpg
 ```
 
 `keep=none` almost halves the size of the thumbnail:
 
 ```console
 $ vipsthumbnail 42-32157534.jpg --path x.jpg[optimize_coding,keep=none]
-$ ls -l x.jpg
--rw-r–r– 1 john john 3600 Nov 12 21:27 x.jpg
+$ du -b x.jpg
+3600	x.jpg
 ```
 
 ## Colour management
@@ -186,8 +186,8 @@ For example:
 
 ```console
 $ vipsthumbnail shark.jpg
-$ ls -l tn_shark.jpg
--rw-r–r– 1 john john 7295 Nov  9 14:33 tn_shark.jpg
+$ du -b tn_shark.jpg
+7295	tn_shark.jpg
 ```
 
 Now transform to sRGB and don't attach a profile (you can also use
@@ -195,8 +195,8 @@ Now transform to sRGB and don't attach a profile (you can also use
 
 ```console
 $ vipsthumbnail shark.jpg --output-profile srgb --path tn_shark.jpg[profile=none]
-$ ls -l tn_shark.jpg
--rw-r–r– 1 john john 4229 Nov  9 14:33 tn_shark.jpg
+$ du -b tn_shark.jpg
+4229	tn_shark.jpg
 ```
 
 (You can use the filename of any RGB profile. The magic string `srgb` selects a
