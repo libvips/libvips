@@ -34,6 +34,7 @@ conversion_sources = files(
     'autorot.c',
     'ifthenelse.c',
     'falsecolour.c',
+    'reduce_colours.c',
     'msb.c',
     'grid.c',
     'scale.c',

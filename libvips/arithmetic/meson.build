@@ -8,6 +8,7 @@ arithmetic_sources = files(
     'clamp.c',
     'complex.c',
     'deviate.c',
+    'dominant_colours.c',
     'divide.c',
     'find_trim.c',
     'getpoint.c',

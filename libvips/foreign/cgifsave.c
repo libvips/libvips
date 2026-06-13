@@ -53,7 +53,7 @@
 #include "pforeign.h"
 #include "quantise.h"
 
-#if defined(HAVE_CGIF) && defined(HAVE_QUANTIZATION)
+#if defined(HAVE_CGIF)
 
 #include <cgif.h>
 

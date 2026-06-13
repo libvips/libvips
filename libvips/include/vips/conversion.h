@@ -349,6 +349,9 @@ VIPS_API
 int vips_falsecolour(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_reduce_colours(VipsImage *in, VipsImage **out, int n, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 int vips_gamma(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
