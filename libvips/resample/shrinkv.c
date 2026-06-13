@@ -160,7 +160,7 @@ vips_shrinkv_start(VipsImage *out, void *a, void *b)
 		ACC_TYPE *restrict sum = (ACC_TYPE *) seq->sum + sz * y; \
 		TYPE *restrict p = (TYPE *) in; \
 \
-		for (x = 0; x < sz; x++) \
+		for (int x = 0; x < sz; x++) \
 			sum[x] += p[x]; \
 	}
 
@@ -174,8 +174,6 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 	const int bands = resample->in->Bands *
 		(vips_band_format_iscomplex(resample->in->BandFmt) ? 2 : 1);
 	const int sz = bands * width;
-
-	int x;
 
 	VipsPel *in = VIPS_REGION_ADDR(ir, left, top);
 	switch (resample->in->BandFmt) {
@@ -224,8 +222,23 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 		int amend = shrink->vshrink / 2; \
 		unsigned int multiplier = (1LL << 32) / ((1 << 8) * shrink->vshrink); \
 \
-		for (x = 0; x < sz; x++) \
+		for (int x = 0; x < sz; x++) \
 			q[x] = ((sum[x] + amend) * multiplier) >> 24; \
+	}
+
+/* Fixed-point arithmetic path for ushort averages. Avoids per-pixel
+ * integer division by using multiply-shift.
+ */
+#define USHORT_AVG() \
+	{ \
+		int *restrict sum = (int *) seq->sum + sz * y; \
+		unsigned short *restrict q = (unsigned short *) out; \
+		int amend = shrink->vshrink / 2; \
+		guint64 multiplier = \
+			((1ULL << 32) + shrink->vshrink - 1) / shrink->vshrink; \
+\
+		for (int x = 0; x < sz; x++) \
+			q[x] = ((gint64) (sum[x] + amend) * multiplier) >> 32; \
 	}
 
 /* Integer average.
@@ -236,7 +249,7 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 		TYPE *restrict q = (TYPE *) out; \
 		int amend = shrink->vshrink / 2; \
 \
-		for (x = 0; x < sz; x++) \
+		for (int x = 0; x < sz; x++) \
 			q[x] = (sum[x] + amend) / shrink->vshrink; \
 	}
 
@@ -247,7 +260,7 @@ vips_shrinkv_add_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 		double *restrict sum = (double *) seq->sum + sz * y; \
 		TYPE *restrict q = (TYPE *) out; \
 \
-		for (x = 0; x < sz; x++) \
+		for (int x = 0; x < sz; x++) \
 			q[x] = sum[x] / shrink->vshrink; \
 	}
 
@@ -262,8 +275,6 @@ vips_shrinkv_write_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 		(vips_band_format_iscomplex(resample->in->BandFmt) ? 2 : 1);
 	const int sz = bands * width;
 
-	int x;
-
 	VipsPel *out = VIPS_REGION_ADDR(out_region, left, top);
 	switch (resample->in->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
@@ -273,7 +284,7 @@ vips_shrinkv_write_line(VipsShrinkv *shrink, VipsShrinkvSequence *seq,
 		IAVG(int, char);
 		break;
 	case VIPS_FORMAT_USHORT:
-		IAVG(int, unsigned short);
+		USHORT_AVG();
 		break;
 	case VIPS_FORMAT_SHORT:
 		IAVG(int, short);
@@ -322,14 +333,12 @@ vips_shrinkv_gen(VipsRegion *out_region,
 	 */
 	int dy = vips__fatstrip_height;
 
-	int y, y1, y2;
-
 #ifdef DEBUG
 	printf("vips_shrinkv_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	for (y = 0; y < r->height; y += dy) {
+	for (int y = 0; y < r->height; y += dy) {
 		int chunk_height = VIPS_MIN(dy, r->height - y);
 
 		memset(seq->sum, 0, shrink->sizeof_line_buffer);
@@ -337,7 +346,7 @@ vips_shrinkv_gen(VipsRegion *out_region,
 		const int start = (r->top + y) * shrink->vshrink;
 		const int end = (r->top + y + chunk_height) * shrink->vshrink;
 
-		for (y1 = start; y1 < end; y1 += dy) {
+		for (int y1 = start; y1 < end; y1 += dy) {
 			VipsRect s;
 
 			s.left = r->left;
@@ -353,7 +362,7 @@ vips_shrinkv_gen(VipsRegion *out_region,
 
 			VIPS_GATE_START("vips_shrinkv_gen: work");
 
-			for (y2 = 0; y2 < s.height; y2++) {
+			for (int y2 = 0; y2 < s.height; y2++) {
 				int chunk_y = (y1 + y2 - start) / shrink->vshrink;
 
 				vips_shrinkv_add_line(shrink, seq, ir,
@@ -365,7 +374,7 @@ vips_shrinkv_gen(VipsRegion *out_region,
 
 		VIPS_GATE_START("vips_shrinkv_gen: work");
 
-		for (y1 = 0; y1 < chunk_height; y1++)
+		for (int y1 = 0; y1 < chunk_height; y1++)
 			vips_shrinkv_write_line(shrink, seq, out_region,
 				r->left, r->top + y + y1, r->width, y1);
 
@@ -401,14 +410,12 @@ vips_shrinkv_uchar_vector_gen(VipsRegion *out_region,
 	 */
 	int dy = vips__fatstrip_height;
 
-	int y, y1, y2;
-
 #ifdef DEBUG
 	printf("vips_shrinkv_uchar_vector_gen: generating %d x %d at %d x %d\n",
 		r->width, r->height, r->left, r->top);
 #endif /*DEBUG*/
 
-	for (y = 0; y < r->height; y += dy) {
+	for (int y = 0; y < r->height; y += dy) {
 		int chunk_height = VIPS_MIN(dy, r->height - y);
 
 		memset(seq->sum, 0, shrink->sizeof_line_buffer);
@@ -416,7 +423,7 @@ vips_shrinkv_uchar_vector_gen(VipsRegion *out_region,
 		const int start = (r->top + y) * shrink->vshrink;
 		const int end = (r->top + y + chunk_height) * shrink->vshrink;
 
-		for (y1 = start; y1 < end; y1 += dy) {
+		for (int y1 = start; y1 < end; y1 += dy) {
 			VipsRect s;
 
 			s.left = r->left;
@@ -433,7 +440,7 @@ vips_shrinkv_uchar_vector_gen(VipsRegion *out_region,
 
 			VIPS_GATE_START("vips_shrinkv_uchar_vector_gen: work");
 
-			for (y2 = 0; y2 < s.height; y2++) {
+			for (int y2 = 0; y2 < s.height; y2++) {
 				VipsPel *p = VIPS_REGION_ADDR(ir, r->left, y1 + y2);
 				int chunk_y = (y1 + y2 - start) / shrink->vshrink;
 
@@ -446,9 +453,8 @@ vips_shrinkv_uchar_vector_gen(VipsRegion *out_region,
 
 		VIPS_GATE_START("vips_shrinkv_uchar_vector_gen: work");
 
-		for (y1 = 0; y1 < chunk_height; y1++) {
-			VipsPel *q = VIPS_REGION_ADDR(out_region, r->left,
-				r->top + y + y1);
+		for (int y1 = 0; y1 < chunk_height; y1++) {
+			VipsPel *q = VIPS_REGION_ADDR(out_region, r->left, r->top + y + y1);
 
 			vips_shrinkv_write_line_uchar_hwy(q, ne, shrink->vshrink,
 				(unsigned int *) seq->sum + ne * y1);
@@ -481,8 +487,7 @@ vips_shrinkv_build(VipsObject *object)
 	in = resample->in;
 
 	if (shrink->vshrink < 1) {
-		vips_error(class->nickname,
-			"%s", _("shrink factors should be >= 1"));
+		vips_error(class->nickname, "%s", _("shrink factors should be >= 1"));
 		return -1;
 	}
 
@@ -544,8 +549,7 @@ vips_shrinkv_build(VipsObject *object)
 	 * mode, the linecache above will keep us sequential.
 	 */
 	t[2] = vips_image_new();
-	if (vips_image_pipelinev(t[2],
-			VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
+	if (vips_image_pipelinev(t[2], VIPS_DEMAND_STYLE_SMALLTILE, in, NULL))
 		return -1;
 
 	/* Size output.
@@ -558,8 +562,7 @@ vips_shrinkv_build(VipsObject *object)
 		? ceil((double) resample->in->Ysize / shrink->vshrink)
 		: VIPS_ROUND_UINT((double) resample->in->Ysize / shrink->vshrink);
 	if (t[2]->Ysize <= 0) {
-		vips_error(class->nickname,
-			"%s", _("image has shrunk to nothing"));
+		vips_error(class->nickname, "%s", _("image has shrunk to nothing"));
 		return -1;
 	}
 
@@ -590,9 +593,7 @@ vips_shrinkv_build(VipsObject *object)
 	if (vips_image_is_sequential(in)) {
 		g_info("shrinkv sequential line cache");
 
-		if (vips_sequential(in, &t[3],
-				"tile_height", 10,
-				NULL))
+		if (vips_sequential(in, &t[3], "tile_height", 10, NULL))
 			return -1;
 		in = t[3];
 	}
