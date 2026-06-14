@@ -24,7 +24,7 @@ API changes generally should not update the [ChangeLog](ChangeLog) file.
 ## Code style
 
 This project uses `clang-format` to maintain a consistent code style throughout
-the codebase. We recommend using version 19 (as available in Ubuntu 24.04), to
+the codebase. We recommend using version 22 (as available in Ubuntu 26.04), to
 avoid any formatting mismatch with our [GitHub Actions lint check](
 .github/workflows/lint.yml).
 
