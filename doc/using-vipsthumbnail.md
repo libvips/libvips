@@ -85,6 +85,14 @@ than the target.
 You can append `!` to force a resize to the exact target size, breaking
 the aspect ratio.
 
+Append `@` to size within that many pixels, for example:
+
+```console
+$ vipsthumbnail shark.jpg --size 1000@
+```
+
+Will size to a total area (width x height) of just under 1000.
+
 ## Cropping
 
 `vipsthumbnail` normally shrinks images to fit within the box set by `--size`.

@@ -107,6 +107,8 @@
  * 	- support ".suffix" as a magic output format for stdout write
  * 30/4/25
  *  - rename import/export profile args as input/oputput
+ * 13/6/26
+ *	- add @ specifier
  */
 
 #ifdef HAVE_CONFIG_H
@@ -142,6 +144,7 @@ static gboolean no_rotate_image = FALSE;
 static char *smartcrop_image = NULL;
 static char *thumbnail_intent = NULL;
 static gboolean version = FALSE;
+static int target_pixels = -1;
 
 /* Deprecated and unused.
  */
@@ -331,6 +334,20 @@ thumbnail_write_file(VipsObject *process, VipsImage *im, const char *filename)
 	return 0;
 }
 
+static void
+thumbnail_set_size(VipsImage *image)
+{
+	if (target_pixels > 0) {
+		gint64 source_pixels = (gint64) image->Xsize * image->Ysize;
+		double shrink_factor = sqrt((double) source_pixels / target_pixels);
+
+		thumbnail_width =
+			VIPS_CLIP(1, image->Xsize / shrink_factor, VIPS_MAX_COORD);
+		thumbnail_height =
+			VIPS_CLIP(1, image->Ysize / shrink_factor, VIPS_MAX_COORD);
+	}
+}
+
 static int
 thumbnail_process(VipsObject *process, const char *name)
 {
@@ -366,9 +383,16 @@ thumbnail_process(VipsObject *process, const char *name)
 	if (strcmp(filename, "stdin") == 0) {
 		VipsSource *source;
 
-		if (!(source =
-					vips_source_new_from_descriptor(0)))
+		if (!(source = vips_source_new_from_descriptor(0)))
 			return -1;
+
+		if (target_pixels > 0) {
+			VipsImage *plain;
+			if (!(plain = vips_image_new_from_source(source, "", NULL)))
+				return -1;
+			thumbnail_set_size(plain);
+			VIPS_UNREF(plain);
+		}
 
 		if (vips_thumbnail_source(source, &image, thumbnail_width,
 				"option-string", option_string,
@@ -387,6 +411,14 @@ thumbnail_process(VipsObject *process, const char *name)
 		VIPS_UNREF(source);
 	}
 	else {
+		if (target_pixels > 0) {
+			VipsImage *plain;
+			if (!(plain = vips_image_new_from_file(filename, NULL)))
+				return -1;
+			thumbnail_set_size(plain);
+			VIPS_UNREF(plain);
+		}
+
 		if (vips_thumbnail(name, &image, thumbnail_width,
 				"height", thumbnail_height,
 				"size", size_restriction,
@@ -485,7 +517,7 @@ thumbnail_parse_geometry(const char *geometry)
 			p++;
 	}
 
-	/* Get the final <>!
+	/* Get the terminating modifier,
 	 */
 	while (g_ascii_isspace(*p))
 		p++;
@@ -495,10 +527,21 @@ thumbnail_parse_geometry(const char *geometry)
 		size_restriction = VIPS_SIZE_DOWN;
 	else if (*p == '!')
 		size_restriction = VIPS_SIZE_FORCE;
+	else if (*p == '@')
+		target_pixels = VIPS_CLIP(1, thumbnail_width, VIPS_MAX_COORD);
 	else if (*p != '\0' ||
 		(thumbnail_width == VIPS_MAX_COORD &&
 			thumbnail_height == VIPS_MAX_COORD)) {
 		vips_error("thumbnail", "%s", _("bad geometry spec"));
+		return -1;
+	}
+
+	/* If target_pixels is set, we must only have width set.
+	 */
+	if (target_pixels != -1 &&
+		had_x) {
+		vips_error("thumbnail",
+			"only one dimension can be specified for size by pixel count");
 		return -1;
 	}
 
