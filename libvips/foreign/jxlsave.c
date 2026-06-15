@@ -946,7 +946,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 {
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveJxl *jxl = (VipsForeignSaveJxl *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 4);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 6);
 
 	VipsImage *in;
 	VipsBandFormat format;
@@ -984,6 +984,22 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	}
 
 	in = save->ready;
+
+	/* Convert CMYK images to sRGB. CMYK is not well supported by libjxl.
+	 * We could just change save_class->saveable, but we would not support scRGB
+	 * if we did that
+	 */
+	if (in->Type == VIPS_INTERPRETATION_CMYK) {
+		if (vips_icc_import(in, &t[4],
+				"pcs", VIPS_PCS_XYZ,
+				"embedded", TRUE,
+				"input_profile", "cmyk",
+				NULL) ||
+			vips_colourspace(t[4], &t[5], VIPS_INTERPRETATION_sRGB, NULL)) {
+			return -1;
+		}
+		in = t[5];
+	}
 
 	/* Fix the input image format. JXL uses float for 0-1 linear (ie.
 	 * scRGB) only. We must convert eg. sRGB float to 8-bit for save.
