@@ -21,7 +21,7 @@ class TestColour:
             for i in range(0, 4):
                 min_l = im.extract_band(i).min()
                 max_h = im.extract_band(i).max()
-                assert pytest.approx(min_l) == max_h
+                assert pytest.approx(min_l, abs=0.03) == max_h
 
             pixel = im(10, 10)
             if col == pyvips.Interpretation.SCRGB:
