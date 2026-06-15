@@ -73,8 +73,7 @@ vips_percent_lum_scan(VipsRegion *region, void *seq,
 	const float scale = master->bin_scale;
 
 	for (int y = 0; y < r->height; y++) {
-		float *p = (float *)
-			VIPS_REGION_ADDR(region, r->left, r->top + y);
+		float *p = (float *) VIPS_REGION_ADDR(region, r->left, r->top + y);
 
 		for (int x = 0; x < r->width; x++) {
 			float Y = 0.2126f * p[0] + 0.7152f * p[1] + 0.0722f * p[2];
@@ -124,10 +123,8 @@ vips_percent_lum_build(VipsObject *object)
 	accum.bin_scale = (float) (PERCENT_LUM_BINS / pl->max);
 
 	if (vips_sink(pl->in,
-			vips_percent_lum_start,
-			vips_percent_lum_scan,
-			vips_percent_lum_stop,
-			&accum, NULL))
+		vips_percent_lum_start, vips_percent_lum_scan, vips_percent_lum_stop,
+		&accum, NULL))
 		return -1;
 
 	if (accum.count == 0) {
@@ -143,7 +140,6 @@ vips_percent_lum_build(VipsObject *object)
 		if (cumul >= target)
 			break;
 	}
-
 	double threshold = (bin + 0.5) * (pl->max / PERCENT_LUM_BINS);
 
 	g_object_set(object, "threshold", threshold, NULL);

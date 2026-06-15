@@ -26,6 +26,7 @@ date-tbd 8.19.0
 - add VIPS_MEMCPY() [kleisauke]
 - heifload: allow mif2 and mif3 "brand" images eg. mini box [lovell]
 - add vips_scRGB2CICP [mertalev]
+- add VIPS_UHDR_TO_SCRGB
 - add uchar options to premultiply and unpremultiply [jcupitt]
 - vipsthumbnail: add '@' modifier for size to pixel count
 
