@@ -1,42 +1,36 @@
 ---
-name: Bug Report
-about: Create A Bug Report
-title: A concise title of what the bug is.
+name: Bug report
+about: Create a bug report
 labels: bug
-assignees: ''
 
 ---
 
-## Questions, enhancements, tips, etc.
-
-Please use libvips discussions for other topics.
-
-https://github.com/libvips/libvips/discussions
-
 ## Bug report
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+### Description
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Use Image '...'
-2. Use Configuration '....'
-3. See error
+<!-- Please describe the bug clearly and concisely. -->
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+### Reproducible example
 
-**Actual behavior**
-A clear and concise description of what actually happen.
+<!-- Please provide a minimal reproducible example (MRE) that allows the issue to be reproduced.
+If the issue depends on an image, include the *original image file(s)* or a link to download them. -->
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+### Expected result
 
-**Environment**
-(please complete the following information)
- - OS: [e.g. Ubuntu 16.04, MacOS 10.13]
- - Vips: [e.g. 8.8, 8.9, etc]
+<!-- Please describe what you expected to happen. -->
 
-**Additional context**
-Add any other context about the problem here.
+### Actual result
+
+<!-- Please describe what actually happened. -->
+
+### Environment
+
+<!-- Please provide relevant environment details. -->
+
+- OS: [e.g., Linux, macOS, Windows]
+- libvips version: [version or commit SHA]
+
+### Additional context
+
+<!-- Add any other relevant information here. -->

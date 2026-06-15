@@ -30,7 +30,7 @@ avoid any formatting mismatch with our [GitHub Actions lint check](
 
 `clang-format` can be used via the `git-clang-format` script. On some systems,
 it may already be installed (or be installable via your package manager). If
-so, you can simply run it – the following commands will format only the code
+so, you can simply run it - the following commands will format only the code
 on the staged changes:
 ```shell
 # Stage original changes
@@ -49,7 +49,7 @@ Alternatively, you can format only the code changed in the most recent commit:
 $ git clang-format HEAD~1
 ```
 
-Note that this modifies the files, but doesn't commit them – you'll likely want
+Note that this modifies the files, but doesn't commit them - you'll likely want
 to run:
 ```shell
 $ git commit --amend -a
@@ -111,15 +111,15 @@ you must follow:
 1. Use AI as a tool. Verify behavior, correctness, and compatibility
    yourself prior to submitting your contribution. Do not ask the
    maintainers to do this for you.
-1. Keep changes narrow and limited. Do **NOT** use LLM/GenAI tools to
+2. Keep changes narrow and limited. Do **NOT** use LLM/GenAI tools to
    generate broad rewrites, large refactorings, or style changes.
-1. Do **NOT** submit generated code, documentation, or tests that you
+3. Do **NOT** submit generated code, documentation, or tests that you
    don't understand.
-1. Do **NOT** fabricate benchmarks, bug reports, test results, code
+4. Do **NOT** fabricate benchmarks, bug reports, test results, code
    samples, or reproducers.
-1. Do **NOT** include private code, credentials, tokens, or any other
+5. Do **NOT** include private code, credentials, tokens, or any other
    confidential material.
-1. Respect the licensing and attribution requirements.
+6. Respect the licensing and attribution requirements.
 
 ### Disclosure
 
@@ -131,16 +131,15 @@ for AI companies.
 ### Reviews
 
 1. Describe your changes, and the verification steps.
-1. Be prepared to explain all the changes yourself.
-1. Do **NOT** feed the review feedback to an LLM/GenAI tool.
+2. Be prepared to explain all the changes yourself.
+3. Do **NOT** feed the review feedback to an LLM/GenAI tool.
 
 ### Maintainers expectations
 
 1. Review LLM/GenAI-assisted contributions more strictly than any other contribution.
-1. Require reproducibility in fixes and tests.
-1. Reject changes that appear to be unverified LLM/GenAI output.
-1. Reject comments and feedback that appear to be LLM/GenAI output.
+2. Require reproducibility in fixes and tests.
+3. Reject changes that appear to be unverified LLM/GenAI output.
+4. Reject comments and feedback that appear to be LLM/GenAI output.
 
 > A COMPUTER CAN NEVER BE HELD ACCOUNTABLE.
 > THEREFORE A COMPUTER MUST NEVER MAKE A MAINTENANCE DECISION.
-

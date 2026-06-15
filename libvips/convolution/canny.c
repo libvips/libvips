@@ -213,7 +213,7 @@ vips_atan2_init(void *null)
 			y -= 0x10;
 		double theta = VIPS_DEG(atan2(x, y)) + 360;
 
-		/* Map angle to 0–255 with wraparound.
+		/* Map angle to 0-255 with wraparound.
 		 */
 		int value = 256 * theta / 360;
 		vips_canny_polar_atan2[i] = value & 0xFF;
