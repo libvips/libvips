@@ -1,6 +1,7 @@
 date tbd 8.18.4
 
 - heifload: raise security limits on references [caseywebdev]
+- tiffload: squash out read errors in openin_source_read [aleens-labs]
 
 6/6/26 8.18.3
 
