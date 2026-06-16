@@ -362,7 +362,7 @@ vips_foreign_load_heif_build(VipsObject *object)
 
 			limits->max_total_memory = 2L * 1024 * 1024 * 1024;
 			limits->max_memory_block_size = 1024 * 1024 * 1024;
-			limits->max_items = 64;
+			limits->max_items = 256;
 		}
 #endif /* HAVE_HEIF_MAX_TOTAL_MEMORY */
 #ifdef HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS
