@@ -1,5 +1,17 @@
 name: CIFuzz
-on: [pull_request]
+on:
+  pull_request:
+    paths-ignore:
+      - 'completions/**'
+      - 'cplusplus/**'
+      - 'doc/**'
+      - 'examples/**'
+      - 'man/**'
+      - 'po/**'
+      - 'test/**'
+      - 'tools/**'
+      - 'ChangeLog'
+      - '*.md'
 permissions: {}
 jobs:
   Fuzzing:
