@@ -13,8 +13,14 @@ labels: bug
 
 ### Reproducible example
 
-<!-- Please provide a minimal reproducible example (MRE) that allows the issue to be reproduced.
-If the issue depends on an image, include the *original image file(s)* or a link to download them. -->
+<!-- Please provide a minimal reproducible example (MRE).
+
+Requirements:
+- Self-contained and runnable where possible.
+- Minimal (remove unrelated code/steps).
+- Include all required inputs (e.g. images) or a download link if needed.
+- Avoid external dependencies unless absolutely necessary.
+-->
 
 ### Expected result
 
@@ -30,6 +36,16 @@ If the issue depends on an image, include the *original image file(s)* or a link
 
 - OS: [e.g., Linux, macOS, Windows]
 - libvips version: [version or commit SHA]
+
+### Severity / impact
+
+<!-- Helps triage and prioritize the issue. -->
+
+- [ ] Crash / data loss.
+- [ ] Incorrect result.
+- [ ] Build / install problem.
+- [ ] Performance / memory issue.
+- [ ] Other (please specify).
 
 ### Additional context
 
