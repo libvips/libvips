@@ -11,7 +11,7 @@ on:
       - 'test/**'
       - 'tools/**'
       - 'ChangeLog'
-      - '*.md'
+      - '**.md'
 permissions: {}
 jobs:
   Fuzzing:
