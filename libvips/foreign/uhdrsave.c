@@ -408,13 +408,13 @@ vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 	uhdr_enc_set_gainmap_scale_factor(uhdr->enc, uhdr->gainmap_scale_factor);
 	uhdr_enc_set_using_multi_channel_gainmap(uhdr->enc, 0);
 
-	if (uhdr->target_display_peak_brightness > 0) {
-		uhdr_enc_set_target_display_peak_brightness(uhdr->enc, (float) uhdr->target_display_peak_brightness);
-	}
+	if (uhdr->target_display_peak_brightness > 0)
+		uhdr_enc_set_target_display_peak_brightness(uhdr->enc,
+			(float) uhdr->target_display_peak_brightness);
 
-	if (uhdr->max_content_boost > 0) {
-		uhdr_enc_set_min_max_content_boost(uhdr->enc, -FLT_MIN, (float) uhdr->max_content_boost);
-	}
+	if (uhdr->max_content_boost > 0)
+		uhdr_enc_set_min_max_content_boost(uhdr->enc, -FLT_MIN,
+			(float) uhdr->max_content_boost);
 
 	// attach the gainmap, if we have one
 	if (vips_image_get_typeof(image, "gainmap-data") &&
@@ -614,11 +614,11 @@ vips_foreign_save_uhdr_class_init(VipsForeignSaveUhdrClass *class)
 		1, 128, 2);
 
 	VIPS_ARG_DOUBLE(class, "peak_brightness", 12,
-			_("Target display peak brightness"),
-			_("Target display peak brightness in nits"),
-			VIPS_ARGUMENT_OPTIONAL_INPUT,
-			G_STRUCT_OFFSET(VipsForeignSaveUhdr, target_display_peak_brightness),
-			-1.0, 10000.0, -1.0);
+		_("Target display peak brightness"),
+		_("Target display peak brightness in nits"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, target_display_peak_brightness),
+		-1.0, 10000.0, -1.0);
 
 	VIPS_ARG_DOUBLE(class, "max_content_boost", 13,
 		_("Max content boost"),
@@ -626,6 +626,7 @@ vips_foreign_save_uhdr_class_init(VipsForeignSaveUhdrClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, max_content_boost),
 		-1.0, 100.0, -1.0);
+
 	VIPS_ARG_BOOL(class, "optimize_coding", 12,
 		_("Optimize coding"),
 		_("Compute optimal Huffman coding tables"),
