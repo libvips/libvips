@@ -79,6 +79,24 @@ class TestHistogram:
 
         assert (im - im2).abs().max() == 0.0
 
+    def test_hist_map_complex_short_lut(self):
+        # uchar index values past the end of a complex LUT must clamp to the
+        # final entry rather than reading beyond the table
+        ramp = pyvips.Image.identity().extract_area(0, 0, 16, 1)
+        index = (pyvips.Image.black(4, 4) + 200).cast("uchar")
+
+        lut = ramp.complexform(ramp)
+        out = index.maplut(lut)
+        assert out.real().avg() == 15
+        assert out.imag().avg() == 15
+
+        # also a many-band complex LUT through a one-band index
+        ramp3 = ramp.bandjoin([ramp, ramp])
+        lut3 = ramp3.complexform(ramp3)
+        out3 = index.maplut(lut3)
+        assert out3.real().avg() == 15
+        assert out3.imag().avg() == 15
+
     def test_percent(self):
         im = pyvips.Image.new_from_file(JPEG_FILE).extract_band(1)
 
