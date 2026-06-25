@@ -1722,7 +1722,8 @@ vips_foreign_get_keep(const char *field)
 	if (vips_isprefix("gainmap", field))
 		return VIPS_FOREIGN_KEEP_GAINMAP;
 
-	if (vips_isprefix("cicp-", field))
+	if (vips_isprefix("cicp-", field) ||
+		vips_isprefix("clli-", field))
 		return VIPS_FOREIGN_KEEP_CICP;
 
 	/* OTHER is a metadata item that:
@@ -1790,8 +1791,9 @@ vips__foreign_update_metadata(VipsImage *in,
 	return 0;
 }
 
-static int
-vips_foreign_save_build(VipsObject *object)
+int
+vips__foreign_save_build_with_force_keep(VipsObject *object,
+	VipsForeignKeep force_keep)
 {
 	VipsForeignSave *save = VIPS_FOREIGN_SAVE(object);
 
@@ -1802,6 +1804,8 @@ vips_foreign_save_build(VipsObject *object)
 		save->keep = save->strip
 			? VIPS_FOREIGN_KEEP_NONE
 			: VIPS_FOREIGN_KEEP_ALL;
+
+	save->keep |= force_keep;
 
 	/* Keep ICC profile by default when a user profile has been set.
 	 */
@@ -1842,6 +1846,13 @@ vips_foreign_save_build(VipsObject *object)
 	}
 
 	return VIPS_OBJECT_CLASS(vips_foreign_save_parent_class)->build(object);
+}
+
+static int
+vips_foreign_save_build(VipsObject *object)
+{
+	return vips__foreign_save_build_with_force_keep(object,
+		VIPS_FOREIGN_KEEP_NONE);
 }
 
 #define UC VIPS_FORMAT_UCHAR
