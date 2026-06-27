@@ -1012,11 +1012,20 @@ vips_thumbnail_build(VipsObject *object)
 	/* Crop after rotate so we don't need to rotate the crop box.
 	 */
 	if (thumbnail->crop != VIPS_INTERESTING_NONE) {
+		/* For multi-page (animated) images, page_height is the height
+		 * of a single frame. The image is a vertical stack of
+		 * n_loaded_pages frames each page_height tall.
+		 */
+		int page_height = vips_image_get_page_height(in);
+		gboolean is_multipage = thumbnail->n_loaded_pages > 1;
+
 		/* The image can be smaller than the target. Adjust the
-		 * arguments to vips_smartcrop().
+		 * arguments to vips_smartcrop(). For multi-page, crop_height
+		 * is relative to a single frame, not the toilet-roll Ysize.
 		 */
 		int crop_width = VIPS_MIN(thumbnail->width, in->Xsize);
-		int crop_height = VIPS_MIN(thumbnail->height, in->Ysize);
+		int crop_height = VIPS_MIN(thumbnail->height,
+			is_multipage ? page_height : in->Ysize);
 		int original_width = in->Xsize;
 		int original_height = in->Ysize;
 
@@ -1028,36 +1037,108 @@ vips_thumbnail_build(VipsObject *object)
 		double overall_hshrink = (double) rotated_input_width / in->Xsize;
 		double overall_vshrink = (double) rotated_input_height / in->Ysize;
 
+		/* If the multi-page image carries a gainmap, fall back to the
+		 * single-image crop path: that collapses the animation to one
+		 * frame (the existing pre-#2668 behaviour), but preserves the
+		 * gainmap-cropping logic below. HDR animated images are rare
+		 * and we don't want to silently mishandle the gainmap.
+		 */
+		gboolean has_gainmap = vips_image_get_typeof(in, "gainmap") != 0;
+		if (is_multipage && has_gainmap) {
+			g_info("multi-page image with gainmap: falling back to "
+				"single-frame crop (gainmap on animation is not "
+				"supported by the multi-page crop path)");
+			is_multipage = FALSE;
+		}
+
 		/* Need to copy to memory, we have to stay seq.
 		 *
 		 * FIXME ... could skip the copy if we've rotated.
 		 */
-		if (!(t[13] = vips_image_copy_memory(in)) ||
-			vips_smartcrop(t[13], &t[14], crop_width, crop_height,
-				"interesting", thumbnail->crop,
-				"interesting_x", VIPS_ROUND_UINT((double) thumbnail->interesting_x / overall_vshrink),
-				"interesting_y", VIPS_ROUND_UINT((double) thumbnail->interesting_y / overall_hshrink),
-				NULL))
+		if (!(t[13] = vips_image_copy_memory(in)))
 			return -1;
-		in = t[14];
 
-		int crop_left = -vips_image_get_xoffset(in);
-		int crop_top = -vips_image_get_yoffset(in);
+		if (is_multipage) {
+			/* Compute a shared bbox by smartcropping the first page,
+			 * then extract the same window from every page and rejoin
+			 * vertically. This keeps the animation coherent: the bbox
+			 * does not drift frame-to-frame.
+			 *
+			 * See ADR-2668 for the rationale.
+			 */
+			VipsImage *first_page;
+			VipsImage *first_cropped;
+			int n_pages = thumbnail->n_loaded_pages;
+			VipsImage **pages = (VipsImage **)
+				vips_object_local_array(object, n_pages);
+			int bbox_x, bbox_y;
+			int i;
 
-		/* Also crop the gainmap, if any.
-		 */
-		if ((gainmap = vips_image_get_gainmap(in))) {
-			double xscale = (double) gainmap->Xsize / original_width;
-			double yscale = (double) gainmap->Ysize / original_height;
+			if (vips_extract_area(t[13], &first_page,
+					0, 0, in->Xsize, page_height, NULL))
+				return -1;
+			vips_object_local(object, first_page);
 
-			if (vips_crop(gainmap, &t[16],
-					crop_left * xscale, crop_top * yscale,
-					crop_width * xscale, crop_height * yscale,
+			if (vips_smartcrop(first_page, &first_cropped,
+					crop_width, crop_height,
+					"interesting", thumbnail->crop,
+					"interesting_x", VIPS_ROUND_UINT((double) thumbnail->interesting_x / overall_vshrink),
+					"interesting_y", VIPS_ROUND_UINT((double) thumbnail->interesting_y / overall_hshrink),
 					NULL))
 				return -1;
-			g_object_unref(gainmap);
+			vips_object_local(object, first_cropped);
 
-			vips_image_set_image(in, "gainmap", t[16]);
+			bbox_x = -vips_image_get_xoffset(first_cropped);
+			bbox_y = -vips_image_get_yoffset(first_cropped);
+
+			for (i = 0; i < n_pages; i++) {
+				if (vips_extract_area(t[13], &pages[i],
+						bbox_x, i * page_height + bbox_y,
+						crop_width, crop_height, NULL))
+					return -1;
+			}
+
+			if (vips_arrayjoin(pages, &t[14], n_pages,
+					"across", 1, NULL))
+				return -1;
+			in = t[14];
+
+			/* Re-stamp page-height for the cropped result. The
+			 * resize-path set page_height to the pre-crop value
+			 * above; after vertical cropping we must update it.
+			 */
+			if (vips_copy(in, &t[18], NULL))
+				return -1;
+			in = t[18];
+			vips_image_set_int(in, VIPS_META_PAGE_HEIGHT, crop_height);
+		}
+		else {
+			if (vips_smartcrop(t[13], &t[14], crop_width, crop_height,
+					"interesting", thumbnail->crop,
+					"interesting_x", VIPS_ROUND_UINT((double) thumbnail->interesting_x / overall_vshrink),
+					"interesting_y", VIPS_ROUND_UINT((double) thumbnail->interesting_y / overall_hshrink),
+					NULL))
+				return -1;
+			in = t[14];
+
+			int crop_left = -vips_image_get_xoffset(in);
+			int crop_top = -vips_image_get_yoffset(in);
+
+			/* Also crop the gainmap, if any.
+			 */
+			if ((gainmap = vips_image_get_gainmap(in))) {
+				double xscale = (double) gainmap->Xsize / original_width;
+				double yscale = (double) gainmap->Ysize / original_height;
+
+				if (vips_crop(gainmap, &t[16],
+						crop_left * xscale, crop_top * yscale,
+						crop_width * xscale, crop_height * yscale,
+						NULL))
+					return -1;
+				g_object_unref(gainmap);
+
+				vips_image_set_image(in, "gainmap", t[16]);
+			}
 		}
 	}
 
