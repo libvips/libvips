@@ -413,7 +413,7 @@ vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 			(float) uhdr->target_display_peak_brightness);
 
 	if (uhdr->max_content_boost > 0)
-		uhdr_enc_set_min_max_content_boost(uhdr->enc, -FLT_MIN,
+		uhdr_enc_set_min_max_content_boost(uhdr->enc, FLT_MIN,
 			(float) uhdr->max_content_boost);
 
 	// attach the gainmap, if we have one
