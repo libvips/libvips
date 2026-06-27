@@ -1298,15 +1298,10 @@ write_vips(Write *write,
 		return -1;
 	}
 
-#ifdef HAVE_QUANTIZATION
 	/* Enable image quantisation to paletted 8bpp PNG if palette is set.
 	 */
 	if (palette)
 		color_type = PNG_COLOR_TYPE_PALETTE;
-#else
-	if (palette)
-		g_warning("ignoring palette (no quantisation support)");
-#endif /*HAVE_QUANTIZATION*/
 
 	interlace_type = interlace ? PNG_INTERLACE_ADAM7 : PNG_INTERLACE_NONE;
 
@@ -1405,7 +1400,6 @@ write_vips(Write *write,
 	if (setjmp(png_jmpbuf(write->pPng)))
 		return -1;
 
-#ifdef HAVE_QUANTIZATION
 	if (palette) {
 		VipsImage *im_index;
 		VipsImage *im_palette;
@@ -1466,7 +1460,6 @@ write_vips(Write *write,
 		write->memory = im_index;
 		in = write->memory;
 	}
-#endif /*HAVE_QUANTIZATION*/
 
 	png_write_info(write->pPng, write->pInfo);
 
