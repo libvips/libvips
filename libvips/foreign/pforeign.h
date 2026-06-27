@@ -41,6 +41,8 @@ extern "C" {
 
 int vips__foreign_update_metadata(VipsImage *in,
 	VipsForeignKeep keep);
+int vips__foreign_save_build_with_force_keep(VipsObject *object,
+	VipsForeignKeep force_keep);
 
 void vips__tiff_init(void);
 

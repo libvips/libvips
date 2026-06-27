@@ -267,6 +267,65 @@ vips_foreign_save_heif_add_orig_icc(VipsForeignSaveHeif *heif)
 	return 0;
 }
 
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
+static gboolean
+vips_foreign_save_heif_get_cicp(VipsImage *image,
+	int *colour_primaries, int *transfer_characteristics,
+	int *matrix_coefficients, int *full_range_flag)
+{
+	if (!vips_image_get_typeof(image, "cicp-colour-primaries") ||
+		!vips_image_get_typeof(image, "cicp-transfer-characteristics") ||
+		!vips_image_get_typeof(image, "cicp-matrix-coefficients") ||
+		!vips_image_get_typeof(image, "cicp-full-range-flag"))
+		return FALSE;
+
+	if (vips_image_get_int(image, "cicp-colour-primaries",
+			colour_primaries) ||
+		vips_image_get_int(image, "cicp-transfer-characteristics",
+			transfer_characteristics) ||
+		vips_image_get_int(image, "cicp-matrix-coefficients",
+			matrix_coefficients) ||
+		vips_image_get_int(image, "cicp-full-range-flag",
+			full_range_flag))
+		return FALSE;
+
+	return TRUE;
+}
+#endif /*HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
+
+#ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
+static gboolean
+vips_foreign_save_heif_get_clli(VipsImage *image,
+	heif_content_light_level *content_light_level)
+{
+	int max_content_light_level;
+	int max_frame_average_light_level;
+
+	if (!vips_image_get_typeof(image, "clli-max-content-light-level") ||
+		!vips_image_get_typeof(image, "clli-max-frame-average-light-level"))
+		return FALSE;
+
+	if (vips_image_get_int(image, "clli-max-content-light-level",
+			&max_content_light_level) ||
+		vips_image_get_int(image, "clli-max-frame-average-light-level",
+			&max_frame_average_light_level))
+		return FALSE;
+
+	if (max_content_light_level < 0 ||
+		max_content_light_level > 65535 ||
+		max_frame_average_light_level < 0 ||
+		max_frame_average_light_level > 65535)
+		return FALSE;
+
+	content_light_level->max_content_light_level =
+		max_content_light_level;
+	content_light_level->max_pic_average_light_level =
+		max_frame_average_light_level;
+
+	return TRUE;
+}
+#endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
+
 static int
 vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 {
@@ -299,15 +358,9 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	int matrix_coefficients;
 	int full_range_flag;
 
-	if (vips_image_get_typeof(save->ready, "cicp-colour-primaries") &&
-		!vips_image_get_int(save->ready, "cicp-colour-primaries",
-			&colour_primaries) &&
-		!vips_image_get_int(save->ready, "cicp-transfer-characteristics",
-			&transfer_characteristics) &&
-		!vips_image_get_int(save->ready, "cicp-matrix-coefficients",
-			&matrix_coefficients) &&
-		!vips_image_get_int(save->ready, "cicp-full-range-flag",
-			&full_range_flag)) {
+	if (vips_foreign_save_heif_get_cicp(save->ready,
+			&colour_primaries, &transfer_characteristics,
+			&matrix_coefficients, &full_range_flag)) {
 
 		if (!(nclx = heif_nclx_color_profile_alloc())) {
 			heif_encoding_options_free(options);
@@ -356,6 +409,26 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	 */
 	options->image_orientation = vips_image_get_orientation(save->ready);
 #endif
+
+#if defined(HAVE_HEIF_CONTENT_LIGHT_LEVEL) && \
+	defined(HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE)
+	{
+		int colour_primaries;
+		int transfer_characteristics;
+		int matrix_coefficients;
+		int full_range_flag;
+		heif_content_light_level content_light_level;
+
+		if (vips_foreign_save_heif_get_cicp(save->ready,
+				&colour_primaries, &transfer_characteristics,
+				&matrix_coefficients, &full_range_flag) &&
+			vips_foreign_save_heif_get_clli(save->ready,
+				&content_light_level))
+			heif_image_set_content_light_level(heif->img,
+				&content_light_level);
+	}
+#endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL &&
+	HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
 
 #ifdef DEBUG
 	GTimer *timer = g_timer_new();
@@ -557,7 +630,8 @@ vips_foreign_save_heif_build(VipsObject *object)
 #endif
 	gboolean has_alpha;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)->build(object))
+	if (vips__foreign_save_build_with_force_keep(object,
+			VIPS_FOREIGN_KEEP_CICP))
 		return -1;
 
 	/* If the old, deprecated "speed" param is being used and the new
