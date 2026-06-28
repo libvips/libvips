@@ -68,6 +68,7 @@ extern "C" {
  *
  * N must not have side effects (e.g. N++).
  */
+#ifdef __OPTIMIZE__
 #define VIPS_MEMCPY(Q, P, N) \
 	G_STMT_START \
 	{ \
@@ -85,6 +86,11 @@ extern "C" {
 		} \
 	} \
 	G_STMT_END
+#else
+/* Unoptimized version: always call the memcpy() function.
+ */
+#define VIPS_MEMCPY(Q, P, N) memcpy((Q), (P), (N))
+#endif
 
 // is something (eg. a pointer) N aligned
 #define VIPS_ALIGNED(P, N) ((((guint64) (P)) & ((N) - 1)) == 0)
