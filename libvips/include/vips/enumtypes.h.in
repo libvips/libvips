@@ -12,7 +12,7 @@ G_BEGIN_DECLS
 
 /*** BEGIN value-header ***/
 VIPS_API
-GType @enum_name@_get_type(void) G_GNUC_CONST;
+GType @enum_name@_get_type(void);
 #define VIPS_TYPE_@ENUMSHORT@ (@enum_name@_get_type())
 /*** END value-header ***/
 
@@ -20,7 +20,7 @@ GType @enum_name@_get_type(void) G_GNUC_CONST;
 /* Deprecated enumerations */
 #ifndef __GI_SCANNER__
 VIPS_API
-GType vips_saveable_get_type(void) G_GNUC_CONST;
+GType vips_saveable_get_type(void);
 #define VIPS_TYPE_SAVEABLE (vips_saveable_get_type())
 #endif /*__GI_SCANNER__*/
 G_END_DECLS
