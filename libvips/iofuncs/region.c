@@ -530,6 +530,7 @@ int
 vips_region_buffer(VipsRegion *reg, const VipsRect *r)
 {
 	VipsImage *im = reg->im;
+	int ps = VIPS_IMAGE_SIZEOF_PEL(im);
 
 	VipsRect image;
 	VipsRect clipped;
@@ -578,7 +579,7 @@ vips_region_buffer(VipsRegion *reg, const VipsRect *r)
 	/* Init new stuff.
 	 */
 	reg->valid = reg->buffer->area;
-	reg->bpl = VIPS_IMAGE_SIZEOF_PEL(im) * reg->buffer->area.width;
+	reg->bpl = ps * reg->buffer->area.width;
 	reg->type = VIPS_REGION_BUFFER;
 	reg->data = reg->buffer->buf;
 
@@ -1898,7 +1899,8 @@ vips_region_prepare_to(VipsRegion *reg,
 	 * vips_region_prepare(), we don't vips_region_buffer() dest before
 	 * writing it.
 	 */
-	dest->invalid = FALSE;
+	if (dest->invalid)
+		dest->invalid = FALSE;
 
 	return 0;
 }

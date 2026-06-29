@@ -164,7 +164,7 @@ vips_deviate_stop(VipsStatistic *statistic, void *seq)
 
 static int
 vips_deviate_scan(VipsStatistic *statistic, void *seq,
-	int x, int y, void *in, int n)
+	int x, int y, void *in, int n, gboolean *stop)
 {
 	const int sz = n * vips_image_get_bands(statistic->ready);
 

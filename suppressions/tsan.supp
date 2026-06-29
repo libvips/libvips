@@ -2,45 +2,6 @@
 
 ## The suppressions below match only the top frame of report stacks
 
-# Unsynchronized read/write of pool->stop and pool->error
-race_top:vips_threadpool_run
-race_top:vips_threadpool_wait
-race_top:vips_thread_main_loop
-race_top:vips_worker_work_unit
-
-# Unsynchronized write of image->time
-race_top:g_timer_elapsed
-race_top:g_timer_start
-race_top:vips_progress_add
-race_top:vips_progress_update
-
-# Unsynchronized TRUE assignment to statistic->stop
-race_top:vips_max_scan
-race_top:vips_min_scan
-
-# Unsynchronized TRUE assignment to wbuffer->kill
-race_top:wbuffer_free
-
-# Unsynchronized FALSE assignment to dest->invalid
-race_top:vips_region_prepare_to
-
-# Unsynchronized FALSE/TRUE assignment
-race_top:vips_image_set_kill
-
-# Unsynchronized singleton init of a local static variable
-race_top:vips_getpagesize
-race_top:vips_get_disc_threshold
-
-# Unsynchronized read of sink_base->processed
-race_top:vips_sink_base_progress
-
-# Unsynchronized read of write->buf->write_errno
-race_top:write_check_error
-
-# Unsynchronized read of image fields
-race_top:vips__image_copy_fields_array
-race_top:vips__link_make
-
 # GClosure mixes atomic compare and exchange with non atomic reads
 # (read of cl->n_guards and cl->derivative_flag is non atomic)
 # https://gitlab.gnome.org/GNOME/glib/-/issues/1672
