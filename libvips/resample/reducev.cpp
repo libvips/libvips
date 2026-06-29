@@ -457,7 +457,33 @@ static void inline reducev_float_tab(VipsReducev *reducev,
 	const int n = reducev->n_point;
 	const int l1 = lskip / sizeof(T);
 
-	for (int z = 0; z < ne; z++)
+	/* Accumulate a block of output elements at once with the tap loop
+	 * innermost. Consecutive output elements are contiguous within each
+	 * input line, so the inner multiply-add over the block auto-vectorises.
+	 * Each element still sums its taps in the same order as the
+	 * reduce_sum() below, so the result is unchanged.
+	 */
+	constexpr int block = 32;
+
+	int z = 0;
+	for (; z + block <= ne; z += block) {
+		/* One accumulator per output element in the block, zeroed for
+		 * each new block.
+		 */
+		double sum[block] = {};
+		for (int i = 0; i < n; i++) {
+			const double c = cy[i];
+			const T *restrict p = in + z + i * l1;
+			for (int k = 0; k < block; k++)
+				sum[k] += c * p[k];
+		}
+		for (int k = 0; k < block; k++)
+			out[z + k] = sum[k];
+	}
+
+	/* Process the remaining tail elements (fewer than a full block).
+	 */
+	for (; z < ne; z++)
 		out[z] = reduce_sum<T>(in + z, l1, cy, n);
 }
 
