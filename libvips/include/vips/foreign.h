@@ -364,7 +364,7 @@ typedef enum /*< flags >*/ {
  * @VIPS_FOREIGN_KEEP_ICC: keep ICC metadata
  * @VIPS_FOREIGN_KEEP_OTHER: keep other metadata (e.g. PNG comments)
  * @VIPS_FOREIGN_KEEP_GAINMAP: keep the gainmap metadata
- * @VIPS_FOREIGN_KEEP_CICP: keep CICP colour metadata
+ * @VIPS_FOREIGN_KEEP_CICP: keep CICP colour and related HDR signalling metadata
  * @VIPS_FOREIGN_KEEP_ALL: keep all metadata
  *
  * Which metadata to retain.
