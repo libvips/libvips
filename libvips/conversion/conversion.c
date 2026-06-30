@@ -394,6 +394,7 @@ vips_conversion_operation_init(void)
 	extern GType vips_byteswap_get_type(void);
 	extern GType vips_xyz_get_type(void);
 	extern GType vips_falsecolour_get_type(void);
+	extern GType vips_reduce_colours_get_type(void);
 	extern GType vips_gamma_get_type(void);
 	extern GType vips_composite_get_type(void);
 	extern GType vips_composite2_get_type(void);
@@ -444,6 +445,7 @@ vips_conversion_operation_init(void)
 	vips_byteswap_get_type();
 	vips_xyz_get_type();
 	vips_falsecolour_get_type();
+	vips_reduce_colours_get_type();
 	vips_gamma_get_type();
 	vips_composite_get_type();
 	vips_composite2_get_type();

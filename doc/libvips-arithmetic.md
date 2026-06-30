@@ -171,6 +171,7 @@ float.
 * [method@Image.max]
 * [method@Image.stats]
 * [method@Image.measure]
+* [method@Image.dominant_colours]
 * [method@Image.find_trim]
 * [method@Image.getpoint]
 * [method@Image.hist_find]
