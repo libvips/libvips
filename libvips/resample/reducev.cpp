@@ -404,26 +404,59 @@ vips_reducev_compile(VipsReducev *reducev)
 }
 #endif /*HAVE_ORC*/
 
-/* You'd think this would vectorise, but gcc hates mixed types in nested loops
- * :-(
+/* Generic blocked vertical reduce, shared by every band format.
+ *
+ * Accumulate a block of contiguous output elements at once with the tap
+ * loop outermost. Consecutive output elements are unit-stride within each
+ * input line, so the inner multiply-add over the block can auto-vectorise,
+ * and the per-element accumulators form independent dependency chains for
+ * better instruction-level parallelism (ILP). Each element sums its taps
+ * in the same order as the reduce_sum() tail below, so the result is
+ * unchanged.
+ *
+ * finalize() maps one accumulated sum to an output pixel: identity for the
+ * float formats, fixed-point round + clip for the integer formats.
  */
+template <typename T, typename CT, typename Finalize>
+static void inline reducev_block(T *restrict out, const T *restrict in,
+	const int ne, const int n, const int l1, const CT *restrict cy,
+	Finalize finalize)
+{
+	using IT = typename LongT<T>::type;
+
+	constexpr int block_size = 32; // multiple of common SIMD widths, tuned
+
+	int z = 0;
+	for (; z + block_size <= ne; z += block_size) {
+		/* One accumulator per output element, zeroed for each block.
+		 */
+		IT sum[block_size] = {};
+		for (int i = 0; i < n; i++) {
+			const IT c = cy[i];
+			const T *restrict p = in + z + i * l1;
+			for (int k = 0; k < block_size; k++)
+				sum[k] += c * p[k];
+		}
+		for (int k = 0; k < block_size; k++)
+			out[z + k] = finalize(sum[k]);
+	}
+
+	/* Process the remaining tail elements (fewer than a full block).
+	 */
+	for (; z < ne; z++)
+		out[z] = finalize(reduce_sum<T>(in + z, l1, cy, n));
+}
+
 template <typename T, T max_value>
 static void inline reducev_unsigned_int_tab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
 	const int ne, const int lskip, const short *restrict cy)
 {
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reducev->n_point;
-	const int l1 = lskip / sizeof(T);
+	using IT = typename LongT<T>::type;
 
-	for (int z = 0; z < ne; z++) {
-		typename LongT<T>::type sum;
-
-		sum = reduce_sum<T>(in + z, l1, cy, n);
-		sum = unsigned_fixed_round(sum);
-		out[z] = VIPS_CLIP(0, sum, max_value);
-	}
+	reducev_block<T>((T *) pout, (const T *) pin, ne, reducev->n_point,
+		lskip / sizeof(T), cy,
+		[](IT s) -> T { return VIPS_CLIP(0, unsigned_fixed_round(s), max_value); });
 }
 
 template <typename T, int min_value, int max_value>
@@ -431,18 +464,11 @@ static void inline reducev_signed_int_tab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
 	const int ne, const int lskip, const short *restrict cy)
 {
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reducev->n_point;
-	const int l1 = lskip / sizeof(T);
+	using IT = typename LongT<T>::type;
 
-	for (int z = 0; z < ne; z++) {
-		typename LongT<T>::type sum;
-
-		sum = reduce_sum<T>(in + z, l1, cy, n);
-		sum = signed_fixed_round(sum);
-		out[z] = VIPS_CLIP(min_value, sum, max_value);
-	}
+	reducev_block<T>((T *) pout, (const T *) pin, ne, reducev->n_point,
+		lskip / sizeof(T), cy,
+		[](IT s) -> T { return VIPS_CLIP(min_value, signed_fixed_round(s), max_value); });
 }
 
 /* Floating-point version.
@@ -452,41 +478,10 @@ static void inline reducev_float_tab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
 	const int ne, const int lskip, const double *restrict cy)
 {
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reducev->n_point;
-	const int l1 = lskip / sizeof(T);
+	using IT = typename LongT<T>::type;
 
-	/* Accumulate a block of output elements at once with the tap loop
-	 * outermost. Consecutive output elements are contiguous within each
-	 * input line, so the inner multiply-add over the block can auto-vectorise,
-	 * and the per-element accumulators form independent dependency chains
-	 * for better instruction-level parallelism (ILP). Each element still
-	 * sums its taps in the same order as the reduce_sum() below, so the
-	 * result is unchanged.
-	 */
-	constexpr int block_size = 32; // multiple of common SIMD widths, tuned
-
-	int z = 0;
-	for (; z + block_size <= ne; z += block_size) {
-		/* One accumulator per output element in the block, zeroed for
-		 * each new block.
-		 */
-		double sum[block_size] = {};
-		for (int i = 0; i < n; i++) {
-			const double c = cy[i];
-			const T *restrict p = in + z + i * l1;
-			for (int k = 0; k < block_size; k++)
-				sum[k] += c * p[k];
-		}
-		for (int k = 0; k < block_size; k++)
-			out[z + k] = sum[k];
-	}
-
-	/* Process the remaining tail elements (fewer than a full block).
-	 */
-	for (; z < ne; z++)
-		out[z] = reduce_sum<T>(in + z, l1, cy, n);
+	reducev_block<T>((T *) pout, (const T *) pin, ne, reducev->n_point,
+		lskip / sizeof(T), cy, [](IT s) -> T { return s; });
 }
 
 /* Ultra-high-quality version for double images.
@@ -496,18 +491,15 @@ static void inline reducev_notab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
 	const int ne, const int lskip, double y)
 {
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reducev->n_point;
-	const int l1 = lskip / sizeof(T);
+	using IT = typename LongT<T>::type;
 
-	typename LongT<T>::type cy[MAX_POINT];
+	IT cy[MAX_POINT];
 
 	vips_reduce_make_mask(cy, reducev->kernel, reducev->n_point,
 		reducev->residual_vshrink, y);
 
-	for (int z = 0; z < ne; z++)
-		out[z] = reduce_sum<T>(in + z, l1, cy, n);
+	reducev_block<T>((T *) pout, (const T *) pin, ne, reducev->n_point,
+		lskip / sizeof(T), cy, [](IT s) -> T { return s; });
 }
 
 static int
