@@ -700,6 +700,12 @@ class TestArithmetic:
 
             assert_almost_equal_objects(rows(0, 10), [50 * 10])
 
+        columns, rows = test.project(combine="max")
+        assert columns.max() == 10
+
+        columns, rows = test.project(combine="min")
+        assert columns.max() == 0
+
     def test_stats(self):
         im = pyvips.Image.black(50, 50)
         test = im.insert(im + 10, 50, 0, expand=True)

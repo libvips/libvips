@@ -7,6 +7,8 @@
  * 	- small celanups
  * 11/9/13
  * 	- redo as a class, from vips_hist_find()
+ * 3/7/26
+ *	- add @combine
  */
 
 /*
@@ -52,13 +54,17 @@
 struct _Project;
 
 typedef struct {
-	/* Horizontal array: sums of all columns.
+	/* Horizontal array: combination of all columns.
 	 */
-	void *column_sums;
+	void *columns;
 
-	/* Vertical array: sums of all rows.
+	/* Vertical array: conbination of all rows.
 	 */
-	void *row_sums;
+	void *rows;
+
+	/* TRUE for hist has been initialised.
+	 */
+	int init;
 } Histogram;
 
 typedef struct _VipsProject {
@@ -72,6 +78,10 @@ typedef struct _VipsProject {
 	 */
 	VipsImage *columns;
 	VipsImage *rows;
+
+	/* Combine bins with this.
+	 */
+	VipsCombine combine;
 
 } VipsProject;
 
@@ -97,20 +107,20 @@ histogram_new(VipsProject *project)
 	VipsStatistic *statistic = VIPS_STATISTIC(project);
 	VipsImage *in = statistic->ready;
 	VipsBandFormat outfmt = vips_project_format_table[in->BandFmt];
-	int psize = vips_format_sizeof(outfmt) * in->Bands;
+	size_t psize = vips_format_sizeof(outfmt) * in->Bands;
 
 	Histogram *hist;
 
 	if (!(hist = VIPS_NEW(project, Histogram)))
 		return NULL;
-	hist->column_sums = VIPS_ARRAY(project, psize * in->Xsize, guchar);
-	hist->row_sums = VIPS_ARRAY(project, psize * in->Ysize, guchar);
-	if (!hist->column_sums ||
-		!hist->row_sums)
+	hist->columns = VIPS_ARRAY(project, psize * in->Xsize, guchar);
+	hist->rows = VIPS_ARRAY(project, psize * in->Ysize, guchar);
+	if (!hist->columns ||
+		!hist->rows)
 		return NULL;
 
-	memset(hist->column_sums, 0, (size_t) psize * in->Xsize);
-	memset(hist->row_sums, 0, (size_t) psize * in->Ysize);
+	memset(hist->columns, 0, psize * in->Xsize);
+	memset(hist->rows, 0, psize * in->Ysize);
 
 	return hist;
 }
@@ -156,11 +166,11 @@ vips_project_build(VipsObject *object)
 	project->rows->Type = VIPS_INTERPRETATION_HISTOGRAM;
 
 	if (vips_image_write_line(project->columns, 0,
-			(VipsPel *) project->hist->column_sums))
+			(VipsPel *) project->hist->columns))
 		return -1;
 	for (y = 0; y < project->rows->Ysize; y++)
 		if (vips_image_write_line(project->rows, y,
-				(VipsPel *) project->hist->row_sums +
+				(VipsPel *) project->hist->rows +
 					y * VIPS_IMAGE_SIZEOF_PEL(project->rows)))
 			return -1;
 
@@ -182,26 +192,60 @@ vips_project_start(VipsStatistic *statistic)
 	return (void *) histogram_new(project);
 }
 
-/* Add a line of pixels.
+/* Combine B with A according to mode.
  */
-#define ADD_PIXELS(OUT, IN) \
+#define COMBINE(MODE, A, B) \
+	G_STMT_START \
 	{ \
-		OUT *row_sums = ((OUT *) hist->row_sums) + y * nb; \
-		OUT *column_sums; \
+		switch (MODE) { \
+		case VIPS_COMBINE_MAX: \
+			(A) = VIPS_MAX(A, B); \
+			break; \
+\
+		case VIPS_COMBINE_SUM: \
+			(A) += (B); \
+			break; \
+\
+		case VIPS_COMBINE_MIN: \
+			(A) = VIPS_MIN(A, B); \
+			break; \
+\
+		default: \
+			g_assert_not_reached(); \
+		} \
+	} \
+	G_STMT_END
+
+/* Combine a line of pixels into a hist,
+ */
+#define COMBINE_PIXELS(OUT, IN) \
+	G_STMT_START \
+	{ \
+		OUT *rows = ((OUT *) hist->rows) + y * nb; \
+		OUT *columns; \
 		IN *p; \
 \
-		column_sums = ((OUT *) hist->column_sums) + x * nb; \
+		columns = ((OUT *) hist->columns) + x * nb; \
 		p = (IN *) in; \
-		for (i = 0; i < n; i++) { \
-			for (j = 0; j < nb; j++) { \
-				column_sums[j] += p[j]; \
-				row_sums[j] += p[j]; \
+		for (int i = 0; i < n; i++) { \
+			if (hist->init) \
+				for (int j = 0; j < nb; j++) { \
+					COMBINE(project->combine, columns[j], p[j]); \
+					COMBINE(project->combine, rows[j], p[j]); \
+				} \
+			else { \
+				for (int j = 0; j < nb; j++) { \
+					columns[j] = p[j]; \
+					rows[j] = p[j]; \
+				} \
+				hist->init = TRUE; \
 			} \
 \
 			p += nb; \
-			column_sums += nb; \
+			columns += nb; \
 		} \
-	}
+	} \
+	G_STMT_END
 
 /* Add a region to a project.
  */
@@ -209,41 +253,41 @@ static int
 vips_project_scan(VipsStatistic *statistic, void *seq,
 	int x, int y, void *in, int n)
 {
+	VipsProject *project = (VipsProject *) statistic;
 	int nb = statistic->ready->Bands;
 	Histogram *hist = (Histogram *) seq;
-	int i, j;
 
 	switch (statistic->ready->BandFmt) {
 	case VIPS_FORMAT_UCHAR:
-		ADD_PIXELS(guint, guchar);
+		COMBINE_PIXELS(guint, guchar);
 		break;
 
 	case VIPS_FORMAT_CHAR:
-		ADD_PIXELS(int, char);
+		COMBINE_PIXELS(int, char);
 		break;
 
 	case VIPS_FORMAT_USHORT:
-		ADD_PIXELS(guint, gushort);
+		COMBINE_PIXELS(guint, gushort);
 		break;
 
 	case VIPS_FORMAT_SHORT:
-		ADD_PIXELS(int, short);
+		COMBINE_PIXELS(int, short);
 		break;
 
 	case VIPS_FORMAT_UINT:
-		ADD_PIXELS(guint, guint);
+		COMBINE_PIXELS(guint, guint);
 		break;
 
 	case VIPS_FORMAT_INT:
-		ADD_PIXELS(int, int);
+		COMBINE_PIXELS(int, int);
 		break;
 
 	case VIPS_FORMAT_FLOAT:
-		ADD_PIXELS(double, float);
+		COMBINE_PIXELS(double, float);
 		break;
 
 	case VIPS_FORMAT_DOUBLE:
-		ADD_PIXELS(double, double);
+		COMBINE_PIXELS(double, double);
 		break;
 
 	default:
@@ -253,16 +297,21 @@ vips_project_scan(VipsStatistic *statistic, void *seq,
 	return 0;
 }
 
-#define ADD_BUFFER(TYPE, Q, P, N) \
+#define COMBINE_BUFFER(TYPE, Q, P, N) \
+	G_STMT_START \
 	{ \
 		TYPE *p = (TYPE *) (P); \
 		TYPE *q = (TYPE *) (Q); \
 		int n = (N); \
-		int i; \
 \
-		for (i = 0; i < n; i++) \
-			q[i] += p[i]; \
-	}
+		if (hist->init) \
+			for (int i = 0; i < n; i++) \
+				COMBINE(project->combine, q[i], p[i]); \
+		else \
+			for (int i = 0; i < n; i++) \
+				q[i] = p[i]; \
+	} \
+	G_STMT_END
 
 /* Join a sub-project onto the main project.
  */
@@ -277,25 +326,25 @@ vips_project_stop(VipsStatistic *statistic, void *seq)
 	int hsz = in->Xsize * in->Bands;
 	int vsz = in->Ysize * in->Bands;
 
+	// I think this is always true
+	g_assert(sub_hist->init);
+
 	/* Add on sub-data.
 	 */
 	switch (outfmt) {
 	case VIPS_FORMAT_UINT:
-		ADD_BUFFER(guint,
-			hist->column_sums, sub_hist->column_sums, hsz);
-		ADD_BUFFER(guint, hist->row_sums, sub_hist->row_sums, vsz);
+		COMBINE_BUFFER(guint, hist->columns, sub_hist->columns, hsz);
+		COMBINE_BUFFER(guint, hist->rows, sub_hist->rows, vsz);
 		break;
 
 	case VIPS_FORMAT_INT:
-		ADD_BUFFER(int,
-			hist->column_sums, sub_hist->column_sums, hsz);
-		ADD_BUFFER(int, hist->row_sums, sub_hist->row_sums, vsz);
+		COMBINE_BUFFER(int, hist->columns, sub_hist->columns, hsz);
+		COMBINE_BUFFER(int, hist->rows, sub_hist->rows, vsz);
 		break;
 
 	case VIPS_FORMAT_DOUBLE:
-		ADD_BUFFER(double,
-			hist->column_sums, sub_hist->column_sums, hsz);
-		ADD_BUFFER(double, hist->row_sums, sub_hist->row_sums, vsz);
+		COMBINE_BUFFER(double, hist->columns, sub_hist->columns, hsz);
+		COMBINE_BUFFER(double, hist->rows, sub_hist->rows, vsz);
 		break;
 
 	default:
@@ -304,8 +353,10 @@ vips_project_stop(VipsStatistic *statistic, void *seq)
 
 	/* Blank out sub-project to make sure we can't add it again.
 	 */
-	sub_hist->column_sums = NULL;
-	sub_hist->row_sums = NULL;
+	sub_hist->columns = NULL;
+	sub_hist->rows = NULL;
+
+	hist->init = TRUE;
 
 	return 0;
 }
@@ -339,11 +390,19 @@ vips_project_class_init(VipsProjectClass *class)
 		_("Sums of rows"),
 		VIPS_ARGUMENT_REQUIRED_OUTPUT,
 		G_STRUCT_OFFSET(VipsProject, rows));
+
+	VIPS_ARG_ENUM(class, "combine", 102,
+		_("Combine"),
+		_("Combine values with this"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsProject, combine),
+		VIPS_TYPE_COMBINE, VIPS_COMBINE_SUM);
 }
 
 static void
 vips_project_init(VipsProject *project)
 {
+	project->combine = VIPS_COMBINE_SUM;
 }
 
 /**
@@ -357,7 +416,13 @@ vips_project_init(VipsProject *project)
  * of every row of pixels, and the sum of every column of pixels. The output
  * format is uint, int or double, depending on the input format.
  *
+ * Normally, pixels are summed, but you can use @combine to set other combine
+ * modes.
+ *
  * Non-complex images only.
+ *
+ * ::: tip "Optional arguments"
+ *     * @combine: [enum@Combine], combine bins like this
  *
  * ::: seealso
  *     [method@Image.hist_find], [method@Image.profile].
