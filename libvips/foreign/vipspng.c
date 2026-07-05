@@ -1048,10 +1048,10 @@ typedef struct {
 	 * frame delays in ms (points at the "delay" metadata, owned by the
 	 * image).
 	 */
-	gboolean animated;
+	gboolean is_animated;
 	int page_height;
 	int *delays;
-	int n_delays;
+	int delay_length;
 #endif /*PNG_APNG_SUPPORTED*/
 } Write;
 
@@ -1133,8 +1133,6 @@ write_png_block(VipsRegion *region, VipsRect *area, void *a)
 {
 	Write *write = (Write *) a;
 
-	int i;
-
 	/* The area to write is always a set of complete scanlines.
 	 */
 	g_assert(area->left == 0);
@@ -1146,7 +1144,7 @@ write_png_block(VipsRegion *region, VipsRect *area, void *a)
 	if (setjmp(png_jmpbuf(write->pPng)))
 		return -1;
 
-	for (i = 0; i < area->height; i++)
+	for (int i = 0; i < area->height; i++)
 		write->row_pointer[i] = (png_bytep)
 			VIPS_REGION_ADDR(region, 0, area->top + i);
 
@@ -1164,8 +1162,6 @@ write_apng_block(VipsRegion *region, VipsRect *area, void *a)
 {
 	Write *write = (Write *) a;
 
-	int i;
-
 	/* The area to write is always a set of complete scanlines.
 	 */
 	g_assert(area->left == 0);
@@ -1177,32 +1173,29 @@ write_apng_block(VipsRegion *region, VipsRect *area, void *a)
 	if (setjmp(png_jmpbuf(write->pPng)))
 		return -1;
 
-	for (i = 0; i < area->height; i++) {
+	for (int i = 0; i < area->height; i++) {
 		int y = area->top + i;
+		int frame = y / write->page_height;
+		int line = y % write->page_height;
 
-		if (y % write->page_height == 0) {
-			int frame = y / write->page_height;
+		/* The delay metadata is in ms, fcTL wants a 16-bit
+		 * fraction.
+		 */
+		int delay = frame >= write->delay_length ? 0 :
+			VIPS_CLIP(0, write->delays[frame], 65535);
 
-			/* The delay metadata is in ms, fcTL wants a 16-bit
-			 * fraction.
-			 */
-			int delay = 0;
-			if (frame < write->n_delays)
-				delay = write->delays[frame];
-			delay = VIPS_CLIP(0, delay, 65535);
-
+		if (line == 0)
 			png_write_frame_head(write->pPng, write->pInfo, NULL,
 				region->im->Xsize, write->page_height,
 				0, 0,
 				delay, 1000,
 				PNG_fcTL_DISPOSE_OP_NONE,
 				PNG_fcTL_BLEND_OP_SOURCE);
-		}
 
 		png_write_row(write->pPng,
 			(png_bytep) VIPS_REGION_ADDR(region, 0, y));
 
-		if (y % write->page_height == write->page_height - 1)
+		if (line == write->page_height - 1)
 			png_write_frame_tail(write->pPng, write->pInfo);
 	}
 
@@ -1317,11 +1310,11 @@ write_vips(Write *write,
 	int bitdepth, int effort)
 {
 	VipsImage *in = write->in;
+	VipsRegionWrite write_fn = write_png_block;
 
 	int height;
 	int color_type;
 	int interlace_type;
-	VipsRegionWrite write_fn;
 	int i, nb_passes;
 
 	g_assert(in->BandFmt == VIPS_FORMAT_UCHAR ||
@@ -1335,8 +1328,9 @@ write_vips(Write *write,
 	 * interlaced.
 	 */
 	write->page_height = vips_image_get_page_height(in);
-	write->animated = write->page_height < in->Ysize;
-	if (write->animated) {
+	write->is_animated = write->page_height < in->Ysize;
+
+	if (write->is_animated) {
 		if (interlace) {
 			g_warning("disabling interlace for animated PNG");
 			interlace = FALSE;
@@ -1344,8 +1338,12 @@ write_vips(Write *write,
 
 		if (vips_image_get_typeof(in, "delay") &&
 			vips_image_get_array_int(in, "delay",
-				&write->delays, &write->n_delays))
+				&write->delays, &write->delay_length))
 			return -1;
+
+		/* Animated PNG uses a different write API.
+		 */
+		write_fn = write_apng_block;
 	}
 #endif /*PNG_APNG_SUPPORTED*/
 
@@ -1421,7 +1419,7 @@ write_vips(Write *write,
 	 */
 	height = in->Ysize;
 #ifdef PNG_APNG_SUPPORTED
-	if (write->animated)
+	if (write->is_animated)
 		height = write->page_height;
 #endif /*PNG_APNG_SUPPORTED*/
 
@@ -1435,7 +1433,7 @@ write_vips(Write *write,
 		rint(in->Xres * 1000), rint(in->Yres * 1000), PNG_RESOLUTION_METER);
 
 #ifdef PNG_APNG_SUPPORTED
-	if (write->animated) {
+	if (write->is_animated) {
 		int loop;
 
 		loop = 0;
@@ -1609,14 +1607,6 @@ write_vips(Write *write,
 		nb_passes = png_set_interlace_handling(write->pPng);
 	else
 		nb_passes = 1;
-
-	/* Animated writes need fcTL chunks inserted between frames.
-	 */
-	write_fn = write_png_block;
-#ifdef PNG_APNG_SUPPORTED
-	if (write->animated)
-		write_fn = write_apng_block;
-#endif /*PNG_APNG_SUPPORTED*/
 
 	/* Write data.
 	 */
