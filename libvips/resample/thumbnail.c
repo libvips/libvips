@@ -1063,8 +1063,6 @@ vips_thumbnail_build(VipsObject *object)
 			 * then extract the same window from every page and rejoin
 			 * vertically. This keeps the animation coherent: the bbox
 			 * does not drift frame-to-frame.
-			 *
-			 * See ADR-2668 for the rationale.
 			 */
 			VipsImage *first_page;
 			VipsImage *first_cropped;
