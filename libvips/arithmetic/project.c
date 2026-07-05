@@ -58,7 +58,7 @@ typedef struct {
 	 */
 	void *columns;
 
-	/* Vertical array: conbination of all rows.
+	/* Vertical array: combination of all rows.
 	 */
 	void *rows;
 
@@ -326,35 +326,34 @@ vips_project_stop(VipsStatistic *statistic, void *seq)
 	int hsz = in->Xsize * in->Bands;
 	int vsz = in->Ysize * in->Bands;
 
-	// I think this is always true
-	g_assert(sub_hist->init);
-
 	/* Add on sub-data.
 	 */
-	switch (outfmt) {
-	case VIPS_FORMAT_UINT:
-		COMBINE_BUFFER(guint, hist->columns, sub_hist->columns, hsz);
-		COMBINE_BUFFER(guint, hist->rows, sub_hist->rows, vsz);
-		break;
+	if (sub_hist->init)
+		switch (outfmt) {
+		case VIPS_FORMAT_UINT:
+			COMBINE_BUFFER(guint, hist->columns, sub_hist->columns, hsz);
+			COMBINE_BUFFER(guint, hist->rows, sub_hist->rows, vsz);
+			break;
 
-	case VIPS_FORMAT_INT:
-		COMBINE_BUFFER(int, hist->columns, sub_hist->columns, hsz);
-		COMBINE_BUFFER(int, hist->rows, sub_hist->rows, vsz);
-		break;
+		case VIPS_FORMAT_INT:
+			COMBINE_BUFFER(int, hist->columns, sub_hist->columns, hsz);
+			COMBINE_BUFFER(int, hist->rows, sub_hist->rows, vsz);
+			break;
 
-	case VIPS_FORMAT_DOUBLE:
-		COMBINE_BUFFER(double, hist->columns, sub_hist->columns, hsz);
-		COMBINE_BUFFER(double, hist->rows, sub_hist->rows, vsz);
-		break;
+		case VIPS_FORMAT_DOUBLE:
+			COMBINE_BUFFER(double, hist->columns, sub_hist->columns, hsz);
+			COMBINE_BUFFER(double, hist->rows, sub_hist->rows, vsz);
+			break;
 
-	default:
-		g_assert_not_reached();
-	}
+		default:
+			g_assert_not_reached();
+		}
 
 	/* Blank out sub-project to make sure we can't add it again.
 	 */
 	sub_hist->columns = NULL;
 	sub_hist->rows = NULL;
+	sub_hist->init = FALSE;
 
 	hist->init = TRUE;
 
