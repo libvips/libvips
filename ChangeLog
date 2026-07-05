@@ -1,4 +1,8 @@
-date tbd 8.18.4
+date tbd 8.18.5
+
+- maplut: fix possible OOB read with complex images [sage-mode-hunter]
+
+5/7/26 8.18.4
 
 - heifload: raise security limits on references [caseywebdev]
 - tiffload: squash out read errors in openin_source_read [aleens-labs]
