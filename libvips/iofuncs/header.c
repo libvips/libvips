@@ -927,6 +927,40 @@ vips_image_get_n_pages(VipsImage *image)
 }
 
 /**
+ * vips_image_get_loop:
+ * @image: image to get from
+ *
+ * Fetch and sanity-check the image loop count. Default to 0 if not present
+ * or crazy.
+ *
+ * Returns: the number of animation loops
+ */
+int
+vips_image_get_loop(VipsImage *image)
+{
+    int loop;
+
+	if (vips_image_get_typeof(image, "loop")) {
+		if (vips_image_get_int(image, "loop", &loop))
+			return 0;
+	}
+	else if (vips_image_get_typeof(image, "gif-loop")) {
+		/* DEPRECATED "gif-loop" has a slightly different meaning.
+		 */
+		int gif_loop;
+
+		if (vips_image_get_int(image, "gif-loop", &gif_loop))
+			return 0;
+
+		loop = gif_loop == 0 ? 0 : gif_loop + 1;
+	}
+	else
+		loop = 0;
+
+	return VIPS_MAX(0, loop);
+}
+
+/**
  * vips_image_get_concurrency:
  * @image: image to get from
  *

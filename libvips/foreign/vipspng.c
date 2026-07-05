@@ -121,8 +121,8 @@
  */
 
 /*
-#define DEBUG
 #define VIPS_DEBUG
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -1315,7 +1315,7 @@ write_vips(Write *write,
 	int height;
 	int color_type;
 	int interlace_type;
-	int i, nb_passes;
+	int nb_passes;
 
 	g_assert(in->BandFmt == VIPS_FORMAT_UCHAR ||
 		in->BandFmt == VIPS_FORMAT_USHORT);
@@ -1331,6 +1331,10 @@ write_vips(Write *write,
 	write->is_animated = write->page_height < in->Ysize;
 
 	if (write->is_animated) {
+#ifdef DEBUG
+		printf("write_vips: writing animated PNG\n");
+#endif /*DEBUG*/
+
 		if (interlace) {
 			g_warning("disabling interlace for animated PNG");
 			interlace = FALSE;
@@ -1383,12 +1387,15 @@ write_vips(Write *write,
 	case 1:
 		color_type = PNG_COLOR_TYPE_GRAY;
 		break;
+
 	case 2:
 		color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
 		break;
+
 	case 3:
 		color_type = PNG_COLOR_TYPE_RGB;
 		break;
+
 	case 4:
 		color_type = PNG_COLOR_TYPE_RGB_ALPHA;
 		break;
@@ -1415,10 +1422,10 @@ write_vips(Write *write,
 	 */
 	png_set_user_limits(write->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD);
 
-	/* For an animation, IHDR is the size of just one frame.
-	 */
 	height = in->Ysize;
 #ifdef PNG_APNG_SUPPORTED
+	/* For an animation, IHDR is the size of just one frame.
+	 */
 	if (write->is_animated)
 		height = write->page_height;
 #endif /*PNG_APNG_SUPPORTED*/
@@ -1434,11 +1441,7 @@ write_vips(Write *write,
 
 #ifdef PNG_APNG_SUPPORTED
 	if (write->is_animated) {
-		int loop;
-
-		loop = 0;
-		if (vips_image_get_typeof(in, "loop"))
-			vips_image_get_int(in, "loop", &loop);
+		int loop = vips_image_get_loop(in);
 
 		png_set_acTL(write->pPng, write->pInfo,
 			in->Ysize / write->page_height, loop);
@@ -1499,7 +1502,7 @@ write_vips(Write *write,
 			return -1;
 	}
 
-#if PNG_LIBPNG_VER >= 10645
+#ifdef PNG_WRITE_cICP_SUPPORTED
 	int colour_primaries;
 	int transfer_characteristics;
 	int matrix_coefficients;
@@ -1514,14 +1517,13 @@ write_vips(Write *write,
 			&matrix_coefficients) &&
 		!vips_image_get_int(in, "cicp-full-range-flag",
 			&full_range_flag)) {
-
 		png_set_cICP(write->pPng, write->pInfo,
 			(png_byte) colour_primaries,
 			(png_byte) transfer_characteristics,
 			0, /* PNG pixel data is always RGB */
 			(png_byte) full_range_flag);
 	}
-#endif
+#endif /*!PNG_WRITE_cICP_SUPPORTED*/
 
 	// the profile writers grab the setjmp, restore it
 	if (setjmp(png_jmpbuf(write->pPng)))
@@ -1549,7 +1551,7 @@ write_vips(Write *write,
 		png_trans = (png_byte *) png_malloc(write->pPng,
 			palette_count * sizeof(png_byte));
 		trans_count = 0;
-		for (i = 0; i < palette_count; i++) {
+		for (int i = 0; i < palette_count; i++) {
 			VipsPel *p = (VipsPel *) VIPS_IMAGE_ADDR(im_palette, i, 0);
 			png_color *col = &png_palette[i];
 
@@ -1610,7 +1612,7 @@ write_vips(Write *write,
 
 	/* Write data.
 	 */
-	for (i = 0; i < nb_passes; i++)
+	for (int i = 0; i < nb_passes; i++)
 		if (vips_sink_disc(in, write_fn, write))
 			return -1;
 

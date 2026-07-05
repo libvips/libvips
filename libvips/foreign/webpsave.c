@@ -1278,8 +1278,8 @@ vips_webpsave(VipsImage *in, const char *filename, ...)
  * As [method@Image.webpsave], but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with [func@GLib.free] when you
- * are done with it.
+ * @len. You are responsible for freeing the buffer with [func@GLib.free]
+ * when you are done with it.
  *
  * ::: tip "Optional arguments"
  *     * @Q: `gint`, quality factor
