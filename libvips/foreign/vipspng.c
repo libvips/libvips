@@ -1025,6 +1025,7 @@ vips__png_isinterlaced_source(VipsSource *source)
 		return -1;
 	}
 	interlace_type = png_get_interlace_type(read->pPng, read->pInfo);
+
 	g_object_unref(image);
 
 	return interlace_type != PNG_INTERLACE_NONE;
@@ -1050,7 +1051,7 @@ typedef struct {
 	gboolean animated;
 	int page_height;
 	int *delays;
-	int delay_length;
+	int n_delays;
 #endif /*PNG_APNG_SUPPORTED*/
 } Write;
 
@@ -1186,7 +1187,7 @@ write_apng_block(VipsRegion *region, VipsRect *area, void *a)
 			 * fraction.
 			 */
 			int delay = 0;
-			if (frame < write->delay_length)
+			if (frame < write->n_delays)
 				delay = write->delays[frame];
 			delay = VIPS_CLIP(0, delay, 65535);
 
@@ -1343,7 +1344,7 @@ write_vips(Write *write,
 
 		if (vips_image_get_typeof(in, "delay") &&
 			vips_image_get_array_int(in, "delay",
-				&write->delays, &write->delay_length))
+				&write->delays, &write->n_delays))
 			return -1;
 	}
 #endif /*PNG_APNG_SUPPORTED*/
