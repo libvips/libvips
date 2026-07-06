@@ -32,6 +32,7 @@ date-tbd 8.19.0
 - dcrawload: add half-size option
 - uhdrsave: expose peak-brightness and max-content-boost parameters [dshatz]
 - add vips_image_get_loop() [jcupitt]
+- pngsave: add APNG support [felixbuenemann]
 
 6/6/26 8.18.3
 

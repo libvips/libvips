@@ -554,24 +554,7 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 		return -1;
 	}
 
-	if (vips_image_get_typeof(save->ready, "loop")) {
-		int loop;
-
-		if (vips_image_get_int(save->ready, "loop", &loop))
-			return -1;
-
-		vips_webp_set_count(webp, loop);
-	}
-	else if (vips_image_get_typeof(save->ready, "gif-loop")) {
-		/* DEPRECATED "gif-loop"
-		 */
-		int gif_loop;
-
-		if (vips_image_get_int(save->ready, "gif-loop", &gif_loop))
-			return -1;
-
-		vips_webp_set_count(webp, gif_loop == 0 ? 0 : gif_loop + 1);
-	}
+	vips_webp_set_count(webp, vips_image_get_loop(save->ready));
 
 	/* Metadata
 	 */
