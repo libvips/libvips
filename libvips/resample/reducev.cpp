@@ -495,8 +495,7 @@ static void inline reducev_float_tab(VipsReducev *reducev,
 
 	/* Tail: fewer than a full block.
 	 */
-	if (z < ne)
-		reducev_block<T>(out + z, in + z, ne - z, lskip, cy, n);
+	reducev_block<T>(out + z, in + z, ne - z, lskip, cy, n);
 }
 
 /* Ultra-high-quality version for double images.
