@@ -445,6 +445,34 @@ static void inline reducev_signed_int_tab(VipsReducev *reducev,
 	}
 }
 
+/* Reduce a block of "width" output elements at once (width <= REDUCEV_BLOCK),
+ * with the tap loop outermost and the element loop innermost. Consecutive
+ * output elements are contiguous within each input line, so the inner
+ * multiply-add vectorises, and the per-element accumulators form independent
+ * dependency chains for better instruction-level parallelism (ILP). Each
+ * element sums its taps in the same order as reduce_sum(), so the result is
+ * identical.
+ */
+static constexpr int REDUCEV_BLOCK = 32; // multiple of common SIMD widths, tuned
+
+template <typename T, typename CT, typename IT = typename LongT<T>::type>
+static void inline reduce_sum_array(T *restrict out, const T *restrict in,
+	int width, int lskip, const CT *restrict cy, int n)
+{
+	const int l1 = lskip / sizeof(T);
+	IT sum[REDUCEV_BLOCK] = { 0.0 };
+
+	for (int i = 0; i < n; i++) {
+		const CT c = cy[i];
+		const T *restrict p = in + i * l1;
+		for (int k = 0; k < width; k++)
+			sum[k] += c * p[k];
+	}
+
+	for (int k = 0; k < width; k++)
+		out[k] = sum[k];
+}
+
 /* Floating-point version.
  */
 template <typename T>
@@ -455,38 +483,18 @@ static void inline reducev_float_tab(VipsReducev *reducev,
 	T *restrict out = (T *) pout;
 	const T *restrict in = (T *) pin;
 	const int n = reducev->n_point;
-	const int l1 = lskip / sizeof(T);
 
-	/* Accumulate a block of output elements at once with the tap loop
-	 * outermost. Consecutive output elements are contiguous within each
-	 * input line, so the inner multiply-add over the block can auto-vectorise,
-	 * and the per-element accumulators form independent dependency chains
-	 * for better instruction-level parallelism (ILP). Each element still
-	 * sums its taps in the same order as the reduce_sum() below, so the
-	 * result is unchanged.
+	int z;
+
+	/* Complete blocks. Passing the constant block size lets this vectorise.
 	 */
-	constexpr int block_size = 32; // multiple of common SIMD widths, tuned
+	for (z = 0; z + REDUCEV_BLOCK <= ne; z += REDUCEV_BLOCK)
+		reduce_sum_array<T>(out + z, in + z, REDUCEV_BLOCK, lskip, cy, n);
 
-	int z = 0;
-	for (; z + block_size <= ne; z += block_size) {
-		/* One accumulator per output element in the block, zeroed for
-		 * each new block.
-		 */
-		double sum[block_size] = {};
-		for (int i = 0; i < n; i++) {
-			const double c = cy[i];
-			const T *restrict p = in + z + i * l1;
-			for (int k = 0; k < block_size; k++)
-				sum[k] += c * p[k];
-		}
-		for (int k = 0; k < block_size; k++)
-			out[z + k] = sum[k];
-	}
-
-	/* Process the remaining tail elements (fewer than a full block).
+	/* Tail: fewer than a full block.
 	 */
-	for (; z < ne; z++)
-		out[z] = reduce_sum<T>(in + z, l1, cy, n);
+	if (z < ne)
+		reduce_sum_array<T>(out + z, in + z, ne - z, lskip, cy, n);
 }
 
 /* Ultra-high-quality version for double images.
