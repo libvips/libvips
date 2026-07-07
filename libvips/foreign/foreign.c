@@ -1722,9 +1722,6 @@ vips_foreign_get_keep(const char *field)
 	if (vips_isprefix("gainmap", field))
 		return VIPS_FOREIGN_KEEP_GAINMAP;
 
-	if (vips_isprefix("cicp-", field))
-		return VIPS_FOREIGN_KEEP_CICP;
-
 	/* OTHER is a metadata item that:
 	 *
 	 *	- one or more savers will write to a format
