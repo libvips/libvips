@@ -460,6 +460,8 @@ static void inline reduce_sum_array(T *restrict out, const T *restrict in,
 	int width, int lskip, const CT *restrict cy, int n)
 {
 	const int l1 = lskip / sizeof(T);
+
+	g_assert(width <= REDUCEV_BLOCK);
 	IT sum[REDUCEV_BLOCK] = { 0.0 };
 
 	for (int i = 0; i < n; i++) {
