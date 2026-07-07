@@ -456,7 +456,7 @@ static void inline reducev_signed_int_tab(VipsReducev *reducev,
 static constexpr int REDUCEV_BLOCK = 32; // multiple of common SIMD widths, tuned
 
 template <typename T, typename CT, typename IT = typename LongT<T>::type>
-static void inline reduce_sum_array(T *restrict out, const T *restrict in,
+static void inline reducev_block(T *restrict out, const T *restrict in,
 	int width, int lskip, const CT *restrict cy, int n)
 {
 	const int l1 = lskip / sizeof(T);
@@ -491,12 +491,12 @@ static void inline reducev_float_tab(VipsReducev *reducev,
 	/* Complete blocks. Passing the constant block size lets this vectorise.
 	 */
 	for (z = 0; z + REDUCEV_BLOCK <= ne; z += REDUCEV_BLOCK)
-		reduce_sum_array<T>(out + z, in + z, REDUCEV_BLOCK, lskip, cy, n);
+		reducev_block<T>(out + z, in + z, REDUCEV_BLOCK, lskip, cy, n);
 
 	/* Tail: fewer than a full block.
 	 */
 	if (z < ne)
-		reduce_sum_array<T>(out + z, in + z, ne - z, lskip, cy, n);
+		reducev_block<T>(out + z, in + z, ne - z, lskip, cy, n);
 }
 
 /* Ultra-high-quality version for double images.
