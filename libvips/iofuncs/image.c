@@ -1577,7 +1577,7 @@ void
 vips_image_posteval(VipsImage *image)
 {
 	if (image->progress_signal &&
-		image->progress_signal->time) {
+		image->time) {
 		gint64 processed;
 
 		VIPS_DEBUG_MSG("vips_image_posteval: %p\n", image);
