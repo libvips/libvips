@@ -445,6 +445,36 @@ static void inline reducev_signed_int_tab(VipsReducev *reducev,
 	}
 }
 
+/* Reduce a block of "width" output elements at once (width <= REDUCEV_BLOCK),
+ * with the tap loop outermost and the element loop innermost. Consecutive
+ * output elements are contiguous within each input line, so the inner
+ * multiply-add vectorises, and the per-element accumulators form independent
+ * dependency chains for better instruction-level parallelism (ILP). Each
+ * element sums its taps in the same order as reduce_sum(), so the result is
+ * identical.
+ */
+static constexpr int REDUCEV_BLOCK = 32; // multiple of common SIMD widths, tuned
+
+template <typename T, typename CT, typename IT = typename LongT<T>::type>
+static void inline reducev_block(T *restrict out, const T *restrict in,
+	int width, int lskip, const CT *restrict cy, int n)
+{
+	const int l1 = lskip / sizeof(T);
+
+	g_assert(width <= REDUCEV_BLOCK);
+	IT sum[REDUCEV_BLOCK] = { 0.0 };
+
+	for (int i = 0; i < n; i++) {
+		const CT c = cy[i];
+		const T *restrict p = in + i * l1;
+		for (int k = 0; k < width; k++)
+			sum[k] += c * p[k];
+	}
+
+	for (int k = 0; k < width; k++)
+		out[k] = sum[k];
+}
+
 /* Floating-point version.
  */
 template <typename T>
@@ -455,10 +485,17 @@ static void inline reducev_float_tab(VipsReducev *reducev,
 	T *restrict out = (T *) pout;
 	const T *restrict in = (T *) pin;
 	const int n = reducev->n_point;
-	const int l1 = lskip / sizeof(T);
 
-	for (int z = 0; z < ne; z++)
-		out[z] = reduce_sum<T>(in + z, l1, cy, n);
+	int z;
+
+	/* do as many complete blocks as we can
+	 */
+	for (z = 0; z + REDUCEV_BLOCK <= ne; z += REDUCEV_BLOCK)
+		reducev_block<T>(out + z, in + z, REDUCEV_BLOCK, lskip, cy, n);
+
+	/* do the tail (fewer than a full block)
+	 */
+	reducev_block<T>(out + z, in + z, ne - z, lskip, cy, n);
 }
 
 /* Ultra-high-quality version for double images.
