@@ -488,12 +488,12 @@ static void inline reducev_float_tab(VipsReducev *reducev,
 
 	int z;
 
-	/* Complete blocks. Passing the constant block size lets this vectorise.
+	/* do as many complete blocks as we can
 	 */
 	for (z = 0; z + REDUCEV_BLOCK <= ne; z += REDUCEV_BLOCK)
 		reducev_block<T>(out + z, in + z, REDUCEV_BLOCK, lskip, cy, n);
 
-	/* Tail: fewer than a full block.
+	/* do the tail (fewer than a full block)
 	 */
 	reducev_block<T>(out + z, in + z, ne - z, lskip, cy, n);
 }
