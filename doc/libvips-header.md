@@ -68,6 +68,7 @@ copied between images efficiently.
 * [method@Image.get_offset]
 * [method@Image.get_page_height]
 * [method@Image.get_n_pages]
+* [method@Image.get_loop]
 * [method@Image.get_n_subifds]
 * [method@Image.get_orientation]
 * [method@Image.get_orientation_swap]
