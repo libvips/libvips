@@ -255,7 +255,7 @@ vips_foreign_save_webp_pic_init(VipsForeignSaveWebp *webp, WebPPicture *pic)
 	pic->writer = WebPMemoryWrite;
 	pic->custom_ptr = (void *) &webp->memory_writer;
 	pic->progress_hook = vips_foreign_save_webp_progress_hook;
-	pic->user_data = (void *) save->in;
+	pic->user_data = (void *) save->ready;
 
 	/* Smart subsampling needs use_argb because it is applied during
 	 * RGB to YUV conversion.
@@ -554,24 +554,7 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 		return -1;
 	}
 
-	if (vips_image_get_typeof(save->ready, "loop")) {
-		int loop;
-
-		if (vips_image_get_int(save->ready, "loop", &loop))
-			return -1;
-
-		vips_webp_set_count(webp, loop);
-	}
-	else if (vips_image_get_typeof(save->ready, "gif-loop")) {
-		/* DEPRECATED "gif-loop"
-		 */
-		int gif_loop;
-
-		if (vips_image_get_int(save->ready, "gif-loop", &gif_loop))
-			return -1;
-
-		vips_webp_set_count(webp, gif_loop == 0 ? 0 : gif_loop + 1);
-	}
+	vips_webp_set_count(webp, vips_image_get_loop(save->ready));
 
 	/* Metadata
 	 */
@@ -1278,8 +1261,8 @@ vips_webpsave(VipsImage *in, const char *filename, ...)
  * As [method@Image.webpsave], but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with [func@GLib.free] when you
- * are done with it.
+ * @len. You are responsible for freeing the buffer with [func@GLib.free]
+ * when you are done with it.
  *
  * ::: tip "Optional arguments"
  *     * @Q: `gint`, quality factor

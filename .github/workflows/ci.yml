@@ -77,10 +77,6 @@ jobs:
             mozjpeg openexr openjpeg openslide pango \
             poppler webp
 
-      - name: Workaround -march=x86-64-v3 GCC bug
-        if: runner.os == 'Linux' && matrix.build.cc == 'gcc-15'
-        run: echo "CPPFLAGS=-Wall -march=x86-64" >> $GITHUB_ENV
-
       - name: Prepare macOS environment
         if: runner.os == 'macOS'
         run: |

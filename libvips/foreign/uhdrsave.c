@@ -78,6 +78,8 @@ typedef struct _VipsForeignSaveUhdr {
 	int Q;
 
 	int gainmap_scale_factor;
+	double target_display_peak_brightness;
+	double max_content_boost;
 
 	/* Base image options to pass to jpegsave.
 	 */
@@ -406,6 +408,14 @@ vips_foreign_save_uhdr_hdr(VipsForeignSaveUhdr *uhdr, VipsImage *image)
 	uhdr_enc_set_gainmap_scale_factor(uhdr->enc, uhdr->gainmap_scale_factor);
 	uhdr_enc_set_using_multi_channel_gainmap(uhdr->enc, 0);
 
+	if (uhdr->target_display_peak_brightness > 0)
+		uhdr_enc_set_target_display_peak_brightness(uhdr->enc,
+			(float) uhdr->target_display_peak_brightness);
+
+	if (uhdr->max_content_boost > 0)
+		uhdr_enc_set_min_max_content_boost(uhdr->enc, FLT_MIN,
+			(float) uhdr->max_content_boost);
+
 	// attach the gainmap, if we have one
 	if (vips_image_get_typeof(image, "gainmap-data") &&
 		vips_foreign_save_uhdr_set_compressed_gainmap(uhdr, image))
@@ -603,21 +613,35 @@ vips_foreign_save_uhdr_class_init(VipsForeignSaveUhdrClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, gainmap_scale_factor),
 		1, 128, 2);
 
-	VIPS_ARG_BOOL(class, "optimize_coding", 12,
+	VIPS_ARG_DOUBLE(class, "peak_brightness", 12,
+		_("Target display peak brightness"),
+		_("Target display peak brightness in nits"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, target_display_peak_brightness),
+		-1.0, 10000.0, -1.0);
+
+	VIPS_ARG_DOUBLE(class, "max_content_boost", 13,
+		_("Max content boost"),
+		_("Maximum content boost for the gainmap"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveUhdr, max_content_boost),
+		-1.0, 100.0, -1.0);
+
+	VIPS_ARG_BOOL(class, "optimize_coding", 14,
 		_("Optimize coding"),
 		_("Compute optimal Huffman coding tables"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, optimize_coding),
 		FALSE);
 
-	VIPS_ARG_BOOL(class, "interlace", 13,
+	VIPS_ARG_BOOL(class, "interlace", 15,
 		_("Interlace"),
 		_("Generate an interlaced (progressive) jpeg"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, interlace),
 		FALSE);
 
-	VIPS_ARG_ENUM(class, "subsample_mode", 14,
+	VIPS_ARG_ENUM(class, "subsample_mode", 16,
 		_("Subsample mode"),
 		_("Select chroma subsample operation mode"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -625,35 +649,35 @@ vips_foreign_save_uhdr_class_init(VipsForeignSaveUhdrClass *class)
 		VIPS_TYPE_FOREIGN_SUBSAMPLE,
 		VIPS_FOREIGN_SUBSAMPLE_AUTO);
 
-	VIPS_ARG_BOOL(class, "trellis_quant", 15,
+	VIPS_ARG_BOOL(class, "trellis_quant", 17,
 		_("Trellis quantization"),
 		_("Apply trellis quantisation to each 8x8 block"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, trellis_quant),
 		FALSE);
 
-	VIPS_ARG_BOOL(class, "overshoot_deringing", 16,
+	VIPS_ARG_BOOL(class, "overshoot_deringing", 18,
 		_("Overshoot de-ringing"),
 		_("Apply overshooting to samples with extreme values"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, overshoot_deringing),
 		FALSE);
 
-	VIPS_ARG_BOOL(class, "optimize_scans", 17,
+	VIPS_ARG_BOOL(class, "optimize_scans", 19,
 		_("Optimize scans"),
 		_("Split spectrum of DCT coefficients into separate scans"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, optimize_scans),
 		FALSE);
 
-	VIPS_ARG_INT(class, "quant_table", 18,
+	VIPS_ARG_INT(class, "quant_table", 20,
 		_("Quantization table"),
 		_("Use predefined quantization table with given index"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignSaveUhdr, quant_table),
 		0, 8, 0);
 
-	VIPS_ARG_INT(class, "restart_interval", 19,
+	VIPS_ARG_INT(class, "restart_interval", 21,
 		_("Restart interval"),
 		_("Add restart markers every specified number of mcu"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
@@ -667,6 +691,8 @@ vips_foreign_save_uhdr_init(VipsForeignSaveUhdr *uhdr)
 {
 	uhdr->Q = 75;
 	uhdr->gainmap_scale_factor = 2;
+	uhdr->target_display_peak_brightness = -1.0;
+	uhdr->max_content_boost = -1.0;
 	uhdr->optimize_coding = FALSE;
 	uhdr->interlace = FALSE;
 	uhdr->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_AUTO;

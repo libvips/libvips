@@ -4,6 +4,7 @@
  *	- handle image rotation
  * 15/6/26
  *	- add raw-preview-data, the largest embedded preview jpeg
+ *	- add half_size
  */
 
 /*
@@ -68,6 +69,7 @@ typedef struct _VipsForeignLoadDcRaw {
 	VipsForeignLoad parent_object;
 
 	int bitdepth;
+	gboolean half_size;
 
 	/* LibRaw processor.
 	 */
@@ -143,6 +145,10 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 		return -1;
 	}
 	raw->raw_processor->params.output_bps = raw->bitdepth;
+
+	/* Fast half-size decoding.
+	 */
+	raw->raw_processor->params.half_size = raw->half_size;
 
 	/* Apply camera white balance.
 	 */
@@ -507,10 +513,17 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 
 	VIPS_ARG_INT(class, "bitdepth", 12,
 		_("Bit depth"),
-		_("Number of bits per pixel"),
+		_("Number of bits to decode to"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, bitdepth),
 		8, 16, 8);
+
+	VIPS_ARG_BOOL(class, "half_size", 13,
+		_("Half-size"),
+		_("Decode image at half size"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, half_size),
+		FALSE);
 
 }
 
@@ -738,9 +751,15 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  *
  * The loader will search for embedded, JPEG-encoded thumbnail and preview
  * images, attaching them as `jpeg-thumbnail-data` and `jpeg-preview-data`.
+ * Set @half_size to decode at half-size. This can be much faster, though of
+ * course the image is smaller.
+ *
+ * Set @bit_depth to control the number of bits to decode to. Either 8 or 16,
+ * default 8,
  *
  * ::: tip "Optional arguments"
- *     * @bitdepth: `gint`, load as 8 or 16 bit data
+ *     * @bitdepth: `gint`, number of bits to decode to
+ *     * @half_size: `gboolean`, decode at half-size
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -766,7 +785,8 @@ vips_dcrawload(const char *filename, VipsImage **out, ...)
  * Exactly as [ctor@Image.dcrawload], but read from a source.
  *
  * ::: tip "Optional arguments"
- *     * @bitdepth: `gint`, load as 8 or 16 bit data
+ *     * @bitdepth: `gint`, number of bits to decode to
+ *     * @half_size: `gboolean`, decode at half-size
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
@@ -796,7 +816,8 @@ vips_dcrawload_source(VipsSource *source, VipsImage **out, ...)
  * Exactly as [ctor@Image.dcrawload], but read from a buffer.
  *
  * ::: tip "Optional arguments"
- *     * @bitdepth: `gint`, load as 8 or 16 bit data
+ *     * @bitdepth: `gint`, number of bits to decode to
+ *     * @half_size: `gboolean`, decode at half-size
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
