@@ -241,6 +241,8 @@ int vips_image_get_page_height(VipsImage *image);
 VIPS_API
 int vips_image_get_n_pages(VipsImage *image);
 VIPS_API
+int vips_image_get_loop(VipsImage *image);
+VIPS_API
 int vips_image_get_n_subifds(VipsImage *image);
 VIPS_API
 int vips_image_get_orientation(VipsImage *image);
