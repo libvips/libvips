@@ -45,6 +45,8 @@
  * 	- better rejection of broken embedded profiles
  * 29/3/21 [hanssonrickard]
  * 	- add black_point_compensation
+ * 11/7/26 lancylot2004
+ * 	- use the lcms float path for float input
  */
 
 /*
@@ -223,25 +225,28 @@ typedef struct _VipsIccInfo {
 	int bands;
 	guint lcms_type8;
 	guint lcms_type16;
+	/* Float encoding, or 0 if there's no float type for this space.
+	 */
+	guint lcms_typeflt;
 } VipsIccInfo;
 
 static VipsIccInfo vips_icc_info_table[] = {
-	{ cmsSigGrayData, 1, TYPE_GRAY_8, TYPE_GRAY_16 },
+	{ cmsSigGrayData, 1, TYPE_GRAY_8, TYPE_GRAY_16, TYPE_GRAY_FLT },
 
-	{ cmsSigRgbData, 3, TYPE_RGB_8, TYPE_RGB_16 },
-	{ cmsSigLabData, 3, TYPE_Lab_FLT, TYPE_Lab_16 },
-	{ cmsSigXYZData, 3, TYPE_XYZ_FLT, TYPE_XYZ_16 },
+	{ cmsSigRgbData, 3, TYPE_RGB_8, TYPE_RGB_16, TYPE_RGB_FLT },
+	{ cmsSigLabData, 3, TYPE_Lab_FLT, TYPE_Lab_16, TYPE_Lab_FLT },
+	{ cmsSigXYZData, 3, TYPE_XYZ_FLT, TYPE_XYZ_16, TYPE_XYZ_FLT },
 
-	{ cmsSigCmykData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
-	{ cmsSig4colorData, 4, TYPE_CMYK_8, TYPE_CMYK_16 },
-	{ cmsSig5colorData, 5, TYPE_CMYK5_8, TYPE_CMYK5_16 },
-	{ cmsSig6colorData, 6, TYPE_CMYK6_8, TYPE_CMYK6_16 },
-	{ cmsSig7colorData, 7, TYPE_CMYK7_8, TYPE_CMYK7_16 },
-	{ cmsSig8colorData, 8, TYPE_CMYK8_8, TYPE_CMYK8_16 },
-	{ cmsSig9colorData, 9, TYPE_CMYK9_8, TYPE_CMYK9_16 },
-	{ cmsSig10colorData, 10, TYPE_CMYK10_8, TYPE_CMYK10_16 },
-	{ cmsSig11colorData, 11, TYPE_CMYK11_8, TYPE_CMYK11_16 },
-	{ cmsSig12colorData, 12, TYPE_CMYK12_8, TYPE_CMYK12_16 },
+	{ cmsSigCmykData, 4, TYPE_CMYK_8, TYPE_CMYK_16, TYPE_CMYK_FLT },
+	{ cmsSig4colorData, 4, TYPE_CMYK_8, TYPE_CMYK_16, TYPE_CMYK_FLT },
+	{ cmsSig5colorData, 5, TYPE_CMYK5_8, TYPE_CMYK5_16, 0 },
+	{ cmsSig6colorData, 6, TYPE_CMYK6_8, TYPE_CMYK6_16, 0 },
+	{ cmsSig7colorData, 7, TYPE_CMYK7_8, TYPE_CMYK7_16, 0 },
+	{ cmsSig8colorData, 8, TYPE_CMYK8_8, TYPE_CMYK8_16, 0 },
+	{ cmsSig9colorData, 9, TYPE_CMYK9_8, TYPE_CMYK9_16, 0 },
+	{ cmsSig10colorData, 10, TYPE_CMYK10_8, TYPE_CMYK10_16, 0 },
+	{ cmsSig11colorData, 11, TYPE_CMYK11_8, TYPE_CMYK11_16, 0 },
+	{ cmsSig12colorData, 12, TYPE_CMYK12_8, TYPE_CMYK12_16, 0 },
 };
 
 static VipsIccInfo *
@@ -254,6 +259,27 @@ vips_icc_info(int signature)
 			return &vips_icc_info_table[i];
 
 	return NULL;
+}
+
+/* Pick the vips format and lcms encoding for a device-space input.
+ */
+static void
+vips_icc_pick_input_format(VipsColourCode *code, VipsIcc *icc, VipsIccInfo *info)
+{
+	if ((code->in->BandFmt == VIPS_FORMAT_FLOAT ||
+			code->in->BandFmt == VIPS_FORMAT_DOUBLE) &&
+		info->lcms_typeflt) {
+		code->input_format = VIPS_FORMAT_FLOAT;
+		icc->in_icc_format = info->lcms_typeflt;
+	}
+	else if (code->in->BandFmt == VIPS_FORMAT_USHORT) {
+		code->input_format = VIPS_FORMAT_USHORT;
+		icc->in_icc_format = info->lcms_type16;
+	}
+	else {
+		code->input_format = VIPS_FORMAT_UCHAR;
+		icc->in_icc_format = info->lcms_type8;
+	}
 }
 
 static int
@@ -290,21 +316,8 @@ vips_icc_build(VipsObject *object)
 
 		switch (signature) {
 		case cmsSigGrayData:
-			code->input_format = code->in->BandFmt == VIPS_FORMAT_USHORT
-				? VIPS_FORMAT_USHORT
-				: VIPS_FORMAT_UCHAR;
-			icc->in_icc_format = code->in->BandFmt == VIPS_FORMAT_USHORT
-				? info->lcms_type16
-				: info->lcms_type8;
-			break;
-
 		case cmsSigRgbData:
-			code->input_format = code->in->BandFmt == VIPS_FORMAT_USHORT
-				? VIPS_FORMAT_USHORT
-				: VIPS_FORMAT_UCHAR;
-			icc->in_icc_format = code->in->BandFmt == VIPS_FORMAT_USHORT
-				? info->lcms_type16
-				: info->lcms_type8;
+			vips_icc_pick_input_format(code, icc, info);
 			break;
 
 		case cmsSigLabData:
@@ -336,13 +349,7 @@ vips_icc_build(VipsObject *object)
 			info = vips_icc_info(
 				cmsGetColorSpace(icc->in_profile));
 
-			code->input_format = code->in->BandFmt == VIPS_FORMAT_USHORT
-				? VIPS_FORMAT_USHORT
-				: VIPS_FORMAT_UCHAR;
-			icc->in_icc_format =
-				code->in->BandFmt == VIPS_FORMAT_USHORT
-				? info->lcms_type16
-				: info->lcms_type8;
+			vips_icc_pick_input_format(code, icc, info);
 			break;
 
 		default:
