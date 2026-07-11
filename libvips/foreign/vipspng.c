@@ -1857,61 +1857,6 @@ write_apng_block(VipsRegion *region, VipsRect *area, void *a)
 }
 #endif /*PNG_APNG_SUPPORTED*/
 
-#ifdef PNG_APNG_SUPPORTED
-/* As write_png_block(), but for animated writes: open and close frames as
- * we pass frame boundaries.
- */
-static int
-write_apng_block(VipsRegion *region, VipsRect *area, void *a)
-{
-	Write *write = (Write *) a;
-
-	int i;
-
-	/* The area to write is always a set of complete scanlines.
-	 */
-	g_assert(area->left == 0);
-	g_assert(area->width == region->im->Xsize);
-	g_assert(area->top + area->height <= region->im->Ysize);
-
-	/* Catch PNG errors.
-	 */
-	if (setjmp(png_jmpbuf(write->pPng)))
-		return -1;
-
-	for (i = 0; i < area->height; i++) {
-		int y = area->top + i;
-
-		if (y % write->page_height == 0) {
-			int frame = y / write->page_height;
-
-			/* The delay metadata is in ms, fcTL wants a 16-bit
-			 * fraction.
-			 */
-			int delay = 0;
-			if (frame < write->delay_length)
-				delay = write->delays[frame];
-			delay = VIPS_CLIP(0, delay, 65535);
-
-			png_write_frame_head(write->pPng, write->pInfo, NULL,
-				region->im->Xsize, write->page_height,
-				0, 0,
-				delay, 1000,
-				PNG_fcTL_DISPOSE_OP_NONE,
-				PNG_fcTL_BLEND_OP_SOURCE);
-		}
-
-		png_write_row(write->pPng,
-			(png_bytep) VIPS_REGION_ADDR(region, 0, y));
-
-		if (y % write->page_height == write->page_height - 1)
-			png_write_frame_tail(write->pPng, write->pInfo);
-	}
-
-	return 0;
-}
-#endif /*PNG_APNG_SUPPORTED*/
-
 static void
 vips__png_set_text(png_structp pPng, png_infop pInfo,
 	const char *key, const char *value)
@@ -2318,14 +2263,6 @@ write_vips(Write *write,
 		nb_passes = png_set_interlace_handling(write->pPng);
 	else
 		nb_passes = 1;
-
-	/* Animated writes need fcTL chunks inserted between frames.
-	 */
-	write_fn = write_png_block;
-#ifdef PNG_APNG_SUPPORTED
-	if (write->animated)
-		write_fn = write_apng_block;
-#endif /*PNG_APNG_SUPPORTED*/
 
 	/* Write data.
 	 */
