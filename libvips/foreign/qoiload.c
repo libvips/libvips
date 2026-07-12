@@ -116,15 +116,6 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 		return (-1);
 	}
 
-	/* Debug: Print header bytes for validation.
-	 */
-	printf("DEBUG: QOI Header Bytes:");
-	for (int i = 0; i < 14; i++) {
-		printf(" %02X", header[i]);
-	}
-	printf("\n");
-	printf("DEBUG: QOI Magic: %.4s\n", header);
-
 	/* Check magic bytes.
 	 */
 	if (memcmp(header, qoi_magic, 4) != 0) {
@@ -155,9 +146,6 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 			_("bad QOI channels"), NULL);
 		return (-1);
 	}
-
-	printf("DEBUG: QOI Dimensions: %d x %d\n", qoi->width, qoi->height);
-	printf("DEBUG: QOI Channels: %d\n", qoi->bands);
 
 	qoi->have_read_header = TRUE;
 
@@ -228,23 +216,9 @@ vips_foreign_load_qoi_map(VipsForeignLoadQoi *qoi)
 	if (!data)
 		return (NULL);
 
-	printf("DEBUG: QOI Source Length: %zu\n", length);
-	printf("DEBUG: QOI Expected Dimensions: %d x %d, Channels: %d\n",
-		qoi->width, qoi->height, qoi->bands);
-
 	/* Decode the QOI data */
 	decoded_data = qoi_decode(data, length, &desc, 0);
 	if (!decoded_data) {
-		printf("QOI Decode Failed: length = %zu, width = %d, height = %d, channels = %d\n",
-			length, qoi->width, qoi->height, qoi->bands);
-		printf("Expected length: %d\n", qoi->width * qoi->height * qoi->bands + 14 + 8);
-		printf("Header: magic = %08X, width = %d, height = %d, channels = %d, colorspace = %d\n",
-			*(unsigned int *) data, qoi->width, qoi->height, qoi->bands, ((unsigned char *) data)[13]);
-		printf("First 20 bytes: ");
-		for (int i = 0; i < 20; i++) {
-			printf("%02X ", ((unsigned char *) data)[i]);
-		}
-		printf("\n");
 		vips_error("VipsForeignLoadQoi",
 			_("unable to decode QOI data"), NULL);
 		return (NULL);
@@ -254,18 +228,10 @@ vips_foreign_load_qoi_map(VipsForeignLoadQoi *qoi)
 			  desc.width, desc.height, desc.channels, VIPS_FORMAT_UCHAR)))
 		return (NULL);
 
-	printf("DEBUG: created VipsImage: %p\n", out);
 	vips_image_init_fields(out,
 		desc.width, desc.height, desc.channels, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
 
-	printf("DEBUG: image fields set: %dx%d bands=%d\n",
-		out->Xsize, out->Ysize, out->Bands);
-
-	printf("DEBUG: image dtype=%d coding=%d format=%d\n",
-		out->BandFmt, out->Coding, out->Type);
-
-	/* VIPS now owns decoded_data, do not free it */
 	return (out);
 }
 
@@ -321,11 +287,6 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0);
 
-	/* Debug info */
-	printf("DEBUG: decoded image t[0]=%p, data=%p, width=%d, height=%d, bands=%d\n",
-		t[0], decoded_data, desc.width, desc.height, desc.channels);
-
-	/* Mark header read */
 	qoi->have_read_header = TRUE;
 	out = t[0];
 
@@ -334,19 +295,6 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 		return -1;
 	}
 
-	/* // write headers
-	vips_image_init_fields(load->out,
-		desc.width, desc.height,
-		desc.channels,
-		VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE,
-		VIPS_INTERPRETATION_sRGB,
-		1.0, 1.0); */
-
-	// TODO: load->out should only get the header written into
-	// vips_image_write(out, load->out);
-
-	/* VIPS now owns decoded_data, do not free it */
 	return 0;
 }
 
