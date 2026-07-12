@@ -244,12 +244,10 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 
 	VipsImage *out;
 
-	/* Ensure header has been read */
 	if (!qoi->have_read_header &&
 		vips_foreign_load_qoi_parse_header(qoi))
 		return -1;
 
-	/* Decode QOI data */
 	size_t length;
 	const void *data = vips_source_map(qoi->source, &length);
 	if (!data) {
@@ -266,7 +264,6 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 		return -1;
 	}
 
-	/* Create VIPS image from decoded memory */
 	t[0] = vips_image_new_from_memory(
 		decoded_data,
 		desc.width * desc.height * desc.channels,
@@ -303,16 +300,12 @@ vips_foreign_load_qoi_build(VipsObject *object)
 {
 	VipsForeignLoadQoi *qoi = (VipsForeignLoadQoi *) object;
 
-	/* Ensure the source is set.
-	 */
 	if (!qoi->source) {
 		vips_error("VipsForeignLoadQoi",
 			_("no source set"), NULL);
 		return (-1);
 	}
 
-	/* Chain up to the parent class.
-	 */
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_qoi_parent_class)->build(object))
 		return (-1);
 
