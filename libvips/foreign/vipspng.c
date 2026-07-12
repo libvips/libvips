@@ -220,27 +220,22 @@ typedef struct {
 #ifdef PNG_APNG_SUPPORTED
 	/* APNG animation state.
 	 */
-	int page;		/* first frame to load */
-	int n;			/* number of frames to load, -1 for all */
+	int page;				/* first frame to load */
+	int n;					/* number of frames to load, -1 for all */
 
 	gboolean is_animated;	/* more than one frame wanted */
-	int frame_count;	/* number of frames in the animation */
-	int num_plays;		/* loop count, 0 for forever */
-	int *delays;		/* per-frame delay in milliseconds */
+	int frame_count;		/* number of frames in the animation */
+	int loop;				/* loop count, 0 for forever */
+	int *delays;			/* per-frame delay in milliseconds */
 
-	/* The canvas we composite frames onto. All canvas pixel access is
-	 * via apng_canvas_clear/copy/paste/blend(), which clip against the
-	 * canvas edges.
+	/* The canvas we composite frames onto. A memory image, the same size for
+	 * all frames.
 	 */
 	VipsImage *canvas;
-	int canvas_width;
-	int canvas_height;
-	int canvas_bands;
 
-	/* Frames decompress to this buffer before being composited. A
-	 * frame can never be larger than the canvas.
+	/* A memory region on canvas. Frames from the APNG decompress to this.
 	 */
-	VipsPel *frame_buffer;
+	VipsRegions *frame;
 
 	/* Number of frames composited to the canvas so far.
 	 */
@@ -252,7 +247,7 @@ typedef struct {
 	 */
 	int dispose_op;
 	VipsRect dispose_rect;
-	VipsPel *previous_pixels;
+	VipsRegion *previous;
 #endif /*PNG_APNG_SUPPORTED*/
 
 } Read;
@@ -265,7 +260,6 @@ read_destroy(Read *read)
 	/* We never call png_read_end(), perhaps we should. It can fail on
 	 * truncated files, so we'd need a setjmp().
 	 */
-
 	if (read->pPng)
 		png_destroy_read_struct(&read->pPng, &read->pInfo, NULL);
 	VIPS_UNREF(read->source);
@@ -274,8 +268,8 @@ read_destroy(Read *read)
 #ifdef PNG_APNG_SUPPORTED
 	VIPS_FREE(read->delays);
 	VIPS_UNREF(read->canvas);
-	VIPS_FREE(read->frame_buffer);
-	VIPS_FREE(read->previous_pixels);
+	VIPS_UNREF(read->frame);
+	VIPS_UNREF(read->previous);
 #endif /*PNG_APNG_SUPPORTED*/
 }
 
@@ -352,17 +346,14 @@ read_new(VipsSource *source, VipsImage *out,
 	read->n = n;
 	read->is_animated = FALSE;
 	read->frame_count = 0;
-	read->num_plays = 0;
+	read->loop = 0;
 	read->delays = NULL;
 	read->canvas = NULL;
-	read->canvas_width = 0;
-	read->canvas_height = 0;
-	read->canvas_bands = 0;
-	read->frame_buffer = NULL;
+	read->frame = NULL;
 	read->frame_no = 0;
 	read->dispose_op = PNG_fcTL_DISPOSE_OP_NONE;
 	memset(&read->dispose_rect, 0, sizeof(VipsRect));
-	read->previous_pixels = NULL;
+	read->previous = NULL;
 #endif /*PNG_APNG_SUPPORTED*/
 
 	g_object_ref(source);
@@ -623,10 +614,10 @@ static gboolean
 apng_is_animated(Read *read)
 {
 	png_uint_32 num_frames;
-	png_uint_32 num_plays;
+	png_uint_32 loop;
 
 	if (!png_get_valid(read->pPng, read->pInfo, PNG_INFO_acTL) ||
-		!png_get_acTL(read->pPng, read->pInfo, &num_frames, &num_plays))
+		!png_get_acTL(read->pPng, read->pInfo, &num_frames, &loop))
 		return FALSE;
 
 	/* libpng counts a hidden first frame (an IDAT which is not part of
@@ -645,9 +636,9 @@ static int
 apng_parse_actl(Read *read, png_uint_32 height)
 {
 	png_uint_32 num_frames;
-	png_uint_32 num_plays;
+	png_uint_32 loop;
 
-	png_get_acTL(read->pPng, read->pInfo, &num_frames, &num_plays);
+	png_get_acTL(read->pPng, read->pInfo, &num_frames, &loop);
 	if (png_get_first_frame_is_hidden(read->pPng, read->pInfo))
 		num_frames -= 1;
 
@@ -661,7 +652,7 @@ apng_parse_actl(Read *read, png_uint_32 height)
 	}
 
 	read->frame_count = num_frames;
-	read->num_plays = num_plays;
+	read->loop = loop;
 
 	if (read->n == -1)
 		read->n = read->frame_count - read->page;
@@ -1454,7 +1445,7 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 		vips_image_set_int(out, VIPS_META_N_PAGES, read->frame_count);
 		vips_image_set_int(out,
 			VIPS_META_PAGE_HEIGHT, read->canvas_height);
-		vips_image_set_int(out, "loop", read->num_plays);
+		vips_image_set_int(out, "loop", read->loop);
 
 		if (apng_scan_delays(read))
 			return -1;
