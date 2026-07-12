@@ -1485,8 +1485,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 * source.
 	 */
 	if (saveable & VIPS_FOREIGN_SAVEABLE_RGB) {
-		interpretation = sixteenbit ?
-			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
+		interpretation = sixteenbit ? VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
 
 		if (vips_colourspace(in, &out, interpretation, NULL)) {
 			g_object_unref(in);
@@ -1504,9 +1503,9 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 */
 	if (saveable & VIPS_FOREIGN_SAVEABLE_CMYK) {
 		if (vips_icc_export(in, &out,
-			"output-profile", "cmyk",
-			"depth", sixteenbit ? 16 : 8,
-			NULL)) {
+				"output-profile", "cmyk",
+				"depth", sixteenbit ? 16 : 8,
+				NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
@@ -1521,8 +1520,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 * source.
 	 */
 	if (saveable & VIPS_FOREIGN_SAVEABLE_MONO) {
-		interpretation = sixteenbit ?
-			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
+		interpretation = sixteenbit ? VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
 
 		if (vips_colourspace(in, &out, interpretation, NULL)) {
 			g_object_unref(in);
@@ -1644,8 +1642,8 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 			vips_band_format_is8bit(format[in->BandFmt]);
 
 		if (vips_cast(in, &out, format[in->BandFmt],
-			"shift", needs_shift,
-			NULL)) {
+				"shift", needs_shift,
+				NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
@@ -2984,17 +2982,17 @@ vips_foreign_operation_init(void)
 	extern GType vips_foreign_save_pfm_target_get_type(void);
 	extern GType vips_foreign_save_pnm_target_get_type(void);
 
-	extern GType vips_foreign_load_qoi_file_get_type( void ); 
-	extern GType vips_foreign_load_qoi_source_get_type( void ); 
-	extern GType vips_foreign_save_qoi_file_get_type( void );
-	extern GType vips_foreign_save_qoi_target_get_type( void ); 
+	extern GType vips_foreign_load_qoi_file_get_type(void);
+	extern GType vips_foreign_load_qoi_source_get_type(void);
+	extern GType vips_foreign_save_qoi_file_get_type(void);
+	extern GType vips_foreign_save_qoi_target_get_type(void);
 
-	extern GType vips_foreign_load_png_file_get_type( void ); 
-	extern GType vips_foreign_load_png_buffer_get_type( void ); 
-	extern GType vips_foreign_load_png_source_get_type( void ); 
-	extern GType vips_foreign_save_png_file_get_type( void ); 
-	extern GType vips_foreign_save_png_buffer_get_type( void ); 
-	extern GType vips_foreign_save_png_target_get_type( void ); 
+	extern GType vips_foreign_load_png_file_get_type(void);
+	extern GType vips_foreign_load_png_buffer_get_type(void);
+	extern GType vips_foreign_load_png_source_get_type(void);
+	extern GType vips_foreign_save_png_file_get_type(void);
+	extern GType vips_foreign_save_png_buffer_get_type(void);
+	extern GType vips_foreign_save_png_target_get_type(void);
 
 	extern GType vips_foreign_save_spng_file_get_type(void);
 	extern GType vips_foreign_save_spng_buffer_get_type(void);
