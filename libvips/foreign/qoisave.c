@@ -157,7 +157,8 @@ vips_foreign_save_qoi_class_init(VipsForeignSaveQoiClass *class)
 
 	operation_class->flags = VIPS_OPERATION_UNTRUSTED;
 
-	save_class->saveable = VIPS_SAVEABLE_RGBA_ONLY;
+	save_class->saveable =
+		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA;
 	save_class->format_table = bandfmt_qoi;
 }
 
