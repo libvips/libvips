@@ -221,29 +221,28 @@ is_pcs(cmsHPROFILE profile)
 /* Info for all supported lcms profile signatures.
  */
 typedef struct _VipsIccInfo {
-	int signature;
+	cmsColorSpaceSignature signature;
 	int bands;
 	int pixel_type;
-	gboolean has_float;
 } VipsIccInfo;
 
 static VipsIccInfo vips_icc_info_table[] = {
-	{ cmsSigGrayData, 1, PT_GRAY, TRUE },
+	{ cmsSigGrayData, 1, PT_GRAY },
 
-	{ cmsSigRgbData, 3, PT_RGB, TRUE },
-	{ cmsSigLabData, 3, PT_Lab, TRUE },
-	{ cmsSigXYZData, 3, PT_XYZ, TRUE },
+	{ cmsSigRgbData, 3, PT_RGB },
+	{ cmsSigLabData, 3, PT_Lab },
+	{ cmsSigXYZData, 3, PT_XYZ },
 
-	{ cmsSigCmykData, 4, PT_CMYK, TRUE },
-	{ cmsSig4colorData, 4, PT_CMYK, TRUE },
-	{ cmsSig5colorData, 5, PT_MCH5, FALSE },
-	{ cmsSig6colorData, 6, PT_MCH6, FALSE },
-	{ cmsSig7colorData, 7, PT_MCH7, FALSE },
-	{ cmsSig8colorData, 8, PT_MCH8, FALSE },
-	{ cmsSig9colorData, 9, PT_MCH9, FALSE },
-	{ cmsSig10colorData, 10, PT_MCH10, FALSE },
-	{ cmsSig11colorData, 11, PT_MCH11, FALSE },
-	{ cmsSig12colorData, 12, PT_MCH12, FALSE },
+	{ cmsSigCmykData, 4, PT_CMYK },
+	{ cmsSig4colorData, 4, PT_CMYK },
+	{ cmsSig5colorData, 5, PT_MCH5 },
+	{ cmsSig6colorData, 6, PT_MCH6 },
+	{ cmsSig7colorData, 7, PT_MCH7 },
+	{ cmsSig8colorData, 8, PT_MCH8 },
+	{ cmsSig9colorData, 9, PT_MCH9 },
+	{ cmsSig10colorData, 10, PT_MCH10 },
+	{ cmsSig11colorData, 11, PT_MCH11 },
+	{ cmsSig12colorData, 12, PT_MCH12 },
 };
 
 static VipsIccInfo *
@@ -258,34 +257,36 @@ vips_icc_info(int signature)
 	return NULL;
 }
 
+static cmsUInt32Number
+vips_icc_make_lcms_format(VipsIccInfo *info, int bytes)
+{
+	return FLOAT_SH(bytes == 4 ? 1 : 0) |
+		COLORSPACE_SH(info->pixel_type) |
+		CHANNELS_SH(info->bands) |
+		BYTES_SH(bytes);
+}
+
 /* Pick the vips format and lcms encoding for a device-space input.
  */
 static void
 vips_icc_pick_input_format(VipsColourCode *code, VipsIcc *icc, VipsIccInfo *info)
 {
-	if ((code->in->BandFmt == VIPS_FORMAT_FLOAT ||
-			code->in->BandFmt == VIPS_FORMAT_DOUBLE) &&
-		info->has_float) {
+	switch (code->in->BandFmt) {
+	case VIPS_FORMAT_FLOAT:
+	case VIPS_FORMAT_DOUBLE:
 		code->input_format = VIPS_FORMAT_FLOAT;
-		icc->in_icc_format =
-			FLOAT_SH(1) |
-			COLORSPACE_SH(info->pixel_type) |
-			CHANNELS_SH(info->bands) |
-			BYTES_SH(4);
-	}
-	else if (code->in->BandFmt == VIPS_FORMAT_USHORT) {
+		icc->in_icc_format = vips_icc_make_lcms_format(info, 4);
+		break;
+
+	case VIPS_FORMAT_USHORT:
 		code->input_format = VIPS_FORMAT_USHORT;
-		icc->in_icc_format =
-			COLORSPACE_SH(info->pixel_type) |
-			CHANNELS_SH(info->bands) |
-			BYTES_SH(2);
-	}
-	else {
+		icc->in_icc_format = vips_icc_make_lcms_format(info, 2);
+		break;
+
+	default:
 		code->input_format = VIPS_FORMAT_UCHAR;
-		icc->in_icc_format =
-			COLORSPACE_SH(info->pixel_type) |
-			CHANNELS_SH(info->bands) |
-			BYTES_SH(1);
+		icc->in_icc_format = vips_icc_make_lcms_format(info, 1);
+		break;
 	}
 }
 
@@ -329,24 +330,14 @@ vips_icc_build(VipsObject *object)
 
 		case cmsSigLabData:
 			code->input_format = VIPS_FORMAT_FLOAT;
-			code->input_interpretation =
-				VIPS_INTERPRETATION_LAB;
-			icc->in_icc_format =
-				FLOAT_SH(1) |
-				COLORSPACE_SH(info->pixel_type) |
-				CHANNELS_SH(info->bands) |
-				BYTES_SH(4);
+			code->input_interpretation = VIPS_INTERPRETATION_LAB;
+			icc->in_icc_format = vips_icc_make_lcms_format(info, 4);
 			break;
 
 		case cmsSigXYZData:
 			code->input_format = VIPS_FORMAT_FLOAT;
-			code->input_interpretation =
-				VIPS_INTERPRETATION_XYZ;
-			icc->in_icc_format =
-				FLOAT_SH(1) |
-				COLORSPACE_SH(info->pixel_type) |
-				CHANNELS_SH(info->bands) |
-				BYTES_SH(4);
+			code->input_interpretation = VIPS_INTERPRETATION_XYZ;
+			icc->in_icc_format = vips_icc_make_lcms_format(info, 4);
 			break;
 
 		case cmsSigCmykData:
@@ -395,10 +386,8 @@ vips_icc_build(VipsObject *object)
 			colour->format = icc->depth == 8
 				? VIPS_FORMAT_UCHAR
 				: VIPS_FORMAT_USHORT;
-			icc->out_icc_format =
-				COLORSPACE_SH(info->pixel_type) |
-				CHANNELS_SH(info->bands) |
-				BYTES_SH(icc->depth == 16 ? 2 : 1);
+			icc->out_icc_format = vips_icc_make_lcms_format(info,
+				icc->depth == 16 ? 2 : 1);
 			break;
 
 		case cmsSigRgbData:
@@ -408,28 +397,20 @@ vips_icc_build(VipsObject *object)
 			colour->format = icc->depth == 8
 				? VIPS_FORMAT_UCHAR
 				: VIPS_FORMAT_USHORT;
-			icc->out_icc_format =
-				COLORSPACE_SH(info->pixel_type) |
-				CHANNELS_SH(info->bands) |
-				BYTES_SH(icc->depth == 16 ? 2 : 1);
+			icc->out_icc_format = vips_icc_make_lcms_format(info,
+				icc->depth == 16 ? 2 : 1);
 			break;
 
 		case cmsSigLabData:
 			colour->interpretation = VIPS_INTERPRETATION_LAB;
 			colour->format = VIPS_FORMAT_FLOAT;
-			icc->out_icc_format =
-				COLORSPACE_SH(info->pixel_type) |
-				CHANNELS_SH(info->bands) |
-				BYTES_SH(2);
+			icc->out_icc_format = vips_icc_make_lcms_format(info, 2);
 			break;
 
 		case cmsSigXYZData:
 			colour->interpretation = VIPS_INTERPRETATION_XYZ;
 			colour->format = VIPS_FORMAT_FLOAT;
-			icc->out_icc_format =
-				COLORSPACE_SH(info->pixel_type) |
-				CHANNELS_SH(info->bands) |
-				BYTES_SH(2);
+			icc->out_icc_format = vips_icc_make_lcms_format(info, 2);
 			break;
 
 		case cmsSigCmykData:
@@ -448,10 +429,8 @@ vips_icc_build(VipsObject *object)
 			colour->format = icc->depth == 8
 				? VIPS_FORMAT_UCHAR
 				: VIPS_FORMAT_USHORT;
-			icc->out_icc_format =
-				COLORSPACE_SH(info->pixel_type) |
-				CHANNELS_SH(info->bands) |
-				BYTES_SH(icc->depth == 16 ? 2 : 1);
+			icc->out_icc_format = vips_icc_make_lcms_format(info,
+				icc->depth == 16 ? 2 : 1);
 			break;
 
 		default:
