@@ -352,9 +352,7 @@ vips_icc_build(VipsObject *object)
 		case cmsSig12colorData:
 			/* Treat as forms of CMYK.
 			 */
-			info = vips_icc_info(
-				cmsGetColorSpace(icc->in_profile));
-
+			code->input_interpretation = VIPS_INTERPRETATION_CMYK;
 			vips_icc_pick_input_format(code, icc, info);
 			break;
 
