@@ -322,6 +322,7 @@ vips_icc_build(VipsObject *object)
 			break;
 
 		case cmsSigCmykData:
+		case cmsSig4colorData:
 		case cmsSig5colorData:
 		case cmsSig6colorData:
 		case cmsSig7colorData:
@@ -402,6 +403,7 @@ vips_icc_build(VipsObject *object)
 			break;
 
 		case cmsSigCmykData:
+		case cmsSig4colorData:
 		case cmsSig5colorData:
 		case cmsSig6colorData:
 		case cmsSig7colorData:
