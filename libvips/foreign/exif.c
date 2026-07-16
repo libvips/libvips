@@ -214,7 +214,7 @@ vips_exif_load_data_without_fix(const void *data, size_t length)
 		/* Ensure "Exif" prefix as loaders may not provide it.
 		 */
 		void *data_with_prefix;
-		data_with_prefix = g_malloc0(length + 6);
+		data_with_prefix = g_malloc(length + 6);
 		memcpy(data_with_prefix, "Exif\0\0", 6);
 		memcpy((char *) data_with_prefix + 6, data, length);
 		exif_data_load_data(ed, data_with_prefix, length + 6);
@@ -874,7 +874,7 @@ tag_is_utf16(ExifTag tag)
 
 /* Set a libexif-formatted string entry.
  */
-static void
+static int
 vips_exif_alloc_string(ExifEntry *entry, unsigned long components)
 {
 	ExifMem *mem;
@@ -891,12 +891,17 @@ vips_exif_alloc_string(ExifEntry *entry, unsigned long components)
 	/* EXIF_FORMAT_UNDEFINED is correct for EXIF_TAG_USER_COMMENT, our
 	 * caller should change this if it wishes.
 	 */
-	entry->data = exif_mem_alloc(mem, components);
+	if (!(entry->data = exif_mem_alloc(mem, components))) {
+		VIPS_FREEF(exif_mem_unref, mem);
+		return -1;
+	}
 	entry->size = components;
 	entry->components = components;
 	entry->format = EXIF_FORMAT_UNDEFINED;
 
 	VIPS_FREEF(exif_mem_unref, mem);
+
+	return 0;
 }
 
 /* The final " (xx, yy, zz, kk)" part of the string (if present) was
@@ -931,7 +936,7 @@ drop_tail(const char *data)
 /* Write a libvips NULL-terminated utf-8 string into a entry tagged with a
  * encoding. UserComment is like this, for example.
  */
-static void
+static int
 vips_exif_set_string_encoding(ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data)
 {
@@ -951,17 +956,22 @@ vips_exif_set_string_encoding(ExifData *ed,
 	 * encoding tag (always ASCII) in the first 8 bytes.
 	 */
 	len = strlen(str);
-	vips_exif_alloc_string(entry, sizeof(ASCII_COMMENT) - 1 + len);
+	if (vips_exif_alloc_string(entry, sizeof(ASCII_COMMENT) - 1 + len)) {
+		g_free(str);
+		return -1;
+	}
 	memcpy(entry->data, ASCII_COMMENT, sizeof(ASCII_COMMENT) - 1);
 	memcpy(entry->data + sizeof(ASCII_COMMENT) - 1, str, len);
 
 	g_free(str);
+
+	return 0;
 }
 
 /* Write a libvips NULL-terminated utf-8 string into an ASCII entry. Tags like
  * ImageDescription work like this.
  */
-static void
+static int
 vips_exif_set_string_ascii(ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data)
 {
@@ -980,16 +990,21 @@ vips_exif_set_string_ascii(ExifData *ed,
 	/* ASCII strings are NULL-terminated.
 	 */
 	len = strlen(str);
-	vips_exif_alloc_string(entry, len + 1);
+	if (vips_exif_alloc_string(entry, len + 1)) {
+		g_free(str);
+		return -1;
+	}
 	memcpy(entry->data, str, len + 1);
 	entry->format = EXIF_FORMAT_ASCII;
 
 	g_free(str);
+
+	return 0;
 }
 
 /* Write a libvips NULL-terminated utf-8 string into a utf16 entry.
  */
-static void
+static int
 vips_exif_set_string_utf16(ExifData *ed,
 	ExifEntry *entry, unsigned long component, const char *data)
 {
@@ -1003,47 +1018,58 @@ vips_exif_set_string_utf16(ExifData *ed,
 
 	/* libexif utf16 strings are NULL-terminated.
 	 */
-	vips_exif_alloc_string(entry, (len + 1) * 2);
+	if (vips_exif_alloc_string(entry, (len + 1) * 2)) {
+		g_free(utf16);
+		g_free(str);
+		return -1;
+	}
 	memcpy(entry->data, utf16, (len + 1) * 2);
 	entry->format = EXIF_FORMAT_BYTE;
 
 	g_free(utf16);
 	g_free(str);
+
+	return 0;
 }
 
 /* Write a tag. Update what's there, or make a new one.
  */
-static void
+static int
 vips_exif_set_tag(ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data)
 {
 	ExifEntry *entry;
+	int result = 0;
 
 	if ((entry = exif_content_get_entry(ed->ifd[ifd], tag))) {
 		fn(ed, entry, 0, data);
 	}
 	else {
-		entry = exif_entry_new();
+		if (!(entry = exif_entry_new()))
+			return -1;
 
 		/* tag must be set before calling exif_content_add_entry.
 		 */
 		entry->tag = tag;
 		exif_content_add_entry(ed->ifd[ifd], entry);
-		exif_entry_unref(entry);
 
 		/* libexif makes us have a special path for string-valued
 		 * fields :(
 		 */
 		if (tag_is_encoding(tag))
-			vips_exif_set_string_encoding(ed, entry, 0, data);
+			result = vips_exif_set_string_encoding(ed, entry, 0, data);
 		else if (tag_is_ascii(tag))
-			vips_exif_set_string_ascii(ed, entry, 0, data);
+			result = vips_exif_set_string_ascii(ed, entry, 0, data);
 		else if (tag_is_utf16(tag))
-			vips_exif_set_string_utf16(ed, entry, 0, data);
+			result = vips_exif_set_string_utf16(ed, entry, 0, data);
 		else {
 			exif_entry_initialize(entry, tag);
 			fn(ed, entry, 0, data);
 		}
+
+		exif_entry_unref(entry);
 	}
+
+	return result;
 }
 
 /* Set the EXIF resolution from the vips xres/yres tags.
@@ -1094,12 +1120,13 @@ vips_exif_resolution_from_image(ExifData *ed, VipsImage *image)
 	/* Main image xres/yres/unit are in ifd0. ifd1 has the thumbnail
 	 * xres/yres/unit.
 	 */
-	vips_exif_set_tag(ed, 0, EXIF_TAG_X_RESOLUTION,
-		vips_exif_set_double, (void *) &xres);
-	vips_exif_set_tag(ed, 0, EXIF_TAG_Y_RESOLUTION,
-		vips_exif_set_double, (void *) &yres);
-	vips_exif_set_tag(ed, 0, EXIF_TAG_RESOLUTION_UNIT,
-		vips_exif_set_int, (void *) &unit);
+	if (vips_exif_set_tag(ed, 0, EXIF_TAG_X_RESOLUTION,
+			vips_exif_set_double, (void *) &xres) ||
+		vips_exif_set_tag(ed, 0, EXIF_TAG_Y_RESOLUTION,
+			vips_exif_set_double, (void *) &yres) ||
+		vips_exif_set_tag(ed, 0, EXIF_TAG_RESOLUTION_UNIT,
+			vips_exif_set_int, (void *) &unit))
+		return -1;
 
 	return 0;
 }
@@ -1112,10 +1139,11 @@ vips_exif_set_dimensions(ExifData *ed, VipsImage *im)
 	VIPS_DEBUG_MSG("vips_exif_set_dimensions: vips size of %d, %d\n",
 		im->Xsize, im->Ysize);
 
-	vips_exif_set_tag(ed, 2, EXIF_TAG_PIXEL_X_DIMENSION,
-		vips_exif_set_int, (void *) &im->Xsize);
-	vips_exif_set_tag(ed, 2, EXIF_TAG_PIXEL_Y_DIMENSION,
-		vips_exif_set_int, (void *) &im->Ysize);
+	if (vips_exif_set_tag(ed, 2, EXIF_TAG_PIXEL_X_DIMENSION,
+			vips_exif_set_int, (void *) &im->Xsize) ||
+		vips_exif_set_tag(ed, 2, EXIF_TAG_PIXEL_Y_DIMENSION,
+			vips_exif_set_int, (void *) &im->Ysize))
+		return -1;
 
 	return 0;
 }
@@ -1136,8 +1164,9 @@ vips_exif_set_orientation(ExifData *ed, VipsImage *im)
 
 	VIPS_DEBUG_MSG("set_exif_orientation: %d\n", orientation);
 
-	vips_exif_set_tag(ed, 0, EXIF_TAG_ORIENTATION,
-		vips_exif_set_int, (void *) &orientation);
+	if (vips_exif_set_tag(ed, 0, EXIF_TAG_ORIENTATION,
+			vips_exif_set_int, (void *) &orientation))
+		return -1;
 
 	return 0;
 }
@@ -1175,7 +1204,8 @@ vips_exif_set_thumbnail(ExifData *ed, VipsImage *im)
 		 */
 		if (size > 0 &&
 			data) {
-			ed->data = malloc(size);
+			if (!(ed->data = malloc(size)))
+				return -1;
 			memcpy(ed->data, data, size);
 			ed->size = size;
 		}
@@ -1306,7 +1336,8 @@ vips_exif_image_field(VipsImage *image,
 		return NULL;
 	}
 
-	vips_exif_set_tag(ed, ifd, tag, vips_exif_set_entry, (void *) string);
+	(void) vips_exif_set_tag(ed, ifd, tag,
+		vips_exif_set_entry, (void *) string);
 
 	return NULL;
 }
@@ -1469,7 +1500,8 @@ vips__exif_update(VipsImage *image)
 			return -1;
 	}
 	else {
-		ed = exif_data_new();
+		if (!(ed = exif_data_new()))
+			return -1;
 
 		exif_data_set_option(ed,
 			EXIF_DATA_OPTION_FOLLOW_SPECIFICATION);
