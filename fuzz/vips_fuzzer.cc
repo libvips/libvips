@@ -14,6 +14,12 @@
 
 #include <vips/vips.h>
 
+#ifdef OOM_FUZZER
+/* See fuzz/failing-alloc.c
+ */
+extern "C" int alloc_state;
+#endif
+
 #define MAX_LINE_LEN 4096 // =VIPS_PATH_MAX
 #define MAX_OPTIONAL_ARGS 32
 
@@ -389,6 +395,10 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 	ctx.pending_data = data;
 	ctx.pending_size = size;
 
+#ifdef OOM_FUZZER
+	alloc_state = size;
+#endif
+
 	// Try to load an image from the remaining data.
 	if (size > 0 &&
 		((ctx.source = vips_source_new_from_memory(data, size))) &&
@@ -438,6 +448,10 @@ LLVMFuzzerTestOneInput(const guint8 *data, size_t size)
 				EvalRequiredOutput, nullptr, nullptr);
 		}
 	}
+
+#ifdef OOM_FUZZER
+	alloc_state = 0;
+#endif
 
 	// Clean up.
 	vips_object_unref_outputs(VIPS_OBJECT(operation));
