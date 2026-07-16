@@ -267,7 +267,6 @@ read_destroy(Read *read)
 	VIPS_FREE(read->row_pointer);
 
 #ifdef PNG_APNG_SUPPORTED
-	VIPS_FREE(read->delays);
 	VIPS_UNREF(read->canvas);
 	VIPS_UNREF(read->frame);
 	VIPS_UNREF(read->previous);
@@ -518,9 +517,6 @@ vips__parse_raw_profile(const char *text, size_t *data_size)
 
 	// Decode EXIF hex string
 	uint8_t *data = VIPS_ARRAY(NULL, length, uint8_t);
-	if (!data)
-		return NULL;
-
 	size_t i;
 	for (i = 0; i < length; i++) {
 		uint8_t value;
@@ -1063,8 +1059,7 @@ png2vips_interlace(Read *read, VipsImage *out)
 	if (setjmp(png_jmpbuf(read->pPng)))
 		return -1;
 
-	if (!(read->row_pointer = VIPS_ARRAY(NULL, out->Ysize, png_bytep)))
-		return -1;
+	read->row_pointer = VIPS_ARRAY(NULL, out->Ysize, png_bytep);
 	for (int y = 0; y < out->Ysize; y++)
 		read->row_pointer[y] = VIPS_IMAGE_ADDR(out, 0, y);
 
@@ -1303,8 +1298,7 @@ write_new(VipsImage *in, VipsTarget *target)
 	printf("write_new: %p\n", write);
 #endif /*DEBUG*/
 
-	if (!(write->row_pointer = VIPS_ARRAY(NULL, in->Ysize, png_bytep)))
-		return NULL;
+	write->row_pointer = VIPS_ARRAY(NULL, in->Ysize, png_bytep);
 	if (!(write->pPng = png_create_write_struct(
 			  PNG_LIBPNG_VER_STRING, NULL,
 			  user_error_function, user_warning_function))) {
