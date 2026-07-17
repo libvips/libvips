@@ -1068,12 +1068,11 @@ vips_region_copy(VipsRegion *reg,
 	/* Check the area we are reading from in reg.
 	 */
 	g_assert(vips_rect_includesrect(&reg->valid, r));
+#endif /*DEBUG*/
 
 	/* VipsPel size must be the same.
 	 */
-	g_assert(VIPS_IMAGE_SIZEOF_PEL(reg->im) ==
-		VIPS_IMAGE_SIZEOF_PEL(dest->im));
-#endif /*DEBUG*/
+	g_assert(VIPS_IMAGE_SIZEOF_PEL(reg->im) == VIPS_IMAGE_SIZEOF_PEL(dest->im));
 
 	/* Copy the scanlines.
 	 *
@@ -1092,6 +1091,28 @@ vips_region_copy(VipsRegion *reg,
 			p += plsk;
 			q += qlsk;
 		}
+}
+
+/**
+ * vips_region_blend_over:
+ * @reg: source region
+ * @dest: (inout): destination region
+ * @r: [struct@Rect] of pixels you need to copy
+ * @x: position of @r in @dest
+ * @y: position of @r in @dest
+ *
+ * Alpha blend area @r in @reg to @dest at position @x, @y.
+ *
+ * 8 and 16 bit images with an alpha channel only.
+ *
+ * ::: seealso
+ *     [method@Region.copy].
+ */
+void
+vips_region_blend_over(VipsRegion *reg, VipsRegion *dest,
+	const VipsRect *r, int x, int y)
+{
+	printf("vips_region_blend_over:\n");
 }
 
 /* Generate area @target in @to using pixels in @from.
