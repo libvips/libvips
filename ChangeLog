@@ -1,6 +1,7 @@
 date tbd 8.18.5
 
 - maplut: fix possible OOB read with complex images [sage-mode-hunter]
+- measure: verify image region is larger than patch count [lovell]
 
 5/7/26 8.18.4
 
