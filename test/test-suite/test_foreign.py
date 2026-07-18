@@ -579,6 +579,175 @@ class TestForeign:
                                                          gainmap_after.height)
             assert abs(expected_gainmap_after.avg() - gainmap_after.avg()) < 1
 
+    @skip_if_no("heifload")
+    def test_heifload_gainmap_samsung(self):
+        """ISO 21496-1 / Adobe hdrgm: gain map extraction from Samsung HEIC.
+
+        The Samsung S25 Ultra stores HDR as an SDR primary image plus a
+        gain map auxiliary image with ISO 21496-1 metadata in the Adobe
+        hdrgm: XML namespace.
+        """
+        im = pyvips.Image.heifload(SAMSUNG_GAINMAP_HEIC_FILE, unlimited=True)
+
+        # Primary image properties
+        assert im.width == 3000
+        assert im.height == 4000
+        assert im.bands == 3
+        assert im.format == "uchar"
+        assert im.interpretation == "srgb"
+
+        # All gainmap-* metadata fields should be populated (matching the
+        # format produced by uhdrload.c).
+        for name in ["gainmap-max-content-boost",
+                     "gainmap-min-content-boost",
+                     "gainmap-gamma",
+                     "gainmap-offset-sdr",
+                     "gainmap-offset-hdr"]:
+            value = im.get(name)
+            assert isinstance(value, list)
+            assert len(value) == 3
+
+        for name in ["gainmap-hdr-capacity-min",
+                     "gainmap-hdr-capacity-max"]:
+            value = im.get(name)
+            assert isinstance(value, (int, float))
+
+        # Samsung-specific values (converted from ISO 21496-1 log2 to linear).
+        # XML has GainMapMax=2.3, GainMapMin=0.0, Gamma=1.0, offsets=0.0,
+        # HDRCapacityMax=2.3, HDRCapacityMin=0.0, BaseRenditionIsHDR=False.
+        # Linear: max_content_boost = 2^2.3 ≈ 4.92, min = 2^0 = 1.0.
+        boost = im.get("gainmap-max-content-boost")
+        assert abs(boost[0] - 4.92) < 0.01
+        assert abs(boost[1] - 4.92) < 0.01
+        assert abs(boost[2] - 4.92) < 0.01
+
+        min_boost = im.get("gainmap-min-content-boost")
+        assert min_boost == [1.0, 1.0, 1.0]
+
+        assert im.get("gainmap-gamma") == [1.0, 1.0, 1.0]
+        assert im.get("gainmap-offset-sdr") == [0.0, 0.0, 0.0]
+        assert im.get("gainmap-offset-hdr") == [0.0, 0.0, 0.0]
+        assert abs(im.get("gainmap-hdr-capacity-max") - 4.92) < 0.01
+        assert im.get("gainmap-hdr-capacity-min") == 1.0
+        assert im.get("gainmap-use-base-cg") == 1
+
+        # Gain map image attached as VipsImage metadata.
+        # Decoded as YCbCr 4:2:0 with Y plane extracted (1-band monochrome)
+        # to avoid chroma upsampling artifacts that cause visible streaks.
+        gainmap = im.get("gainmap")
+        assert isinstance(gainmap, pyvips.Image)
+        assert gainmap.width == 750   # 1/4 of 3000
+        assert gainmap.height == 1000 # 1/4 of 4000
+        assert gainmap.bands == 1     # Y (luma) plane only
+
+        # Scale factor metadata
+        assert im.get("gainmap-scale-factor") == 4
+
+    @skip_if_no("heifload")
+    def test_heifload_gainmap_apple(self):
+        """Apple HEIC gain map image is attached but XML not parsed.
+
+        Apple iPhone 16 uses a proprietary HDRGainMap: XML namespace
+        (not ISO 21496-1). The gain map image should still be attached
+        as "gainmap" metadata, but the gainmap-* math fields should not
+        be populated.
+        """
+        im = pyvips.Image.heifload(APPLE_GAINMAP_HEIC_FILE, unlimited=True)
+
+        # Gain map image should be attached
+        assert im.get_typeof("gainmap") != 0
+        gainmap = im.get("gainmap")
+        assert isinstance(gainmap, pyvips.Image)
+        assert gainmap.width == 2142  # 1/2 of 4284
+        assert gainmap.height == 2856 # 1/2 of 5712
+
+        # But math metadata fields should NOT be populated
+        for name in ["gainmap-max-content-boost",
+                     "gainmap-min-content-boost",
+                     "gainmap-gamma",
+                     "gainmap-offset-sdr",
+                     "gainmap-offset-hdr",
+                     "gainmap-hdr-capacity-min",
+                     "gainmap-hdr-capacity-max"]:
+            assert im.get_typeof(name) == 0, f"{name} should not be set"
+
+    @skip_if_no("heifload")
+    def test_heifload_no_gainmap(self):
+        """Non-HDR HEIC has no gainmap metadata (OnePlus 13 sample)."""
+        im = pyvips.Image.heifload(ONEPLUS_HEIC_FILE, unlimited=True)
+
+        assert im.get_typeof("gainmap") == 0
+        assert im.get_typeof("gainmap-data") == 0
+        assert im.get_typeof("gainmap-max-content-boost") == 0
+        assert im.get_typeof("gainmap-scale-factor") == 0
+
+    @skip_if_no("heifload")
+    @skip_if_no("uhdr2scRGB")
+    def test_heifload_gainmap_uhdr2scrgb(self):
+        """End-to-end: HEIC gain map → uhdr2scRGB → scRGB float.
+
+        Verifies that the gain map math produces valid HDR linear float
+        output with values exceeding 1.0 (= 80 nits SDR white).
+        """
+        im = pyvips.Image.heifload(SAMSUNG_GAINMAP_HEIC_FILE, unlimited=True)
+        scrgb = im.uhdr2scRGB()
+
+        assert scrgb.format == "float"
+        assert scrgb.bands == 3
+        assert scrgb.width == 3000
+        assert scrgb.height == 4000
+
+        # HDR content should exceed 1.0 (= 80 nits) somewhere.
+        # Samsung HDRCapacityMax=2.3 → peak ≈ 2^2.3 × 80 ≈ 400 nits.
+        assert scrgb.max() > 1.0
+
+    @skip_if_no("heifload")
+    @skip_if_no("scRGB2CICP")
+    @skip_if_no("jxlsave")
+    def test_heifload_gainmap_to_jxl_hdr(self):
+        """End-to-end: HEIC gain map → JXL HDR native (PQ + Rec.2100).
+
+        Verifies the full pipeline: load HEIC with gain map, apply gain
+        map math to recover HDR, encode as PQ, save as JXL with HDR CICP
+        metadata.
+        """
+        import tempfile
+        import os
+
+        im = pyvips.Image.heifload(SAMSUNG_GAINMAP_HEIC_FILE, unlimited=True)
+        scrgb = im.uhdr2scRGB()
+
+        # Encode as 16-bit PQ + Rec.2100 (10-bit PQ code values in 16-bit container)
+        pq = scrgb.scRGB2CICP(
+            colour_primaries=9,           # BT.2100
+            transfer_characteristics=16,  # PQ (SMPTE ST 2084)
+            matrix_coefficients=0,        # identity (RGB)
+            depth=16)
+
+        # Save as JXL. Note: bitdepth=10 with lossy encoding has a known
+        # issue in libvips jxlsave; using default bitdepth with distance=1.0
+        # produces a valid 16-bit PQ JXL.
+        with tempfile.NamedTemporaryFile(suffix=".jxl", delete=False) as f:
+            jxl_path = f.name
+
+        try:
+            pq.jxlsave(jxl_path, distance=1.0)
+
+            jxl = pyvips.Image.new_from_file(jxl_path)
+
+            # Verify HDR metadata in output JXL
+            assert jxl.width == 3000
+            assert jxl.height == 4000
+            assert jxl.get("cicp-transfer-characteristics") == 16  # PQ
+            assert jxl.get("cicp-colour-primaries") == 9           # BT.2100
+            assert jxl.get("cicp-full-range-flag") == 1
+
+            # Pixel data should be non-trivial (not all black)
+            assert jxl.max() > 0
+        finally:
+            if os.path.exists(jxl_path):
+                os.unlink(jxl_path)
+
     @skip_if_no("pngload")
     def test_png(self):
         def png_valid(im):

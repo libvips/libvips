@@ -508,6 +508,625 @@ vips_foreign_load_heif_set_thumbnail(VipsForeignLoadHeif *heif)
 	return 0;
 }
 
+/* Extract ISO 21496-1 / Adobe HDR gain map from HEIC auxiliary images.
+ *
+ * Detects gain map aux images by matching "hdrgainmap" in the aux type URN
+ * (covers Samsung's urn:com:samsung:photo:2024:aux:hdrgainmap and Apple's
+ * urn:com:apple:photo:2020:aux:hdrgainmap).
+ *
+ * Parses the Adobe hdrgm: XML namespace (ISO 21496-1) to populate the
+ * gainmap-* metadata fields, matching the format produced by uhdrload.c.
+ * The uhdr2scRGB operation can then apply the gain map math to recover HDR.
+ *
+ * Note: Apple's proprietary HDRGainMap: XML namespace (used by iPhone 16 and
+ * later) is not currently parsed. The gain map image is still attached as
+ * "gainmap" metadata, but the gainmap-* fields are not populated. Apple HDR
+ * support would require mapping HDRGainMapHeadroom to ISO 21496-1 parameters.
+ *
+ * Pre-iOS 17 Apple HDR (JPEG+MPF) is handled separately by uhdrload.c via
+ * libultrahdr.
+ */
+
+/* Match gain map aux type URNs by checking for the "hdrgainmap" substring.
+ * Covers all known vendor URNs without needing an exhaustive list.
+ */
+static gboolean
+vips_foreign_load_heif_is_gainmap_aux(const char *aux_type)
+{
+	return aux_type &&
+		g_str_has_suffix(aux_type, "hdrgainmap");
+}
+
+/* XML parser state for ISO 21496-1 / Adobe hdrgm: gain map metadata.
+ */
+typedef struct _VipsHeifGainmapXMLParser {
+	/* Set to TRUE if we see the hdrgm: namespace declaration.
+	 */
+	gboolean has_hdrgm_ns;
+
+	/* Set to TRUE if we're inside the <rdf:Description> element where
+	 * the hdrgm: attributes live.
+	 */
+	gboolean in_description;
+
+	/* Parsed attribute values, as strings. NULL if not present.
+	 * Freed by the parser end_element callback is not necessary since
+	 * we copy them out to doubles immediately.
+	 */
+	char *gain_map_min;
+	char *gain_map_max;
+	char *gamma;
+	char *offset_sdr;
+	char *offset_hdr;
+	char *hdr_capacity_min;
+	char *hdr_capacity_max;
+	char *base_rendition_is_hdr;
+} VipsHeifGainmapXMLParser;
+
+/* Parse a single attribute value to a 3-element double array.
+ * If the value contains spaces, parse as 3 space-separated values;
+ * otherwise broadcast the single value to all 3 channels.
+ */
+static void
+parse_float_attribute(const char *value, double out[3])
+{
+	gchar **parts;
+	int n;
+
+	out[0] = out[1] = out[2] = 0.0;
+
+	if (!value)
+		return;
+
+	parts = g_strsplit(value, " ", 3);
+	n = g_strv_length(parts);
+
+	if (n == 1) {
+		double v = g_ascii_strtod(parts[0], NULL);
+		out[0] = out[1] = out[2] = v;
+	}
+	else if (n >= 3) {
+		out[0] = g_ascii_strtod(parts[0], NULL);
+		out[1] = g_ascii_strtod(parts[1], NULL);
+		out[2] = g_ascii_strtod(parts[2], NULL);
+	}
+
+	g_strfreev(parts);
+}
+
+/* Handle a single attribute name=value pair from the rdf:Description element.
+ */
+static void
+handle_hdrgm_attribute(VipsHeifGainmapXMLParser *parser,
+	const gchar *name, const gchar *value)
+{
+	if (!value)
+		return;
+
+	/* We only process attributes in the hdrgm: namespace.
+	 */
+	if (g_str_has_prefix(name, "hdrgm:")) {
+		const char *attr = name + strlen("hdrgm:");
+
+		if (parser->has_hdrgm_ns) {
+			if (g_str_equal(attr, "GainMapMin"))
+				parser->gain_map_min = g_strdup(value);
+			else if (g_str_equal(attr, "GainMapMax"))
+				parser->gain_map_max = g_strdup(value);
+			else if (g_str_equal(attr, "Gamma"))
+				parser->gamma = g_strdup(value);
+			else if (g_str_equal(attr, "OffsetSDR"))
+				parser->offset_sdr = g_strdup(value);
+			else if (g_str_equal(attr, "OffsetHDR"))
+				parser->offset_hdr = g_strdup(value);
+			else if (g_str_equal(attr, "HDRCapacityMin"))
+				parser->hdr_capacity_min = g_strdup(value);
+			else if (g_str_equal(attr, "HDRCapacityMax"))
+				parser->hdr_capacity_max = g_strdup(value);
+			else if (g_str_equal(attr, "BaseRenditionIsHDR"))
+				parser->base_rendition_is_hdr = g_strdup(value);
+		}
+	}
+	else if (g_str_equal(name, "xmlns:hdrgm")) {
+		/* We could verify the URI is
+		 * http://ns.adobe.com/hdr-gain-map/1.0/, but matching the
+		 * namespace prefix is sufficient -- only one widely-deployed
+		 * schema uses this prefix.
+		 */
+		parser->has_hdrgm_ns = TRUE;
+	}
+}
+
+/* SAX parser callbacks.
+ */
+static void
+xml_start_element(GMarkupParseContext *ctx,
+	const gchar *element_name, const gchar **attr_names,
+	const gchar **attr_values, gpointer user_data, GError **error)
+{
+	VipsHeifGainmapXMLParser *parser = user_data;
+
+	/* Detect namespace declarations in the rdf:Description element.
+	 */
+	if (g_str_equal(element_name, "rdf:Description")) {
+		parser->in_description = TRUE;
+
+		for (int i = 0; attr_names[i] != NULL; i++)
+			handle_hdrgm_attribute(parser, attr_names[i], attr_values[i]);
+	}
+	else if (parser->in_description) {
+		/* Some XML writers put attributes on nested elements. Not
+		 * standard ISO 21496-1, but handle it defensively.
+		 */
+		for (int i = 0; attr_names[i] != NULL; i++)
+			handle_hdrgm_attribute(parser, attr_names[i], attr_values[i]);
+	}
+}
+
+static void
+xml_end_element(GMarkupParseContext *ctx,
+	const gchar *element_name, gpointer user_data, GError **error)
+{
+	VipsHeifGainmapXMLParser *parser = user_data;
+
+	if (g_str_equal(element_name, "rdf:Description"))
+		parser->in_description = FALSE;
+}
+
+static const GMarkupParser xml_parser = {
+	.start_element = xml_start_element,
+	.end_element = xml_end_element,
+	.text = NULL,
+	.passthrough = NULL,
+	.error = NULL,
+};
+
+/* Parse ISO 21496-1 / Adobe hdrgm: gain map XML and populate the gainmap-*
+ * metadata fields on @out. Returns 0 on success, -1 on parse error.
+ *
+ * If the XML doesn't use the hdrgm: namespace (e.g. Apple's HDRGainMap:
+ * namespace), returns 0 but doesn't set any fields. This is not an error
+ * -- the gain map image is still attached, just the math metadata is
+ * missing.
+ */
+static int
+vips_foreign_load_heif_parse_gainmap_xml(const char *xml_data,
+	size_t xml_length, VipsImage *out)
+{
+	VipsHeifGainmapXMLParser parser = { 0 };
+	GMarkupParseContext *ctx;
+	GError *error = NULL;
+
+	ctx = g_markup_parse_context_new(&xml_parser,
+		G_MARKUP_TREAT_CDATA_AS_TEXT, &parser, NULL);
+	if (!g_markup_parse_context_parse(ctx, xml_data, xml_length, &error)) {
+		g_markup_parse_context_free(ctx);
+		if (error) {
+			g_info("heifload: gain map XML parse error: %s", error->message);
+			g_error_free(error);
+		}
+		return -1;
+	}
+	if (!g_markup_parse_context_end_parse(ctx, &error)) {
+		g_markup_parse_context_free(ctx);
+		if (error) {
+			g_info("heifload: gain map XML end parse error: %s", error->message);
+			g_error_free(error);
+		}
+		return -1;
+	}
+	g_markup_parse_context_free(ctx);
+
+	/* If we didn't see the hdrgm: namespace, this is not an ISO 21496-1
+	 * gain map (could be Apple's HDRGainMap: or some other format). The
+	 * gain map image was already attached by the caller; we just don't
+	 * populate the math metadata.
+	 */
+	if (!parser.has_hdrgm_ns) {
+		g_info("heifload: gain map XML is not ISO 21496-1 (no hdrgm: namespace), "
+			"skipping metadata extraction");
+	}
+	else {
+		double arr[3];
+		double val;
+		gboolean use_base_cg = FALSE;
+
+		g_info("heifload: parsing ISO 21496-1 gain map metadata");
+
+		/* ISO 21496-1 GainMapMin/GainMapMax are log2 boost values (stops).
+		 * libultrahdr's min_content_boost/max_content_boost are linear
+		 * ratios (1.0 = no boost, 4.9 = 4.9x boost). uhdr2scRGB takes
+		 * log2() of these values internally, so we convert with exp2().
+		 */
+		parse_float_attribute(parser.gain_map_max, arr);
+		for (int k = 0; k < 3; k++)
+			arr[k] = exp2(arr[k]);
+		vips_image_set_array_double(out, "gainmap-max-content-boost", arr, 3);
+
+		parse_float_attribute(parser.gain_map_min, arr);
+		for (int k = 0; k < 3; k++)
+			arr[k] = exp2(arr[k]);
+		vips_image_set_array_double(out, "gainmap-min-content-boost", arr, 3);
+
+		/* Gamma, offsets are passed through unchanged (same scale in
+		 * both ISO 21496-1 and libultrahdr).
+		 */
+		parse_float_attribute(parser.gamma, arr);
+		vips_image_set_array_double(out, "gainmap-gamma", arr, 3);
+
+		parse_float_attribute(parser.offset_sdr, arr);
+		vips_image_set_array_double(out, "gainmap-offset-sdr", arr, 3);
+
+		parse_float_attribute(parser.offset_hdr, arr);
+		vips_image_set_array_double(out, "gainmap-offset-hdr", arr, 3);
+
+		/* HDRCapacityMin/HDRCapacityMax are also log2 (same axis as
+		 * GainMapMin/GainMapMax). Convert to linear.
+		 */
+		val = parser.hdr_capacity_min
+			? exp2(g_ascii_strtod(parser.hdr_capacity_min, NULL)) : 1.0;
+		vips_image_set_double(out, "gainmap-hdr-capacity-min", val);
+
+		val = parser.hdr_capacity_max
+			? exp2(g_ascii_strtod(parser.hdr_capacity_max, NULL)) : 1.0;
+		vips_image_set_double(out, "gainmap-hdr-capacity-max", val);
+
+		/* BaseRenditionIsHDR: "False" (the common case) means the SDR
+		 * base is the primary image. use_base_cg is a libultrahdr
+		 * parameter; for ISO 21496-1 we default to TRUE (use the
+		 * base image's color gamut for the gain map).
+		 */
+		if (parser.base_rendition_is_hdr) {
+			/* Invert: "False" -> use_base_cg=TRUE (use base image CG)
+			 * "True" -> use_base_cg=FALSE (base is HDR, gain map is SDR)
+			 */
+			use_base_cg = !g_ascii_strcasecmp(
+				parser.base_rendition_is_hdr, "True") == 0;
+		}
+		vips_image_set_int(out, "gainmap-use-base-cg", use_base_cg ? 1 : 0);
+	}
+
+	g_free(parser.gain_map_min);
+	g_free(parser.gain_map_max);
+	g_free(parser.gamma);
+	g_free(parser.offset_sdr);
+	g_free(parser.offset_hdr);
+	g_free(parser.hdr_capacity_min);
+	g_free(parser.hdr_capacity_max);
+	g_free(parser.base_rendition_is_hdr);
+
+	return 0;
+}
+
+/* Decode an aux image handle to a VipsImage. Returns a new VipsImage
+ * (caller must unref) or NULL on error.
+ *
+ * The aux image is decoded as 8-bit interleaved RGB, matching what
+ * uhdr2scRGB expects for its gainmap input.
+ */
+static VipsImage *
+vips_foreign_load_heif_decode_aux(struct heif_image_handle *aux_handle)
+{
+	struct heif_image *img = NULL;
+	struct heif_error error;
+	int width, height, stride;
+	const uint8_t *data;
+	VipsImage *out;
+	gboolean use_y_plane = FALSE;
+
+	/* Gain maps can be either monochrome (1-channel, the common case) or
+	 * multi-channel (3-channel, where R/G/B have different gain values).
+	 *
+	 * For monochrome gain maps stored as HEVC 4:2:0, we extract the Y
+	 * (luma) plane directly to avoid chroma upsampling artifacts that
+	 * cause visible streaks when the gain map is applied.
+	 *
+	 * For multi-channel gain maps, we decode as RGB to preserve the
+	 * per-channel information.
+	 *
+	 * We detect monochrome vs multi-channel by checking whether the Cb/Cr
+	 * planes deviate from neutral (128). A small deviation (±8) indicates
+	 * HEVC compression noise on a monochrome gain map. A larger deviation
+	 * indicates a true multi-channel gain map.
+	 */
+	error = heif_decode_image(aux_handle, &img,
+		heif_colorspace_YCbCr,
+		heif_chroma_420,
+		NULL);
+	if (!error.code) {
+		/* YCbCr decode succeeded. Check Cb/Cr deviation from neutral.
+		 */
+		int cb_w = heif_image_get_width(img, heif_channel_Cb);
+		int cb_h = heif_image_get_height(img, heif_channel_Cb);
+		int cb_stride, cr_stride;
+		const uint8_t *cb_data = heif_image_get_plane_readonly(img,
+			heif_channel_Cb, &cb_stride);
+		const uint8_t *cr_data = heif_image_get_plane_readonly(img,
+			heif_channel_Cr, &cr_stride);
+
+		if (cb_data && cr_data && cb_w > 0 && cb_h > 0) {
+			int cb_min = 255, cb_max = 0;
+			int cr_min = 255, cr_max = 0;
+
+			for (int y = 0; y < cb_h; y++) {
+				for (int x = 0; x < cb_w; x++) {
+					int cb = cb_data[y * cb_stride + x];
+					int cr = cr_data[y * cr_stride + x];
+					if (cb < cb_min) cb_min = cb;
+					if (cb > cb_max) cb_max = cb;
+					if (cr < cr_min) cr_min = cr;
+					if (cr > cr_max) cr_max = cr;
+				}
+			}
+
+			/* If Cb/Cr are within ±8 of neutral (128), the gain map
+			 * is effectively monochrome. The small deviation is
+			 * HEVC compression noise on 4:2:0 chroma.
+			 */
+			if (abs(cb_min - 128) <= 8 && abs(cb_max - 128) <= 8 &&
+				abs(cr_min - 128) <= 8 && abs(cr_max - 128) <= 8) {
+				use_y_plane = TRUE;
+#ifdef DEBUG
+				printf("heifload: gain map is monochrome "
+					"(Cb: %d-%d, Cr: %d-%d), using Y plane\n",
+					cb_min, cb_max, cr_min, cr_max);
+#endif
+			}
+			else {
+#ifdef DEBUG
+				printf("heifload: gain map is multi-channel "
+					"(Cb: %d-%d, Cr: %d-%d), using RGB\n",
+					cb_min, cb_max, cr_min, cr_max);
+#endif
+			}
+		}
+
+		if (use_y_plane) {
+			/* Extract the Y (luma) plane. The Y plane may have
+			 * stride > width (alignment padding), so copy
+			 * row-by-row to create tightly packed data.
+			 */
+			width = heif_image_get_width(img, heif_channel_Y);
+			height = heif_image_get_height(img, heif_channel_Y);
+
+			if (!(data = heif_image_get_plane_readonly(img,
+				heif_channel_Y, &stride))) {
+				vips_error("heifload", "%s",
+					_("unable to get gainmap Y plane data"));
+				heif_image_release(img);
+				return NULL;
+			}
+
+			if (stride == width) {
+				out = vips_image_new_from_memory(data,
+					(size_t) stride * height,
+					width, height, 1, VIPS_FORMAT_UCHAR);
+			}
+			else {
+				size_t packed_size = (size_t) width * height;
+				uint8_t *packed = VIPS_ARRAY(NULL,
+					packed_size, uint8_t);
+				if (!packed) {
+					heif_image_release(img);
+					return NULL;
+				}
+				for (int y = 0; y < height; y++)
+					memcpy(packed + (size_t) y * width,
+						data + (size_t) y * stride,
+						width);
+				out = vips_image_new_from_memory(packed,
+					packed_size,
+					width, height, 1, VIPS_FORMAT_UCHAR);
+			}
+
+			if (!out) {
+				heif_image_release(img);
+				return NULL;
+			}
+
+			heif_image_release(img);
+
+			vips_image_init_fields(out,
+				width, height, 1,
+				VIPS_FORMAT_UCHAR,
+				VIPS_CODING_NONE,
+				VIPS_INTERPRETATION_B_W,
+				1.0, 1.0);
+		}
+		else {
+			/* Multi-channel gain map: re-decode as RGB.
+			 */
+			heif_image_release(img);
+			img = NULL;
+			error.code = 1; /* fall through to RGB decode below */
+		}
+	}
+
+	if (!use_y_plane) {
+		/* Decode as interleaved RGB (either YCbCr failed, or the
+		 * gain map is multi-channel).
+		 */
+		if (!img) {
+			error = heif_decode_image(aux_handle, &img,
+				heif_colorspace_RGB,
+				heif_chroma_interleaved_RGB,
+				NULL);
+		}
+		if (error.code) {
+			vips__heif_error(&error);
+			return NULL;
+		}
+
+		width = heif_image_get_width(img, heif_channel_interleaved);
+		height = heif_image_get_height(img, heif_channel_interleaved);
+
+		if (!(data = heif_image_get_plane_readonly(img,
+			heif_channel_interleaved, &stride))) {
+			vips_error("heifload", "%s",
+				_("unable to get gainmap image data"));
+			heif_image_release(img);
+			return NULL;
+		}
+
+		out = vips_image_new_from_memory(data,
+			(size_t) stride * height,
+			width, height, 3, VIPS_FORMAT_UCHAR);
+		if (!out) {
+			heif_image_release(img);
+			return NULL;
+		}
+
+		heif_image_release(img);
+
+		vips_image_init_fields(out,
+			width, height, 3,
+			VIPS_FORMAT_UCHAR,
+			VIPS_CODING_NONE,
+			VIPS_INTERPRETATION_sRGB,
+			1.0, 1.0);
+	}
+
+	return out;
+}
+
+/* Main orchestrator: find gain map aux image(s) on the primary handle,
+ * decode the gain map raster, attach it as "gainmap" metadata, then
+ * find and parse the ISO 21496-1 XML on the aux handle to populate the
+ * gainmap-* fields.
+ *
+ * Called from vips_foreign_load_heif_set_header after the existing
+ * metadata block loop. Failures are logged but don't fail the load --
+ * the primary image is still useful without the gain map.
+ */
+static void
+vips_foreign_load_heif_load_gainmap(VipsForeignLoadHeif *heif, VipsImage *out)
+{
+	int n_aux;
+	heif_item_id aux_ids[16];
+	int n_ids;
+	int i;
+	struct heif_error error;
+
+	/* Limit aux image count for safety (matches the 16-item metadata
+	 * limit elsewhere in this file).
+	 */
+	n_aux = heif_image_handle_get_number_of_auxiliary_images(
+		heif->handle, 0);
+	if (n_aux <= 0)
+		return;
+
+	n_ids = heif_image_handle_get_list_of_auxiliary_image_IDs(
+		heif->handle, 0, aux_ids, VIPS_NUMBER(aux_ids));
+
+	for (i = 0; i < n_ids; i++) {
+		struct heif_image_handle *aux_handle = NULL;
+		const char *aux_type = NULL;
+		VipsImage *gainmap_img = NULL;
+
+		error = heif_image_handle_get_auxiliary_image_handle(
+			heif->handle, aux_ids[i], &aux_handle);
+		if (error.code) {
+			g_info("heifload: failed to get aux handle %u: %s",
+				aux_ids[i], error.message ? error.message : "(null)");
+			continue;
+		}
+
+		error = heif_image_handle_get_auxiliary_type(aux_handle,
+			&aux_type);
+		if (error.code) {
+			g_info("heifload: failed to get aux type for %u: %s",
+				aux_ids[i], error.message ? error.message : "(null)");
+			heif_image_handle_release(aux_handle);
+			continue;
+		}
+
+		if (!vips_foreign_load_heif_is_gainmap_aux(aux_type)) {
+			heif_image_handle_release_auxiliary_type(aux_handle,
+				&aux_type);
+			heif_image_handle_release(aux_handle);
+			continue;
+		}
+
+		g_info("heifload: found gain map aux image (type=%s)", aux_type);
+
+		/* Decode the gain map raster image.
+		 */
+		if (!(gainmap_img = vips_foreign_load_heif_decode_aux(aux_handle))) {
+			g_info("heifload: failed to decode gain map aux image");
+			heif_image_handle_release_auxiliary_type(aux_handle,
+				&aux_type);
+			heif_image_handle_release(aux_handle);
+			continue;
+		}
+
+		vips_image_set_image(out, "gainmap", gainmap_img);
+		VIPS_UNREF(gainmap_img);
+
+		/* Set the gain map scale factor (primary / gainmap). uhdrload
+		 * sets this; we do the same for compatibility.
+		 */
+		{
+			int primary_w = heif_image_handle_get_width(heif->handle);
+			int gainmap_w = heif_image_handle_get_width(aux_handle);
+			int scale_factor = VIPS_MAX(1, primary_w / gainmap_w);
+
+			vips_image_set_int(out, "gainmap-scale-factor", scale_factor);
+		}
+
+		/* Now look for the ISO 21496-1 XML metadata on the aux handle.
+		 * The XML is typically attached to the gain map image item via
+		 * a 'cdsc' reference, so it only shows up when we enumerate
+		 * metadata on the aux handle (not the primary).
+		 */
+		{
+			heif_item_id meta_ids[16];
+			int n_meta = heif_image_handle_get_list_of_metadata_block_IDs(
+				aux_handle, NULL, meta_ids, VIPS_NUMBER(meta_ids));
+			int j;
+			gboolean parsed_xml = FALSE;
+
+			for (j = 0; j < n_meta && !parsed_xml; j++) {
+				const char *content_type =
+					heif_image_handle_get_metadata_content_type(
+						aux_handle, meta_ids[j]);
+				size_t meta_size =
+					heif_image_handle_get_metadata_size(
+						aux_handle, meta_ids[j]);
+
+				if (content_type &&
+					g_str_equal(content_type, "application/rdf+xml") &&
+					meta_size > 0 && meta_size < 1024 * 1024) {
+					unsigned char *xml_data =
+						VIPS_ARRAY(NULL, meta_size, unsigned char);
+
+					if (xml_data) {
+						error = heif_image_handle_get_metadata(
+							aux_handle, meta_ids[j], xml_data);
+						if (!error.code) {
+							vips_foreign_load_heif_parse_gainmap_xml(
+								(const char *) xml_data, meta_size, out);
+							parsed_xml = TRUE;
+						}
+						VIPS_FREE(xml_data);
+					}
+				}
+			}
+
+			if (!parsed_xml)
+				g_info("heifload: gain map has no ISO 21496-1 XML metadata; "
+					"gainmap-* fields not populated");
+		}
+
+		heif_image_handle_release_auxiliary_type(aux_handle, &aux_type);
+		heif_image_handle_release(aux_handle);
+
+		/* We only process the first gain map aux image. If there are
+		 * multiple (unlikely but possible), we ignore the rest.
+		 */
+		break;
+	}
+}
+
 /* Select a page. If thumbnail is set, select the thumbnail for that page, if
  * there is one.
  */
@@ -762,6 +1381,13 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		if (nclx)
 			heif_nclx_color_profile_free(nclx);
 	}
+
+	/* Extract ISO 21496-1 / Adobe HDR gain map from HEIC auxiliary images,
+	 * if present. Populates the "gainmap" image metadata and gainmap-*
+	 * metadata fields, matching the format produced by uhdrload.c.
+	 * Failures are logged but don't fail the load.
+	 */
+	vips_foreign_load_heif_load_gainmap(heif, out);
 
 	vips_image_set_int(out, "heif-primary", heif->primary_page);
 	vips_image_set_int(out, VIPS_META_N_PAGES, heif->n_top);

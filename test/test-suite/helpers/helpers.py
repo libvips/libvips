@@ -72,6 +72,15 @@ MOSAIC_VERTICAL_MARKS = [[388, 44], [364, 346],
 JP2K_FILE = os.path.join(IMAGES, "world.jp2")
 UHDR_FILE = os.path.join(IMAGES, "ultra-hdr.jpg")
 
+# HEIC HDR gain map test samples.
+# Samsung S25 Ultra: ISO 21496-1 / Adobe hdrgm: XML namespace (fully supported).
+SAMSUNG_GAINMAP_HEIC_FILE = os.path.join(IMAGES, "samsung-heic-gainmap.heic")
+# Apple iPhone 16: Apple HDRGainMap: XML namespace (gain map image attached,
+# math metadata not parsed -- out of scope for current implementation).
+APPLE_GAINMAP_HEIC_FILE = os.path.join(IMAGES, "apple-heic-gainmap.heic")
+# OnePlus 13: no gain map (SDR only, negative test case).
+ONEPLUS_HEIC_FILE = os.path.join(IMAGES, "oneplus-heic.heic")
+
 unsigned_formats = ["uchar", "ushort", "uint"]
 signed_formats = ["char", "short", "int"]
 float_formats = ["float", "double"]

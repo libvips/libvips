@@ -43,6 +43,10 @@
 
 #include "pcolour.h"
 
+#ifdef HAVE_LCMS2
+#include <lcms2.h>
+#endif
+
 typedef struct _VipsUhdr2scRGB {
 	VipsColour parent;
 
@@ -60,11 +64,107 @@ typedef struct _VipsUhdr2scRGB {
 	 */
 	VipsImage *gainmap;
 
+	/* Primaries conversion matrix from the SDR image's colour space
+	 * to BT.709 (scRGB). Identity when the source is already sRGB.
+	 * Applied after the gain map math, before the scRGB scaling.
+	 */
+	float primaries_matrix[9];
+	gboolean has_primaries_matrix;
+
 } VipsUhdr2scRGB;
 
 typedef VipsColourClass VipsUhdr2scRGBClass;
 
 G_DEFINE_TYPE(VipsUhdr2scRGB, vips_uhdr2scRGB, VIPS_TYPE_COLOUR);
+
+/* Primaries-to-BT.709 matrices and lookup function are shared via
+ * pcolour.h (vips_cicp_get_primaries_matrix, vips_cicp_apply_matrix).
+ */
+
+/* Detect the source colour primaries from the input image's metadata
+ * and set the appropriate conversion matrix. Falls back to identity
+ * (assume sRGB/BT.709) when the primaries cannot be determined.
+ *
+ * Checks CICP metadata first (cicp-colour-primaries), then falls back
+ * to searching the ICC profile description for known patterns.
+ */
+static void
+vips_uhdr2scRGB_detect_primaries(VipsUhdr2scRGB *uhdr, VipsImage *in)
+{
+	int primaries;
+
+	uhdr->has_primaries_matrix = FALSE;
+
+	/* Try CICP metadata first.
+	 */
+	if (!vips_image_get_typeof(in, "cicp-colour-primaries") ||
+		vips_image_get_int(in, "cicp-colour-primaries", &primaries)) {
+		primaries = 0; /* unspecified */
+	}
+
+	switch (primaries) {
+	case 1: /* BT.709 / sRGB */
+	case 9: /* BT.2020 / BT.2100 */
+	case 12: /* Display P3 */
+		memcpy(uhdr->primaries_matrix,
+			vips_cicp_get_primaries_matrix(primaries),
+			9 * sizeof(float));
+		uhdr->has_primaries_matrix = TRUE;
+		return;
+
+	default:
+		/* Unspecified or unknown. Fall through to ICC check.
+		 */
+		break;
+	}
+
+	/* No usable CICP. Try ICC profile — use lcms2 to read the profile
+	 * description and check for known colour space names.
+	 */
+	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+		const void *icc_data;
+		size_t icc_length;
+
+		if (!vips_image_get_blob(in, VIPS_META_ICC_NAME,
+				&icc_data, &icc_length) &&
+			icc_length > 0) {
+			const float *matrix = NULL;
+
+#ifdef HAVE_LCMS2
+			cmsHPROFILE profile = cmsOpenProfileFromMem(
+				icc_data, icc_length);
+			if (profile) {
+				char desc[256] = { 0 };
+				cmsGetProfileInfoASCII(profile, cmsInfoDescription,
+					"en", "US", desc, sizeof(desc));
+				cmsCloseProfile(profile);
+
+				/* Check for known colour space names.
+				 * ICC descriptions are case-sensitive and
+				 * use specific patterns like "Display P3",
+				 * "DCI-P3 D65", etc.
+				 */
+				if (g_strstr_len(desc, -1, "P3"))
+					matrix = Display_P3_to_BT709;
+				else if (g_strstr_len(desc, -1, "2020"))
+					matrix = BT2020_to_BT709;
+			}
+#endif /*HAVE_LCMS2*/
+
+			if (matrix) {
+				memcpy(uhdr->primaries_matrix, matrix,
+					9 * sizeof(float));
+				uhdr->has_primaries_matrix = TRUE;
+				return;
+			}
+		}
+	}
+
+	/* Default: assume sRGB/BT.709 (identity matrix).
+	 */
+	memcpy(uhdr->primaries_matrix, BT709_to_BT709, 9 * sizeof(float));
+	uhdr->has_primaries_matrix = TRUE;
+}
 
 /* Derived from the apache-licensed applyGain() method of libuhdr.
  */
@@ -97,12 +197,25 @@ vips_uhdr2scRGB_mono(VipsUhdr2scRGB *uhdr,
 
 		float gaing = exp2(boostg);
 
-		q[0] = VIPS_UHDR_TO_SCRGB *
-			(((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
-		q[1] = VIPS_UHDR_TO_SCRGB *
-			(((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
-		q[2] = VIPS_UHDR_TO_SCRGB *
-			(((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
+		float hr = ((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		float hg = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		float hb = ((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+
+		/* Apply primaries conversion (e.g. Display P3 -> BT.709)
+		 * before scaling to scRGB. This ensures the output is true
+		 * scRGB regardless of the SDR image's colour space.
+		 * Clamp negative values from out-of-gamut colours.
+		 */
+		float pr, pg, pb;
+		vips_cicp_apply_matrix(uhdr->primaries_matrix,
+			hr, hg, hb, &pr, &pg, &pb);
+		pr = VIPS_MAX(0.0f, pr);
+		pg = VIPS_MAX(0.0f, pg);
+		pb = VIPS_MAX(0.0f, pb);
+
+		q[0] = VIPS_UHDR_TO_SCRGB * pr;
+		q[1] = VIPS_UHDR_TO_SCRGB * pg;
+		q[2] = VIPS_UHDR_TO_SCRGB * pb;
 		q += 3;
 	}
 }
@@ -122,9 +235,13 @@ vips_uhdr2scRGB_rgb(VipsUhdr2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float b = vips_v2Y_8[p1[2]];
 		p1 += 3;
 
-		float gr = vips_v2Y_8[p2[0]];
-		float gg = vips_v2Y_8[p2[1]];
-		float gb = vips_v2Y_8[p2[2]];
+		// the gainmap is not gamma corrected in libultrahdr, confusingly.
+		// Use the raw normalized value (matching the mono path) instead
+		// of applying sRGB inverse OETF via vips_v2Y_8. The gain map's
+		// encoding is controlled by the gamma parameter, not sRGB.
+		float gr = p2[0] / 255.0f;
+		float gg = p2[1] / 255.0f;
+		float gb = p2[2] / 255.0f;
 		p2 += 3;
 
 		if (uhdr->gamma[0] != 1.0f)
@@ -145,12 +262,24 @@ vips_uhdr2scRGB_rgb(VipsUhdr2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float gaing = exp2(boostg);
 		float gainb = exp2(boostb);
 
-		q[0] = VIPS_UHDR_TO_SCRGB *
-			(((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0]);
-		q[1] = VIPS_UHDR_TO_SCRGB *
-			(((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
-		q[2] = VIPS_UHDR_TO_SCRGB *
-			(((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2]);
+		float hr = ((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0];
+		float hg = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		float hb = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
+
+		/* Apply primaries conversion (e.g. Display P3 -> BT.709)
+		 * before scaling to scRGB. Clamp negative values from
+		 * out-of-gamut colours.
+		 */
+		float pr, pg, pb;
+		vips_cicp_apply_matrix(uhdr->primaries_matrix,
+			hr, hg, hb, &pr, &pg, &pb);
+		pr = VIPS_MAX(0.0f, pr);
+		pg = VIPS_MAX(0.0f, pg);
+		pb = VIPS_MAX(0.0f, pb);
+
+		q[0] = VIPS_UHDR_TO_SCRGB * pr;
+		q[1] = VIPS_UHDR_TO_SCRGB * pg;
+		q[2] = VIPS_UHDR_TO_SCRGB * pb;
 		q += 3;
 	}
 }
@@ -236,7 +365,7 @@ vips_uhdr2scRGB_build(VipsObject *object)
 		if (vips_check_bands_1or3(class->nickname, gainmap))
 			return -1;
 
-		/* Scale the gainmap image to match the main image 1:1.
+ 		/* Scale the gainmap image to match the main image 1:1.
 		 */
 		if (vips_resize(gainmap, &uhdr->gainmap,
 				(double) uhdr->in->Xsize / gainmap->Xsize,
@@ -249,6 +378,13 @@ vips_uhdr2scRGB_build(VipsObject *object)
 		colour->in[0] = uhdr->in;
 		g_object_ref(uhdr->in);
 		colour->in[1] = uhdr->gainmap;
+
+		/* Detect the SDR image's colour primaries and set the
+		 * conversion matrix to BT.709 (scRGB). This handles images
+		 * in Display P3 (common on modern phones) and other non-sRGB
+		 * colour spaces.
+		 */
+		vips_uhdr2scRGB_detect_primaries(uhdr, uhdr->in);
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_uhdr2scRGB_parent_class)->build(object))

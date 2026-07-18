@@ -228,6 +228,99 @@ static const float BT709_to_BT709[9] = {
 	0.0f, 0.0f, 1.0f
 };
 
+/* Primaries-to-BT.709 conversion matrices.
+ * Used by CICP2scRGB and uhdr2scRGB to convert from the source
+ * colour primaries to BT.709 (scRGB).
+ */
+
+static const float BT2020_to_BT709[9] = {
+	1.660491f, -0.58764114f, -0.07284986f,
+	-0.12455047f, 1.1328999f, -0.00834942f,
+	-0.01815076f, -0.1005789f, 1.11872966f
+};
+
+/* Bradford chromatic adaptation
+ */
+static const float DCI_P3_to_BT709[9] = {
+	1.15751641f, -0.15496238f, -0.00255403f,
+	-0.04150007f, 1.04556792f, -0.00406785f,
+	-0.01805004f, -0.07857827f, 1.09662831f
+};
+
+static const float Display_P3_to_BT709[9] = {
+	1.22494018f, -0.224940176f, -6.95071840e-17f,
+	-0.0420569547f, 1.04205695f, 3.05868274e-17f,
+	-0.0196375546f, -0.0786360456f, 1.09827360f
+};
+
+/* Bradford chromatic adaptation (Illuminant C -> D65)
+ */
+static const float BT470M_to_BT709[9] = {
+	1.48615685f, -0.40355491f, -0.08260194f,
+	-0.02510111f, 0.95402469f, 0.07107642f,
+	-0.02722400f, -0.04409523f, 1.07131924f
+};
+
+static const float BT470BG_to_BT709[9] = {
+	1.04404321f, -0.04404321f, 0.0f,
+	0.0f, 1.0f, 0.0f,
+	0.0f, 0.01179338f, 0.98820662f
+};
+
+/* BT.601 / SMPTE 170M / SMPTE 240M share the same primaries
+ */
+static const float BT601_to_BT709[9] = {
+	0.93954206f, 0.05018136f, 0.01027658f,
+	0.01777222f, 0.96579286f, 0.01643491f,
+	-0.00162160f, -0.00436975f, 1.00599135f
+};
+
+/* Bradford chromatic adaptation (Illuminant C -> D65)
+ */
+static const float GenericFilm_to_BT709[9] = {
+	1.34617592f, -0.33919507f, -0.00698084f,
+	-0.04735102f, 1.06605153f, -0.01870051f,
+	-0.02166498f, -0.06131310f, 1.08297808f
+};
+
+static const float EBU3213_to_BT709[9] = {
+	1.02525246f, -0.02654753f, 0.00129508f,
+	0.01939351f, 0.94802801f, 0.03257848f,
+	-0.00176953f, -0.00144232f, 1.00321185f
+};
+
+/* Look up the primaries-to-BT.709 conversion matrix for a CICP
+ * colour primaries code. Returns identity (BT.709->BT.709) for
+ * unspecified or unknown primaries.
+ */
+static inline const float *
+vips_cicp_get_primaries_matrix(int colour_primaries)
+{
+	switch (colour_primaries) {
+	case VIPS_CICP_COLOUR_PRIMARIES_BT709:
+		return BT709_to_BT709;
+	case VIPS_CICP_COLOUR_PRIMARIES_BT2020:
+		return BT2020_to_BT709;
+	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE431:
+		return DCI_P3_to_BT709;
+	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE432:
+		return Display_P3_to_BT709;
+	case VIPS_CICP_COLOUR_PRIMARIES_BT470M:
+		return BT470M_to_BT709;
+	case VIPS_CICP_COLOUR_PRIMARIES_BT470BG:
+		return BT470BG_to_BT709;
+	case VIPS_CICP_COLOUR_PRIMARIES_BT601:
+	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE240:
+		return BT601_to_BT709;
+	case VIPS_CICP_COLOUR_PRIMARIES_GENERIC_FILM:
+		return GenericFilm_to_BT709;
+	case VIPS_CICP_COLOUR_PRIMARIES_EBU3213:
+		return EBU3213_to_BT709;
+	default:
+		return BT709_to_BT709;
+	}
+}
+
 /* Luminance coefficients (Y row of primaries-to-XYZ matrix) for
  * each set of colour primaries. Used by HLG OOTF / inverse OOTF
  * to compute luminance in the source/target primaries' colour space.
