@@ -122,8 +122,9 @@
 
 /*
 #define VIPS_DEBUG
-#define DEBUG
+#define DEBUG_VERBOSE
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -249,7 +250,12 @@ typedef struct {
 	 * restores.
 	 */
 	int dispose_op;
+	int dispose_blend_op;
 	VipsRect dispose_rect;
+
+	/* The background colour, eg. [0, 0, 0, 255], solid black.
+	 */
+	VipsPel *background;
 #endif /*PNG_APNG_SUPPORTED*/
 
 } Read;
@@ -293,9 +299,9 @@ vips_png_read_source(png_structp pPng, png_bytep data, png_size_t length)
 {
 	Read *read = png_get_io_ptr(pPng);
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf("vips_png_read_source: read %zd bytes\n", length);
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* libpng makes many small reads, which hurts performance if you do a
 	 * syscall for each one. Read via our own buffer.
@@ -1064,10 +1070,10 @@ png2vips_generate(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	Read *read = (Read *) a;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf("png2vips_generate: line %d, %d rows, y_pos = %d\n",
 		r->top, r->height, read->y_pos);
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* We're inside a tilecache where tiles are the full image width, so
 	 * this should always be true.
@@ -1086,8 +1092,7 @@ png2vips_generate(VipsRegion *out_region,
 	 * a vips_sequential().
 	 */
 	if (r->top != read->y_pos) {
-		vips_error("vipspng",
-			_("out of order read at line %d"), read->y_pos);
+		vips_error("vipspng", _("out of order read at line %d"), read->y_pos);
 		return -1;
 	}
 
@@ -1127,26 +1132,88 @@ png2vips_generate(VipsRegion *out_region,
 	return 0;
 }
 
+static const char *
+dispose_op_to_s(int dispose_op)
+{
+	switch (dispose_op) {
+	case PNG_fcTL_DISPOSE_OP_BACKGROUND:
+		return "background";
+
+	case PNG_fcTL_DISPOSE_OP_PREVIOUS:
+		return "previous";
+
+	case PNG_fcTL_DISPOSE_OP_NONE:
+		return "none";
+
+	default:
+		return "<unknown dispose>";
+	}
+}
+
+static const char *
+blend_op_to_s(int dispose_op)
+{
+	switch (dispose_op) {
+	case PNG_fcTL_BLEND_OP_SOURCE:
+		return "source";
+
+	case PNG_fcTL_BLEND_OP_OVER:
+		return "over";
+
+	default:
+		return "<unknown blend>";
+	}
+}
+
 static int
 png2vips_apng_read_next_frame(Read *read)
 {
+	printf("png2vips_apng_read_next_frame: frame_no = %d\n",
+		read->frame_no + 1);
+	printf("\tdispose_op = %s\n", dispose_op_to_s(read->dispose_op));
+	printf("\tdispose_blend_op = %s\n", blend_op_to_s(read->dispose_blend_op));
+	printf("\tdispose_rect left = %d, top = %d, width = %d, height = %d\n",
+		read->dispose_rect.left,
+		read->dispose_rect.top,
+		read->dispose_rect.width,
+		read->dispose_rect.height);
+
 	/* Dispose the previous frame.
 	 */
 	switch (read->dispose_op) {
 	case PNG_fcTL_DISPOSE_OP_BACKGROUND:
-		vips_region_paint(read->canvas, &read->dispose_rect, 0);
+		vips_region_paint_pel(read->canvas,
+			&read->dispose_rect, read->background);
 		break;
 
 	case PNG_fcTL_DISPOSE_OP_PREVIOUS:
-		// FIXME
-		// can this ever be over rather than just copy?
-		vips_region_copy(read->previous, read->canvas,
-			&read->dispose_rect,
-			read->dispose_rect.left,
-			read->dispose_rect.top);
+		switch (read->dispose_blend_op) {
+		case PNG_fcTL_BLEND_OP_OVER:
+			vips_region_blend_over(read->previous, read->canvas,
+				&read->dispose_rect,
+				read->dispose_rect.left,
+				read->dispose_rect.top);
+			break;
+
+		case PNG_fcTL_BLEND_OP_SOURCE:
+			vips_region_copy(read->previous, read->canvas,
+				&read->dispose_rect,
+				read->dispose_rect.left,
+				read->dispose_rect.top);
+			break;
+
+		default:
+			printf("png2vips_apng_read_next_frame: "
+				"unknown dispose previous blend\n");
+			break;
+		}
+		break;
+
+	case PNG_fcTL_DISPOSE_OP_NONE:
 		break;
 
 	default:
+		printf("png2vips_apng_read_next_frame: unknown dispose\n");
 		break;
 	}
 
@@ -1173,6 +1240,9 @@ png2vips_apng_read_next_frame(Read *read)
 
 	VipsRect frame_rect = { x_offset, y_offset, width, height };
 
+	printf("\tread pixels to left = %d, top = %d, width = %d, height = %d\n",
+		frame_rect.left, frame_rect.top, frame_rect.width, frame_rect.height);
+
 	/* DISPOSE_OP_PREVIOUS on the first frame means
 	 * DISPOSE_OP_BACKGROUND, see the spec.
 	 */
@@ -1184,7 +1254,7 @@ png2vips_apng_read_next_frame(Read *read)
 	 * covers so we can restore it before the next frame.
 	 */
 	if (dispose_op == PNG_fcTL_DISPOSE_OP_PREVIOUS)
-		vips_region_copy(read->previous, read->canvas,
+		vips_region_copy(read->canvas, read->previous,
 			&frame_rect, frame_rect.left, frame_rect.top);
 
 	/* For OVER, we need to decode to a separate buffer, then blend in to the
@@ -1193,7 +1263,7 @@ png2vips_apng_read_next_frame(Read *read)
 	VipsRegion *target = blend_op == PNG_fcTL_BLEND_OP_OVER ?
 		read->decode : read->canvas;
 
-	for (int y = 0; y < (int) height; y++)
+	for (int y = 0; y < height; y++)
 		png_read_row(read->pPng,
 			VIPS_REGION_ADDR(target, x_offset, y_offset + y), NULL);
 
@@ -1204,6 +1274,7 @@ png2vips_apng_read_next_frame(Read *read)
 	/* Save the dispose for next time.
 	 */
 	read->dispose_op = dispose_op;
+	read->dispose_blend_op = blend_op;
 	read->dispose_rect = frame_rect;
 	read->frame_no += 1;
 
@@ -1217,10 +1288,10 @@ png2vips_apng_generate(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	Read *read = (Read *) a;
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf("png2vips_apng_generate: line %d, %d rows, y_pos = %d\n",
 		r->top, r->height, read->y_pos);
-#endif /*DEBUG*/
+#endif /*DEBUG_VERBOSE*/
 
 	/* We're inside a tilecache where tiles are the full image width, so
 	 * this should always be true.
@@ -1308,6 +1379,20 @@ png2vips_apng_setup(Read *read, VipsImage *out)
 	for (int i = 0; i < read->page; i++)
 		if (png2vips_apng_read_next_frame(read))
 			return -1;
+
+	// background is solid black, eg. [0, 0, 0, 255] for RGBA8
+	// it's RGBA at worst
+	g_assert(read->frame_image->Bands <= 4);
+	double background[4] = { 0 };
+	background[read->frame_image->Bands - 1] =
+		vips_interpretation_max_alpha(read->frame_image->Type);
+	read->background = vips__vector_to_ink("vipspng", read->frame_image,
+		background, NULL, read->frame_image->Bands);
+
+	printf("can APNG background be overridden by png_get_bKGD(I)?\n");
+
+	// and should it really be solid black? how can we have a transparent
+	// background?
 
 	return 0;
 }

@@ -1038,8 +1038,8 @@ vips_region_black(VipsRegion *reg)
  *     [method@Region.paint].
  */
 void
-vips_region_copy(VipsRegion *reg,
-	VipsRegion *dest, const VipsRect *r, int x, int y)
+vips_region_copy(VipsRegion *reg, VipsRegion *dest,
+	const VipsRect *r, int x, int y)
 {
 	size_t len = VIPS_IMAGE_SIZEOF_PEL(reg->im) * r->width;
 	VipsPel *p = VIPS_REGION_ADDR(reg, r->left, r->top);
@@ -1093,7 +1093,8 @@ vips_region_copy(VipsRegion *reg,
  * 8 bits.
  */
 static void
-vips_region_blend_over_line8(VipsPel *q, const VipsPel *p, int bands, int n)
+vips_region_blend_over_line8(VipsPel *q, const VipsPel *p,
+	int bands, int max_alpha, int n)
 {
 	g_assert(bands > 1);
 
@@ -1105,11 +1106,11 @@ vips_region_blend_over_line8(VipsPel *q, const VipsPel *p, int bands, int n)
 
 		// solid over is copy
 		int aq = q[bands - 1];
-		if (aq == 255)
+		if (aq == max_alpha)
 			for (int b = 0; b < bands; b++)
 				q[b] = p[b];
 		else {
-			int bf = (aq * (255 - ap) + 127) / 255;
+			int bf = (aq * (max_alpha - ap) + max_alpha / 2) / max_alpha;
 			int a = ap + bf;
 
 			int b;
@@ -1127,7 +1128,8 @@ vips_region_blend_over_line8(VipsPel *q, const VipsPel *p, int bands, int n)
  * 16 bits.
  */
 static void
-vips_region_blend_over_line16(VipsPel *q, const VipsPel *p, int bands, int n)
+vips_region_blend_over_line16(VipsPel *q, const VipsPel *p,
+	int bands, int max_alpha, int n)
 {
 	g_assert(bands > 1);
 
@@ -1142,11 +1144,12 @@ vips_region_blend_over_line16(VipsPel *q, const VipsPel *p, int bands, int n)
 
 		// solid over is copy
 		int aq = tq[bands - 1];
-		if (aq == 65535)
+		if (aq == max_alpha)
 			for (int b = 0; b < bands; b++)
 				tq[b] = tp[b];
 		else {
-			guint64 bf = ((guint64) aq * (65535 - ap) + 127) / 65535;
+			guint64 bf =
+				((guint64) aq * (max_alpha - ap) + max_alpha / 2) / max_alpha;
 			guint64 a = ap + bf;
 
 			int b;
@@ -1183,6 +1186,7 @@ vips_region_blend_over(VipsRegion *reg, VipsRegion *dest,
 	VipsPel *q = VIPS_REGION_ADDR(dest, x, y);
 	size_t plsk = VIPS_REGION_LSKIP(reg);
 	size_t qlsk = VIPS_REGION_LSKIP(dest);
+	double max_alpha = vips_interpretation_max_alpha(reg->im->Type);
 
 #ifdef DEBUG
 	/* Find the area we will write to in dest.
@@ -1211,17 +1215,18 @@ vips_region_blend_over(VipsRegion *reg, VipsRegion *dest,
 	for (int y = 0; y < r->height; y++) {
 		switch (reg->im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			vips_region_blend_over_line8(q, p, reg->im->Bands, r->width);
+			vips_region_blend_over_line8(q, p,
+				reg->im->Bands, max_alpha, r->width);
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			vips_region_blend_over_line16(q, p, reg->im->Bands, r->width);
+			vips_region_blend_over_line16(q, p,
+				reg->im->Bands, max_alpha, r->width);
 			break;
 
 		default:
-			// not implemented
+			g_warning("vips_region_blend_over: format not implemented");
 			break;
-
 		}
 
 		p += plsk;
