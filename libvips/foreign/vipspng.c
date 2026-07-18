@@ -121,9 +121,9 @@
  */
 
 /*
- */
 #define VIPS_DEBUG
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1130,8 +1130,6 @@ png2vips_generate(VipsRegion *out_region,
 static int
 png2vips_apng_read_next_frame(Read *read)
 {
-	printf("png2vips_apng_read_next_frame: frame_no = %d\n", read->frame_no);
-
 	/* Dispose the previous frame.
 	 */
 	switch (read->dispose_op) {
@@ -1140,6 +1138,8 @@ png2vips_apng_read_next_frame(Read *read)
 		break;
 
 	case PNG_fcTL_DISPOSE_OP_PREVIOUS:
+		// FIXME
+		// can this ever be over rather than just copy?
 		vips_region_copy(read->previous, read->canvas,
 			&read->dispose_rect,
 			read->dispose_rect.left,
@@ -1273,8 +1273,6 @@ png2vips_apng_generate(VipsRegion *out_region,
 static int
 png2vips_apng_setup(Read *read, VipsImage *out)
 {
-	printf("png2vips_apng_setup:\n");
-
 	int width = out->Xsize;
 	int height = read->page_height;
 
