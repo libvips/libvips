@@ -1218,8 +1218,8 @@ png2vips_apng_generate(VipsRegion *out_region,
 	Read *read = (Read *) a;
 
 #ifdef DEBUG
-	printf("png2vips_apng_generate: line %d, %d rows\n", r->top, r->height);
-	printf("png2vips_apng_generate: y_top = %d\n", read->y_pos);
+	printf("png2vips_apng_generate: line %d, %d rows, y_pos = %d\n",
+		r->top, r->height, read->y_pos);
 #endif /*DEBUG*/
 
 	/* We're inside a tilecache where tiles are the full image width, so
@@ -1239,8 +1239,7 @@ png2vips_apng_generate(VipsRegion *out_region,
 	 * a vips_sequential().
 	 */
 	if (r->top != read->y_pos) {
-		vips_error("vipspng",
-			_("out of order read at line %d"), read->y_pos);
+		vips_error("vipspng", _("out of order read at line %d"), read->y_pos);
 		return -1;
 	}
 
@@ -1264,8 +1263,6 @@ png2vips_apng_generate(VipsRegion *out_region,
 		hit.top -= frame.top;
 		vips_region_copy(read->canvas, out_region,
 			&hit, hit.left, hit.top + frame.top);
-
-		printf("hit.height = %d\n", hit.height);
 
 		read->y_pos += hit.height;
 	}
