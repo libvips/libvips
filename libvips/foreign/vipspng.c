@@ -252,10 +252,6 @@ typedef struct {
 	int dispose_op;
 	int dispose_blend_op;
 	VipsRect dispose_rect;
-
-	/* The background colour, eg. [0, 0, 0, 255], solid black.
-	 */
-	VipsPel *background;
 #endif /*PNG_APNG_SUPPORTED*/
 
 } Read;
@@ -1182,8 +1178,7 @@ png2vips_apng_read_next_frame(Read *read)
 	 */
 	switch (read->dispose_op) {
 	case PNG_fcTL_DISPOSE_OP_BACKGROUND:
-		vips_region_paint_pel(read->canvas,
-			&read->dispose_rect, read->background);
+		vips_region_paint(read->canvas, &read->dispose_rect, 0);
 		break;
 
 	case PNG_fcTL_DISPOSE_OP_PREVIOUS:
@@ -1379,20 +1374,6 @@ png2vips_apng_setup(Read *read, VipsImage *out)
 	for (int i = 0; i < read->page; i++)
 		if (png2vips_apng_read_next_frame(read))
 			return -1;
-
-	// background is solid black, eg. [0, 0, 0, 255] for RGBA8
-	// it's RGBA at worst
-	g_assert(read->frame_image->Bands <= 4);
-	double background[4] = { 0 };
-	background[read->frame_image->Bands - 1] =
-		vips_interpretation_max_alpha(read->frame_image->Type);
-	read->background = vips__vector_to_ink("vipspng", read->frame_image,
-		background, NULL, read->frame_image->Bands);
-
-	printf("can APNG background be overridden by png_get_bKGD(I)?\n");
-
-	// and should it really be solid black? how can we have a transparent
-	// background?
 
 	return 0;
 }
