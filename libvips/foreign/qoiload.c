@@ -422,6 +422,78 @@ vips_foreign_load_qoi_file_init(VipsForeignLoadQoiFile *file)
 {
 }
 
+typedef struct _VipsForeignLoadQoiBuffer {
+	VipsForeignLoadQoi parent_object;
+
+	VipsBlob *blob;
+
+} VipsForeignLoadQoiBuffer;
+
+typedef VipsForeignLoadQoiClass VipsForeignLoadQoiBufferClass;
+
+G_DEFINE_TYPE(VipsForeignLoadQoiBuffer, vips_foreign_load_qoi_buffer,
+	vips_foreign_load_qoi_get_type());
+
+static int
+vips_foreign_load_qoi_buffer_build(VipsObject *object)
+{
+	VipsForeignLoadQoi *qoi = (VipsForeignLoadQoi *) object;
+	VipsForeignLoadQoiBuffer *buffer = (VipsForeignLoadQoiBuffer *) object;
+
+	if (buffer->blob &&
+		!(qoi->source = vips_source_new_from_memory(
+			  VIPS_AREA(buffer->blob)->data,
+			  VIPS_AREA(buffer->blob)->length)))
+		return -1;
+
+	return VIPS_OBJECT_CLASS(vips_foreign_load_qoi_buffer_parent_class)
+		->build(object);
+}
+
+static gboolean
+vips_foreign_load_qoi_buffer_is_a_buffer(const void *buf, size_t len)
+{
+	VipsSource *source;
+	gboolean result;
+
+	if (!(source = vips_source_new_from_memory(buf, len)))
+		return FALSE;
+	result = vips_foreign_load_qoi_is_a_source(source);
+	VIPS_UNREF(source);
+
+	return result;
+}
+
+static void
+vips_foreign_load_qoi_buffer_class_init(
+	VipsForeignLoadQoiBufferClass *class)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "qoiload_buffer";
+	object_class->description = _("load qoi from buffer");
+	object_class->build = vips_foreign_load_qoi_buffer_build;
+
+	load_class->is_a_buffer = vips_foreign_load_qoi_buffer_is_a_buffer;
+
+	VIPS_ARG_BOXED(class, "buffer", 1,
+		_("Buffer"),
+		_("Buffer to load from"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadQoiBuffer, blob),
+		VIPS_TYPE_BLOB);
+}
+
+static void
+vips_foreign_load_qoi_buffer_init(VipsForeignLoadQoiBuffer *buffer)
+{
+}
+
 typedef struct _VipsForeignLoadQoiSource {
 	VipsForeignLoadQoi parent_object;
 
@@ -530,4 +602,24 @@ vips_qoiload_source(VipsSource *source, VipsImage **out, ...)
 	va_end(ap);
 
 	return (result);
+}
+
+int
+vips_qoiload_buffer(void *buf, size_t len, VipsImage **out, ...)
+{
+	va_list ap;
+	VipsBlob *blob;
+	int result;
+
+	/* We don't take a copy of the data or free it.
+	 */
+	blob = vips_blob_new(NULL, buf, len);
+
+	va_start(ap, out);
+	result = vips_call_split("load_buffer", ap, blob, out);
+	va_end(ap);
+
+	vips_area_unref(VIPS_AREA(blob));
+
+	return result;
 }

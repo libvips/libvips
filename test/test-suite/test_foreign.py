@@ -2026,8 +2026,8 @@ class TestForeign:
             assert im.bands == 4
 
         self.file_loader("qoiload", QOI_FILE, qoi_valid)
-    # not implemented yet
-    #   self.buffer_loader("qoiload_buffer", QOI_FILE, qoi_valid)
+        # todo : validate buffer/roundtrip test
+        self.buffer_loader("qoiload_buffer", QOI_FILE, qoi_valid)
 
     @skip_if_no("gifload")
     @skip_if_no("gifsave")

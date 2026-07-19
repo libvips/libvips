@@ -2986,6 +2986,7 @@ vips_foreign_operation_init(void)
 
 	extern GType vips_foreign_load_qoi_file_get_type(void);
 	extern GType vips_foreign_load_qoi_source_get_type(void);
+	extern GType vips_foreign_load_qoi_buffer_get_type(void);
 	extern GType vips_foreign_save_qoi_file_get_type(void);
 	extern GType vips_foreign_save_qoi_target_get_type(void);
 
@@ -3166,6 +3167,7 @@ vips_foreign_operation_init(void)
 
 	vips_foreign_load_qoi_file_get_type();
 	vips_foreign_load_qoi_source_get_type();
+	vips_foreign_load_qoi_buffer_get_type();
 	vips_foreign_save_qoi_file_get_type();
 	vips_foreign_save_qoi_target_get_type();
 
