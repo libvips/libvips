@@ -291,6 +291,7 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 		vips_image_write(t[0], load->real)) {
 		return -1;
 	}
+	free(decoded_data);
 
 	return 0;
 }
