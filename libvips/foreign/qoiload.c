@@ -8,6 +8,13 @@
 
 	This file is part of VIPS.
 
+
+
+
+
+
+
+
 	VIPS is free software; you can redistribute it and/or modify
 	it under the terms of the GNU Lesser General Public License as published by
 	the Free Software Foundation; either version 2 of the License, or
@@ -43,6 +50,7 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <string.h>
 
 #include <vips/vips.h>
@@ -113,7 +121,7 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 	if (vips_source_read(qoi->source, header, 14) != 14) {
 		vips_error("VipsForeignLoadQoi",
 			_("unable to read QOI header"), NULL);
-		return (-1);
+		return -1;
 	}
 
 	/* Check magic bytes.
@@ -121,7 +129,7 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 	if (memcmp(header, qoi_magic, 4) != 0) {
 		vips_error("VipsForeignLoadQoi",
 			_("bad QOI magic"), NULL);
-		return (-1);
+		return -1;
 	}
 
 	/* Read width and height (big-endian).
@@ -138,18 +146,18 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 	if (qoi->width == 0 || qoi->height == 0) {
 		vips_error("VipsForeignLoadQoi",
 			_("bad QOI dimensions"), NULL);
-		return (-1);
+		return -1;
 	}
 
 	if (qoi->bands != 3 && qoi->bands != 4) {
 		vips_error("VipsForeignLoadQoi",
 			_("bad QOI channels"), NULL);
-		return (-1);
+		return -1;
 	}
 
 	qoi->have_read_header = TRUE;
 
-	return (0);
+	return 0;
 }
 
 static VipsForeignFlags
@@ -172,23 +180,19 @@ vips_foreign_load_qoi_header(VipsForeignLoad *load)
 	vips_source_minimise(qoi->source);
 
 	if (vips_foreign_load_qoi_parse_header(qoi))
-		return (-1);
+		return -1;
 
 	load->out->Xsize = qoi->width;
 	load->out->Ysize = qoi->height;
 	load->out->Bands = qoi->bands;
 	load->out->BandFmt = VIPS_FORMAT_UCHAR;
-	return (0);
+	return 0;
 }
 
 static int
 vips_foreign_load_qoi_set_header(VipsForeignLoadQoi *qoi, VipsImage *out)
 {
 	VipsForeignLoad *load = (VipsForeignLoad *) load;
-	out->Xsize = 333;
-	;
-
-	// load->out->Xsize = 333; // load->Xsize = 333; return (0);
 }
 
 /* Read a qoi file using mmap().
@@ -304,13 +308,13 @@ vips_foreign_load_qoi_build(VipsObject *object)
 	if (!qoi->source) {
 		vips_error("VipsForeignLoadQoi",
 			_("no source set"), NULL);
-		return (-1);
+		return -1;
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_qoi_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -385,12 +389,12 @@ vips_foreign_load_qoi_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(qoi->source = vips_source_new_from_file(file->filename)))
-		return (-1);
+		return -1;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_qoi_file_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 static void
@@ -518,9 +522,9 @@ vips_foreign_load_qoi_source_build(VipsObject *object)
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_qoi_source_parent_class)->build(object))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0
 }
 
 static void

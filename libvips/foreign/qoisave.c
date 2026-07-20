@@ -104,12 +104,12 @@ vips_foreign_save_qoi_build(VipsObject *object)
 	void *encoded;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_qoi_parent_class)->build(object))
-		return (-1);
+		return -1;
 
 	/* qoi.h can only save entire images.
 	 */
 	if (!(memory = vips_image_copy_memory(save->ready)))
-		return (-1);
+		return -1;
 
 	desc.width = memory->Xsize;
 	desc.height = memory->Ysize;
@@ -119,13 +119,13 @@ vips_foreign_save_qoi_build(VipsObject *object)
 	if (!encoded) {
 		vips_error(class->nickname, "%s", _("unable to encode"));
 		VIPS_UNREF(memory);
-		return (-1);
+		return -1;
 	}
 	VIPS_UNREF(memory);
 
 	if (vips_target_write(qoi->target, encoded, size)) {
 		QOI_FREE(encoded);
-		return (-1);
+		return -1;
 	}
 	QOI_FREE(encoded);
 
@@ -186,7 +186,7 @@ vips_foreign_save_qoi_file_build(VipsObject *object)
 
 	if (file->filename &&
 		!(qoi->target = vips_target_new_to_file(file->filename)))
-		return (-1);
+		return -1;
 
 	return (VIPS_OBJECT_CLASS(vips_foreign_save_qoi_file_parent_class)->build(object));
 }
