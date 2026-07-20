@@ -84,8 +84,8 @@
 #define DEBUG_MOVE
 #define DEBUG_ENVIRONMENT 1
 #define DEBUG_CREATE
-#define DEBUG
 #define VIPS_DEBUG
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -1099,17 +1099,14 @@ vips_region_blend_over_line8(VipsPel *q, const VipsPel *p,
 	g_assert(bands > 1);
 
 	for (int i = 0; i < n; i++) {
-		// transparent OVER leaves q unchanged
+		// transparent OVER leaves q unchanged, solid OVER is copy
 		int ap = p[bands - 1];
-		if (ap == 0)
-			continue;
-
-		// solid over is copy
-		int aq = q[bands - 1];
-		if (aq == max_alpha)
+		if (ap == max_alpha) {
 			for (int b = 0; b < bands; b++)
 				q[b] = p[b];
-		else {
+		}
+		else if (ap != 0) {
+			int aq = q[bands - 1];
 			int bf = (aq * (max_alpha - ap) + max_alpha / 2) / max_alpha;
 			int a = ap + bf;
 
@@ -1137,17 +1134,13 @@ vips_region_blend_over_line16(VipsPel *q, const VipsPel *p,
 	const guint16 *tp = (const guint16 *) p;
 
 	for (int i = 0; i < n; i++) {
-		// transparent OVER leaves tq unchanged
+		// transparent OVER leaves tq unchanged, solid OVER is copy
 		int ap = tp[bands - 1];
-		if (ap == 0)
-			continue;
-
-		// solid over is copy
-		int aq = tq[bands - 1];
-		if (aq == max_alpha)
+		if (ap == max_alpha)
 			for (int b = 0; b < bands; b++)
 				tq[b] = tp[b];
-		else {
+		else if (ap != 0) {
+			int aq = tq[bands - 1];
 			guint64 bf =
 				((guint64) aq * (max_alpha - ap) + max_alpha / 2) / max_alpha;
 			guint64 a = ap + bf;
@@ -1182,7 +1175,7 @@ void
 vips_region_blend_over(VipsRegion *reg, VipsRegion *dest,
 	const VipsRect *r, int x, int y)
 {
-	VipsPel *p = VIPS_REGION_ADDR(reg, r->left, r->top);
+	const VipsPel *p = VIPS_REGION_ADDR(reg, r->left, r->top);
 	VipsPel *q = VIPS_REGION_ADDR(dest, x, y);
 	size_t plsk = VIPS_REGION_LSKIP(reg);
 	size_t qlsk = VIPS_REGION_LSKIP(dest);

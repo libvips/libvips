@@ -123,8 +123,8 @@
 /*
 #define VIPS_DEBUG
 #define DEBUG_VERBOSE
- */
 #define DEBUG
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -241,16 +241,15 @@ typedef struct {
 	VipsRegion *decode;
 	VipsRegion *previous;
 
-	/* Number of frames composited to the canvas so far.
+	/* Number of next frame we composite to the canvas.
 	 */
-	int frame_no;
+	int next_frame;
 
 	/* How to dispose of the previous frame's area before compositing
 	 * the next one, and the saved canvas pixels DISPOSE_OP_PREVIOUS
 	 * restores.
 	 */
 	int dispose_op;
-	int dispose_blend_op;
 	VipsRect dispose_rect;
 #endif /*PNG_APNG_SUPPORTED*/
 
@@ -345,7 +344,6 @@ read_new(VipsSource *source, VipsImage *out,
 	read->n = n;
 	read->is_animated = FALSE;
 	read->frame_count = 1;
-	read->frame_no = -1;
 	read->dispose_op = PNG_fcTL_DISPOSE_OP_NONE;
 #endif /*PNG_APNG_SUPPORTED*/
 
@@ -1128,6 +1126,7 @@ png2vips_generate(VipsRegion *out_region,
 	return 0;
 }
 
+#ifdef DEBUG
 static const char *
 dispose_op_to_s(int dispose_op)
 {
@@ -1160,20 +1159,12 @@ blend_op_to_s(int dispose_op)
 		return "<unknown blend>";
 	}
 }
+#endif /*DEBUG*/
 
+#ifdef PNG_APNG_SUPPORTED
 static int
 png2vips_apng_read_next_frame(Read *read)
 {
-	printf("png2vips_apng_read_next_frame: frame_no = %d\n",
-		read->frame_no + 1);
-	printf("\tdispose_op = %s\n", dispose_op_to_s(read->dispose_op));
-	printf("\tdispose_blend_op = %s\n", blend_op_to_s(read->dispose_blend_op));
-	printf("\tdispose_rect left = %d, top = %d, width = %d, height = %d\n",
-		read->dispose_rect.left,
-		read->dispose_rect.top,
-		read->dispose_rect.width,
-		read->dispose_rect.height);
-
 	/* Dispose the previous frame.
 	 */
 	switch (read->dispose_op) {
@@ -1182,26 +1173,10 @@ png2vips_apng_read_next_frame(Read *read)
 		break;
 
 	case PNG_fcTL_DISPOSE_OP_PREVIOUS:
-		switch (read->dispose_blend_op) {
-		case PNG_fcTL_BLEND_OP_OVER:
-			vips_region_blend_over(read->previous, read->canvas,
-				&read->dispose_rect,
-				read->dispose_rect.left,
-				read->dispose_rect.top);
-			break;
-
-		case PNG_fcTL_BLEND_OP_SOURCE:
-			vips_region_copy(read->previous, read->canvas,
-				&read->dispose_rect,
-				read->dispose_rect.left,
-				read->dispose_rect.top);
-			break;
-
-		default:
-			printf("png2vips_apng_read_next_frame: "
-				"unknown dispose previous blend\n");
-			break;
-		}
+		vips_region_copy(read->previous, read->canvas,
+			&read->dispose_rect,
+			read->dispose_rect.left,
+			read->dispose_rect.top);
 		break;
 
 	case PNG_fcTL_DISPOSE_OP_NONE:
@@ -1225,6 +1200,16 @@ png2vips_apng_read_next_frame(Read *read)
 	png_get_next_frame_fcTL(read->pPng, read->pInfo,
 		&width, &height, &x_offset, &y_offset,
 		&delay_num, &delay_den, &dispose_op, &blend_op);
+
+#ifdef DEBUG
+	printf("png2vips_apng_read_next_frame:\n");
+	printf("\tframe = %d\n", read->next_frame);
+	printf("\tdispose_op = %s\n", dispose_op_to_s(dispose_op));
+	printf("\tblend_op = %s\n", blend_op_to_s(blend_op));
+	printf("\tleft = %u, top = %u, width = %u, height = %u\n",
+		x_offset, y_offset, width, height);
+#endif /*DEBUG*/
+
 	if (width == 0 ||
 		height == 0 ||
 		(gint64) x_offset + width > read->frame_image->Xsize ||
@@ -1235,13 +1220,10 @@ png2vips_apng_read_next_frame(Read *read)
 
 	VipsRect frame_rect = { x_offset, y_offset, width, height };
 
-	printf("\tread pixels to left = %d, top = %d, width = %d, height = %d\n",
-		frame_rect.left, frame_rect.top, frame_rect.width, frame_rect.height);
-
 	/* DISPOSE_OP_PREVIOUS on the first frame means
 	 * DISPOSE_OP_BACKGROUND, see the spec.
 	 */
-	if (read->frame_no < 0 &&
+	if (read->next_frame == 0 &&
 		dispose_op == PNG_fcTL_DISPOSE_OP_PREVIOUS)
 		dispose_op = PNG_fcTL_DISPOSE_OP_BACKGROUND;
 
@@ -1258,20 +1240,20 @@ png2vips_apng_read_next_frame(Read *read)
 	VipsRegion *target = blend_op == PNG_fcTL_BLEND_OP_OVER ?
 		read->decode : read->canvas;
 
-	for (int y = 0; y < height; y++)
+	for (int y = 0; y < frame_rect.height; y++)
 		png_read_row(read->pPng,
-			VIPS_REGION_ADDR(target, x_offset, y_offset + y), NULL);
+			VIPS_REGION_ADDR(target, frame_rect.left, frame_rect.top + y),
+			NULL);
 
-	if (blend_op == PNG_fcTL_BLEND_OP_OVER)
-		vips_region_blend_over(target, read->canvas,
+	if (target == read->decode)
+		vips_region_blend_over(read->decode, read->canvas,
 			&frame_rect, frame_rect.left, frame_rect.top);
 
 	/* Save the dispose for next time.
 	 */
 	read->dispose_op = dispose_op;
-	read->dispose_blend_op = blend_op;
 	read->dispose_rect = frame_rect;
-	read->frame_no += 1;
+	read->next_frame += 1;
 
 	return 0;
 }
@@ -1314,7 +1296,7 @@ png2vips_apng_generate(VipsRegion *out_region,
 
 		/* Read to frame containing r.
 		 */
-		while (read->frame_no < frame_no)
+		while (read->next_frame <= frame_no)
 			if (png2vips_apng_read_next_frame(read))
 				return -1;
 
@@ -1377,6 +1359,7 @@ png2vips_apng_setup(Read *read, VipsImage *out)
 
 	return 0;
 }
+#endif /*PNG_APNG_SUPPORTED*/
 
 static int
 png2vips_image(Read *read, VipsImage *out)
@@ -1399,12 +1382,17 @@ png2vips_image(Read *read, VipsImage *out)
 		if (png2vips_header(read, t[0], FALSE))
 			return -1;
 
+#ifdef PNG_APNG_SUPPORTED
 		if (read->is_animated &&
 			png2vips_apng_setup(read, t[0]))
 			return -1;
 
-		VipsGenerateFn generate = read->is_animated ?
-			png2vips_apng_generate : png2vips_generate;
+		VipsGenerateFn generate =
+			read->is_animated ?
+				png2vips_apng_generate : png2vips_generate;
+#else /*!PNG_APNG_SUPPORTED*/
+		VipsGenerateFn generate = png2vips_generate;
+#endif /*PNG_APNG_SUPPORTED*/
 
 		if (vips_image_generate(t[0],
 				NULL, generate, NULL, read, NULL) ||
