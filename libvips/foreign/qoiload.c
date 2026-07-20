@@ -189,12 +189,6 @@ vips_foreign_load_qoi_header(VipsForeignLoad *load)
 	return 0;
 }
 
-static int
-vips_foreign_load_qoi_set_header(VipsForeignLoadQoi *qoi, VipsImage *out)
-{
-	VipsForeignLoad *load = (VipsForeignLoad *) load;
-}
-
 /* Read a qoi file using mmap().
  */
 static VipsImage *
