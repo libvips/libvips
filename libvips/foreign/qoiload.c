@@ -524,7 +524,7 @@ vips_foreign_load_qoi_source_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_foreign_load_qoi_source_parent_class)->build(object))
 		return -1;
 
-	return 0
+	return 0;
 }
 
 static void
