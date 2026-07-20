@@ -650,6 +650,9 @@ class TestArithmetic:
             assert pytest.approx(p1) == 0
             assert pytest.approx(p2) == 10
 
+        with pytest.raises(pyvips.error.Error, match="image region smaller than patch count"):
+            im.measure(1, 51)
+
     def test_find_trim(self):
         im = pyvips.Image.black(50, 60) + 100
         test = im.embed(10, 20, 200, 300, extend="white")
