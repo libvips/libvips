@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# attempt to update our copy of libnsgif from the upstream repo
+# attempt to update our copy of qoi from the upstream repo
 
 set -e
 
