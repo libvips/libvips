@@ -7,14 +7,6 @@
 /*
 
 	This file is part of VIPS.
-
-
-
-
-
-
-
-
 	VIPS is free software; you can redistribute it and/or modify
 	it under the terms of the GNU Lesser General Public License as published by
 	the Free Software Foundation; either version 2 of the License, or
@@ -358,20 +350,6 @@ typedef VipsForeignLoadQoiClass VipsForeignLoadQoiFileClass;
 G_DEFINE_TYPE(VipsForeignLoadQoiFile, vips_foreign_load_qoi_file,
 	vips_foreign_load_qoi_get_type());
 
-static gboolean
-vips_foreign_load_qoi_file_is_a(const char *filename)
-{
-	VipsSource *source;
-	gboolean result;
-
-	if (!(source = vips_source_new_from_file(filename)))
-		return FALSE;
-	result = vips_foreign_load_qoi_is_a_source(source);
-	VIPS_UNREF(source);
-
-	return result;
-}
-
 static int
 vips_foreign_load_qoi_file_build(VipsObject *object)
 {
@@ -401,8 +379,6 @@ vips_foreign_load_qoi_file_class_init(VipsForeignLoadQoiClass *class)
 	object_class->nickname = "qoiload";
 	object_class->description = _("load qoi from file");
 	object_class->build = vips_foreign_load_qoi_file_build;
-
-	load_class->is_a = vips_foreign_load_qoi_file_is_a;
 
 	VIPS_ARG_STRING(class, "filename", 1,
 		_("Filename"),
@@ -445,20 +421,6 @@ vips_foreign_load_qoi_buffer_build(VipsObject *object)
 		->build(object);
 }
 
-static gboolean
-vips_foreign_load_qoi_buffer_is_a_buffer(const void *buf, size_t len)
-{
-	VipsSource *source;
-	gboolean result;
-
-	if (!(source = vips_source_new_from_memory(buf, len)))
-		return FALSE;
-	result = vips_foreign_load_qoi_is_a_source(source);
-	VIPS_UNREF(source);
-
-	return result;
-}
-
 static void
 vips_foreign_load_qoi_buffer_class_init(
 	VipsForeignLoadQoiBufferClass *class)
@@ -473,8 +435,6 @@ vips_foreign_load_qoi_buffer_class_init(
 	object_class->nickname = "qoiload_buffer";
 	object_class->description = _("load qoi from buffer");
 	object_class->build = vips_foreign_load_qoi_buffer_build;
-
-	load_class->is_a_buffer = vips_foreign_load_qoi_buffer_is_a_buffer;
 
 	VIPS_ARG_BOXED(class, "buffer", 1,
 		_("Buffer"),
