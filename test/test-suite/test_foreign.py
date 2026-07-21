@@ -1526,6 +1526,23 @@ class TestForeign:
             target = pyvips.Target.new_to_memory()
             image.matrixsave_target(target)
 
+    def test_2band_mono_save_trims_alpha(self):
+        # a 2-band image (grey + alpha) saved with a saver that only
+        # supports mono (no alpha) should have the alpha band silently
+        # dropped, not crash or leak the alpha data into the output
+        filename = temp_filename(self.tempdir, ".mat")
+
+        two_band = pyvips.Image.black(1, 1, bands=2).cast("uchar")
+        two_band.matrixsave(filename)
+        assert pyvips.Image.new_from_file(filename).bands == 1
+
+        # same, but for a signed char source image (a 2-band char image
+        # guesses as MULTIBAND, not mono-with-alpha, so this exercises a
+        # different code path than the uchar case above)
+        two_band_char = pyvips.Image.black(1, 1, bands=2).cast("char")
+        two_band_char.matrixsave(filename)
+        assert pyvips.Image.new_from_file(filename).bands == 1
+
     @skip_if_no("ppmload")
     def test_ppm(self):
         self.save_load("%s.ppm", self.colour)

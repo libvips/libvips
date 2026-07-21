@@ -1451,9 +1451,24 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	/* If this is a mono-ish looking image and our saver supports mono, we
 	 * are done. We are not too strict about what a mono image is! We need to
 	 * work for things like "extract_band 1" on an RGB image.
+	 *
+	 * A 2-band image could be grey + alpha, so if the saver can't keep
+	 * alpha, drop the second band here. We can't rely on interpretation
+	 * guessing to spot this for us, since eg. a 2-band char image guesses
+	 * as MULTIBAND, not mono-with-alpha.
 	 */
 	if ((saveable & VIPS_FOREIGN_SAVEABLE_MONO) &&
 		in->Bands < 3) {
+		if (in->Bands == 2 &&
+			!(saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)) {
+			if (vips_extract_band(in, &out, 0, NULL)) {
+				g_object_unref(in);
+				return -1;
+			}
+			g_object_unref(in);
+			in = out;
+		}
+
 		*ready = in;
 		return 0;
 	}
