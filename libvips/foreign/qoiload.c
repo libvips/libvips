@@ -70,8 +70,6 @@ typedef struct _VipsForeignLoadQoi {
 	int height;
 	int bands;
 
-	int scale;
-
 	gboolean have_read_header;
 
 } VipsForeignLoadQoi;
@@ -346,7 +344,6 @@ vips_foreign_load_qoi_class_init(VipsForeignLoadQoiClass *class)
 static void
 vips_foreign_load_qoi_init(VipsForeignLoadQoi *qoi)
 {
-	qoi->scale = 1.0;
 }
 
 typedef struct _VipsForeignLoadQoiFile {
