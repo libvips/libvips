@@ -350,6 +350,11 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		vips_image_set_blob_copy(image, "jpeg-thumbnail-data",
 			raw->raw_processor->thumbnail.thumb,
 			raw->raw_processor->thumbnail.tlength);
+
+		// old deprecated name for compat
+		vips_image_set_blob_copy(image, "raw-thumbnail-data",
+			raw->raw_processor->thumbnail.thumb,
+			raw->raw_processor->thumbnail.tlength);
 	}
 
 	if (preview_index != -1 &&
