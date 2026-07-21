@@ -87,9 +87,8 @@ vips_foreign_load_qoi_is_a_source(VipsSource *source)
 	const unsigned char *data;
 
 	if ((data = vips_source_sniff(source, 4))) {
-		if (memcmp(data, qoi_magic, 4) == 0) {
+		if (memcmp(data, qoi_magic, 4) == 0)
 			return TRUE;
-		}
 	}
 
 	return FALSE;
@@ -167,7 +166,7 @@ vips_foreign_load_qoi_get_flags(VipsForeignLoad *load)
 
 	flags = 0;
 
-	return (flags);
+	return flags;
 }
 
 static int
@@ -210,25 +209,25 @@ vips_foreign_load_qoi_map(VipsForeignLoadQoi *qoi)
 
 	data = vips_source_map(qoi->source, &length);
 	if (!data)
-		return (NULL);
+		return NULL;
 
 	/* Decode the QOI data */
 	decoded_data = qoi_decode(data, length, &desc, 0);
 	if (!decoded_data) {
 		vips_error("VipsForeignLoadQoi",
 			_("unable to decode QOI data"), NULL);
-		return (NULL);
+		return NULL;
 	}
 
 	if (!(out = vips_image_new_from_memory(decoded_data, desc.width * desc.height * desc.channels,
 			  desc.width, desc.height, desc.channels, VIPS_FORMAT_UCHAR)))
-		return (NULL);
+		return NULL;
 
 	vips_image_init_fields(out,
 		desc.width, desc.height, desc.channels, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
 
-	return (out);
+	return out;
 }
 
 static int
@@ -281,12 +280,13 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 		1.0, 1.0);
 
 	qoi->have_read_header = TRUE;
+
 	out = t[0];
 
 	if (
-		vips_image_write(t[0], load->real)) {
+		vips_image_write(t[0], load->real))
 		return -1;
-	}
+
 	free(decoded_data);
 
 	return 0;
@@ -365,11 +365,11 @@ vips_foreign_load_qoi_file_is_a(const char *filename)
 	gboolean result;
 
 	if (!(source = vips_source_new_from_file(filename)))
-		return (FALSE);
+		return FALSE;
 	result = vips_foreign_load_qoi_is_a_source(source);
 	VIPS_UNREF(source);
 
-	return (result);
+	return result;
 }
 
 static int
@@ -571,7 +571,7 @@ vips_qoiload(const char *filename, VipsImage **out, ...)
 	result = vips_call_split("qoiload", ap, filename, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -596,7 +596,7 @@ vips_qoiload_source(VipsSource *source, VipsImage **out, ...)
 	result = vips_call_split("qoiload_source", ap, source, out);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 int
