@@ -558,6 +558,32 @@ vips_foreign_load_heif_set_page(VipsForeignLoadHeif *heif,
 	return 0;
 }
 
+static gboolean
+vips_foreign_load_heif_get_cicp(VipsForeignLoadHeif *heif,
+	int *colour_primaries, int *transfer_characteristics,
+	int *matrix_coefficients, int *full_range_flag)
+{
+	struct heif_error error;
+	struct heif_color_profile_nclx *nclx = NULL;
+
+	error = heif_image_handle_get_nclx_color_profile(heif->handle, &nclx);
+	if (error.code == 0 && nclx) {
+		*colour_primaries = nclx->color_primaries;
+		*transfer_characteristics = nclx->transfer_characteristics;
+		*matrix_coefficients = nclx->matrix_coefficients;
+		*full_range_flag = nclx->full_range_flag;
+
+		heif_nclx_color_profile_free(nclx);
+
+		return TRUE;
+	}
+
+	if (nclx)
+		heif_nclx_color_profile_free(nclx);
+
+	return FALSE;
+}
+
 static int
 vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 {
@@ -731,37 +757,51 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		vips_image_set_blob(out, VIPS_META_ICC_NAME,
 			(VipsCallbackFn) vips_area_free_cb, data, length);
 	}
+
+	int colour_primaries;
+	int transfer_characteristics;
+	int matrix_coefficients;
+	int full_range_flag;
+
 	/* Always try to fetch the NCLX profile, even when ICC is present.
 	 * CICP takes priority over ICC for colour interpretation.
 	 */
-	{
-		struct heif_color_profile_nclx *nclx = NULL;
-
-		error = heif_image_handle_get_nclx_color_profile(heif->handle, &nclx);
-		if (error.code == 0 && nclx) {
+	if (vips_foreign_load_heif_get_cicp(heif,
+			&colour_primaries, &transfer_characteristics,
+			&matrix_coefficients, &full_range_flag)) {
 #ifdef DEBUG
-			printf("\tnclx: %p\n", nclx);
-			printf("\tnclx->color_primaries: %d\n", nclx->color_primaries);
-			printf("\tnclx->transfer_characteristics: %d\n", nclx->transfer_characteristics);
-			printf("\tnclx->matrix_coefficients: %d\n", nclx->matrix_coefficients);
-			printf("\tnclx->full_range_flag: %d\n", nclx->full_range_flag);
+		printf("\tnclx->color_primaries: %d\n", colour_primaries);
+		printf("\tnclx->transfer_characteristics: %d\n",
+			transfer_characteristics);
+		printf("\tnclx->matrix_coefficients: %d\n",
+			matrix_coefficients);
+		printf("\tnclx->full_range_flag: %d\n", full_range_flag);
 #endif
 
-			g_info("heifload: setting CICP from nclx");
+		g_info("heifload: setting CICP from nclx");
 
-			vips_image_set_int(out, "cicp-colour-primaries",
-				nclx->color_primaries);
-			vips_image_set_int(out, "cicp-transfer-characteristics",
-				nclx->transfer_characteristics);
-			vips_image_set_int(out, "cicp-matrix-coefficients",
-				nclx->matrix_coefficients);
-			vips_image_set_int(out, "cicp-full-range-flag",
-				nclx->full_range_flag);
-		}
-
-		if (nclx)
-			heif_nclx_color_profile_free(nclx);
+		vips_image_set_int(out, "cicp-colour-primaries",
+			colour_primaries);
+		vips_image_set_int(out, "cicp-transfer-characteristics",
+			transfer_characteristics);
+		vips_image_set_int(out, "cicp-matrix-coefficients",
+			matrix_coefficients);
+		vips_image_set_int(out, "cicp-full-range-flag",
+			full_range_flag);
 	}
+
+#ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
+	heif_content_light_level clli;
+
+	if (heif_image_handle_get_content_light_level(heif->handle, &clli)) {
+		g_info("heifload: setting CLLI from content light level");
+
+		vips_image_set_int(out, "clli-max-content-light-level",
+			clli.max_content_light_level);
+		vips_image_set_int(out, "clli-max-frame-average-light-level",
+			clli.max_pic_average_light_level);
+	}
+#endif
 
 	vips_image_set_int(out, "heif-primary", heif->primary_page);
 	vips_image_set_int(out, VIPS_META_N_PAGES, heif->n_top);
