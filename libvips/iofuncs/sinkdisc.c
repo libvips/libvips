@@ -76,7 +76,7 @@ typedef struct _WriteBuffer {
 	VipsSemaphore finish; /* Bg thread has finished */
 	int write_errno;	  /* Save write errors here */
 	gboolean running;	  /* Whether the bg writer thread is running */
-	gboolean kill;		  /* Set to ask thread to exit */
+	gboolean kill;		  /* (atomic) - Set to ask thread to exit */
 } WriteBuffer;
 
 /* Per-call state.
@@ -155,7 +155,7 @@ wbuffer_free(WriteBuffer *wbuffer)
 	/* Is there a thread running this region? Kill it!
 	 */
 	if (wbuffer->running) {
-		wbuffer->kill = TRUE;
+		g_atomic_int_set(&wbuffer->kill, TRUE);
 		vips_semaphore_up(&wbuffer->go);
 
 		vips_semaphore_down(&wbuffer->finish);
@@ -201,7 +201,7 @@ wbuffer_write_thread(void *data, void *user_data)
 		 */
 		vips_semaphore_down(&wbuffer->go);
 
-		if (wbuffer->kill)
+		if (g_atomic_int_get(&wbuffer->kill))
 			break;
 
 		/* Now block until the last worker finishes on this buffer.
@@ -351,14 +351,14 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 			 * is done, then set write of this buffer going.
 			 */
 			if (wbuffer_flush(write)) {
-				*stop = TRUE;
+				g_atomic_int_set(stop, TRUE);
 				return -1;
 			}
 
 			/* End of image?
 			 */
 			if (sink_base->y >= sink_base->im->Ysize) {
-				*stop = TRUE;
+				g_atomic_int_set(stop, TRUE);
 				return 0;
 			}
 
@@ -374,7 +374,7 @@ wbuffer_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 			 */
 			if (wbuffer_position(write->buf,
 					sink_base->y, sink_base->n_lines)) {
-				*stop = TRUE;
+				g_atomic_int_set(stop, TRUE);
 				return -1;
 			}
 
@@ -544,7 +544,8 @@ vips_sink_disc(VipsImage *im, VipsRegionWrite write_fn, void *a)
 
 	/* The final write might have failed, pick up any error code.
 	 */
-	result |= write_check_error(&write);
+	if (!result)
+		result = write_check_error(&write);
 
 	write_free(&write);
 
