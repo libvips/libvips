@@ -561,7 +561,7 @@ class TestCICP:
                              transfer=TRANSFER_PQ, mc=6,
                              width=64, height=64)
         buf = im.heifsave_buffer(compression="av1",
-                                  subsample_mode="on")
+                                 subsample_mode="on")
         out = pyvips.Image.new_from_buffer(buf, "")
         assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
         assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
