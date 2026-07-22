@@ -541,6 +541,9 @@ VIPS_API
 int vips_stats(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+int vips_dominant_colours(VipsImage *in, VipsImage **out, int n, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 int vips_measure(VipsImage *in, VipsImage **out, int h, int v, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
