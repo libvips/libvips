@@ -445,7 +445,7 @@ vips_CICP2scRGB_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_CICP2scRGB_parent_class)->build(object))
 		return -1;
 
-	/* Strip CICP and dependent HDR signalling from the output - it no longer
+	/* Strip CICP and CLLI signalling from the output - it no longer
 	 * describes the pixel values after linearization to scRGB.
 	 */
 	vips_image_remove(colour->out, "cicp-colour-primaries");
