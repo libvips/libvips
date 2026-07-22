@@ -2016,6 +2016,19 @@ class TestForeign:
         assert im.format == "uchar"
         assert im.get("bits-per-sample") == 8
 
+    @skip_if_no("qoiload")
+    def test_qoi(self):
+        def qoi_valid(im):
+            a = im(10, 10)
+            assert_almost_equal_objects(a, [0.0, 0, 0, 0.0])
+            assert im.width == 448
+            assert im.height == 220
+            assert im.bands == 4
+
+        self.file_loader("qoiload", QOI_FILE, qoi_valid)
+        # todo : validate buffer/roundtrip test
+        self.buffer_loader("qoiload_buffer", QOI_FILE, qoi_valid)
+
     @skip_if_no("gifload")
     @skip_if_no("gifsave")
     def test_gifsave(self):

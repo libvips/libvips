@@ -58,6 +58,7 @@ AVIF_FILE_HUGE = os.path.join(IMAGES, "17000x17000.avif")
 HEIC_FILE = os.path.join(IMAGES, "heic-orientation-6.heic")
 RGBA_FILE = os.path.join(IMAGES, "rgba.png")
 RGBA_CORRECT_FILE = os.path.join(IMAGES, "rgba-correct.ppm")
+QOI_FILE = os.path.join(IMAGES, "qoi_logo.qoi")
 MOSAIC_FILES = [os.path.join(IMAGES, "cd1.1.jpg"), os.path.join(IMAGES, "cd1.2.jpg"),
                 os.path.join(IMAGES, "cd2.1.jpg"), os.path.join(IMAGES, "cd2.2.jpg"),
                 os.path.join(IMAGES, "cd3.1.jpg"), os.path.join(IMAGES, "cd3.2.jpg"),
