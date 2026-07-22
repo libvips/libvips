@@ -411,10 +411,10 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 #endif
 
 #ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
-	heif_content_light_level content_light_level;
+	heif_content_light_level clli;
 
-	if (vips_foreign_save_heif_get_clli(save->ready, &content_light_level))
-		heif_image_set_content_light_level(heif->img, &content_light_level);
+	if (vips_foreign_save_heif_get_clli(save->ready, &clli))
+		heif_image_set_content_light_level(heif->img, &clli);
 #endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
 
 #ifdef DEBUG
