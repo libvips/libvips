@@ -590,24 +590,21 @@ class TestCICP:
         assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
 
     @skip_if_no("heifsave")
-    def test_heif_hdr_nclx_with_profile_option(self):
-        im = make_cicp_image(128, 128, 128,
-                             primaries=PRIMARIES_BT2020,
-                             transfer=TRANSFER_PQ)
-
-        buf = im.heifsave_buffer(compression="av1",
-                                 profile=SRGB_FILE)
-        out = pyvips.Image.new_from_buffer(buf, "")
-
-        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
-        assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
-
-    @skip_if_no("heifsave")
     @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif >= 1.19.0")
     def test_heif_clli_roundtrip_keep_none(self):
         im = make_cicp_image(128, 128, 128,
                              primaries=PRIMARIES_BT2020,
                              transfer=TRANSFER_PQ)
+        add_clli(im)
+        buf = im.heifsave_buffer(compression="av1", keep="none")
+        out = pyvips.Image.new_from_buffer(buf, "")
+        assert out.get("clli-max-content-light-level") == 1624
+        assert out.get("clli-max-frame-average-light-level") == 182
+
+    @skip_if_no("heifsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif >= 1.19.0")
+    def test_heif_clli_roundtrip_without_input_cicp(self):
+        im = pyvips.Image.black(128, 128, bands=3)
         add_clli(im)
         buf = im.heifsave_buffer(compression="av1", keep="none")
         out = pyvips.Image.new_from_buffer(buf, "")

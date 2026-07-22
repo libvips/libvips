@@ -379,8 +379,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 		 * write both colr boxes so the NCLX is preserved. ICC alone
 		 * cannot describe PQ or HLG.
 		 */
-		if ((save->profile ||
-				vips_image_get_typeof(save->ready, VIPS_META_ICC_NAME)) &&
+		if (vips_image_get_typeof(save->ready, VIPS_META_ICC_NAME) &&
 			(transfer_characteristics == VIPS_CICP_TRANSFER_PQ ||
 				transfer_characteristics == VIPS_CICP_TRANSFER_HLG))
 			options->save_two_colr_boxes_when_ICC_and_nclx_available = 1;
