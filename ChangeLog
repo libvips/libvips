@@ -1,5 +1,7 @@
 date-tbd 8.19.0
 
+- fix save of 2-band (grey + alpha) images to savers without alpha support
+  [Socialpranker]
 - cpp: add orientation() to VImage [pszemus]
 - smartcrop: introduce cropping by a specific point of interest [pszemus]
 - pngload: support for EXIF data in zTXt chunks [pszemus]
