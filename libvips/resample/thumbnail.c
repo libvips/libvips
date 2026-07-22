@@ -1021,7 +1021,6 @@ vips_thumbnail_build(VipsObject *object)
 		int crop_height = VIPS_MIN(thumbnail->height,
 			n_pages > 1 ? page_height : in->Ysize);
 		int original_width = in->Xsize;
-		int original_height = in->Ysize;
 
 		g_info("cropping to %dx%d", crop_width, crop_height);
 
@@ -1085,20 +1084,53 @@ vips_thumbnail_build(VipsObject *object)
 			vips_image_set_int(in, VIPS_META_PAGE_HEIGHT, crop_height);
 		}
 
-		/* Also crop the gainmap, if any. A gainmap is always a single
-		 * image (UltraHDR only), so we crop it once with the same bbox
-		 * scaled to its size, never per page.
+		/* Also crop the gainmap, if any. Gainmaps are single image
+		 * today, but animated HDR is coming, so treat a multi-page
+		 * gainmap as a page stack like the base image. The vertical
+		 * scale is per frame: both sides are toilet rolls, so it comes
+		 * from the page heights, not the total heights.
 		 */
 		if ((gainmap = vips_image_get_gainmap(t[13]))) {
+			int gm_page_height = vips_image_get_page_height(gainmap);
+			int gm_n_pages = gainmap->Ysize / gm_page_height;
 			double xscale = (double) gainmap->Xsize / original_width;
-			double yscale = (double) gainmap->Ysize / original_height;
+			double yscale = (double) gm_page_height / page_height;
+			int gm_crop_width = crop_width * xscale;
+			int gm_crop_height = crop_height * yscale;
+			VipsImage **gm_pages;
+			int j;
 
-			if (vips_crop(gainmap, &t[16],
-					bbox_x * xscale, bbox_y * yscale,
-					crop_width * xscale, crop_height * yscale,
-					NULL))
+			if (gm_n_pages != n_pages) {
+				g_object_unref(gainmap);
+				vips_error("thumbnail", "%s",
+					"gainmap page count does not match "
+					"image page count");
 				return -1;
+			}
+
+			gm_pages = (VipsImage **)
+				vips_object_local_array(object, gm_n_pages);
+
+			for (j = 0; j < gm_n_pages; j++)
+				if (vips_crop(gainmap, &gm_pages[j],
+						bbox_x * xscale,
+						j * gm_page_height + bbox_y * yscale,
+						gm_crop_width, gm_crop_height,
+						NULL)) {
+					g_object_unref(gainmap);
+					return -1;
+				}
+
+			if (vips_arrayjoin(gm_pages, &t[16], gm_n_pages,
+					"across", 1, NULL)) {
+				g_object_unref(gainmap);
+				return -1;
+			}
 			g_object_unref(gainmap);
+
+			if (gm_n_pages > 1)
+				vips_image_set_int(t[16],
+					VIPS_META_PAGE_HEIGHT, gm_crop_height);
 
 			if (vips_copy(in, &t[8], NULL))
 				return -1;
