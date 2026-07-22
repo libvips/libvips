@@ -121,8 +121,8 @@
  */
 
 /*
-#define DEBUG
 #define VIPS_DEBUG
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -153,6 +153,20 @@ const char *vips__png_suffs[] = { ".png", NULL };
 #if PNG_LIBPNG_VER < 10003
 #error "PNG library too old."
 #endif
+
+/* Compat defines for APNG constants.
+ * libpng 1.8+ uses PNG_fcTL_DISPOSE_OP_NONE etc.
+ * libpng 1.6 + APNG patch uses PNG_DISPOSE_OP_NONE etc.
+ */
+#ifdef PNG_APNG_SUPPORTED
+#ifndef PNG_fcTL_DISPOSE_OP_NONE
+#define PNG_fcTL_DISPOSE_OP_NONE PNG_DISPOSE_OP_NONE
+#define PNG_fcTL_DISPOSE_OP_BACKGROUND PNG_DISPOSE_OP_BACKGROUND
+#define PNG_fcTL_DISPOSE_OP_PREVIOUS PNG_DISPOSE_OP_PREVIOUS
+#define PNG_fcTL_BLEND_OP_SOURCE PNG_BLEND_OP_SOURCE
+#define PNG_fcTL_BLEND_OP_OVER PNG_BLEND_OP_OVER
+#endif
+#endif /*PNG_APNG_SUPPORTED*/
 
 static void
 user_error_function(png_structp png_ptr, png_const_charp error_msg)
@@ -300,9 +314,9 @@ read_new(VipsSource *source, VipsImage *out,
 			  user_error_function, user_warning_function)))
 		return NULL;
 
-		/* Prevent libpng (>=1.6.11) verifying sRGB profiles. Many PNGs have
-		 * broken profiles, but we still want to be able to open them.
-		 */
+	/* Prevent libpng (>=1.6.11) verifying sRGB profiles. Many PNGs have
+	 * broken profiles, but we still want to be able to open them.
+	 */
 #ifdef PNG_SKIP_sRGB_CHECK_PROFILE
 	png_set_option(read->pPng,
 		PNG_SKIP_sRGB_CHECK_PROFILE, PNG_OPTION_ON);
@@ -967,8 +981,7 @@ vips__png_ispng_source(VipsSource *source)
 }
 
 int
-vips__png_header_source(VipsSource *source, VipsImage *out,
-	gboolean unlimited)
+vips__png_header_source(VipsSource *source, VipsImage *out, gboolean unlimited)
 {
 	Read *read;
 
@@ -1012,6 +1025,7 @@ vips__png_isinterlaced_source(VipsSource *source)
 		return -1;
 	}
 	interlace_type = png_get_interlace_type(read->pPng, read->pInfo);
+
 	g_object_unref(image);
 
 	return interlace_type != PNG_INTERLACE_NONE;
@@ -1028,6 +1042,17 @@ typedef struct {
 	png_structp pPng;
 	png_infop pInfo;
 	png_bytep *row_pointer;
+
+#ifdef PNG_APNG_SUPPORTED
+	/* For animated (APNG) write: the height of each frame, and the
+	 * frame delays in ms (points at the "delay" metadata, owned by the
+	 * image).
+	 */
+	gboolean is_animated;
+	int page_height;
+	int *delays;
+	int delay_length;
+#endif /*PNG_APNG_SUPPORTED*/
 } Write;
 
 static void
@@ -1041,6 +1066,7 @@ write_destroy(Write *write)
 	if (write->pPng)
 		png_destroy_write_struct(&write->pPng, &write->pInfo);
 	VIPS_FREE(write->row_pointer);
+
 	VIPS_FREE(write);
 }
 
@@ -1107,7 +1133,34 @@ write_png_block(VipsRegion *region, VipsRect *area, void *a)
 {
 	Write *write = (Write *) a;
 
-	int i;
+	/* The area to write is always a set of complete scanlines.
+	 */
+	g_assert(area->left == 0);
+	g_assert(area->width == region->im->Xsize);
+	g_assert(area->top + area->height <= region->im->Ysize);
+
+	/* Catch PNG errors.
+	 */
+	if (setjmp(png_jmpbuf(write->pPng)))
+		return -1;
+
+	for (int i = 0; i < area->height; i++)
+		write->row_pointer[i] = (png_bytep)
+			VIPS_REGION_ADDR(region, 0, area->top + i);
+
+	png_write_rows(write->pPng, write->row_pointer, area->height);
+
+	return 0;
+}
+
+#ifdef PNG_APNG_SUPPORTED
+/* As write_png_block(), but for animated writes: open and close frames as
+ * we pass frame boundaries.
+ */
+static int
+write_apng_block(VipsRegion *region, VipsRect *area, void *a)
+{
+	Write *write = (Write *) a;
 
 	/* The area to write is always a set of complete scanlines.
 	 */
@@ -1120,14 +1173,35 @@ write_png_block(VipsRegion *region, VipsRect *area, void *a)
 	if (setjmp(png_jmpbuf(write->pPng)))
 		return -1;
 
-	for (i = 0; i < area->height; i++)
-		write->row_pointer[i] = (png_bytep)
-			VIPS_REGION_ADDR(region, 0, area->top + i);
+	for (int i = 0; i < area->height; i++) {
+		int y = area->top + i;
+		int frame = y / write->page_height;
+		int line = y % write->page_height;
 
-	png_write_rows(write->pPng, write->row_pointer, area->height);
+		/* The delay metadata is in ms, fcTL wants a 16-bit
+		 * fraction.
+		 */
+		int delay = frame >= write->delay_length ? 0 :
+			VIPS_CLIP(0, write->delays[frame], 65535);
+
+		if (line == 0)
+			png_write_frame_head(write->pPng, write->pInfo, NULL,
+				region->im->Xsize, write->page_height,
+				0, 0,
+				delay, 1000,
+				PNG_fcTL_DISPOSE_OP_NONE,
+				PNG_fcTL_BLEND_OP_SOURCE);
+
+		png_write_row(write->pPng,
+			(png_bytep) VIPS_REGION_ADDR(region, 0, y));
+
+		if (line == write->page_height - 1)
+			png_write_frame_tail(write->pPng, write->pInfo);
+	}
 
 	return 0;
 }
+#endif /*PNG_APNG_SUPPORTED*/
 
 static void
 vips__png_set_text(png_structp pPng, png_infop pInfo,
@@ -1236,15 +1310,46 @@ write_vips(Write *write,
 	int bitdepth, int effort)
 {
 	VipsImage *in = write->in;
+	VipsRegionWrite write_fn = write_png_block;
 
+	int height;
 	int color_type;
 	int interlace_type;
-	int i, nb_passes;
+	int nb_passes;
 
 	g_assert(in->BandFmt == VIPS_FORMAT_UCHAR ||
 		in->BandFmt == VIPS_FORMAT_USHORT);
 	g_assert(in->Coding == VIPS_CODING_NONE);
 	g_assert(in->Bands > 0 && in->Bands < 5);
+
+#ifdef PNG_APNG_SUPPORTED
+	/* If a smaller page height has been set, the image is a stack of
+	 * frames and we write an animated PNG. Animations can't be
+	 * interlaced.
+	 */
+	write->page_height = vips_image_get_page_height(in);
+	write->is_animated = write->page_height < in->Ysize;
+
+	if (write->is_animated) {
+#ifdef DEBUG
+		printf("write_vips: writing animated PNG\n");
+#endif /*DEBUG*/
+
+		if (interlace) {
+			g_warning("disabling interlace for animated PNG");
+			interlace = FALSE;
+		}
+
+		if (vips_image_get_typeof(in, "delay") &&
+			vips_image_get_array_int(in, "delay",
+				&write->delays, &write->delay_length))
+			return -1;
+
+		/* Animated PNG uses a different write API.
+		 */
+		write_fn = write_apng_block;
+	}
+#endif /*PNG_APNG_SUPPORTED*/
 
 	/* Catch PNG errors.
 	 */
@@ -1282,12 +1387,15 @@ write_vips(Write *write,
 	case 1:
 		color_type = PNG_COLOR_TYPE_GRAY;
 		break;
+
 	case 2:
 		color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
 		break;
+
 	case 3:
 		color_type = PNG_COLOR_TYPE_RGB;
 		break;
+
 	case 4:
 		color_type = PNG_COLOR_TYPE_RGB_ALPHA;
 		break;
@@ -1314,14 +1422,31 @@ write_vips(Write *write,
 	 */
 	png_set_user_limits(write->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD);
 
+	height = in->Ysize;
+#ifdef PNG_APNG_SUPPORTED
+	/* For an animation, IHDR is the size of just one frame.
+	 */
+	if (write->is_animated)
+		height = write->page_height;
+#endif /*PNG_APNG_SUPPORTED*/
+
 	png_set_IHDR(write->pPng, write->pInfo,
-		in->Xsize, in->Ysize, bitdepth, color_type, interlace_type,
+		in->Xsize, height, bitdepth, color_type, interlace_type,
 		PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
 
 	/* Set resolution. libpng uses pixels per meter.
 	 */
 	png_set_pHYs(write->pPng, write->pInfo,
 		rint(in->Xres * 1000), rint(in->Yres * 1000), PNG_RESOLUTION_METER);
+
+#ifdef PNG_APNG_SUPPORTED
+	if (write->is_animated) {
+		int loop = vips_image_get_loop(in);
+
+		png_set_acTL(write->pPng, write->pInfo,
+			in->Ysize / write->page_height, loop);
+	}
+#endif /*PNG_APNG_SUPPORTED*/
 
 	/* Metadata
 	 */
@@ -1377,7 +1502,7 @@ write_vips(Write *write,
 			return -1;
 	}
 
-#if PNG_LIBPNG_VER >= 10645
+#ifdef PNG_WRITE_cICP_SUPPORTED
 	int colour_primaries;
 	int transfer_characteristics;
 	int matrix_coefficients;
@@ -1392,14 +1517,13 @@ write_vips(Write *write,
 			&matrix_coefficients) &&
 		!vips_image_get_int(in, "cicp-full-range-flag",
 			&full_range_flag)) {
-
 		png_set_cICP(write->pPng, write->pInfo,
 			(png_byte) colour_primaries,
 			(png_byte) transfer_characteristics,
 			0, /* PNG pixel data is always RGB */
 			(png_byte) full_range_flag);
 	}
-#endif
+#endif /*!PNG_WRITE_cICP_SUPPORTED*/
 
 	// the profile writers grab the setjmp, restore it
 	if (setjmp(png_jmpbuf(write->pPng)))
@@ -1427,7 +1551,7 @@ write_vips(Write *write,
 		png_trans = (png_byte *) png_malloc(write->pPng,
 			palette_count * sizeof(png_byte));
 		trans_count = 0;
-		for (i = 0; i < palette_count; i++) {
+		for (int i = 0; i < palette_count; i++) {
 			VipsPel *p = (VipsPel *) VIPS_IMAGE_ADDR(im_palette, i, 0);
 			png_color *col = &png_palette[i];
 
@@ -1488,8 +1612,8 @@ write_vips(Write *write,
 
 	/* Write data.
 	 */
-	for (i = 0; i < nb_passes; i++)
-		if (vips_sink_disc(in, write_png_block, write))
+	for (int i = 0; i < nb_passes; i++)
+		if (vips_sink_disc(in, write_fn, write))
 			return -1;
 
 	/* The setjmp() was held by our background writer: reset it.

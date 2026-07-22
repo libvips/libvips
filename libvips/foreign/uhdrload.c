@@ -601,7 +601,7 @@ vips_foreign_load_uhdr_class_init(VipsForeignLoadUhdrClass *class)
 
 	/* We need to be higher priority than jpegload.
 	 */
-	foreign_class->priority = 100;
+	foreign_class->priority = 151;
 
 	load_class->get_flags = vips_foreign_load_uhdr_get_flags;
 	load_class->header = vips_foreign_load_uhdr_header;

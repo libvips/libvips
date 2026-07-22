@@ -668,15 +668,10 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 	jxl->format.align = 0;
 
 	if (jxl->page_count > 1) {
-		int num_loops = 0;
-
-		if (vips_image_get_typeof(in, "loop"))
-			vips_image_get_int(in, "loop", &num_loops);
-
 		jxl->info.have_animation = TRUE;
 		jxl->info.animation.tps_numerator = 1000;
 		jxl->info.animation.tps_denominator = 1;
-		jxl->info.animation.num_loops = num_loops;
+		jxl->info.animation.num_loops = vips_image_get_loop(in);
 		jxl->info.animation.have_timecodes = FALSE;
 	}
 

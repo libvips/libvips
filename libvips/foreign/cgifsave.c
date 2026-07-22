@@ -760,8 +760,8 @@ vips_foreign_save_cgif_build(VipsObject *object)
 	if (vips_image_get_typeof(cgif->in, "delay"))
 		vips_image_get_array_int(cgif->in, "delay",
 			&cgif->delay, &cgif->delay_length);
-	if (vips_image_get_typeof(cgif->in, "loop"))
-		vips_image_get_int(cgif->in, "loop", &cgif->loop);
+
+	cgif->loop = vips_image_get_loop(cgif->in);
 
 	cgif->frame_height = vips_image_get_page_height(cgif->in);
 	cgif->frame_width = cgif->in->Xsize;
