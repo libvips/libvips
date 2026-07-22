@@ -411,25 +411,12 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	options->image_orientation = vips_image_get_orientation(save->ready);
 #endif
 
-#if defined(HAVE_HEIF_CONTENT_LIGHT_LEVEL) && \
-	defined(HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE)
-	{
-		int colour_primaries;
-		int transfer_characteristics;
-		int matrix_coefficients;
-		int full_range_flag;
-		heif_content_light_level content_light_level;
+#ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
+	heif_content_light_level content_light_level;
 
-		if (vips_foreign_save_heif_get_cicp(save->ready,
-				&colour_primaries, &transfer_characteristics,
-				&matrix_coefficients, &full_range_flag) &&
-			vips_foreign_save_heif_get_clli(save->ready,
-				&content_light_level))
-			heif_image_set_content_light_level(heif->img,
-				&content_light_level);
-	}
-#endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL &&
-	HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
+	if (vips_foreign_save_heif_get_clli(save->ready, &content_light_level))
+		heif_image_set_content_light_level(heif->img, &content_light_level);
+#endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
 
 #ifdef DEBUG
 	GTimer *timer = g_timer_new();

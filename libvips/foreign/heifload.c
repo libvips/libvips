@@ -573,7 +573,7 @@ vips_foreign_load_heif_set_page(VipsForeignLoadHeif *heif,
 }
 
 static gboolean
-vips_foreign_load_heif_get_cicp_current(VipsForeignLoadHeif *heif,
+vips_foreign_load_heif_get_cicp(VipsForeignLoadHeif *heif,
 	VipsHeifCicp *cicp)
 {
 	struct heif_error error;
@@ -597,43 +597,9 @@ vips_foreign_load_heif_get_cicp_current(VipsForeignLoadHeif *heif,
 	return FALSE;
 }
 
-static int
-vips_foreign_load_heif_set_cicp_metadata(VipsForeignLoadHeif *heif,
-	VipsImage *out)
-{
-	VipsHeifCicp cicp;
-
-	if (vips_foreign_load_heif_set_page(heif, heif->page, FALSE))
-		return -1;
-
-	if (vips_foreign_load_heif_get_cicp_current(heif, &cicp)) {
-#ifdef DEBUG
-		printf("\tnclx->color_primaries: %d\n", cicp.colour_primaries);
-		printf("\tnclx->transfer_characteristics: %d\n",
-			cicp.transfer_characteristics);
-		printf("\tnclx->matrix_coefficients: %d\n",
-			cicp.matrix_coefficients);
-		printf("\tnclx->full_range_flag: %d\n", cicp.full_range_flag);
-#endif
-
-		g_info("heifload: setting CICP from nclx");
-
-		vips_image_set_int(out, "cicp-colour-primaries",
-			cicp.colour_primaries);
-		vips_image_set_int(out, "cicp-transfer-characteristics",
-			cicp.transfer_characteristics);
-		vips_image_set_int(out, "cicp-matrix-coefficients",
-			cicp.matrix_coefficients);
-		vips_image_set_int(out, "cicp-full-range-flag",
-			cicp.full_range_flag);
-	}
-
-	return 0;
-}
-
 #ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
 static gboolean
-vips_foreign_load_heif_get_clli_current(VipsForeignLoadHeif *heif,
+vips_foreign_load_heif_get_clli(VipsForeignLoadHeif *heif,
 	VipsHeifClli *clli)
 {
 	heif_content_light_level content_light_level;
@@ -649,27 +615,6 @@ vips_foreign_load_heif_get_clli_current(VipsForeignLoadHeif *heif,
 	}
 
 	return FALSE;
-}
-
-static int
-vips_foreign_load_heif_set_clli_metadata(VipsForeignLoadHeif *heif,
-	VipsImage *out)
-{
-	VipsHeifClli clli;
-
-	if (vips_foreign_load_heif_set_page(heif, heif->page, FALSE))
-		return -1;
-
-	if (vips_foreign_load_heif_get_clli_current(heif, &clli)) {
-		g_info("heifload: setting CLLI from content light level");
-
-		vips_image_set_int(out, "clli-max-content-light-level",
-			clli.max_content_light_level);
-		vips_image_set_int(out, "clli-max-frame-average-light-level",
-			clli.max_frame_average_light_level);
-	}
-
-	return 0;
 }
 #endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
 
@@ -846,19 +791,42 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		vips_image_set_blob(out, VIPS_META_ICC_NAME,
 			(VipsCallbackFn) vips_area_free_cb, data, length);
 	}
+
 	/* Always try to fetch the NCLX profile, even when ICC is present.
 	 * CICP takes priority over ICC for colour interpretation.
 	 */
-	if (vips_foreign_load_heif_set_cicp_metadata(heif, out))
-		return -1;
+	VipsHeifCicp cicp;
+	if (vips_foreign_load_heif_get_cicp(heif, &cicp)) {
+#ifdef DEBUG
+		printf("\tnclx->color_primaries: %d\n", cicp.colour_primaries);
+		printf("\tnclx->transfer_characteristics: %d\n",
+			cicp.transfer_characteristics);
+		printf("\tnclx->matrix_coefficients: %d\n",
+			cicp.matrix_coefficients);
+		printf("\tnclx->full_range_flag: %d\n", cicp.full_range_flag);
+#endif
+
+		g_info("heifload: setting CICP from nclx");
+
+		vips_image_set_int(out, "cicp-colour-primaries",
+			cicp.colour_primaries);
+		vips_image_set_int(out, "cicp-transfer-characteristics",
+			cicp.transfer_characteristics);
+		vips_image_set_int(out, "cicp-matrix-coefficients",
+			cicp.matrix_coefficients);
+		vips_image_set_int(out, "cicp-full-range-flag",
+			cicp.full_range_flag);
+	}
 
 #ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
-	if (vips_image_get_typeof(out, "cicp-colour-primaries") &&
-		vips_image_get_typeof(out, "cicp-transfer-characteristics") &&
-		vips_image_get_typeof(out, "cicp-matrix-coefficients") &&
-		vips_image_get_typeof(out, "cicp-full-range-flag")) {
-		if (vips_foreign_load_heif_set_clli_metadata(heif, out))
-			return -1;
+	VipsHeifClli clli;
+	if (vips_foreign_load_heif_get_clli(heif, &clli)) {
+		g_info("heifload: setting CLLI from content light level");
+
+		vips_image_set_int(out, "clli-max-content-light-level",
+			clli.max_content_light_level);
+		vips_image_set_int(out, "clli-max-frame-average-light-level",
+			clli.max_frame_average_light_level);
 	}
 #endif
 
