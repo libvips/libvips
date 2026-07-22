@@ -1526,22 +1526,28 @@ class TestForeign:
             target = pyvips.Target.new_to_memory()
             image.matrixsave_target(target)
 
-    def test_2band_mono_save_trims_alpha(self):
+    def test_2band_mono_save_flattens_alpha(self):
         # a 2-band image (grey + alpha) saved with a saver that only
-        # supports mono (no alpha) should have the alpha band silently
-        # dropped, not crash or leak the alpha data into the output
+        # supports mono (no alpha) should have the alpha flattened against
+        # the background, not just dropped -- dropping would leak the raw
+        # grey value through translucent pixels instead of blending them
+        # grey=200, alpha=128 (50%) on black background -> ~100, not 200
         filename = temp_filename(self.tempdir, ".mat")
-
-        two_band = pyvips.Image.black(1, 1, bands=2).cast("uchar")
+        two_band = pyvips.Image.black(1, 1, bands=2).cast("uchar") + [200, 128]
         two_band.matrixsave(filename)
-        assert pyvips.Image.new_from_file(filename).bands == 1
+        result = pyvips.Image.new_from_file(filename)
+        assert result.bands == 1
+        assert abs(result(0, 0)[0] - 100.39) < 0.1
 
         # same, but for a signed char source image (a 2-band char image
         # guesses as MULTIBAND, not mono-with-alpha, so this exercises a
         # different code path than the uchar case above)
-        two_band_char = pyvips.Image.black(1, 1, bands=2).cast("char")
-        two_band_char.matrixsave(filename)
-        assert pyvips.Image.new_from_file(filename).bands == 1
+        filename_char = temp_filename(self.tempdir, ".mat")
+        two_band_char = pyvips.Image.black(1, 1, bands=2).cast("char") + [100, 128]
+        two_band_char.matrixsave(filename_char)
+        result_char = pyvips.Image.new_from_file(filename_char)
+        assert result_char.bands == 1
+        assert abs(result_char(0, 0)[0] - 50.2) < 0.1
 
     @skip_if_no("ppmload")
     def test_ppm(self):

@@ -1406,7 +1406,7 @@ vips_foreign_save_new_from_string(const char *string)
  */
 static int
 vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
-	VipsForeignSaveable saveable)
+	VipsForeignSaveable saveable, VipsArrayDouble *background)
 {
 	// is this a 16-bit source image
 	gboolean sixteenbit = in->BandFmt == VIPS_FORMAT_USHORT;
@@ -1453,15 +1453,18 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 * work for things like "extract_band 1" on an RGB image.
 	 *
 	 * A 2-band image could be grey + alpha, so if the saver can't keep
-	 * alpha, drop the second band here. We can't rely on interpretation
-	 * guessing to spot this for us, since eg. a 2-band char image guesses
-	 * as MULTIBAND, not mono-with-alpha.
+	 * alpha, flatten against the background here, as we would for RGBA ->
+	 * RGB. We can't rely on interpretation guessing to spot this for us,
+	 * since eg. a 2-band char image guesses as MULTIBAND, not
+	 * mono-with-alpha.
 	 */
 	if ((saveable & VIPS_FOREIGN_SAVEABLE_MONO) &&
 		in->Bands < 3) {
 		if (in->Bands == 2 &&
 			!(saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)) {
-			if (vips_extract_band(in, &out, 0, NULL)) {
+			if (vips_flatten(in, &out,
+					"background", background,
+					NULL)) {
 				g_object_unref(in);
 				return -1;
 			}
@@ -1597,7 +1600,7 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 
 	/* Apply saveable conversions to get mono/rgb/cmyk.
 	 */
-	if (vips_foreign_apply_saveable(in, &out, saveable)) {
+	if (vips_foreign_apply_saveable(in, &out, saveable, background)) {
 		g_object_unref(in);
 		return -1;
 	}
