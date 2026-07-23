@@ -36,6 +36,7 @@ date-tbd 8.19.0
 - pngsave: add APNG support [felixbuenemann]
 - project: add combine option [jcupitt]
 - reducev: auto-vectorise the vertical reduce for all band formats, up to ~3x faster [dloebl]
+- icc: fix black output when transforming float images [lancylot2004]
 
 6/6/26 8.18.3
 

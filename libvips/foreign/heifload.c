@@ -1105,6 +1105,7 @@ vips_foreign_load_heif_class_init(VipsForeignLoadHeifClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignLoadClass *load_class = (VipsForeignLoadClass *) class;
 
 	vips__heif_init();
@@ -1116,6 +1117,10 @@ vips_foreign_load_heif_class_init(VipsForeignLoadHeifClass *class)
 	object_class->nickname = "heifload_base";
 	object_class->description = _("load a HEIF image");
 	object_class->build = vips_foreign_load_heif_build;
+
+	/* Our is_a() is a cheap ISOBMFF brand check, so high priority.
+	 */
+	foreign_class->priority = 150;
 
 	load_class->get_flags = vips_foreign_load_heif_get_flags;
 	load_class->header = vips_foreign_load_heif_header;
