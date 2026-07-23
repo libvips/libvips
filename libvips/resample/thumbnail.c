@@ -674,39 +674,39 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	return im;
 }
 
-/* Crop the same window from every page of an image and rejoin them into a
- * toilet roll. Used for the image itself and for its gainmap, if it has one.
+/* Crop the same window from every page of an image and rejoin.
  *
  * left/top are relative to a page, not to the whole stack.
  */
-static int
-vips_thumbnail_crop_pages(VipsObject *object, VipsImage *in, VipsImage **out,
+static VipsImage *
+vips_thumbnail_crop_pages(VipsObject *object, VipsImage *in,
 	int left, int top, int width, int height, int page_height, int n_pages)
 {
-	VipsImage **pages = (VipsImage **)
-		vips_object_local_array(object, n_pages);
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 1);
+	VipsImage **pages = (VipsImage **) vips_object_local_array(object, n_pages);
 
-	int i;
+	VipsImage *out;
 
-	for (i = 0; i < n_pages; i++)
+	for (int i = 0; i < n_pages; i++)
 		if (vips_crop(in, &pages[i],
-				left, i * page_height + top,
-				width, height, NULL))
-			return -1;
+				left, i * page_height + top, width, height, NULL))
+			return NULL;
+	if (vips_arrayjoin(pages, &out, n_pages, "across", 1, NULL))
+		return NULL;
 
-	if (n_pages == 1)
-		return vips_arrayjoin(pages, out, n_pages, "across", 1, NULL);
+	if (n_pages > 1) {
+		VipsImage *t;
 
-	/* Re-stamp page-height for the cropped result. Copy first so we don't
-	 * set metadata on a shared image.
-	 */
-	if (vips_arrayjoin(pages, &t[0], n_pages, "across", 1, NULL) ||
-		vips_copy(t[0], out, NULL))
-		return -1;
-	vips_image_set_int(*out, VIPS_META_PAGE_HEIGHT, height);
+		if (vips_copy(out, &t, NULL)) {
+			g_object_unref(out);
+			return NULL;
+		}
+		g_object_unref(out);
+		out = t;
 
-	return 0;
+		vips_image_set_int(out, VIPS_META_PAGE_HEIGHT, height);
+	}
+
+	return out;
 }
 
 static int
@@ -1065,8 +1065,6 @@ vips_thumbnail_build(VipsObject *object)
 		double overall_hshrink = (double) rotated_input_width / in->Xsize;
 		double overall_vshrink = (double) rotated_input_height / in->Ysize;
 
-		VipsImage *first_page;
-		VipsImage *first_cropped;
 		int bbox_x, bbox_y;
 
 		/* Need to copy to memory, we have to stay seq.
@@ -1080,34 +1078,28 @@ vips_thumbnail_build(VipsObject *object)
 		 * apply that same window to every page (and to the gainmap, if
 		 * any) so the bbox does not drift frame-to-frame.
 		 */
-		if (vips_crop(t[13], &first_page,
+		if (vips_crop(t[13], &t[18],
 				0, 0, in->Xsize, page_height, NULL))
 			return -1;
-		vips_object_local(object, first_page);
 
-		if (vips_smartcrop(first_page, &first_cropped,
+		if (vips_smartcrop(t[18], &t[19],
 				crop_width, crop_height,
 				"interesting", thumbnail->crop,
 				"interesting_x", VIPS_ROUND_UINT((double) thumbnail->interesting_x / overall_vshrink),
 				"interesting_y", VIPS_ROUND_UINT((double) thumbnail->interesting_y / overall_hshrink),
 				NULL))
 			return -1;
-		vips_object_local(object, first_cropped);
 
-		bbox_x = -vips_image_get_xoffset(first_cropped);
-		bbox_y = -vips_image_get_yoffset(first_cropped);
+		bbox_x = -vips_image_get_xoffset(t[19]);
+		bbox_y = -vips_image_get_yoffset(t[19]);
 
-		if (vips_thumbnail_crop_pages(object, t[13], &t[14],
-				bbox_x, bbox_y, crop_width, crop_height,
-				page_height, n_pages))
+		if (!(t[14] = vips_thumbnail_crop_pages(object, t[13],
+				  bbox_x, bbox_y, crop_width, crop_height,
+				  page_height, n_pages)))
 			return -1;
 		in = t[14];
 
-		/* Also crop the gainmap, if any. Gainmaps are single image
-		 * today, but animated HDR is coming, so treat a multi-page
-		 * gainmap as a page stack like the base image. The vertical
-		 * scale is per frame: both sides are toilet rolls, so it comes
-		 * from the page heights, not the total heights.
+		/* Also crop the gainmap, if any.
 		 */
 		if ((gainmap = vips_image_get_gainmap(t[13]))) {
 			int gm_page_height = vips_image_get_page_height(gainmap);
@@ -1123,10 +1115,10 @@ vips_thumbnail_build(VipsObject *object)
 				return -1;
 			}
 
-			if (vips_thumbnail_crop_pages(object, gainmap, &t[16],
-					bbox_x * xscale, bbox_y * yscale,
-					crop_width * xscale, crop_height * yscale,
-					gm_page_height, gm_n_pages)) {
+			if (!(t[16] = vips_thumbnail_crop_pages(object, gainmap,
+					  bbox_x * xscale, bbox_y * yscale,
+					  crop_width * xscale, crop_height * yscale,
+					  gm_page_height, gm_n_pages))) {
 				g_object_unref(gainmap);
 				return -1;
 			}
