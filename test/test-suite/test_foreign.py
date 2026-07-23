@@ -1910,13 +1910,44 @@ class TestForeign:
         im3 = pyvips.Image.new_from_file(filename, page=3)
         assert abs(im4.avg() - im3.avg()) < 0.5
 
-        # this horrible thing has a header that doesn't match the decoded
-        # pixels ... although it's a valid jp2k image, we reject files of
-        # this type
+        # issue412.jp2 is a palette image: the header declares a single
+        # palette index component, and openjpeg expands it to three bands
+        # during decode ... we used to reject files of this type as
+        # "decoded image does not match container", now we support them
         filename = os.path.join(IMAGES, "issue412.jp2")
-        with pytest.raises(Exception) as e_info:
-            im = pyvips.Image.new_from_file(filename)
-            im.avg()
+        im = pyvips.Image.new_from_file(filename)
+        assert im.bands == 3
+        assert im.interpretation == "srgb"
+        assert abs(im.avg() - 123.318) < 0.1
+
+    @skip_if_no("jp2kload")
+    def test_jp2kload_palette(self):
+        # palette.jp2 is a paletted JP2 (see
+        # https://github.com/libvips/libvips/issues/5027): the header
+        # declares a single 8-bit palette index component plus pclr/cmap
+        # boxes, and openjpeg expands it to three sRGB bands during decode
+        #
+        # pixel (0, 0) holds index 0, whose palette entry is (0, 255, 0);
+        # pixel (1, 0) holds index 4, whose entry is (68, 187, 148)
+        filename = os.path.join(IMAGES, "palette.jp2")
+
+        im = pyvips.Image.new_from_file(filename)
+        assert im.width == 64
+        assert im.height == 64
+        assert im.bands == 3
+        assert im.format == "uchar"
+        assert im.interpretation == "srgb"
+        assert im(0, 0) == [0, 255, 0]
+        assert im(1, 0) == [68, 187, 148]
+
+        # sequential access, the reported failure mode
+        im = pyvips.Image.new_from_file(filename, access="sequential")
+        im.stats()
+
+        # oneshot decode path
+        im = pyvips.Image.new_from_file(filename, oneshot=True)
+        assert im.bands == 3
+        assert im(0, 0) == [0, 255, 0]
 
     @skip_if_no("jp2ksave")
     def test_jp2ksave(self):
