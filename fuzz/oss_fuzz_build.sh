@@ -234,7 +234,6 @@ cmake \
 cmake --build . --target install
 popd
 
-TSAN_ARGS=""
 if [ "$SANITIZER" = "undefined" ]; then
   # Allow UBSan shift errors to be recoverable to ensure our suppression rules
   # are enforced. OSS-Fuzz uses `-fno-sanitize-recover=shift` by default.
@@ -244,29 +243,42 @@ if [ "$SANITIZER" = "undefined" ]; then
   # and available in OSS-Fuzz we can re-enable the above flags instead.
   export CFLAGS+=" -fsanitize-ignorelist=$PWD/suppressions/ubsan_ignorelist.txt"
   export CXXFLAGS+=" -fsanitize-ignorelist=$PWD/suppressions/ubsan_ignorelist.txt"
-elif [ "$SANITIZER" = "thread" ]; then
-  # TSan may report false positives when callbacks cross boundaries between
-  # instrumented and non-instrumented code. To avoid this, built GLib with
-  # TSan instrumentation as well.
-  # https://github.com/google/sanitizers/wiki/threadsanitizercppmanual#non-instrumented-code
-  TSAN_ARGS="--force-fallback-for=glib -Dglib:glib_debug=disabled -Dglib:nls=disabled -Dglib:sysprof=disabled -Dglib:tests=false"
 fi
+
+# Always build GLib from source to ensure instrumentation is applied.
+# https://github.com/google/oss-fuzz/issues/6294
+# https://github.com/google/sanitizers/wiki/threadsanitizercppmanual#non-instrumented-code
+# https://github.com/google/sanitizers/wiki/MemorySanitizer#using-instrumented-libraries
+GLIB_ARGS=(
+  --force-fallback-for=glib
+  # Keep GLib shared so its allocation APIs bypass the fuzzer's -Wl,--wrap
+  # malloc/calloc/realloc hooks. Those wrappers inject NULL returns, whereas
+  # g_malloc(), g_malloc0() and g_realloc() abort rather than returning NULL.
+  -Dglib:default_library=shared
+  -Dglib:glib_debug=disabled
+  -Dglib:nls=disabled
+  -Dglib:sysprof=disabled
+  -Dglib:tests=false
+  -Dglib:b_lundef=false
+)
 
 # libvips
 # Disable building man pages, gettext po files, tools, and tests
-meson setup build --prefix=$WORK --libdir=lib --prefer-static --default-library=static --buildtype=debug $TSAN_ARGS \
+meson setup build --prefix=$WORK --libdir=lib --default-library=static --buildtype=debug "${GLIB_ARGS[@]}" \
   -Dbackend_max_links=4 -Dexamples=false -Dman=false -Dpo=false \
   -Dtests=false -Dtools=false -Dcplusplus=false -Dmodules=disabled -Dfuzz=true \
   -Dfuzzing_engine=oss-fuzz -Dfuzzer_ldflags="$LIB_FUZZING_ENGINE" \
+  -Dc_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN" \
   -Dcpp_link_args="$LDFLAGS -Wl,-rpath=\$ORIGIN/lib"
-meson install -C build --tag devel
+meson install -C build --tag runtime,devel
 
 # Copy fuzz executables to $OUT
 find build/fuzz -maxdepth 1 -executable -type f -exec cp -v '{}' $OUT \;
 
 # All shared libraries needed during fuzz target execution should be inside the $OUT/lib directory
 mkdir -p $OUT/lib
-cp $WORK/lib/*.so $OUT/lib
+cp -dv $WORK/lib/*.so* $OUT/lib
+cp -v /usr/lib/x86_64-linux-gnu/libfftw3.so.3 $OUT/lib
 
 pushd $SRC/seed-corpora
 zip -rq $OUT/seed_corpus.zip \
@@ -285,9 +297,10 @@ for fuzzer in $OUT/*_fuzzer; do
   ln -sf "seed_corpus.zip" "$OUT/${target}_seed_corpus.zip"
 done
 
-# Generate dictionary for vips_fuzzer
+# Generate dictionary for vips_fuzzer and vips_oom_fuzzer
 LD_LIBRARY_PATH="$OUT/lib" $OUT/generate_vips_dict > "$OUT/vips_fuzzer.dict"
 rm -v $OUT/generate_vips_dict
+cp -v $OUT/vips_fuzzer.dict $OUT/vips_oom_fuzzer.dict
 
 # Copy options and remaining dictionary files to $OUT
 find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT \;

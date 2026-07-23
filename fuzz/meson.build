@@ -105,6 +105,18 @@ fuzz_execs += executable('generic_buffer_with_args_fuzzer',
     link_args: fuzz_ldflags,
 )
 
+fuzz_execs += executable('vips_oom_fuzzer',
+    'vips_fuzzer.cc', 'failing-alloc.c',
+    dependencies: [libvips_dep, fuzz_deps],
+    link_args: [
+        fuzz_ldflags,
+        '-Wl,--wrap=malloc',
+        '-Wl,--wrap=calloc',
+        '-Wl,--wrap=realloc',
+    ],
+    cpp_args: '-DOOM_FUZZER',
+)
+
 executable('generate_vips_dict',
     'generate_vips_dict.c',
     dependencies: libvips_dep,
