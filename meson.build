@@ -61,11 +61,10 @@ endif
 # libFuzzer related things
 fuzzing_engine = get_option('fuzzing_engine')
 if fuzzing_engine == 'libfuzzer'
-    if not cc.has_argument('-fsanitize=fuzzer')
-        error('fuzzing_engine libfuzzer requires "-fsanitize=fuzzer"')
+    if not cc.has_argument('-fsanitize=fuzzer-no-link')
+        error('-Dfuzzing_engine=libfuzzer requires -fsanitize=fuzzer-no-link')
     endif
-    fuzzer_args = ['-fsanitize=fuzzer-no-link', '-fsanitize=fuzzer']
-    add_project_arguments(cc.first_supported_argument(fuzzer_args), language: ['cpp', 'c'])
+    add_project_arguments('-fsanitize=fuzzer-no-link', language: ['cpp', 'c'])
 endif
 
 glib_dep = dependency('glib-2.0', version: '>=2.52')
