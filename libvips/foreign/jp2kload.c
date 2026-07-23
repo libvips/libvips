@@ -117,6 +117,12 @@ typedef struct _VipsForeignLoadJp2k {
 	/* If we need to do ycc->rgb conversion on load.
 	 */
 	gboolean ycc_to_rgb;
+
+	/* The image has a palette which openjpeg will expand for us during
+	 * decode. The header declares the palette index component, so we must
+	 * predict the geometry of the expanded image ourselves.
+	 */
+	gboolean palette;
 } VipsForeignLoadJp2k;
 
 typedef VipsForeignLoadClass VipsForeignLoadJp2kClass;
@@ -527,6 +533,29 @@ vips_foreign_load_jp2k_get_ycc(opj_image_t *image)
 	return ycc;
 }
 
+/* Detect images with a palette from the header. openjpeg expands the
+ * palette itself during decode, but the header only shows the palette
+ * index component, so we must spot this case and predict the shape of the
+ * expanded image.
+ *
+ * A colour colourspace with fewer than three components can only mean a
+ * palette: the pclr/cmap boxes will expand the indexes to full colour
+ * during decode.
+ */
+static gboolean
+vips_foreign_load_jp2k_get_palette(opj_image_t *image)
+{
+	switch (image->color_space) {
+	case OPJ_CLRSPC_SRGB:
+	case OPJ_CLRSPC_SYCC:
+	case OPJ_CLRSPC_EYCC:
+		return image->numcomps < 3;
+
+	default:
+		return FALSE;
+	}
+}
+
 static gboolean
 vips_foreign_load_jp2k_get_upsample(opj_image_t *image)
 {
@@ -561,11 +590,16 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 	if (vips_image_pipelinev(out, VIPS_DEMAND_STYLE_SMALLTILE, NULL))
 		return -1;
 
+	/* Palette images decode to three bands, even though the header only
+	 * declares the single palette index component.
+	 */
+	int bands = jp2k->palette ? 3 : jp2k->image->numcomps;
+
 	/* x0/y0 give the offset to the first pixel in the image. first->w and h
 	 * are scaled by the page number.
 	 */
 	vips_image_init_fields(out,
-		jp2k->width, jp2k->height, jp2k->image->numcomps, format,
+		jp2k->width, jp2k->height, bands, format,
 		VIPS_CODING_NONE, interpretation, 1.0, 1.0);
 
 	/* openjpeg allows left and top of the coordinate grid to be
@@ -679,6 +713,12 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 	/* Try to guess if we need ycc->rgb processing.
 	 */
 	jp2k->ycc_to_rgb = vips_foreign_load_jp2k_get_ycc(jp2k->image);
+
+	/* Detect palette images -- openjpeg expands the palette during decode,
+	 * so the decoded image will have three bands, not the single index
+	 * band the header declares.
+	 */
+	jp2k->palette = vips_foreign_load_jp2k_get_palette(jp2k->image);
 
 	/* jp2k->image can change during decode, so we need a copy of the
 	 * full-size image geometry.
