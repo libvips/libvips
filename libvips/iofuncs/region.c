@@ -84,8 +84,8 @@
 #define DEBUG_MOVE
 #define DEBUG_ENVIRONMENT 1
 #define DEBUG_CREATE
-#define DEBUG
 #define VIPS_DEBUG
+#define DEBUG
  */
 
 #ifdef HAVE_CONFIG_H
@@ -1038,8 +1038,8 @@ vips_region_black(VipsRegion *reg)
  *     [method@Region.paint].
  */
 void
-vips_region_copy(VipsRegion *reg,
-	VipsRegion *dest, const VipsRect *r, int x, int y)
+vips_region_copy(VipsRegion *reg, VipsRegion *dest,
+	const VipsRect *r, int x, int y)
 {
 	size_t len = VIPS_IMAGE_SIZEOF_PEL(reg->im) * r->width;
 	VipsPel *p = VIPS_REGION_ADDR(reg, r->left, r->top);
@@ -1047,14 +1047,10 @@ vips_region_copy(VipsRegion *reg,
 	size_t plsk = VIPS_REGION_LSKIP(reg);
 	size_t qlsk = VIPS_REGION_LSKIP(dest);
 
-	int z;
-
 #ifdef DEBUG
 	/* Find the area we will write to in dest.
 	 */
 	VipsRect output;
-
-	printf("vips_region_copy: sanity check\n");
 
 	output.left = x;
 	output.top = y;
@@ -1068,12 +1064,11 @@ vips_region_copy(VipsRegion *reg,
 	/* Check the area we are reading from in reg.
 	 */
 	g_assert(vips_rect_includesrect(&reg->valid, r));
+#endif /*DEBUG*/
 
 	/* VipsPel size must be the same.
 	 */
-	g_assert(VIPS_IMAGE_SIZEOF_PEL(reg->im) ==
-		VIPS_IMAGE_SIZEOF_PEL(dest->im));
-#endif /*DEBUG*/
+	g_assert(VIPS_IMAGE_SIZEOF_PEL(reg->im) == VIPS_IMAGE_SIZEOF_PEL(dest->im));
 
 	/* Copy the scanlines.
 	 *
@@ -1086,12 +1081,150 @@ vips_region_copy(VipsRegion *reg,
 		len == qlsk)
 		memcpy(q, p, len * r->height);
 	else
-		for (z = 0; z < r->height; z++) {
+		for (int z = 0; z < r->height; z++) {
 			memcpy(q, p, len);
 
 			p += plsk;
 			q += qlsk;
 		}
+}
+
+/* Composite a line of pixels p OVER the line at q, unpremultiplied alpha,
+ * 8 bits.
+ */
+static void
+vips_region_blend_over_line8(VipsPel *q, const VipsPel *p,
+	int bands, int max_alpha, int n)
+{
+	g_assert(bands > 1);
+
+	for (int i = 0; i < n; i++) {
+		// transparent OVER leaves q unchanged, solid OVER is copy
+		int ap = p[bands - 1];
+		if (ap == max_alpha) {
+			for (int b = 0; b < bands; b++)
+				q[b] = p[b];
+		}
+		else if (ap != 0) {
+			int aq = q[bands - 1];
+			int bf = (aq * (max_alpha - ap) + max_alpha / 2) / max_alpha;
+			int a = ap + bf;
+
+			int b;
+			for (b = 0; b < bands - 1; b++)
+				q[b] = (p[b] * ap + q[b] * bf + a / 2) / a;
+			q[b] = a;
+		}
+
+		p += bands;
+		q += bands;
+	}
+}
+
+/* Composite a line of pixels p OVER the line at q, unpremultiplied alpha,
+ * 16 bits.
+ */
+static void
+vips_region_blend_over_line16(VipsPel *q, const VipsPel *p,
+	int bands, int max_alpha, int n)
+{
+	g_assert(bands > 1);
+
+	guint16 *tq = (guint16 *) q;
+	const guint16 *tp = (const guint16 *) p;
+
+	for (int i = 0; i < n; i++) {
+		// transparent OVER leaves tq unchanged, solid OVER is copy
+		int ap = tp[bands - 1];
+		if (ap == max_alpha)
+			for (int b = 0; b < bands; b++)
+				tq[b] = tp[b];
+		else if (ap != 0) {
+			int aq = tq[bands - 1];
+			guint64 bf =
+				((guint64) aq * (max_alpha - ap) + max_alpha / 2) / max_alpha;
+			guint64 a = ap + bf;
+
+			int b;
+			for (b = 0; b < bands - 1; b++)
+				tq[b] = ((guint64) tp[b] * ap + tq[b] * bf + a / 2) / a;
+			tq[b] = a;
+		}
+
+		tp += bands;
+		tq += bands;
+	}
+}
+
+/**
+ * vips_region_blend_over:
+ * @reg: source region
+ * @dest: (inout): destination region
+ * @r: [struct@Rect] of pixels you need to copy
+ * @x: position of @r in @dest
+ * @y: position of @r in @dest
+ *
+ * Alpha blend area @r in @reg OVER @dest at position @x, @y.
+ *
+ * 8 and 16 bit images with an alpha channel only.
+ *
+ * ::: seealso
+ *     [method@Region.copy].
+ */
+void
+vips_region_blend_over(VipsRegion *reg, VipsRegion *dest,
+	const VipsRect *r, int x, int y)
+{
+	const VipsPel *p = VIPS_REGION_ADDR(reg, r->left, r->top);
+	VipsPel *q = VIPS_REGION_ADDR(dest, x, y);
+	size_t plsk = VIPS_REGION_LSKIP(reg);
+	size_t qlsk = VIPS_REGION_LSKIP(dest);
+	double max_alpha = vips_interpretation_max_alpha(reg->im->Type);
+
+#ifdef DEBUG
+	/* Find the area we will write to in dest.
+	 */
+	VipsRect output;
+
+	output.left = x;
+	output.top = y;
+	output.width = r->width;
+	output.height = r->height;
+
+	/* Must be inside dest->valid.
+	 */
+	g_assert(vips_rect_includesrect(&dest->valid, &output));
+
+	/* Check the area we are reading from in reg.
+	 */
+	g_assert(vips_rect_includesrect(&reg->valid, r));
+#endif /*DEBUG*/
+
+	/* Bands and format must be equal.
+	 */
+	g_assert(reg->im->Bands == dest->im->Bands);
+	g_assert(reg->im->BandFmt == dest->im->BandFmt);
+
+	for (int y = 0; y < r->height; y++) {
+		switch (reg->im->BandFmt) {
+		case VIPS_FORMAT_UCHAR:
+			vips_region_blend_over_line8(q, p,
+				reg->im->Bands, max_alpha, r->width);
+			break;
+
+		case VIPS_FORMAT_USHORT:
+			vips_region_blend_over_line16(q, p,
+				reg->im->Bands, max_alpha, r->width);
+			break;
+
+		default:
+			g_warning("vips_region_blend_over: format not implemented");
+			break;
+		}
+
+		p += plsk;
+		q += qlsk;
+	}
 }
 
 /* Generate area @target in @to using pixels in @from.
