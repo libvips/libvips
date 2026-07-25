@@ -100,3 +100,16 @@ test('gifsave_timeout',
     depends: test_timeout_gifsave,
     workdir: meson.current_build_dir(),
 )
+
+if png_dep.found()
+    test_png_clli = executable('test_png_clli',
+        'test_png_clli.c',
+        dependencies: [libvips_dep, png_dep],
+    )
+
+    test('png_clli',
+        test_png_clli,
+        depends: test_png_clli,
+        workdir: meson.current_build_dir(),
+    )
+endif

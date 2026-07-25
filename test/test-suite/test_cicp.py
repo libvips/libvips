@@ -1,9 +1,154 @@
 # vim: set fileencoding=utf-8 :
 
+import functools
+import struct
+import zlib
+
 import pytest
 
 import pyvips
 from helpers import *
+
+
+PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def make_png_test_image(width=1, height=1, pixel=(17, 34, 51)):
+    data = bytes(pixel * (width * height))
+
+    return pyvips.Image.new_from_memory(data, width, height, 3, "uchar")
+
+
+def parse_png_chunks(data):
+    if data[:8] != PNG_SIGNATURE:
+        raise ValueError("invalid PNG signature")
+
+    chunks = []
+    offset = len(PNG_SIGNATURE)
+
+    while offset < len(data):
+        if len(data) - offset < 12:
+            raise ValueError("truncated PNG chunk")
+
+        length = struct.unpack_from(">I", data, offset)[0]
+        end = offset + 12 + length
+        if end > len(data):
+            raise ValueError("PNG chunk exceeds input")
+
+        chunk_type = data[offset + 4:offset + 8]
+        payload = data[offset + 8:offset + 8 + length]
+        expected_crc = struct.unpack_from(">I", data, offset + 8 + length)[0]
+        actual_crc = zlib.crc32(chunk_type + payload) & 0xffffffff
+        if actual_crc != expected_crc:
+            raise ValueError("invalid PNG chunk CRC")
+
+        chunks.append((chunk_type, payload, offset, end))
+        offset = end
+
+        if chunk_type == b"IEND":
+            if offset != len(data):
+                raise ValueError("data after PNG IEND")
+            break
+
+    if not chunks or chunks[0][0] != b"IHDR":
+        raise ValueError("PNG must begin with IHDR")
+    if chunks[-1][0] != b"IEND":
+        raise ValueError("PNG must end with IEND")
+
+    return chunks
+
+
+def insert_png_clli(data, max_cll, max_fall):
+    chunks = parse_png_chunks(data)
+    if any(chunk_type == b"cLLI" for chunk_type, _, _, _ in chunks):
+        raise ValueError("PNG already contains cLLI")
+
+    payload = struct.pack(">II", max_cll, max_fall)
+    crc = zlib.crc32(b"cLLI" + payload) & 0xffffffff
+    encoded = struct.pack(">I", len(payload)) + b"cLLI" + payload + \
+        struct.pack(">I", crc)
+
+    for chunk_type, _, start, _ in chunks:
+        if chunk_type in (b"PLTE", b"IDAT"):
+            return data[:start] + encoded + data[start:]
+
+    raise ValueError("PNG has no PLTE or IDAT")
+
+
+def get_png_clli_chunks(data):
+    return [
+        payload
+        for chunk_type, payload, _, _ in parse_png_chunks(data)
+        if chunk_type == b"cLLI"
+    ]
+
+
+def assert_png_clli(data, expected):
+    chunks = parse_png_chunks(data)
+    clli_chunks = [
+        (payload, start)
+        for chunk_type, payload, start, _ in chunks
+        if chunk_type == b"cLLI"
+    ]
+
+    assert len(clli_chunks) == 1
+    payload, clli_start = clli_chunks[0]
+    assert len(payload) == 8
+    assert struct.unpack(">II", payload) == expected
+
+    for chunk_type, _, start, _ in chunks:
+        if chunk_type in (b"PLTE", b"IDAT"):
+            assert clli_start < start
+
+
+@functools.lru_cache
+def png_clli_read_supported():
+    im = make_png_test_image()
+    encoded = insert_png_clli(im.pngsave_buffer(), 10_000, 20_000)
+    out = pyvips.Image.new_from_buffer(encoded, "")
+    has_max_cll = out.get_typeof("clli-max-content-light-level") != 0
+    has_max_fall = out.get_typeof("clli-max-frame-average-light-level") != 0
+
+    assert has_max_cll == has_max_fall
+    if has_max_cll:
+        assert out.get("clli-max-content-light-level") == 1
+        assert out.get("clli-max-frame-average-light-level") == 2
+
+    return has_max_cll
+
+
+@functools.lru_cache
+def png_clli_write_supported():
+    im = make_png_test_image()
+    im.set_type(
+        pyvips.GValue.gint_type,
+        "clli-max-content-light-level",
+        1
+    )
+    im.set_type(
+        pyvips.GValue.gint_type,
+        "clli-max-frame-average-light-level",
+        2
+    )
+    encoded = im.pngsave_buffer()
+    chunks = get_png_clli_chunks(encoded)
+
+    if not chunks:
+        return False
+
+    assert_png_clli(encoded, (10_000, 20_000))
+
+    return True
+
+
+def require_png_clli_read():
+    if not png_clli_read_supported():
+        pytest.skip("libpng build lacks fixed-point cLLI read support")
+
+
+def require_png_clli_write():
+    if not png_clli_write_supported():
+        pytest.skip("libpng build lacks fixed-point cLLI write support")
 
 
 def make_cicp_image(r, g, b, primaries=1, transfer=1, mc=0, fmt="uchar",
@@ -653,3 +798,130 @@ class TestCICP:
         if out.get_typeof("cicp-colour-primaries"):
             assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
             assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+
+    @skip_if_no("pngload")
+    @skip_if_no("pngsave")
+    @pytest.mark.parametrize(
+        "max_cll,max_fall,expected_cll,expected_fall",
+        [
+            (7_694_359, 1_825_000, 769, 183),
+            (0x7fffffff, 0, 214_748, 0),
+            (0, 10_000, 0, 1),
+        ],
+        ids=["fractional", "libpng-maximum", "zero-and-nonzero"]
+    )
+    def test_png_clli_load(self, max_cll, max_fall,
+                           expected_cll, expected_fall):
+        require_png_clli_read()
+
+        im = make_png_test_image(width=2)
+        encoded = insert_png_clli(im.pngsave_buffer(), max_cll, max_fall)
+
+        out = pyvips.Image.new_from_buffer(encoded, "")
+
+        assert out.get("clli-max-content-light-level") == expected_cll
+        assert out.get("clli-max-frame-average-light-level") == expected_fall
+        assert out(0, 0) == [17.0, 34.0, 51.0]
+
+    @skip_if_no("pngsave")
+    @skip_if_no("pngload")
+    @pytest.mark.parametrize(
+        "max_cll,max_fall,save_options",
+        [
+            (1624, 182, {}),
+            (1624, 182, {"keep": "none"}),
+            (0, 214_748, {"palette": True}),
+        ],
+        ids=["default", "keep-none", "range-boundaries"]
+    )
+    def test_png_clli_save(self, max_cll, max_fall, save_options):
+        require_png_clli_write()
+        require_png_clli_read()
+
+        im = make_png_test_image()
+        add_clli(im, max_cll, max_fall)
+
+        encoded = im.pngsave_buffer(**save_options)
+        assert_png_clli(
+            encoded,
+            (max_cll * 10_000, max_fall * 10_000)
+        )
+
+        out = pyvips.Image.new_from_buffer(encoded, "")
+        assert out.get("clli-max-content-light-level") == max_cll
+        assert out.get("clli-max-frame-average-light-level") == max_fall
+        assert out(0, 0) == [17.0, 34.0, 51.0]
+
+    @skip_if_no("pngsave")
+    @pytest.mark.parametrize(
+        "max_cll,max_fall",
+        [
+            (1624, None),
+            (None, 182),
+            (-1, 182),
+            (1624, -1),
+            (214_749, 182),
+            (1624, 214_749),
+        ],
+        ids=[
+            "missing-max-fall",
+            "missing-max-cll",
+            "negative-max-cll",
+            "negative-max-fall",
+            "large-max-cll",
+            "large-max-fall",
+        ]
+    )
+    def test_png_clli_invalid_or_incomplete_not_written(
+            self, max_cll, max_fall):
+        require_png_clli_write()
+
+        im = make_png_test_image()
+        if max_cll is not None:
+            im.set_type(
+                pyvips.GValue.gint_type,
+                "clli-max-content-light-level",
+                max_cll
+            )
+        if max_fall is not None:
+            im.set_type(
+                pyvips.GValue.gint_type,
+                "clli-max-frame-average-light-level",
+                max_fall
+            )
+
+        encoded = im.pngsave_buffer()
+
+        assert get_png_clli_chunks(encoded) == []
+
+    @skip_if_no("pngsave")
+    @skip_if_no("pngload")
+    def test_png_cicp_and_clli_coexist(self):
+        require_png_clli_write()
+        require_png_clli_read()
+
+        im = make_cicp_image(
+            37_888, 22_272, 12_544,
+            primaries=PRIMARIES_DISPLAY_P3,
+            transfer=TRANSFER_PQ,
+            fmt="ushort"
+        )
+        add_clli(im)
+
+        encoded = im.pngsave_buffer()
+        assert_png_clli(encoded, (16_240_000, 1_820_000))
+        out = pyvips.Image.new_from_buffer(encoded, "")
+
+        if not out.get_typeof("cicp-colour-primaries"):
+            pytest.skip("libpng build lacks cICP support")
+
+        assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
+        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert out.get("clli-max-content-light-level") == 1624
+        assert out.get("clli-max-frame-average-light-level") == 182
+
+    @skip_if_no("pngsave")
+    def test_png_clli_not_created_when_absent(self):
+        encoded = make_png_test_image().pngsave_buffer()
+
+        assert get_png_clli_chunks(encoded) == []
