@@ -83,8 +83,6 @@ vips_foreign_save_qoi_dispose(GObject *gobject)
 {
 	VipsForeignSaveQoi *qoi = (VipsForeignSaveQoi *) gobject;
 
-	if (qoi->target)
-		vips_target_end(qoi->target);
 	VIPS_UNREF(qoi->target);
 
 	G_OBJECT_CLASS(vips_foreign_save_qoi_parent_class)->dispose(gobject);
@@ -128,6 +126,9 @@ vips_foreign_save_qoi_build(VipsObject *object)
 		return -1;
 	}
 	QOI_FREE(encoded);
+
+	if (vips_target_end(qoi->target))
+		return (-1);
 
 	return (0);
 }
@@ -219,6 +220,72 @@ vips_foreign_save_qoi_file_class_init(VipsForeignSaveQoiFileClass *class)
 
 static void
 vips_foreign_save_qoi_file_init(VipsForeignSaveQoiFile *file)
+{
+}
+
+typedef struct _VipsForeignSaveQoiBuffer {
+	VipsForeignSaveQoi parent_object;
+
+	/* Save to a buffer.
+	 */
+	VipsArea *buf;
+
+} VipsForeignSaveQoiBuffer;
+
+typedef VipsForeignSaveQoiClass VipsForeignSaveQoiBufferClass;
+
+G_DEFINE_TYPE(VipsForeignSaveQoiBuffer, vips_foreign_save_qoi_buffer,
+	vips_foreign_save_qoi_get_type());
+
+static int
+vips_foreign_save_qoi_buffer_build(VipsObject *object)
+{
+	VipsForeignSaveQoi *qoi = (VipsForeignSaveQoi *) object;
+	VipsForeignSaveQoiBuffer *buffer =
+		(VipsForeignSaveQoiBuffer *) object;
+
+	VipsBlob *blob;
+
+	if (!(qoi->target = vips_target_new_to_memory()))
+		return -1;
+
+	if (VIPS_OBJECT_CLASS(vips_foreign_save_qoi_buffer_parent_class)
+			->build(object))
+		return -1;
+
+	g_object_get(qoi->target, "blob", &blob, NULL);
+	g_object_set(buffer, "buffer", blob, NULL);
+	vips_area_unref(VIPS_AREA(blob));
+
+	return 0;
+}
+
+static void
+vips_foreign_save_qoi_buffer_class_init(
+	VipsForeignSaveQoiBufferClass *class)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "qoisave_buffer";
+	object_class->build = vips_foreign_save_qoi_buffer_build;
+
+	foreign_class->suffs = vips__qoi_suffs;
+
+	VIPS_ARG_BOXED(class, "buffer", 1,
+		_("Buffer"),
+		_("Buffer to save to"),
+		VIPS_ARGUMENT_REQUIRED_OUTPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveQoiBuffer, buf),
+		VIPS_TYPE_BLOB);
+}
+
+static void
+vips_foreign_save_qoi_buffer_init(VipsForeignSaveQoiBuffer *buffer)
 {
 }
 
@@ -327,4 +394,49 @@ vips_qoisave_target(VipsImage *in, VipsTarget *target, ...)
 	va_end(ap);
 
 	return (result);
+}
+
+/**
+ * vips_qoisave_buffer: (method)
+ * @in: image to save
+ * @buf: (array length=len) (element-type guint8): return output buffer here
+ * @len: (type gsize): return output length here
+ * @...: %NULL-terminated list of optional named arguments
+ *
+ * As vips_qoisave(), but save to a memory buffer.
+ *
+ * The address of the buffer is returned in @buf, the length of the buffer in
+ * @len. You are responsible for freeing the buffer with g_free() when you
+ * are done with it.
+ *
+ * See also: vips_qoisave().
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_qoisave_buffer(VipsImage *in, void **buf, size_t *len, ...)
+{
+	va_list ap;
+	VipsArea *area;
+	int result;
+
+	area = NULL;
+
+	va_start(ap, len);
+	result = vips_call_split("qoisave_buffer", ap, in, &area);
+	va_end(ap);
+
+	if (!result &&
+		area) {
+		if (buf) {
+			*buf = area->data;
+			area->free_fn = NULL;
+		}
+		if (len)
+			*len = area->length;
+
+		vips_area_unref(area);
+	}
+
+	return result;
 }
