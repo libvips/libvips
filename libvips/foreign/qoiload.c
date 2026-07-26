@@ -292,23 +292,6 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 	return 0;
 }
 
-static int
-vips_foreign_load_qoi_build(VipsObject *object)
-{
-	VipsForeignLoadQoi *qoi = (VipsForeignLoadQoi *) object;
-
-	if (!qoi->source) {
-		vips_error("VipsForeignLoadQoi",
-			_("no source set"), NULL);
-		return -1;
-	}
-
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_qoi_parent_class)->build(object))
-		return -1;
-
-	return 0;
-}
-
 static void
 vips_foreign_load_qoi_class_init(VipsForeignLoadQoiClass *class)
 {
@@ -324,7 +307,6 @@ vips_foreign_load_qoi_class_init(VipsForeignLoadQoiClass *class)
 
 	object_class->nickname = "qoiload_base";
 	object_class->description = _("load qoi base class");
-	object_class->build = vips_foreign_load_qoi_build;
 
 	/* You're unlikely to want to use this on untrusted files.
 	 */
