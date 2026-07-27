@@ -70,8 +70,6 @@ typedef struct _VipsForeignLoadQoi {
 	int height;
 	int bands;
 
-	gboolean have_read_header;
-
 } VipsForeignLoadQoi;
 
 static const char *qoi_magic = "qoif";
@@ -151,8 +149,6 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 			_("bad QOI channels"), NULL);
 		return -1;
 	}
-
-	qoi->have_read_header = TRUE;
 
 	return 0;
 }
@@ -236,10 +232,6 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 
 	VipsImage *out;
 
-	if (!qoi->have_read_header &&
-		vips_foreign_load_qoi_parse_header(qoi))
-		return -1;
-
 	size_t length;
 	const void *data = vips_source_map(qoi->source, &length);
 	if (!data) {
@@ -275,8 +267,6 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 		VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0);
-
-	qoi->have_read_header = TRUE;
 
 	out = t[0];
 
