@@ -174,15 +174,12 @@ vips_foreign_load_qoi_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadQoi *qoi = (VipsForeignLoadQoi *) load;
 
-	vips_source_minimise(qoi->source);
-
 	if (vips_foreign_load_qoi_parse_header(qoi))
 		return -1;
 
-	load->out->Xsize = qoi->width;
-	load->out->Ysize = qoi->height;
-	load->out->Bands = qoi->bands;
-	load->out->BandFmt = VIPS_FORMAT_UCHAR;
+	vips_image_init_fields(load->out,
+		qoi->width, qoi->height, qoi->bands, VIPS_FORMAT_UCHAR,
+		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
 	return 0;
 }
 
