@@ -128,9 +128,9 @@ vips_foreign_save_qoi_build(VipsObject *object)
 	QOI_FREE(encoded);
 
 	if (vips_target_end(qoi->target))
-		return (-1);
+		return -1;
 
-	return (0);
+	return 0;
 }
 
 /* Save a bit of typing.
@@ -189,7 +189,8 @@ vips_foreign_save_qoi_file_build(VipsObject *object)
 		!(qoi->target = vips_target_new_to_file(file->filename)))
 		return -1;
 
-	return (VIPS_OBJECT_CLASS(vips_foreign_save_qoi_file_parent_class)->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_save_qoi_file_parent_class)
+		->build(object);
 }
 
 const char *vips__qoi_suffs[] = { ".qoi", NULL };
@@ -312,9 +313,8 @@ vips_foreign_save_qoi_target_build(VipsObject *object)
 		g_object_ref(qoi->target);
 	}
 
-	return (VIPS_OBJECT_CLASS(
-		vips_foreign_save_qoi_target_parent_class)
-			->build(object));
+	return VIPS_OBJECT_CLASS(vips_foreign_save_qoi_target_parent_class)
+		->build(object);
 }
 
 static void
@@ -368,7 +368,7 @@ vips_qoisave(VipsImage *in, const char *filename, ...)
 	result = vips_call_split("qoisave", ap, in, filename);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
@@ -393,7 +393,7 @@ vips_qoisave_target(VipsImage *in, VipsTarget *target, ...)
 	result = vips_call_split("qoisave_target", ap, in, target);
 	va_end(ap);
 
-	return (result);
+	return result;
 }
 
 /**
