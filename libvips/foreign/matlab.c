@@ -329,31 +329,20 @@ vips__mat_ismat(const char *filename)
 	unsigned char buf[128];
 	gint64 n_read = vips__get_bytes(filename, buf, 128);
 
-	/* MAT v5 files start with a "MATLAB 5.0 ..." descriptive header. That's
-	 * what this loader handles (libmatio's classic v5 reader).
-	 */
 	if (n_read < 10 ||
 		!vips_isprefix("MATLAB 5.0", (char *) buf))
 		return 0;
 
-	/* MAT v5 and MAT v7.3 (HDF5) share that descriptive text but differ in the
-	 * 2-byte version field at offset 124 (0x0100 = v5, 0x0200 = v7.3/HDF5),
-	 * stored in the byte order given by the "IM"/"MI" endian indicator at
-	 * offset 126. libmatio dispatches on this field (see Mat_Open() in matio's
-	 * mat.c), so a v7.3/HDF5 file that carries the v5 text would be sniffed as
-	 * MAT here and then parsed down libmatio's HDF5 path -- a different format
-	 * than the "MATLAB 5.0" text advertises. Match libmatio's dispatch and
-	 * refuse to claim it.
-	 */
 	if (n_read >= 128) {
 		int version;
 
+		/* Version plus byte order are encoded in the final four bytes.
+		 */
 		if (buf[126] == 'I' && buf[127] == 'M')
 			version = buf[124] | (buf[125] << 8);
 		else if (buf[126] == 'M' && buf[127] == 'I')
 			version = buf[125] | (buf[124] << 8);
 		else
-			/* no valid endian indicator; libmatio rejects this too */
 			return 0;
 
 		if (version == 0x0200)
