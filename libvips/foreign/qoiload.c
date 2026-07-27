@@ -115,11 +115,8 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 {
 	unsigned char header[14];
 
-	if (vips_source_read(qoi->source, header, 14) != 14) {
-		vips_error("VipsForeignLoadQoi",
-			_("unable to read QOI header"), NULL);
+	if (vips_source_read(qoi->source, header, 14) != 14)
 		return -1;
-	}
 
 	/* Check magic bytes.
 	 */
