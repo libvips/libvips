@@ -128,8 +128,8 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 
 	/* Read width and height (big-endian).
 	 */
-	qoi->width = (header[4] << 24) | (header[5] << 16) | (header[6] << 8) | header[7];
-	qoi->height = (header[8] << 24) | (header[9] << 16) | (header[10] << 8) | header[11];
+	qoi->width = GUINT32_FROM_BE(*(guint32 *) (&header[4]));
+	qoi->height = GUINT32_FROM_BE(*(guint32 *) (&header[8]));
 
 	/* Read channels.
 	 */
@@ -137,7 +137,10 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 
 	/* Validate header values.
 	 */
-	if (qoi->width == 0 || qoi->height == 0) {
+	if (qoi->width <= 0 ||
+		qoi->width >= VIPS_MAX_COORD ||
+		qoi->height <= 0 ||
+		qoi->height >= VIPS_MAX_COORD) {
 		vips_error("VipsForeignLoadQoi",
 			_("bad QOI dimensions"), NULL);
 		return -1;
