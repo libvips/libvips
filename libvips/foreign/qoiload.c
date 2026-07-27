@@ -1,19 +1,12 @@
 /* load qoi
  *
- * 25/4/22
+ * 26/7/26 Kim Wagner
  * 	- from qoiload.c
  */
 
 /*
 
 	This file is part of VIPS.
-
-
-
-
-
-
-
 
 	VIPS is free software; you can redistribute it and/or modify
 	it under the terms of the GNU Lesser General Public License as published by

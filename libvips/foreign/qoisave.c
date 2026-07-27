@@ -1,19 +1,7 @@
 /* save to qoi
  *
- * 2/12/11
- * 	- wrap a class around the qoi writer
- * 13/11/19
- * 	- redone with targets
- * 18/6/20
- * 	- add "bitdepth" param, cf. tiffsave
- * 27/6/20
- * 	- add qoisave_target
- * 20/11/20
- * 	- byteswap on save, if necessary [ewelot]
- * 2/12/20
- * 	- don't add date with @strip [ewelot]
- * 28/10/21
- * 	- add @format, default type by filename
+ * 26/7/26 Kim Wagner
+ *    - from ppmsave
  */
 
 /*
