@@ -329,11 +329,8 @@ vips__mat_ismat(const char *filename)
 	unsigned char buf[128];
 	gint64 n_read = vips__get_bytes(filename, buf, 128);
 
-	if (n_read < 10 ||
-		!vips_isprefix("MATLAB 5.0", (char *) buf))
-		return 0;
-
-	if (n_read >= 128) {
+	if (n_read >= 128 &&
+		vips_isprefix("MATLAB 5.0", (char *) buf)) {
 		int version;
 
 		/* Version plus byte order are encoded in the final four bytes.
@@ -345,11 +342,14 @@ vips__mat_ismat(const char *filename)
 		else
 			return 0;
 
-		if (version == 0x0200)
-			return 0;
+		/* Only accept MATLAB 5, matlab 7.3 has version 0x0200 and will fail
+		 * with libmatio.
+		 */
+		if (version == 0x0100)
+			return 1;
 	}
 
-	return 1;
+	return 0;
 }
 
 const char *vips__mat_suffs[] = { ".mat", NULL };
