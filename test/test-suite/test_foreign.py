@@ -1526,6 +1526,29 @@ class TestForeign:
             target = pyvips.Target.new_to_memory()
             image.matrixsave_target(target)
 
+    def test_2band_mono_save_trims_excess_band(self):
+        # a 2-band MULTIBAND image (eg. grey + alpha built by arithmetic,
+        # rather than loaded with an explicit B_W interpretation) saved with
+        # a saver that only supports mono should have the excess band
+        # trimmed rather than erroring out
+        filename = temp_filename(self.tempdir, ".mat")
+        two_band = pyvips.Image.black(1, 1, bands=2).cast("uchar") + [200, 128]
+        assert two_band.interpretation == "multiband"
+        two_band.matrixsave(filename)
+        result = pyvips.Image.new_from_file(filename)
+        assert result.bands == 1
+        assert abs(result(0, 0)[0] - 200) < 0.1
+
+        # same, but for a signed char source image -- this used to fail
+        # with "image must one band" since neither the flatten nor the old
+        # interpretation-based trim would fire for a MULTIBAND char image
+        filename_char = temp_filename(self.tempdir, ".mat")
+        two_band_char = pyvips.Image.black(1, 1, bands=2).cast("char") + [100, 128]
+        two_band_char.matrixsave(filename_char)
+        result_char = pyvips.Image.new_from_file(filename_char)
+        assert result_char.bands == 1
+        assert abs(result_char(0, 0)[0] - 100) < 0.1
+
     @skip_if_no("ppmload")
     def test_ppm(self):
         self.save_load("%s.ppm", self.colour)
