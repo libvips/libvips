@@ -697,10 +697,7 @@ vips_foreign_save_webp_finish_anim(VipsForeignSaveWebp *webp)
 	/* Terrible. This will only work if the output buffer is currently
 	 * empty.
 	 */
-	if (webp->memory_writer.mem != NULL) {
-		vips_error("webpsave", "%s", _("internal error"));
-		return -1;
-	}
+	g_assert(webp->memory_writer.mem == NULL);
 
 	webp->memory_writer.mem = (uint8_t *) webp_data.bytes;
 	webp->memory_writer.size = webp_data.size;
