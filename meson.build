@@ -61,11 +61,10 @@ endif
 # libFuzzer related things
 fuzzing_engine = get_option('fuzzing_engine')
 if fuzzing_engine == 'libfuzzer'
-    if not cc.has_argument('-fsanitize=fuzzer')
-        error('fuzzing_engine libfuzzer requires "-fsanitize=fuzzer"')
+    if not cc.has_argument('-fsanitize=fuzzer-no-link')
+        error('-Dfuzzing_engine=libfuzzer requires -fsanitize=fuzzer-no-link')
     endif
-    fuzzer_args = ['-fsanitize=fuzzer-no-link', '-fsanitize=fuzzer']
-    add_project_arguments(cc.first_supported_argument(fuzzer_args), language: ['cpp', 'c'])
+    add_project_arguments('-fsanitize=fuzzer-no-link', language: ['cpp', 'c'])
 endif
 
 glib_dep = dependency('glib-2.0', version: '>=2.52')
@@ -545,6 +544,11 @@ if libheif_dep.found()
     cfg_var.set('HAVE_HEIF_ERROR_SUCCESS', libheif_dep.version().version_compare('>=1.17.0'))
     # heif_get_disabled_security_limits added in 1.19.0
     cfg_var.set('HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS', cpp.has_function('heif_get_disabled_security_limits', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
+    # heif_image_set_content_light_level added in 1.15.0
+    # heif_image_handle_get_content_light_level added in 1.19.0
+    cfg_var.set('HAVE_HEIF_CONTENT_LIGHT_LEVEL',
+                cpp.has_function('heif_image_handle_get_content_light_level', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep) and
+                cpp.has_function('heif_image_set_content_light_level', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
     # heif_security_limits.max_total_memory added in 1.20.0
     cfg_var.set('HAVE_HEIF_MAX_TOTAL_MEMORY', cpp.has_member('struct heif_security_limits', 'max_total_memory', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
 endif
