@@ -665,6 +665,7 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 
 				if (JxlEncoderAddBox(jxl->encoder, libjxl_metadata[i].box_type,
 						exif_data, exif_size, JXL_TRUE) != JXL_ENC_SUCCESS) {
+					g_free(exif_data);
 					vips_foreign_save_jxl_error(jxl, "JxlEncoderAddBox");
 					return -1;
 				}
