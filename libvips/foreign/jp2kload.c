@@ -528,12 +528,6 @@ vips_foreign_load_jp2k_get_ycc(opj_image_t *image)
 }
 
 /* Predict the number of bands the decoded image will have.
- *
- * openjpeg expands palettes itself during decode, but the header only
- * declares the palette index component, so a colour image with fewer than
- * three components must be a palette: the pclr/cmap boxes will expand the
- * indexes to full colour and we'd otherwise size the image from the index
- * band alone.
  */
 static int
 vips_foreign_load_jp2k_get_bands(opj_image_t *image)
