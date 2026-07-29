@@ -2,6 +2,10 @@ date tbd 8.18.5
 
 - maplut: fix possible OOB read with complex images [sage-mode-hunter]
 - measure: verify image region is larger than patch count [lovell]
+- matload: more specific Matlab detection
+- reduceh: fix potential incorrect output with Highway < 1.1.0 [dloebl]
+- jxlsave: ensure EXIF data is freed on error [kleisauke]
+- icc_ac2rc: ensure ICC profile is closed on error [kleisauke]
 - tiffsave: better xyz handling [harry]
 
 5/7/26 8.18.4
