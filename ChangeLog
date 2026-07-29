@@ -6,6 +6,7 @@ date tbd 8.18.5
 - reduceh: fix potential incorrect output with Highway < 1.1.0 [dloebl]
 - jxlsave: ensure EXIF data is freed on error [kleisauke]
 - icc_ac2rc: ensure ICC profile is closed on error [kleisauke]
+- buildlut: guard against NaN values [kleisauke]
 - tiffsave: better xyz handling [harry]
 
 5/7/26 8.18.4
