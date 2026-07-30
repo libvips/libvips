@@ -551,6 +551,8 @@ if libheif_dep.found()
                 cpp.has_function('heif_image_set_content_light_level', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
     # heif_security_limits.max_total_memory added in 1.20.0
     cfg_var.set('HAVE_HEIF_MAX_TOTAL_MEMORY', cpp.has_member('struct heif_security_limits', 'max_total_memory', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
+    # heif_encoding_options.color_conversion_options added in 1.16.0
+    cfg_var.set('HAVE_HEIF_ENCODING_OPTIONS_COLOR_CONVERSION_OPTIONS', cpp.has_member('struct heif_encoding_options', 'color_conversion_options', prefix: '#include <libheif/heif.h>', dependencies: libheif_dep))
 endif
 
 libjxl_dep = dependency('libjxl', version: '>=0.7', required: get_option('jpeg-xl'))

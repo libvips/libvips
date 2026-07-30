@@ -1865,6 +1865,28 @@ class TestForeign:
         assert len(buf) > 10000
 
     @skip_if_no("heifsave")
+    def test_avifsave_chroma_downsampling(self):
+        # each chroma downsampling nick should be accepted and encode
+        for algorithm in ["auto", "nearest", "average"]:
+            buf = self.colour.heifsave_buffer(compression="av1",
+                                              chroma_downsampling=algorithm)
+            assert len(buf) > 10000
+
+        # sharp additionally requires libheif built with libsharpyuv, so
+        # tolerate a forced-sharp error on builds that lack it
+        try:
+            buf = self.colour.heifsave_buffer(compression="av1",
+                                              chroma_downsampling="sharp")
+            assert len(buf) > 10000
+        except pyvips.error.Error:
+            pass
+
+        # an unknown nick must be rejected rather than silently ignored
+        with pytest.raises(pyvips.error.Error):
+            self.colour.heifsave_buffer(compression="av1",
+                                        chroma_downsampling="banana")
+
+    @skip_if_no("heifsave")
     @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif built with patent-encumbered HEVC dependencies")
     def test_heicsave_16_to_12(self):
         rgb16 = self.colour.colourspace("rgb16")

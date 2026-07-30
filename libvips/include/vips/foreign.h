@@ -1101,6 +1101,27 @@ typedef enum {
 	VIPS_FOREIGN_HEIF_ENCODER_LAST	/*< skip >*/
 } VipsForeignHeifEncoder;
 
+/**
+ * VipsForeignHeifChromaDownsampling:
+ * @VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_AUTO: let libheif choose (default)
+ * @VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_NEAREST: nearest-neighbour
+ * @VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_AVERAGE: averaging
+ * @VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_SHARP: sharp YUV (libsharpyuv)
+ *
+ * The chroma downsampling algorithm to use when writing 4:2:0.
+ *
+ * @VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_AUTO leaves the choice to libheif,
+ * which selects an algorithm from its internal pipeline search. The other
+ * values force libheif to use that specific algorithm.
+ */
+typedef enum {
+	VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_AUTO,
+	VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_NEAREST,
+	VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_AVERAGE,
+	VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_SHARP,
+	VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_LAST	/*< skip >*/
+} VipsForeignHeifChromaDownsampling;
+
 #ifdef __cplusplus
 }
 #endif /*__cplusplus*/

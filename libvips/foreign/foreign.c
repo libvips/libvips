@@ -2396,6 +2396,10 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  * Use @tune to pass a set of tuning parameters to the encoder, see the
  * libheif documentation.
  *
+ * Use @chroma_downsampling to force a chroma downsampling algorithm (for
+ * example sharp YUV) when writing 4:2:0; the default leaves the choice to
+ * libheif.
+ *
  * ::: tip "Optional arguments"
  *     * @Q: `gint`, quality factor
  *     * @bitdepth: `gint`, set write bit depth to 8, 10, or 12 bits
@@ -2406,6 +2410,8 @@ vips_heifload_source(VipsSource *source, VipsImage **out, ...)
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
  *     * @encoder: [enum@ForeignHeifEncoder], select encoder to use
  *     * @tune: `gchararray`, encoder tuning parameters
+ *     * @chroma_downsampling: [enum@ForeignHeifChromaDownsampling], chroma
+ *       downsampling algorithm
  *
  * ::: seealso
  *     [method@Image.write_to_file], [ctor@Image.heifload].
@@ -2448,6 +2454,8 @@ vips_heifsave(VipsImage *in, const char *filename, ...)
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
  *     * @encoder: [enum@ForeignHeifEncoder], select encoder to use
  *     * @tune: `gchararray`, encoder tuning parameters
+ *     * @chroma_downsampling: [enum@ForeignHeifChromaDownsampling], chroma
+ *       downsampling algorithm
  *
  * ::: seealso
  *     [method@Image.heifsave], [method@Image.write_to_file].
@@ -2500,6 +2508,8 @@ vips_heifsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  *     * @subsample_mode: [enum@ForeignSubsample], chroma subsampling mode
  *     * @encoder: [enum@ForeignHeifEncoder], select encoder to use
  *     * @tune: `gchararray`, encoder tuning parameters
+ *     * @chroma_downsampling: [enum@ForeignHeifChromaDownsampling], chroma
+ *       downsampling algorithm
  *
  * ::: seealso
  *     [method@Image.heifsave], [method@Image.write_to_target].
