@@ -339,8 +339,7 @@ vips_shrinkh_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsResample *resample = VIPS_RESAMPLE(object);
 	VipsShrinkh *shrink = (VipsShrinkh *) object;
-	VipsImage **t = (VipsImage **)
-		vips_object_local_array(object, 2);
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
 	VipsImage *in;
 	VipsGenerateFn generate;

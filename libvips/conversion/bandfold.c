@@ -110,10 +110,12 @@ vips_bandfold_build(VipsObject *object)
 	VipsBandfold *bandfold = (VipsBandfold *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 1);
 
+	VipsImage *in;
+
 	if (VIPS_OBJECT_CLASS(vips_bandfold_parent_class)->build(object))
 		return -1;
 
-	VipsImage *in = bandfold->in;
+	in = bandfold->in;
 
 	if (vips_image_decode(in, &t[0]))
 		return -1;
