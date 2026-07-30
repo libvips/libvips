@@ -111,24 +111,28 @@ vips_bandunfold_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsBandunfold *bandunfold = (VipsBandunfold *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 1);
 
 	if (VIPS_OBJECT_CLASS(vips_bandunfold_parent_class)->build(object))
 		return -1;
 
-	if (vips_image_pio_input(bandunfold->in))
+	VipsImage *in = bandunfold->in;
+
+	if (vips_image_decode(in, &t[0]))
 		return -1;
+	in = t[0];
 
 	if (bandunfold->factor == 0)
-		bandunfold->factor = bandunfold->in->Bands; // FIXME: Invalidates operation cache
+		bandunfold->factor = in->Bands; // FIXME: Invalidates operation cache
 
-	if (bandunfold->in->Bands % bandunfold->factor != 0) {
+	if (in->Bands % bandunfold->factor != 0) {
 		vips_error(class->nickname,
 			"%s", _("@factor must be a factor of image bands"));
 		return -1;
 	}
 
 	if (vips_image_pipelinev(conversion->out,
-			VIPS_DEMAND_STYLE_THINSTRIP, bandunfold->in, NULL))
+			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
 		return -1;
 
 	conversion->out->Xsize *= bandunfold->factor;
@@ -136,7 +140,7 @@ vips_bandunfold_build(VipsObject *object)
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_bandunfold_gen, vips_stop_one,
-			bandunfold->in, bandunfold))
+			in, bandunfold))
 		return -1;
 
 	return 0;

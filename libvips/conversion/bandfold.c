@@ -108,24 +108,28 @@ vips_bandfold_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsConversion *conversion = VIPS_CONVERSION(object);
 	VipsBandfold *bandfold = (VipsBandfold *) object;
+	VipsImage **t = (VipsImage **) vips_object_local_array(object, 1);
 
 	if (VIPS_OBJECT_CLASS(vips_bandfold_parent_class)->build(object))
 		return -1;
 
-	if (vips_image_pio_input(bandfold->in))
+	VipsImage *in = bandfold->in;
+
+	if (vips_image_decode(in, &t[0]))
 		return -1;
+	in = t[0];
 
 	if (bandfold->factor == 0)
-		bandfold->factor = bandfold->in->Xsize; // FIXME: Invalidates operation cache
+		bandfold->factor = in->Xsize; // FIXME: Invalidates operation cache
 
-	if (bandfold->in->Xsize % bandfold->factor != 0) {
+	if (in->Xsize % bandfold->factor != 0) {
 		vips_error(class->nickname,
 			"%s", _("@factor must be a factor of image width"));
 		return -1;
 	}
 
 	if (vips_image_pipelinev(conversion->out,
-			VIPS_DEMAND_STYLE_THINSTRIP, bandfold->in, NULL))
+			VIPS_DEMAND_STYLE_THINSTRIP, in, NULL))
 		return -1;
 
 	conversion->out->Xsize /= bandfold->factor;
@@ -133,7 +137,7 @@ vips_bandfold_build(VipsObject *object)
 
 	if (vips_image_generate(conversion->out,
 			vips_start_one, vips_bandfold_gen, vips_stop_one,
-			bandfold->in, bandfold))
+			in, bandfold))
 		return -1;
 
 	return 0;
