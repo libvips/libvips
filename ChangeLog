@@ -7,11 +7,11 @@ date tbd 8.18.5
 - jxlsave: ensure EXIF data is freed on error [kleisauke]
 - icc_ac2rc: ensure ICC profile is closed on error [kleisauke]
 - buildlut: guard against NaN values [kleisauke]
-- tiffsave: better xyz handling [harry]
-- more use of vips_image_decode() [harry]
-- quantise: better conversion to rgba [harry]
+- tiffsave: better xyz handling [har-pi]
+- more use of vips_image_decode() [har-pi]
+- quantise: better conversion to rgba [har-pi]
 - jp2kload: support palette images [Socialpranker]
-- buildlut: better final write calculation [harry]
+- buildlut: better final write calculation [har-pi]
 
 5/7/26 8.18.4
 
