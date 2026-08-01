@@ -1892,13 +1892,41 @@ class TestForeign:
         im3 = pyvips.Image.new_from_file(filename, page=3)
         assert abs(im4.avg() - im3.avg()) < 0.5
 
-        # this horrible thing has a header that doesn't match the decoded
-        # pixels ... although it's a valid jp2k image, we reject files of
-        # this type
+        # issue412.jp2 is a palette image: the header declares a single
+        # palette index component, and openjpeg expands it to three bands
+        # during decode ... we cannot detect such images with openjpeg < 2.5.1
+        # at header read time, so decoding fails
         filename = os.path.join(IMAGES, "issue412.jp2")
-        with pytest.raises(Exception) as e_info:
-            im = pyvips.Image.new_from_file(filename)
-            im.avg()
+        im = pyvips.Image.new_from_file(filename)
+        assert im.bands in (1, 3)
+        assert im.interpretation in ("b-w", "srgb")
+        try:
+            assert abs(im.avg() - 123.318) < 0.1
+        except pyvips.error.Error as e:
+            assert "decoded image does not match container" in str(e)
+
+    @skip_if_no("jp2kload")
+    def test_jp2kload_palette(self):
+        # palette.jp2 is a paletted JP2 (see
+        # https://github.com/libvips/libvips/issues/5027): the header
+        # declares a single 8-bit palette index component plus pclr/cmap
+        # boxes, and openjpeg expands it to three sRGB bands during decode
+        #
+        # pixel (0, 0) holds index 0, whose palette entry is (0, 255, 0);
+        # pixel (1, 0) holds index 4, whose entry is (68, 187, 148)
+        filename = os.path.join(IMAGES, "palette.jp2")
+
+        im = pyvips.Image.new_from_file(filename)
+        assert im.width == 64
+        assert im.height == 64
+        assert im.bands in (1, 3)
+        assert im.format == "uchar"
+        assert im.interpretation in ("b-w", "srgb")
+        try:
+           assert im(0, 0) == [0, 255, 0]
+           assert im(1, 0) == [68, 187, 148]
+        except pyvips.error.Error as e:
+            assert "decoded image does not match container" in str(e)
 
     @skip_if_no("jp2ksave")
     def test_jp2ksave(self):
