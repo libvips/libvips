@@ -663,12 +663,12 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 		image->Ysize <= 0 ||
 		image->Bands <= 0)
 		vips_buf_appends(buf, "bad dimensions\n");
+	if (image->Xsize > VIPS_MAX_COORD ||
+		image->Ysize > VIPS_MAX_COORD ||
+		image->Bands > VIPS_MAX_COORD)
+		vips_buf_appends(buf, "bad dimensions\n");
 	if (image->BandFmt < -1 ||
 		image->BandFmt > VIPS_FORMAT_DPCOMPLEX ||
-		(image->Coding != -1 &&
-			image->Coding != VIPS_CODING_NONE &&
-			image->Coding != VIPS_CODING_LABQ &&
-			image->Coding != VIPS_CODING_RAD) ||
 		image->Type >= VIPS_INTERPRETATION_LAST ||
 		image->dtype > VIPS_IMAGE_PARTIAL ||
 		image->dhint > VIPS_DEMAND_STYLE_ANY)
@@ -676,6 +676,28 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 	if (image->Xres < 0 ||
 		image->Yres < 0)
 		vips_buf_appends(buf, "bad resolution\n");
+
+	switch (image->Coding) {
+	case VIPS_CODING_NONE:
+		break;
+
+	case VIPS_CODING_LABQ:
+		if (image->BandFmt != VIPS_FORMAT_UCHAR ||
+			image->Bands != 4 ||
+			image->Type != VIPS_INTERPRETATION_LABQ)
+			vips_buf_appends(buf, "bad labq format\n");
+		break;
+
+	case VIPS_CODING_RAD:
+		if (image->BandFmt != VIPS_FORMAT_UCHAR ||
+			image->Bands != 4 ||
+			image->Type != VIPS_INTERPRETATION_scRGB)
+			vips_buf_appends(buf, "bad rad format\n");
+		break;
+
+	default:
+		vips_buf_appends(buf, "bad coding\n");
+	}
 
 	es = VIPS_IMAGE_SIZEOF_ELEMENT(image);
 
