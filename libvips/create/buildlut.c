@@ -198,12 +198,10 @@ vips_buildlut_build_create(VipsBuildlut *lut)
 	const int bands = xsize - 1;
 	const int xlast = lut->data[ysize - 1][0];
 
-	int b, i, x;
-
 	/* Do each output channel separately.
 	 */
-	for (b = 0; b < bands; b++) {
-		for (i = 0; i < ysize - 1; i++) {
+	for (int b = 0; b < bands; b++) {
+		for (int i = 0; i < ysize - 1; i++) {
 			const int x1 = rint(lut->data[i][0]);
 			const int x2 = rint(lut->data[i + 1][0]);
 			const int dx = x2 - x1;
@@ -211,15 +209,13 @@ vips_buildlut_build_create(VipsBuildlut *lut)
 			const double y2 = lut->data[i + 1][b + 1];
 			const double dy = y2 - y1;
 
-			for (x = 0; x < dx; x++)
-				lut->buf[b + (x + x1 - xlow) * bands] =
-					y1 + x * dy / dx;
+			for (int x = 0; x < dx; x++)
+				lut->buf[b + (x + x1 - xlow) * bands] = y1 + x * dy / dx;
 		}
 
 		/* We are inclusive: pop the final value in by hand.
 		 */
-		lut->buf[b + (xlast - xlow) * bands] =
-			lut->data[ysize - 1][b + 1];
+		lut->buf[b + (lut->lut_size - 1) * bands] = lut->data[ysize - 1][b + 1];
 	}
 
 	return 0;
