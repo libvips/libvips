@@ -1307,6 +1307,7 @@ vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 #endif /*DEBUG*/
 
 	if (!(media = cmsReadTag(profile, cmsSigMediaWhitePointTag))) {
+		cmsCloseProfile(profile);
 		vips_error("vips_icc_ac2rc",
 			"%s", _("unable to get media white point"));
 		return -1;

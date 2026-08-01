@@ -110,10 +110,6 @@ vips_measure_build(VipsObject *object)
 
 	bands = vips_image_get_bands(ready);
 
-	g_object_set(object,
-		"out", vips_image_new_matrix(bands, measure->h * measure->v),
-		NULL);
-
 	/* left/top/width/height default to the size of the image.
 	 */
 	if (!vips_object_argument_isset(object, "width"))
@@ -125,6 +121,15 @@ vips_measure_build(VipsObject *object)
 	 */
 	pw = (double) measure->width / measure->h;
 	ph = (double) measure->height / measure->v;
+	if (pw < 1.0 || ph < 1.0) {
+		vips_error(class->nickname,
+			"%s", _("image region smaller than patch count"));
+		return -1;
+	}
+
+	g_object_set(object,
+		"out", vips_image_new_matrix(bands, measure->h * measure->v),
+		NULL);
 
 	/* The size of a patch.
 	 */

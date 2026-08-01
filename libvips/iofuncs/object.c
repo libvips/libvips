@@ -1871,9 +1871,15 @@ vips_object_set_argument_from_string(VipsObject *object,
 			&pspec, &argument_class, &argument_instance))
 		return -1;
 
-	otype = G_PARAM_SPEC_VALUE_TYPE(pspec);
+	/* Only allow input args.
+	 */
+	if (!(argument_class->flags & VIPS_ARGUMENT_INPUT)) {
+		vips_error(class->nickname,
+			_("unable to set '%s'"), name);
+		return -1;
+	}
 
-	g_assert(argument_class->flags & VIPS_ARGUMENT_INPUT);
+	otype = G_PARAM_SPEC_VALUE_TYPE(pspec);
 
 	if (g_type_is_a(otype, VIPS_TYPE_IMAGE)) {
 		VipsImage *out;
