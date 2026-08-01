@@ -196,7 +196,6 @@ vips_buildlut_build_create(VipsBuildlut *lut)
 	const int xsize = mat->Xsize;
 	const int ysize = mat->Ysize;
 	const int bands = xsize - 1;
-	const int xlast = lut->data[ysize - 1][0];
 
 	/* Do each output channel separately.
 	 */
