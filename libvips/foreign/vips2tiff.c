@@ -1454,7 +1454,8 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	/* XYZ images are written as libtiff LOGLUV.
 	 */
 	if (wtiff->ready->Type == VIPS_INTERPRETATION_XYZ &&
-		wtiff->ready->Bands >= 3)
+		wtiff->ready->Bands >= 3 &&
+		wtiff->ready->BandFmt == VIPS_FORMAT_FLOAT)
 		wtiff->compression = COMPRESSION_SGILOG;
 
 	/* If compression is off and we're writing a >4gb image, automatically
