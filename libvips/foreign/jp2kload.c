@@ -532,6 +532,10 @@ vips_foreign_load_jp2k_get_ycc(opj_image_t *image)
 static int
 vips_foreign_load_jp2k_get_bands(opj_image_t *image)
 {
+	/* Only OpenJPEG >= 2.5.1 sets color_space early enough to detect palette
+	 * images.
+	 * https://github.com/uclouvain/openjpeg/commit/0f528e95788863608aa1772f5370659edf618793
+	 */
 	switch (image->color_space) {
 	case OPJ_CLRSPC_SRGB:
 	case OPJ_CLRSPC_SYCC:
