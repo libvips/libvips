@@ -997,6 +997,24 @@ class TestForeign:
                             "[tile,pyramid,subifd,compression=jp2k]",
                             self.colour, 80)
 
+    @skip_if_no("bmpload")
+    def test_bmpload(self):
+        def bmp_valid(im):
+            # bmp is uncompressed, so the decode is bit-exact
+            # the sun
+            assert_equal_objects(im(80, 58), [255, 246, 210])
+            # the water, catches row-order and BGR->RGB regressions
+            assert_equal_objects(im(10, 190), [111, 56, 44])
+            # top-left sky
+            assert_equal_objects(im(0, 0), [250, 150, 90])
+            assert im.width == 320
+            assert im.height == 200
+            assert im.bands == 3
+            assert im.format == "uchar"
+            assert im.interpretation == "srgb"
+
+        self.file_loader("bmpload", SUNSET_BMP_FILE, bmp_valid)
+
     @skip_if_no("magickload")
     def test_magickload(self):
         def bmp_valid(im):
