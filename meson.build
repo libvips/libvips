@@ -115,10 +115,27 @@ endif
 
 module_dir = lib_dir / 'vips-modules-@0@.@1@'.format(version_major, version_minor)
 
+# Experimental: operations implemented in Rust (e.g. bmpload).
+rust_enabled = false
+if not get_option('rust').disabled()
+    if meson.version().version_compare('>=1.3')
+        rust_enabled = add_languages('rust', native: false,
+            required: get_option('rust').enabled())
+    elif get_option('rust').enabled()
+        error('-Drust=enabled requires meson >= 1.3')
+    endif
+endif
+
+# Static libraries of Rust operations, linked into libvips.
+libvips_rust_libs = []
+
 cfg_var = configuration_data()
 cfg_var.set_quoted('G_LOG_DOMAIN', 'VIPS')
 
 cfg_var.set('ENABLE_MODULES', modules_enabled)
+
+# The Rust BMP loader.
+cfg_var.set('HAVE_BMP', rust_enabled)
 
 # Detect and set symbol visibility
 if get_option('default_library') == 'shared' and host_os in ['windows', 'cygwin']

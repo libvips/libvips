@@ -297,3 +297,8 @@ option('fuzzing_engine',
 option('fuzzer_ldflags',
   type: 'string',
   description: 'Extra LDFLAGS used during linking of fuzzing binaries')
+
+option('rust',
+  type: 'feature',
+  value: 'disabled',
+  description: 'Build operations implemented in Rust (experimental, requires meson >= 1.3)')

@@ -3021,6 +3021,10 @@ vips_foreign_operation_init(void)
 
 	extern GType vips_foreign_load_analyze_get_type(void);
 
+	/* Implemented in Rust, see bmpload.rs.
+	 */
+	extern GType vips_foreign_load_bmp_file_get_type(void);
+
 	extern GType vips_foreign_load_openexr_get_type(void);
 
 	extern GType vips_foreign_load_openslide_file_get_type(void);
@@ -3155,6 +3159,10 @@ vips_foreign_operation_init(void)
 #ifdef HAVE_ANALYZE
 	vips_foreign_load_analyze_get_type();
 #endif /*HAVE_ANALYZE*/
+
+#ifdef HAVE_BMP
+	vips_foreign_load_bmp_file_get_type();
+#endif /*HAVE_BMP*/
 
 #ifdef HAVE_PPM
 	vips_foreign_load_ppm_file_get_type();

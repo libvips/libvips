@@ -1,6 +1,9 @@
 libvips_sources = []
 libvips_components = []
 subdir('include/vips')
+if rust_enabled
+    subdir('rust')
+endif
 subdir('foreign')
 if get_option('deprecated')
     subdir('deprecated')
@@ -21,6 +24,7 @@ subdir('create')
 libvips_lib = library('vips',
     enumtypes,
     link_whole: libvips_components,
+    link_with: libvips_rust_libs,
     dependencies: libvips_deps,
     version: library_version,
     darwin_versions: darwin_versions,

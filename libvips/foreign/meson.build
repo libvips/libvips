@@ -128,6 +128,19 @@ endif
 
 libvips_sources += foreign_sources
 
+# Operations implemented in Rust. Each file is a self-contained rustc crate
+# (no cargo, no external crates) built as a C-ABI static library and linked
+# into libvips. The C side pulls in the code by referencing the exported
+# vips_foreign_*_get_type() symbols from vips_foreign_operation_init().
+if rust_enabled
+    libvips_rust_libs += static_library('foreign_rust',
+        'bmpload.rs',
+        rust_abi: 'c',
+        rust_args: ['--edition=2021'],
+        link_with: vips_ffi_lib,
+    )
+endif
+
 foreign_lib = static_library('foreign',
     foreign_sources,
     foreign_headers,
