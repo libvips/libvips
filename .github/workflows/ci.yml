@@ -15,6 +15,7 @@ jobs:
           - name: "Linux x64 (Ubuntu 26.04) - GCC 15"
             os: ubuntu-26.04
             build: { cc: gcc-15, cxx: g++-15, linker: ld }
+            rust: true
             extra_meson_args: -Ddocs=true
 
           - name: "Linux x64 (Ubuntu 26.04) - Clang 22 with ASan and UBSan"
@@ -28,9 +29,14 @@ jobs:
           #  build: { cc: clang-22, cxx: clang++-22, linker: ld.lld-22, sanitize: 'thread' }
           #  extra_meson_args: -Dintrospection=disabled
 
+          # Rust is not enabled for the sanitizer job (yet): the Rust
+          # objects would be uninstrumented, which needs separate
+          # validation before mixing it into the ASan/UBSan matrix.
+
           - name: "macOS arm64 (26) - Xcode 26"
             os: macos-26
             build: { cc: clang, cxx: clang++, linker: ld.lld }
+            rust: true
             extra_meson_args: -Dintrospection=disabled
 
     env:
@@ -82,6 +88,18 @@ jobs:
         run: |
           echo "PKG_CONFIG_PATH=$(brew --prefix mozjpeg)/lib/pkgconfig:$(brew --prefix libarchive)/lib/pkgconfig:$PKG_CONFIG_PATH" >> $GITHUB_ENV
 
+      - name: Install Rust dependencies
+        if: matrix.rust
+        run: |
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            # bindgen pulls in libclang
+            sudo apt-get install rustc bindgen
+          else
+            brew install rust bindgen
+          fi
+          rustc --version
+          bindgen --version
+
       - name: Prepare sanitizers environment
         if: matrix.build.sanitize
         run: |
@@ -119,6 +137,7 @@ jobs:
           meson setup build
             -Ddebug=true
             -Dmagick=disabled
+            -Drust=${{ matrix.rust && 'enabled' || 'disabled' }}
             ${{ matrix.extra_meson_args }}
             -Db_sanitize=${{ matrix.build.sanitize || 'none' }}
             -Db_lundef=${{ matrix.build.sanitize && 'false' || 'true' }}
