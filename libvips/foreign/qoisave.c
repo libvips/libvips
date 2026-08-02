@@ -82,7 +82,6 @@ vips_foreign_save_qoi_build(VipsObject *object)
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveQoi *qoi = (VipsForeignSaveQoi *) object;
-	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
 	VipsImage *memory;
 	qoi_desc desc;

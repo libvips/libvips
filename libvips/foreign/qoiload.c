@@ -177,7 +177,6 @@ vips_foreign_load_qoi_header(VipsForeignLoad *load)
 static VipsImage *
 vips_foreign_load_qoi_map(VipsForeignLoadQoi *qoi)
 {
-	gint64 header_offset;
 	size_t length;
 	const void *data;
 	VipsImage *out;
@@ -223,8 +222,6 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array((VipsObject *) load, 3);
 
-	VipsImage *out;
-
 	size_t length;
 	const void *data = vips_source_map(qoi->source, &length);
 	if (!data) {
@@ -260,8 +257,6 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 		VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0);
-
-	out = t[0];
 
 	if (
 		vips_image_write(t[0], load->real))
