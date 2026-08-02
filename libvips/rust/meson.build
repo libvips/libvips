@@ -30,5 +30,6 @@ vips_rust_bindings = rust_mod.bindgen(
 vips_ffi_lib = static_library('vips_ffi',
     structured_sources(['vips_ffi.rs', vips_rust_bindings]),
     rust_abi: 'rust',
-    rust_args: ['--edition=2021'],
+    # LTO in the final static library needs rlib bitcode
+    rust_args: ['--edition=2021', '-Cembed-bitcode=yes'],
 )

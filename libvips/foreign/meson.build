@@ -136,7 +136,8 @@ if rust_enabled
     libvips_rust_libs += static_library('foreign_rust',
         'bmpload.rs',
         rust_abi: 'c',
-        rust_args: ['--edition=2021'],
+        # LTO prunes unused Rust stdlib code
+        rust_args: ['--edition=2021', '-Clto=true', '-Cembed-bitcode=yes'],
         link_with: vips_ffi_lib,
     )
 endif
