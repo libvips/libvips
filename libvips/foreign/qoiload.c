@@ -113,7 +113,7 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 	 */
 	if (memcmp(header, qoi_magic, 4) != 0) {
 		vips_error("VipsForeignLoadQoi",
-			_("bad QOI magic"), NULL);
+			_("bad QOI magic"));
 		return -1;
 	}
 
@@ -133,13 +133,13 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 		qoi->height <= 0 ||
 		qoi->height >= VIPS_MAX_COORD) {
 		vips_error("VipsForeignLoadQoi",
-			_("bad QOI dimensions"), NULL);
+			_("bad QOI dimensions"));
 		return -1;
 	}
 
 	if (qoi->bands != 3 && qoi->bands != 4) {
 		vips_error("VipsForeignLoadQoi",
-			_("bad QOI channels"), NULL);
+			_("bad QOI channels"));
 		return -1;
 	}
 
@@ -149,13 +149,7 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 static VipsForeignFlags
 vips_foreign_load_qoi_get_flags(VipsForeignLoad *load)
 {
-	VipsForeignLoadQoi *qoi = (VipsForeignLoadQoi *) load;
-
-	VipsForeignFlags flags;
-
-	flags = 0;
-
-	return flags;
+	return 0;
 }
 
 static int
@@ -172,49 +166,6 @@ vips_foreign_load_qoi_header(VipsForeignLoad *load)
 	return 0;
 }
 
-/* Read a qoi file using mmap().
- */
-static VipsImage *
-vips_foreign_load_qoi_map(VipsForeignLoadQoi *qoi)
-{
-	size_t length;
-	const void *data;
-	VipsImage *out;
-	qoi_desc desc;
-	void *decoded_data;
-
-#ifdef DEBUG
-	printf("vips_foreign_load_qoi_map:\n");
-#endif /*DEBUG*/
-
-	if (vips_source_rewind(qoi->source)) {
-		vips_error("VipsForeignLoadQoi", "unable to rewind source");
-		return NULL;
-	}
-
-	data = vips_source_map(qoi->source, &length);
-	if (!data)
-		return NULL;
-
-	/* Decode the QOI data */
-	decoded_data = qoi_decode(data, length, &desc, 0);
-	if (!decoded_data) {
-		vips_error("VipsForeignLoadQoi",
-			_("unable to decode QOI data"), NULL);
-		return NULL;
-	}
-
-	if (!(out = vips_image_new_from_memory(decoded_data, desc.width * desc.height * desc.channels,
-			  desc.width, desc.height, desc.channels, VIPS_FORMAT_UCHAR)))
-		return NULL;
-
-	vips_image_init_fields(out,
-		desc.width, desc.height, desc.channels, VIPS_FORMAT_UCHAR,
-		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
-
-	return out;
-}
-
 static int
 vips_foreign_load_qoi_load(VipsForeignLoad *load)
 {
@@ -226,7 +177,7 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 	const void *data = vips_source_map(qoi->source, &length);
 	if (!data) {
 		vips_error("VipsForeignLoadQoi",
-			_("unable to map QOI source"), NULL);
+			_("unable to map QOI source"));
 		return -1;
 	}
 
@@ -234,7 +185,7 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 	void *decoded_data = qoi_decode(data, length, &desc, 0);
 	if (!decoded_data) {
 		vips_error("VipsForeignLoadQoi",
-			_("unable to decode QOI data"), NULL);
+			_("unable to decode QOI data"));
 		return -1;
 	}
 
