@@ -891,7 +891,7 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 
 	/* Read cICP chunk and set if present.
 	 */
-#if PNG_LIBPNG_VER >= 10645
+#ifdef PNG_cICP_SUPPORTED
 	png_byte colour_primaries;
 	png_byte transfer_characteristics;
 	png_byte matrix_coefficients;
@@ -925,7 +925,7 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 		vips_image_set_int(out, "clli-max-frame-average-light-level",
 			(int) (((guint64) max_fall + 5000) / 10000));
 	}
-#endif
+#endif /*PNG_cICP_SUPPORTED*/
 
 	/* Some libpng warn you to call png_set_interlace_handling(); here, but
 	 * that can actually break interlace on older libpngs.
@@ -1995,7 +1995,7 @@ write_vips(Write *write,
 			return -1;
 	}
 
-#ifdef PNG_WRITE_cICP_SUPPORTED
+#ifdef PNG_cICP_SUPPORTED
 	int colour_primaries;
 	int transfer_characteristics;
 	int matrix_coefficients;
@@ -2016,7 +2016,7 @@ write_vips(Write *write,
 			0, /* PNG pixel data is always RGB */
 			(png_byte) full_range_flag);
 	}
-#endif /*!PNG_WRITE_cICP_SUPPORTED*/
+#endif /*PNG_cICP_SUPPORTED*/
 
 	// the profile writers grab the setjmp, restore it
 	if (setjmp(png_jmpbuf(write->pPng)))
