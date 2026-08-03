@@ -655,6 +655,7 @@ class TestCICP:
     # -- PNG regression tests --
 
     @skip_if_no("pngsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libpng >= 1.6.45")
     def test_png_cicp_lossless_roundtrip(self):
         im = make_cicp_image(37888, 22272, 12544,
                              primaries=PRIMARIES_DISPLAY_P3,
@@ -665,7 +666,5 @@ class TestCICP:
         assert pixel[0] == 37888
         assert pixel[1] == 22272
         assert pixel[2] == 12544
-        # cICP chunk requires libpng >= 1.6.45
-        if out.get_typeof("cicp-colour-primaries"):
-            assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
-            assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
+        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
