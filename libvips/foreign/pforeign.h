@@ -143,9 +143,9 @@ int vips__isjpeg_source(VipsSource *source);
 
 int vips__png_ispng_source(VipsSource *source);
 int vips__png_header_source(VipsSource *source, VipsImage *out,
-	gboolean unlimited);
+	int page, int n, gboolean unlimited);
 int vips__png_read_source(VipsSource *source, VipsImage *out,
-	VipsFailOn fail_on, gboolean unlimited);
+	int page, int n, VipsFailOn fail_on, gboolean unlimited);
 gboolean vips__png_isinterlaced_source(VipsSource *source);
 extern const char *vips__png_suffs[];
 

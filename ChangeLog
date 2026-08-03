@@ -32,9 +32,11 @@ date-tbd 8.19.0
 - dcrawload: add half-size option
 - uhdrsave: expose peak-brightness and max-content-boost parameters [dshatz]
 - add vips_image_get_loop() [jcupitt]
+- add vips_region_blend_over() [jcupitt]
 - pngsave: add APNG support [felixbuenemann]
 - project: add combine option [jcupitt]
 - reducev: auto-vectorise the vertical reduce for all band formats, up to ~3x faster [dloebl]
+- pngload: add APNG support [felixbuenemann]
 - icc: fix black output when transforming float images [lancylot2004]
 - heifload, heifsave: preserve CLLI signaling [gregbenz]
 - foreign: trim excess bands to the largest size the saver supports [Socialpranker]
