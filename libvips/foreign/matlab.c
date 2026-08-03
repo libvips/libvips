@@ -326,11 +326,28 @@ vips__mat_load(const char *filename, VipsImage *out)
 int
 vips__mat_ismat(const char *filename)
 {
-	unsigned char buf[15];
+	unsigned char buf[128];
+	gint64 n_read = vips__get_bytes(filename, buf, 128);
 
-	if (vips__get_bytes(filename, buf, 10) == 10 &&
-		vips_isprefix("MATLAB 5.0", (char *) buf))
-		return 1;
+	if (n_read >= 128 &&
+		vips_isprefix("MATLAB 5.0", (char *) buf)) {
+		int version;
+
+		/* Version plus byte order are encoded in the final four bytes.
+		 */
+		if (buf[126] == 'I' && buf[127] == 'M')
+			version = buf[124] | (buf[125] << 8);
+		else if (buf[126] == 'M' && buf[127] == 'I')
+			version = buf[125] | (buf[124] << 8);
+		else
+			return 0;
+
+		/* Only accept MATLAB 5, matlab 7.3 has version 0x0200 and will fail
+		 * with libmatio.
+		 */
+		if (version == 0x0100)
+			return 1;
+	}
 
 	return 0;
 }
