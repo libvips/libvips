@@ -2020,15 +2020,22 @@ class TestForeign:
     def test_qoi(self):
         def qoi_valid(im):
             a = im(10, 10)
-            assert_almost_equal_objects(a, [0.0, 0, 0, 0.0])
-            assert im.width == 448
-            assert im.height == 220
-            assert im.bands == 4
-
+            assert_almost_equal_objects(a, [151, 132, 104])
+            assert im.width == 290
+            assert im.height == 442
+            assert im.bands == 3
         self.file_loader("qoiload", QOI_FILE, qoi_valid)
-        self.buffer_loader("qoiload_buffer", QOI_FILE, qoi_valid)
+        self.save_load("%s.qoi", self.colour)
+
         self.save_load_buffer("qoisave_buffer", "qoiload_buffer",
             self.colour)
+
+        def qoi_rgb_valid(im):
+            assert im.bands == 4
+            assert im.width == 128
+            assert im.height == 128
+        self.buffer_loader("qoiload_buffer", QOI_RGBA_FILE, qoi_rgb_valid)
+
 
     @skip_if_no("gifload")
     @skip_if_no("gifsave")
