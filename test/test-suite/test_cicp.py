@@ -669,3 +669,40 @@ class TestCICP:
         if out.get_typeof("cicp-colour-primaries"):
             assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
             assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+
+    @skip_if_no("pngsave")
+    @skip_if_no("pngload")
+    @pytest.mark.parametrize(
+        "max_cll,max_fall,save_options", [
+            (1624, 182, {}),
+            (1624, 182, {"keep": "none"})
+        ], ids=["default", "keep-none"])
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libpng >= 1.6.46")
+    def test_png_clli_roundtrip(self, max_cll, max_fall, save_options):
+        im = pyvips.Image.black(1, 1, bands=3) + [17, 34, 51]
+        add_clli(im, max_cll, max_fall)
+
+        encoded = im.pngsave_buffer(**save_options)
+        out = pyvips.Image.new_from_buffer(encoded, "")
+        assert out.get("clli-max-content-light-level") == max_cll
+        assert out.get("clli-max-frame-average-light-level") == max_fall
+        assert out(0, 0) == [17.0, 34.0, 51.0]
+
+    @skip_if_no("pngsave")
+    @skip_if_no("pngload")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libpng >= 1.6.46")
+    def test_png_cicp_and_clli_coexist(self):
+        im = make_cicp_image(
+            37_888, 22_272, 12_544,
+            primaries=PRIMARIES_DISPLAY_P3,
+            transfer=TRANSFER_PQ,
+            fmt="ushort"
+        )
+        add_clli(im)
+
+        encoded = im.pngsave_buffer()
+        out = pyvips.Image.new_from_buffer(encoded, "")
+        assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
+        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert out.get("clli-max-content-light-level") == 1624
+        assert out.get("clli-max-frame-average-light-level") == 182
