@@ -39,7 +39,7 @@ date-tbd 8.19.0
 - heifload, heifsave: preserve CLLI signaling [gregbenz]
 - foreign: trim excess bands to the largest size the saver supports [Socialpranker]
 
-date tbd 8.18.5
+3/8/26 8.18.5
 
 - maplut: fix possible OOB read with complex images [sage-mode-hunter]
 - measure: verify image region is larger than patch count [lovell]
