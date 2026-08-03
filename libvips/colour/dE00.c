@@ -133,9 +133,16 @@ vips_col_dE00(float L1, float a1, float b1,
 	 */
 	double Ldb = (L1d + L2d) / 2;
 	double Cdb = (C1d + C2d) / 2;
-	double hdb = fabs(h1d - h2d) < 180
-		? (h1d + h2d) / 2
-		: fabs(h1d + h2d - 360) / 2;
+
+	/* Mean hue, see Sharma eq. (14). 180 belongs to the unwrapped case.
+	 */
+	double hdb = h1d + h2d;
+	if (fabs(h1d - h2d) <= 180)
+		hdb /= 2;
+	else if (hdb < 360)
+		hdb = (hdb + 360) / 2;
+	else
+		hdb = (hdb - 360) / 2;
 
 	/* dtheta, RC
 	 */
@@ -160,11 +167,13 @@ vips_col_dE00(float L1, float a1, float b1,
 	double SC = 1 + 0.045 * Cdb;
 	double SH = 1 + 0.015 * Cdb * T;
 
-	/* hue difference ... careful!
+	/* Hue difference, see Sharma eq. (10), in our 1 - 2 orientation.
 	 */
-	double dhd = fabs(h1d - h2d) < 180
-		? h1d - h2d
-		: 360 - (h1d - h2d);
+	double dhd = h1d - h2d;
+	if (dhd > 180)
+		dhd -= 360;
+	else if (dhd < -180)
+		dhd += 360;
 
 	/* dLd, dCd dHd
 	 */
