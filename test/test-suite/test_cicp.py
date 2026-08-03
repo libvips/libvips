@@ -6,31 +6,6 @@ import pyvips
 from helpers import *
 
 
-def make_png_test_image(width=1, height=1, pixel=(17, 34, 51)):
-    data = bytes(pixel * (width * height))
-
-    return pyvips.Image.new_from_memory(data, width, height, 3, "uchar")
-
-
-def require_png_clli_support():
-    im = make_png_test_image()
-    add_clli(im)
-    encoded = im.pngsave_buffer()
-    out = pyvips.Image.new_from_buffer(encoded, "")
-
-    has_max_cll = out.get_typeof("clli-max-content-light-level") != 0
-    has_max_fall = out.get_typeof(
-        "clli-max-frame-average-light-level"
-    ) != 0
-
-    if not has_max_cll and not has_max_fall:
-        pytest.skip("libpng build lacks cLLI support")
-
-    assert has_max_cll == has_max_fall
-    assert out.get("clli-max-content-light-level") == 1624
-    assert out.get("clli-max-frame-average-light-level") == 182
-
-
 def make_cicp_image(r, g, b, primaries=1, transfer=1, mc=0, fmt="uchar",
                     width=1, height=1):
     """Create a CICP-tagged image with given pixel values."""
@@ -706,10 +681,9 @@ class TestCICP:
         ],
         ids=["default", "keep-none", "range-boundaries"]
     )
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libpng >= 1.6.46")
     def test_png_clli_roundtrip(self, max_cll, max_fall, save_options):
-        require_png_clli_support()
-
-        im = make_png_test_image()
+        im = pyvips.Image.black(1, 1, uchar=True) + [17, 34, 51]
         add_clli(im, max_cll, max_fall)
 
         encoded = im.pngsave_buffer(**save_options)
@@ -720,9 +694,8 @@ class TestCICP:
 
     @skip_if_no("pngsave")
     @skip_if_no("pngload")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libpng >= 1.6.46")
     def test_png_cicp_and_clli_coexist(self):
-        require_png_clli_support()
-
         im = make_cicp_image(
             37_888, 22_272, 12_544,
             primaries=PRIMARIES_DISPLAY_P3,
@@ -733,10 +706,6 @@ class TestCICP:
 
         encoded = im.pngsave_buffer()
         out = pyvips.Image.new_from_buffer(encoded, "")
-
-        if not out.get_typeof("cicp-colour-primaries"):
-            pytest.skip("libpng build lacks cICP support")
-
         assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
         assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
         assert out.get("clli-max-content-light-level") == 1624
