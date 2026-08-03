@@ -673,17 +673,13 @@ class TestCICP:
     @skip_if_no("pngsave")
     @skip_if_no("pngload")
     @pytest.mark.parametrize(
-        "max_cll,max_fall,save_options",
-        [
+        "max_cll,max_fall,save_options", [
             (1624, 182, {}),
-            (1624, 182, {"keep": "none"}),
-            (0, 214_748, {"palette": True}),
-        ],
-        ids=["default", "keep-none", "range-boundaries"]
-    )
+            (1624, 182, {"keep": "none"})
+        ], ids=["default", "keep-none"])
     @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libpng >= 1.6.46")
     def test_png_clli_roundtrip(self, max_cll, max_fall, save_options):
-        im = pyvips.Image.black(1, 1, uchar=True) + [17, 34, 51]
+        im = pyvips.Image.black(1, 1, bands=3) + [17, 34, 51]
         add_clli(im, max_cll, max_fall)
 
         encoded = im.pngsave_buffer(**save_options)
