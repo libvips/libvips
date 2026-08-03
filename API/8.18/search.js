@@ -183,17 +183,24 @@ function hideSearchResults() {
     }
 }
 
-function renderResults(query, results) {
-    let html = "";
+function createResultsTitle(query, n_results) {
+    // Ensure we're returning an escaped query string, to ensure we
+    // prevent XSS vulnerabilities
+    let h1 = document.createElement("h1");
+    let text = document.createTextNode("Results for “" + query + "” (" + n_results + ")");
+    h1.appendChild(text)
+    return h1;
+}
 
-    html += "<h1>Results for &quot;" + query + "&quot; (" + results.length + ")</h1>" +
-                "<div id=\"search-results\">"
+function createResultsContent(results) {
+    let search_results = document.createElement("div");
+    search_results.setAttribute("id", "search-results");
 
     if (results.length === 0) {
-        html += "No results found.";
+        search_results.textContent = "No results found.";
     }
     else {
-        html += "<div class=\"results\"><dl>";
+        let html = "<div class=\"results\"><dl>";
         results.forEach(function(item) {
             html += "<dt class=\"result " + TYPE_CLASSES[item.type] + "\">" +
                       "<a href=\"" + item.href + "\">" + item.text + "</a>" +
@@ -205,11 +212,11 @@ function renderResults(query, results) {
                     "<dd>" + item.summary + "</dd>";
         });
         html += "</dl></div>";
+
+        search_results.innerHTML = html;
     }
 
-    html += "</div>";
-
-    return html;
+    return search_results;
 }
 
 function showResults(query, results) {
@@ -219,9 +226,10 @@ function showResults(query, results) {
         window.history.replaceState(refs.input.value, "", baseUrl + extra + window.location.hash);
     }
 
-    window.title = "Results for: " + query;
+    window.title = "Results for “" + query + "” (" + results.length + ")";
     window.scroll({ top: 0 })
-    refs.search.innerHTML = renderResults(query, results);
+    refs.search.appendChild(createResultsTitle(query, results.length));
+    refs.search.appendChild(createResultsContent(results));
     showSearchResults(search);
 }
 

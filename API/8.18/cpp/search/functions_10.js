@@ -19,7 +19,7 @@ var searchData=
   ['reduce_16',['reduce',['../classVImage.html#a7177b593573f7ccf8dd9596a8c497c98',1,'VImage']]],
   ['reduceh_17',['reduceh',['../classVImage.html#a4319284d98de98e88beab23fe69850ee',1,'VImage']]],
   ['reducev_18',['reducev',['../classVImage.html#ad456937e6d2a6649a4403f731bb7b359',1,'VImage']]],
-  ['region_19',['region',['../classVImage.html#aaa062bb27ded03c337c0cceecb29f7d3',1,'VImage::region() const'],['../classVImage.html#ab307dd5f1b5d3f0b325e055a03617a78',1,'VImage::region(int left, int top, int width, int height) const'],['../classVImage.html#ab564834f675719c6716d940d331f638a',1,'VImage::region(VipsRect *rect) const']]],
+  ['region_19',['region',['../classVImage.html#aaa062bb27ded03c337c0cceecb29f7d3',1,'VImage::region() const'],['../classVImage.html#ab564834f675719c6716d940d331f638a',1,'VImage::region(VipsRect *rect) const'],['../classVImage.html#ab307dd5f1b5d3f0b325e055a03617a78',1,'VImage::region(int left, int top, int width, int height) const']]],
   ['relational_20',['relational',['../classVImage.html#a86ee3a3ade11298c3ffc82e3c23b8965',1,'VImage']]],
   ['relational_5fconst_21',['relational_const',['../classVImage.html#a933e7d3b58301f42de8ac40fae25b828',1,'VImage']]],
   ['remainder_22',['remainder',['../classVImage.html#a52e97724d5f25dc1d90d3783cf455d15',1,'VImage']]],

@@ -780,7 +780,7 @@ kbd {
   padding-right: 0;
 }
 
-dl.enum-members {
+dl.enum-members ul li {
   font-size: 80%;
 }
 
