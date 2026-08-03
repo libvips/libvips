@@ -590,6 +590,22 @@ class TestCICP:
         assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
 
     @skip_if_no("heifsave")
+    @pytest.mark.parametrize("transfer", [TRANSFER_PQ, TRANSFER_HLG],
+                             ids=["pq", "hlg"])
+    def test_heif_hdr_nclx_with_profile_option(self, transfer):
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=transfer)
+
+        buf = im.heifsave_buffer(compression="av1",
+                                 profile=SRGB_FILE)
+        out = pyvips.Image.new_from_buffer(buf, "")
+
+        assert out.get_typeof("icc-profile-data") != 0
+        assert out.get("cicp-transfer-characteristics") == transfer
+        assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
+
+    @skip_if_no("heifsave")
     @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif >= 1.19.0")
     def test_heif_clli_roundtrip_keep_none(self):
         im = make_cicp_image(128, 128, 128,
