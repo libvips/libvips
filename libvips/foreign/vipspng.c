@@ -714,7 +714,7 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 
 	/* Read cLLI chunk and normalize from 0.0001 nit units to whole nits.
 	 */
-#if defined(PNG_READ_cLLI_SUPPORTED) && \
+#if defined(PNG_cLLI_SUPPORTED) && \
 	defined(PNG_FIXED_POINT_SUPPORTED)
 	png_uint_32 max_cll;
 	png_uint_32 max_fall;
@@ -1315,7 +1315,7 @@ vips_png_add_original_icc(Write *write)
 	return 0;
 }
 
-#if defined(PNG_WRITE_cLLI_SUPPORTED) && \
+#if defined(PNG_cLLI_SUPPORTED) && \
 	defined(PNG_FIXED_POINT_SUPPORTED)
 static gboolean
 vips_png_get_clli(VipsImage *in,
@@ -1583,7 +1583,7 @@ write_vips(Write *write,
 	if (setjmp(png_jmpbuf(write->pPng)))
 		return -1;
 
-#if defined(PNG_WRITE_cLLI_SUPPORTED) && \
+#if defined(PNG_cLLI_SUPPORTED) && \
 	defined(PNG_FIXED_POINT_SUPPORTED)
 	png_uint_32 max_cll;
 	png_uint_32 max_fall;
