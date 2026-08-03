@@ -1183,7 +1183,7 @@ png2vips_apng_read_next_frame(Read *read)
 		break;
 
 	default:
-		printf("png2vips_apng_read_next_frame: unknown dispose\n");
+		g_assert_not_reached();
 		break;
 	}
 
