@@ -206,6 +206,19 @@ class TestColour:
         assert result < 6
         assert pytest.approx(alpha, 0.001) == 42.0
 
+    def test_CMC_hue_round_trip(self):
+        # hues in the last degree came back near 0, since the inverse hue
+        # table was interpolated against entry 0 rather than entry 360
+        hues = [340, 350, 355, 358, 359, 359.5, 359.9]
+        rows = [[50.0, 40.0, h] for h in hues]
+
+        lch = pyvips.Interpretation.LCH
+        im = line_image(rows, lch)
+        back = im.colourspace(pyvips.Interpretation.CMC).colourspace(lch)
+
+        for i, h in enumerate(hues):
+            assert pytest.approx(back(i, 0)[2], abs=0.1) == h
+
     @skip_if_no("icc_import")
     def test_icc(self):
         test = pyvips.Image.new_from_file(JPEG_FILE)

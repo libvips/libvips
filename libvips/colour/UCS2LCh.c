@@ -206,7 +206,7 @@ vips_col_Chcmc2h(float C, float hcmc)
 	known = VIPS_CLIP(0, known, 359);
 
 	return hI[r][known] +
-		(hI[r][(known + 1) % 360] - hI[r][known]) * (hcmc - known);
+		(hI[r][known + 1] - hI[r][known]) * (hcmc - known);
 }
 
 static void *
