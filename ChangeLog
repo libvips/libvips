@@ -39,6 +39,7 @@ date-tbd 8.19.0
 - pngload: add APNG support [felixbuenemann]
 - icc: fix black output when transforming float images [lancylot2004]
 - heifload, heifsave: preserve CLLI signaling [gregbenz]
+- pngload, pngsave: read and write cLLI metadata [gregbenz]
 - foreign: trim excess bands to the largest size the saver supports [Socialpranker]
 
 3/8/26 8.18.5

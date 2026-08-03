@@ -911,6 +911,22 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 	}
 #endif
 
+	/* Read cLLI chunk and normalize from 0.0001 nit units to whole nits.
+	 */
+#if defined(PNG_cLLI_SUPPORTED) && \
+	defined(PNG_FIXED_POINT_SUPPORTED)
+	png_uint_32 max_cll;
+	png_uint_32 max_fall;
+
+	if (png_get_cLLI_fixed(read->pPng, read->pInfo,
+			&max_cll, &max_fall)) {
+		vips_image_set_int(out, "clli-max-content-light-level",
+			(int) (((guint64) max_cll + 5000) / 10000));
+		vips_image_set_int(out, "clli-max-frame-average-light-level",
+			(int) (((guint64) max_fall + 5000) / 10000));
+	}
+#endif
+
 	/* Some libpng warn you to call png_set_interlace_handling(); here, but
 	 * that can actually break interlace on older libpngs.
 	 *
@@ -1738,6 +1754,44 @@ vips_png_add_original_icc(Write *write)
 	return 0;
 }
 
+#if defined(PNG_cLLI_SUPPORTED) && \
+	defined(PNG_FIXED_POINT_SUPPORTED)
+static gboolean
+vips_png_get_clli(VipsImage *in,
+	png_uint_32 *max_cll, png_uint_32 *max_fall)
+{
+	int max_content_light_level;
+	int max_frame_average_light_level;
+	guint64 scaled_max_cll;
+	guint64 scaled_max_fall;
+
+	if (!vips_image_get_typeof(in, "clli-max-content-light-level") ||
+		!vips_image_get_typeof(in, "clli-max-frame-average-light-level"))
+		return FALSE;
+
+	if (vips_image_get_int(in, "clli-max-content-light-level",
+			&max_content_light_level) ||
+		vips_image_get_int(in, "clli-max-frame-average-light-level",
+			&max_frame_average_light_level))
+		return FALSE;
+
+	if (max_content_light_level < 0 ||
+		max_frame_average_light_level < 0)
+		return FALSE;
+
+	scaled_max_cll = (guint64) max_content_light_level * 10000;
+	scaled_max_fall = (guint64) max_frame_average_light_level * 10000;
+	if (scaled_max_cll > PNG_UINT_31_MAX ||
+		scaled_max_fall > PNG_UINT_31_MAX)
+		return FALSE;
+
+	*max_cll = (png_uint_32) scaled_max_cll;
+	*max_fall = (png_uint_32) scaled_max_fall;
+
+	return TRUE;
+}
+#endif
+
 /* Write a VIPS image to PNG.
  */
 static int
@@ -1967,6 +2021,16 @@ write_vips(Write *write,
 	// the profile writers grab the setjmp, restore it
 	if (setjmp(png_jmpbuf(write->pPng)))
 		return -1;
+
+#if defined(PNG_cLLI_SUPPORTED) && \
+	defined(PNG_FIXED_POINT_SUPPORTED)
+	png_uint_32 max_cll;
+	png_uint_32 max_fall;
+
+	if (vips_png_get_clli(in, &max_cll, &max_fall))
+		png_set_cLLI_fixed(write->pPng, write->pInfo,
+			max_cll, max_fall);
+#endif
 
 #ifdef HAVE_QUANTIZATION
 	if (palette) {
