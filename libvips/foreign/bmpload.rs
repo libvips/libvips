@@ -133,6 +133,11 @@ unsafe extern "C" fn class_init(class: *mut VipsForeignLoadClass) {
     (*object_class).nickname = c"bmpload".as_ptr();
     (*object_class).description = c"load bmp from file".as_ptr();
     (*foreign_class).suffs = SUFFS.0.as_ptr() as *mut _;
+
+    // not ready to be the default BMP loader yet, keep preferring
+    // magickload (priority -100)
+    (*foreign_class).priority = -200;
+
     (*class).is_a = Some(bmp_is_a);
     (*class).header = Some(bmp_header);
     (*class).load = Some(bmp_load);
