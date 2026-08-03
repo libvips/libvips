@@ -6,13 +6,16 @@ import pyvips
 from helpers import *
 
 
-def make_cicp_image(r, g, b, primaries=1, transfer=1, mc=0, fmt="uchar"):
-    """Create a 1x1 CICP-tagged image with given pixel values."""
+def make_cicp_image(r, g, b, primaries=1, transfer=1, mc=0, fmt="uchar",
+                    width=1, height=1):
+    """Create a CICP-tagged image with given pixel values."""
 
     if fmt == "uchar":
-        im = (pyvips.Image.black(1, 1, bands=3) + [r, g, b]).cast("uchar")
+        im = (pyvips.Image.black(width, height, bands=3) +
+              [r, g, b]).cast("uchar")
     elif fmt == "ushort":
-        im = (pyvips.Image.black(1, 1, bands=3) + [r, g, b]).cast("ushort")
+        im = (pyvips.Image.black(width, height, bands=3) +
+              [r, g, b]).cast("ushort")
     else:
         raise ValueError(f"unsupported format: {fmt}")
 
@@ -23,6 +26,22 @@ def make_cicp_image(r, g, b, primaries=1, transfer=1, mc=0, fmt="uchar"):
     )
     im.set_type(pyvips.GValue.gint_type, "cicp-matrix-coefficients", mc)
     im.set_type(pyvips.GValue.gint_type, "cicp-full-range-flag", 1)
+
+    return im
+
+
+def add_clli(im, max_content_light_level=1624,
+             max_frame_average_light_level=182):
+    im.set_type(
+        pyvips.GValue.gint_type,
+        "clli-max-content-light-level",
+        max_content_light_level
+    )
+    im.set_type(
+        pyvips.GValue.gint_type,
+        "clli-max-frame-average-light-level",
+        max_frame_average_light_level
+    )
 
     return im
 
@@ -223,6 +242,19 @@ class TestCICP:
         assert result.interpretation == "scrgb"
         assert result.bands == 3
 
+    def test_CICP2scRGB_strips_cicp_clli_metadata(self):
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=TRANSFER_PQ)
+        add_clli(im)
+        result = im.CICP2scRGB()
+        assert result.get_typeof("cicp-colour-primaries") == 0
+        assert result.get_typeof("cicp-transfer-characteristics") == 0
+        assert result.get_typeof("cicp-matrix-coefficients") == 0
+        assert result.get_typeof("cicp-full-range-flag") == 0
+        assert result.get_typeof("clli-max-content-light-level") == 0
+        assert result.get_typeof("clli-max-frame-average-light-level") == 0
+
     @skip_if_no("scRGB2CICP")
     @pytest.mark.parametrize("transfer,name,cases,tolerance", TRANSFER_CASES,
                              ids=[c[1] for c in TRANSFER_CASES])
@@ -249,7 +281,7 @@ class TestCICP:
                                  fmt="ushort")
             scrgb = im.CICP2scRGB()
             result = scrgb.scRGB2CICP(transfer_characteristics=transfer,
-                                       depth=16)
+                                      depth=16)
             got = result(0, 0)[0]
             assert abs(got - val) <= 1, \
                 f"{name} shadow at {val}/65535: got {got}, expected {val}"
@@ -263,7 +295,7 @@ class TestCICP:
                              transfer=TRANSFER_LINEAR)
         scrgb = im.CICP2scRGB()
         result = scrgb.scRGB2CICP(colour_primaries=primaries,
-                                   transfer_characteristics=TRANSFER_LINEAR)
+                                  transfer_characteristics=TRANSFER_LINEAR)
         pixel = result(0, 0)
         assert abs(pixel[0] - 200) <= 1, \
             f"{name} R: got {pixel[0]}, expected 200"
@@ -275,7 +307,7 @@ class TestCICP:
     @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_output_format_8bit(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
-            + [0.5, 0.5, 0.5]
+             + [0.5, 0.5, 0.5]
         result = im.scRGB2CICP()
         assert result.format == "uchar"
         assert result.bands == 3
@@ -283,7 +315,7 @@ class TestCICP:
     @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_output_format_16bit(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
-            + [0.5, 0.5, 0.5]
+             + [0.5, 0.5, 0.5]
         result = im.scRGB2CICP(depth=16)
         assert result.format == "ushort"
         assert result.bands == 3
@@ -291,13 +323,25 @@ class TestCICP:
     @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_metadata_set(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
-            + [0.5, 0.5, 0.5]
+             + [0.5, 0.5, 0.5]
         result = im.scRGB2CICP(colour_primaries=PRIMARIES_BT2020,
-                                transfer_characteristics=TRANSFER_PQ)
+                               transfer_characteristics=TRANSFER_PQ)
         assert result.get("cicp-colour-primaries") == PRIMARIES_BT2020
         assert result.get("cicp-transfer-characteristics") == TRANSFER_PQ
         assert result.get("cicp-matrix-coefficients") == 0
         assert result.get("cicp-full-range-flag") == 1
+
+    @skip_if_no("scRGB2CICP")
+    def test_scRGB2CICP_strips_clli_metadata(self):
+        im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
+             + [0.5, 0.5, 0.5]
+        add_clli(im)
+        result = im.scRGB2CICP(colour_primaries=PRIMARIES_BT2020,
+                               transfer_characteristics=TRANSFER_PQ)
+        assert result.get("cicp-colour-primaries") == PRIMARIES_BT2020
+        assert result.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert result.get_typeof("clli-max-content-light-level") == 0
+        assert result.get_typeof("clli-max-frame-average-light-level") == 0
 
     @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_ushort_roundtrip(self):
@@ -316,7 +360,7 @@ class TestCICP:
                              transfer=TRANSFER_PQ)
         scrgb = im.CICP2scRGB()
         result = scrgb.scRGB2CICP(colour_primaries=PRIMARIES_BT2020,
-                                   transfer_characteristics=TRANSFER_PQ)
+                                  transfer_characteristics=TRANSFER_PQ)
         pixel = result(0, 0)
         assert abs(pixel[0] - 128) <= 1
         assert abs(pixel[1] - 100) <= 1
@@ -329,7 +373,7 @@ class TestCICP:
                              transfer=TRANSFER_HLG)
         scrgb = im.CICP2scRGB()
         result = scrgb.scRGB2CICP(colour_primaries=PRIMARIES_DISPLAY_P3,
-                                   transfer_characteristics=TRANSFER_HLG)
+                                  transfer_characteristics=TRANSFER_HLG)
         pixel = result(0, 0)
         assert abs(pixel[0] - 180) <= 1
         assert abs(pixel[1] - 120) <= 1
@@ -393,7 +437,7 @@ class TestCICP:
                              primaries=PRIMARIES_BT2020,
                              transfer=TRANSFER_PQ)
         im.set_type(pyvips.GValue.blob_type,
-                     "icc-profile-data", icc_profile)
+                    "icc-profile-data", icc_profile)
 
         buf = im.jxlsave_buffer()
         out = pyvips.Image.new_from_buffer(buf, "")
@@ -441,8 +485,10 @@ class TestCICP:
         im = make_cicp_image(128, 100, 80,
                              primaries=PRIMARIES_DISPLAY_P3,
                              transfer=TRANSFER_PQ)
-        buf = im.heifsave_buffer(compression="av1")
-        assert len(buf) > 0
+        buf = im.heifsave_buffer(compression="av1",
+                                 subsample_mode="on")
+        out = pyvips.Image.new_from_buffer(buf, "")
+        assert out.get("cicp-matrix-coefficients") == 0
 
     @skip_if_no("heifsave")
     def test_heif_cicp_ushort_pixel_roundtrip(self):
@@ -482,6 +528,24 @@ class TestCICP:
         assert out.get("cicp-full-range-flag") == 1
 
     @skip_if_no("heifsave")
+    @pytest.mark.parametrize("save_options", [
+        {"keep": "none"},
+        {"strip": True},
+        {"keep": "icc"},
+        {"keep": pyvips.ForeignKeep.ICC | pyvips.ForeignKeep.GAINMAP},
+    ], ids=["keep-none", "strip", "keep-icc", "keep-icc-gainmap"])
+    def test_heif_cicp_nclx_kept_for_colour_signalling(self, save_options):
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=TRANSFER_PQ)
+        buf = im.heifsave_buffer(compression="av1", **save_options)
+        out = pyvips.Image.new_from_buffer(buf, "")
+        assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
+        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert out.get("cicp-matrix-coefficients") == 0
+        assert out.get("cicp-full-range-flag") == 1
+
+    @skip_if_no("heifsave")
     def test_heif_cicp_matrix_coefficients_preserved(self):
         im = make_cicp_image(128, 128, 128,
                              primaries=PRIMARIES_DISPLAY_P3,
@@ -489,6 +553,20 @@ class TestCICP:
         buf = im.heifsave_buffer(compression="av1")
         out = pyvips.Image.new_from_buffer(buf, "")
         assert out.get("cicp-matrix-coefficients") == 6
+
+    @skip_if_no("heifsave")
+    def test_heif_cicp_matrix_coefficients_preserved_with_subsample(self):
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_DISPLAY_P3,
+                             transfer=TRANSFER_PQ, mc=6,
+                             width=64, height=64)
+        buf = im.heifsave_buffer(compression="av1",
+                                 subsample_mode="on")
+        out = pyvips.Image.new_from_buffer(buf, "")
+        assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
+        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert out.get("cicp-matrix-coefficients") == 6
+        assert out.get("cicp-full-range-flag") == 1
 
     @skip_if_no("heifsave")
     def test_heif_hdr_nclx_with_icc(self):
@@ -503,13 +581,76 @@ class TestCICP:
                              primaries=PRIMARIES_BT2020,
                              transfer=TRANSFER_PQ)
         im.set_type(pyvips.GValue.blob_type,
-                     "icc-profile-data", icc_profile)
+                    "icc-profile-data", icc_profile)
 
         buf = im.heifsave_buffer(compression="av1")
         out = pyvips.Image.new_from_buffer(buf, "")
 
         assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
         assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
+
+    @skip_if_no("heifsave")
+    @pytest.mark.parametrize("transfer", [TRANSFER_PQ, TRANSFER_HLG],
+                             ids=["pq", "hlg"])
+    def test_heif_hdr_nclx_with_profile_option(self, transfer):
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=transfer)
+
+        buf = im.heifsave_buffer(compression="av1",
+                                 profile=SRGB_FILE)
+        out = pyvips.Image.new_from_buffer(buf, "")
+
+        assert out.get_typeof("icc-profile-data") != 0
+        assert out.get("cicp-transfer-characteristics") == transfer
+        assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
+
+    @skip_if_no("heifsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif >= 1.19.0")
+    def test_heif_clli_roundtrip_keep_none(self):
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=TRANSFER_PQ)
+        add_clli(im)
+        buf = im.heifsave_buffer(compression="av1", keep="none")
+        out = pyvips.Image.new_from_buffer(buf, "")
+        assert out.get("clli-max-content-light-level") == 1624
+        assert out.get("clli-max-frame-average-light-level") == 182
+
+    @skip_if_no("heifsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif >= 1.19.0")
+    def test_heif_clli_roundtrip_without_input_cicp(self):
+        im = pyvips.Image.black(128, 128, bands=3)
+        add_clli(im)
+        buf = im.heifsave_buffer(compression="av1", keep="none")
+        out = pyvips.Image.new_from_buffer(buf, "")
+        assert out.get("clli-max-content-light-level") == 1624
+        assert out.get("clli-max-frame-average-light-level") == 182
+
+    @skip_if_no("heifsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif >= 1.19.0")
+    def test_heif_clli_invalid_values_not_written(self):
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=TRANSFER_PQ)
+        add_clli(im, max_content_light_level=70000)
+        buf = im.heifsave_buffer(compression="av1")
+        out = pyvips.Image.new_from_buffer(buf, "")
+        assert out.get_typeof("clli-max-content-light-level") == 0
+        assert out.get_typeof("clli-max-frame-average-light-level") == 0
+
+    @skip_if_no("heifsave")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif >= 1.19.0")
+    def test_heif_clli_partial_values_not_written(self):
+        im = make_cicp_image(128, 128, 128,
+                             primaries=PRIMARIES_BT2020,
+                             transfer=TRANSFER_PQ)
+        im.set_type(pyvips.GValue.gint_type,
+                    "clli-max-content-light-level", 1624)
+        buf = im.heifsave_buffer(compression="av1")
+        out = pyvips.Image.new_from_buffer(buf, "")
+        assert out.get_typeof("clli-max-content-light-level") == 0
+        assert out.get_typeof("clli-max-frame-average-light-level") == 0
 
     # -- PNG regression tests --
 
@@ -528,4 +669,3 @@ class TestCICP:
         if out.get_typeof("cicp-colour-primaries"):
             assert out.get("cicp-colour-primaries") == PRIMARIES_DISPLAY_P3
             assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
-

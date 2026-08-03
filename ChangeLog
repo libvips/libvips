@@ -37,6 +37,33 @@ date-tbd 8.19.0
 - project: add combine option [jcupitt]
 - reducev: auto-vectorise the vertical reduce for all band formats, up to ~3x faster [dloebl]
 - pngload: add APNG support [felixbuenemann]
+- icc: fix black output when transforming float images [lancylot2004]
+- heifload, heifsave: preserve CLLI signaling [gregbenz]
+- foreign: trim excess bands to the largest size the saver supports [Socialpranker]
+
+date tbd 8.18.5
+
+- maplut: fix possible OOB read with complex images [sage-mode-hunter]
+- measure: verify image region is larger than patch count [lovell]
+- matload: more specific Matlab detection
+- reduceh: fix potential incorrect output with Highway < 1.1.0 [dloebl]
+- jxlsave: ensure EXIF data is freed on error [kleisauke]
+- icc_ac2rc: ensure ICC profile is closed on error [kleisauke]
+- buildlut: guard against NaN values [kleisauke]
+- tiffsave: better xyz handling [har-pi]
+- more use of vips_image_decode() [har-pi]
+- quantise: better conversion to rgba [har-pi]
+- jp2kload: support palette images [Socialpranker]
+- buildlut: better final write calculation [har-pi]
+
+5/7/26 8.18.4
+
+- heifload: raise security limits on references [caseywebdev]
+- tiffload: squash out read errors in openin_source_read [aleens-labs]
+- jxlsave: convert CMYK images to sRGB [DarthSim]
+- heifload: fix `-Winteger-overflow` warning on 32-bit platforms [kleisauke]
+- object: guard against non-input arguments [kleisauke]
+- enumtypes: avoid misuse of `G_GNUC_CONST` for GCC 17 compat [kleisauke]
 
 6/6/26 8.18.3
 
