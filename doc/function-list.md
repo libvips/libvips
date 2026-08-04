@@ -260,6 +260,7 @@ API docs each function links to for more details.
 | `pdfload_buffer` | Load pdf from buffer | [ctor@Image.pdfload_buffer] |
 | `pdfload_source` | Load pdf from source | [ctor@Image.pdfload_source] |
 | `percent` | Find threshold for percent of pixels | [method@Image.percent] |
+| `percent_lum` | Find threshold for percent of pixels by bt.709 luminance | [method@Image.percent_lum] |
 | `perlin` | Make a perlin noise image | [ctor@Image.perlin] |
 | `phasecor` | Calculate phase correlation | [method@Image.phasecor] |
 | `pngload` | Load png from file | [ctor@Image.pngload] |
@@ -309,6 +310,7 @@ API docs each function links to for more details.
 | `sRGB2HSV` | Transform srgb to hsv | [method@Image.sRGB2HSV] |
 | `sRGB2scRGB` | Convert an srgb image to scrgb | [method@Image.sRGB2scRGB] |
 | `scRGB2BW` | Convert scrgb to bw | [method@Image.scRGB2BW] |
+| `scRGB2CICP` | Transform scrgb to cicp | [method@Image.scRGB2CICP] |
 | `scRGB2XYZ` | Transform scrgb to xyz | [method@Image.scRGB2XYZ] |
 | `scRGB2sRGB` | Convert scrgb to srgb | [method@Image.scRGB2sRGB] |
 | `scale` | Scale an image to uchar | [method@Image.scale] |

@@ -2842,7 +2842,8 @@ public:
 	 * Load raw camera files.
 	 *
 	 * **Optional parameters**
-	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **bitdepth** -- Number of bits to decode to, int.
+	 *   - **half_size** -- Decode image at half size, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -2858,7 +2859,8 @@ public:
 	 * Load raw camera files.
 	 *
 	 * **Optional parameters**
-	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **bitdepth** -- Number of bits to decode to, int.
+	 *   - **half_size** -- Decode image at half size, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -2874,7 +2876,8 @@ public:
 	 * Load raw camera files.
 	 *
 	 * **Optional parameters**
-	 *   - **bitdepth** -- Number of bits per pixel, int.
+	 *   - **bitdepth** -- Number of bits to decode to, int.
+	 *   - **half_size** -- Decode image at half size, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -4181,6 +4184,8 @@ public:
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
 	 *   - **bitdepth** -- Bit depth, int.
+	 *   - **interlace** -- Enable progressive (interlaced) encoding, bool.
+	 *   - **progressive** -- Enable progressive encoding, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -4201,6 +4206,8 @@ public:
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
 	 *   - **bitdepth** -- Bit depth, int.
+	 *   - **interlace** -- Enable progressive (interlaced) encoding, bool.
+	 *   - **progressive** -- Enable progressive encoding, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -4221,6 +4228,8 @@ public:
 	 *   - **lossless** -- Enable lossless compression, bool.
 	 *   - **Q** -- Quality factor, int.
 	 *   - **bitdepth** -- Bit depth, int.
+	 *   - **interlace** -- Enable progressive (interlaced) encoding, bool.
+	 *   - **progressive** -- Enable progressive encoding, bool.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -5045,6 +5054,18 @@ public:
 	int percent(double percent, VOption *options = nullptr) const;
 
 	/**
+	 * Find threshold for percent of pixels by bt.709 luminance.
+	 *
+	 * **Optional parameters**
+	 *   - **max** -- Histogram upper bound in input unit; values above clamp to the top bin, double.
+	 *
+	 * @param percent Percentile (0-100) of luminance to return.
+	 * @param options Set of options.
+	 * @return Luminance value at the requested percentile in input unit.
+	 */
+	double percent_lum(double percent, VOption *options = nullptr) const;
+
+	/**
 	 * Make a perlin noise image.
 	 *
 	 * **Optional parameters**
@@ -5071,6 +5092,8 @@ public:
 	 * Load png from file.
 	 *
 	 * **Optional parameters**
+	 *   - **page** -- First page to load, int.
+	 *   - **n** -- Number of pages to load, -1 for all, int.
 	 *   - **unlimited** -- Remove all denial of service limits, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
@@ -5087,6 +5110,8 @@ public:
 	 * Load png from buffer.
 	 *
 	 * **Optional parameters**
+	 *   - **page** -- First page to load, int.
+	 *   - **n** -- Number of pages to load, -1 for all, int.
 	 *   - **unlimited** -- Remove all denial of service limits, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
@@ -5103,6 +5128,8 @@ public:
 	 * Load png from source.
 	 *
 	 * **Optional parameters**
+	 *   - **page** -- First page to load, int.
+	 *   - **n** -- Number of pages to load, -1 for all, int.
 	 *   - **unlimited** -- Remove all denial of service limits, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
@@ -5263,6 +5290,7 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **max_alpha** -- Maximum value of alpha channel, double.
+	 *   - **uchar** -- Output should be uchar, bool.
 	 *
 	 * @param options Set of options.
 	 * @return Output image.
@@ -5294,6 +5322,10 @@ public:
 
 	/**
 	 * Find image projections.
+	 *
+	 * **Optional parameters**
+	 *   - **combine** -- Combine values with this, VipsCombine.
+	 *
 	 * @param rows Sums of rows.
 	 * @param options Set of options.
 	 * @return Sums of columns.
@@ -5662,6 +5694,20 @@ public:
 	VImage scRGB2BW(VOption *options = nullptr) const;
 
 	/**
+	 * Transform scrgb to cicp.
+	 *
+	 * **Optional parameters**
+	 *   - **colour_primaries** -- CICP colour primaries (H.273 Table 2), VipsCICPColourPrimaries.
+	 *   - **transfer_characteristics** -- CICP transfer characteristics (H.273 Table 3), VipsCICPTransferCharacteristics.
+	 *   - **matrix_coefficients** -- CICP matrix coefficients (H.273 Table 4), VipsCICPMatrixCoefficients.
+	 *   - **depth** -- Output device space depth in bits, int.
+	 *
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage scRGB2CICP(VOption *options = nullptr) const;
+
+	/**
 	 * Transform scrgb to xyz.
 	 * @param options Set of options.
 	 * @return Output image.
@@ -5824,6 +5870,8 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **interesting** -- How to measure interestingness, VipsInteresting.
+	 *   - **interesting_x** -- Horizontal position of the specific point of interest, int.
+	 *   - **interesting_y** -- Vertical position of the specific point of interest, int.
 	 *   - **premultiplied** -- Input image already has premultiplied alpha, bool.
 	 *
 	 * @param width Width of extract area.
@@ -6017,6 +6065,8 @@ public:
 	 *   - **size** -- Only upsize, only downsize, or both, VipsSize.
 	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
 	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
+	 *   - **interesting_x** -- Horizontal position of the specific point of interest for cropping, int.
+	 *   - **interesting_y** -- Vertical position of the specific point of interest for cropping, int.
 	 *   - **linear** -- Reduce in linear light, bool.
 	 *   - **input_profile** -- Fallback input profile, const char *.
 	 *   - **output_profile** -- Fallback output profile, const char *.
@@ -6039,6 +6089,8 @@ public:
 	 *   - **size** -- Only upsize, only downsize, or both, VipsSize.
 	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
 	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
+	 *   - **interesting_x** -- Horizontal position of the specific point of interest for cropping, int.
+	 *   - **interesting_y** -- Vertical position of the specific point of interest for cropping, int.
 	 *   - **linear** -- Reduce in linear light, bool.
 	 *   - **input_profile** -- Fallback input profile, const char *.
 	 *   - **output_profile** -- Fallback output profile, const char *.
@@ -6060,6 +6112,8 @@ public:
 	 *   - **size** -- Only upsize, only downsize, or both, VipsSize.
 	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
 	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
+	 *   - **interesting_x** -- Horizontal position of the specific point of interest for cropping, int.
+	 *   - **interesting_y** -- Vertical position of the specific point of interest for cropping, int.
 	 *   - **linear** -- Reduce in linear light, bool.
 	 *   - **input_profile** -- Fallback input profile, const char *.
 	 *   - **output_profile** -- Fallback output profile, const char *.
@@ -6081,6 +6135,8 @@ public:
 	 *   - **size** -- Only upsize, only downsize, or both, VipsSize.
 	 *   - **no_rotate** -- Don't use orientation tags to rotate image upright, bool.
 	 *   - **crop** -- Reduce to fill target rectangle, then crop, VipsInteresting.
+	 *   - **interesting_x** -- Horizontal position of the specific point of interest for cropping, int.
+	 *   - **interesting_y** -- Vertical position of the specific point of interest for cropping, int.
 	 *   - **linear** -- Reduce in linear light, bool.
 	 *   - **input_profile** -- Fallback input profile, const char *.
 	 *   - **output_profile** -- Fallback output profile, const char *.
@@ -6361,6 +6417,17 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
+	 *   - **gainmap_scale_factor** -- The scale factor of base image to gainmap image, int.
+	 *   - **peak_brightness** -- Target display peak brightness in nits, double.
+	 *   - **max_content_boost** -- Maximum content boost for the gainmap, double.
+	 *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
+	 *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
+	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+	 *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
+	 *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
+	 *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
+	 *   - **quant_table** -- Use predefined quantization table with given index, int.
+	 *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -6376,6 +6443,17 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
+	 *   - **gainmap_scale_factor** -- The scale factor of base image to gainmap image, int.
+	 *   - **peak_brightness** -- Target display peak brightness in nits, double.
+	 *   - **max_content_boost** -- Maximum content boost for the gainmap, double.
+	 *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
+	 *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
+	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+	 *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
+	 *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
+	 *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
+	 *   - **quant_table** -- Use predefined quantization table with given index, int.
+	 *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -6391,6 +6469,17 @@ public:
 	 *
 	 * **Optional parameters**
 	 *   - **Q** -- Q factor, int.
+	 *   - **gainmap_scale_factor** -- The scale factor of base image to gainmap image, int.
+	 *   - **peak_brightness** -- Target display peak brightness in nits, double.
+	 *   - **max_content_boost** -- Maximum content boost for the gainmap, double.
+	 *   - **optimize_coding** -- Compute optimal Huffman coding tables, bool.
+	 *   - **interlace** -- Generate an interlaced (progressive) jpeg, bool.
+	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
+	 *   - **trellis_quant** -- Apply trellis quantisation to each 8x8 block, bool.
+	 *   - **overshoot_deringing** -- Apply overshooting to samples with extreme values, bool.
+	 *   - **optimize_scans** -- Split spectrum of DCT coefficients into separate scans, bool.
+	 *   - **quant_table** -- Use predefined quantization table with given index, int.
+	 *   - **restart_interval** -- Add restart markers every specified number of mcu, int.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -6407,6 +6496,7 @@ public:
 	 * **Optional parameters**
 	 *   - **max_alpha** -- Maximum value of alpha channel, double.
 	 *   - **alpha_band** -- Unpremultiply with this alpha, int.
+	 *   - **uchar** -- Output should be uchar, bool.
 	 *
 	 * @param options Set of options.
 	 * @return Output image.
