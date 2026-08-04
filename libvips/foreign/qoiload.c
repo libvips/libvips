@@ -184,7 +184,7 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 			_("unable to decode QOI data"));
 		return -1;
 	}
-	g_signal_connect(load->real, "close", G_CALLBACK(g_free), decoded_data);
+	g_signal_connect(load->real, "close", G_CALLBACK(vips_image_free_buffer), decoded_data);
 
 	t[0] = vips_image_new_from_memory(
 		decoded_data,
