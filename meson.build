@@ -3,7 +3,7 @@ project('vips', 'c', 'cpp',
     meson_version: '>=0.55',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
-        'c_std=gnu99',
+        'c_std=gnu11',
         # we use some C++14 features
         'cpp_std=c++14',
         # do a release (optimised) build by default
