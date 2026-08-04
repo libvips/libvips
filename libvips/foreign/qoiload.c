@@ -77,12 +77,8 @@ vips_foreign_load_qoi_is_a_source(VipsSource *source)
 {
 	const unsigned char *data;
 
-	if ((data = vips_source_sniff(source, 4))) {
-		if (memcmp(data, qoi_magic, 4) == 0)
-			return TRUE;
-	}
-
-	return FALSE;
+	return (data = vips_source_sniff(source, 4)) &&
+		memcmp(data, qoi_magic, 4) == 0;
 }
 
 static void
@@ -104,6 +100,7 @@ vips_foreign_load_qoi_dispose(GObject *gobject)
 static int
 vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(qoi);
 	unsigned char header[14];
 
 	if (vips_source_read(qoi->source, header, 14) != 14)
@@ -112,8 +109,7 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 	/* Check magic bytes.
 	 */
 	if (memcmp(header, qoi_magic, 4) != 0) {
-		vips_error("VipsForeignLoadQoi",
-			_("bad QOI magic"));
+		vips_error(class->nickname, _("bad QOI magic"));
 		return -1;
 	}
 
@@ -132,13 +128,13 @@ vips_foreign_load_qoi_parse_header(VipsForeignLoadQoi *qoi)
 		qoi->width >= VIPS_MAX_COORD ||
 		qoi->height <= 0 ||
 		qoi->height >= VIPS_MAX_COORD) {
-		vips_error("VipsForeignLoadQoi",
+		vips_error(class->nickname,
 			_("bad QOI dimensions"));
 		return -1;
 	}
 
 	if (qoi->bands != 3 && qoi->bands != 4) {
-		vips_error("VipsForeignLoadQoi",
+		vips_error(class->nickname,
 			_("bad QOI channels"));
 		return -1;
 	}
@@ -163,28 +159,28 @@ vips_foreign_load_qoi_header(VipsForeignLoad *load)
 	vips_image_init_fields(load->out,
 		qoi->width, qoi->height, qoi->bands, VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE, VIPS_INTERPRETATION_sRGB, 1.0, 1.0);
+
 	return 0;
 }
 
 static int
 vips_foreign_load_qoi_load(VipsForeignLoad *load)
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(load);
 	VipsForeignLoadQoi *qoi = (VipsForeignLoadQoi *) load;
+
 	VipsImage **t = (VipsImage **)
 		vips_object_local_array((VipsObject *) load, 3);
 
 	size_t length;
 	const void *data = vips_source_map(qoi->source, &length);
-	if (!data) {
-		vips_error("VipsForeignLoadQoi",
-			_("unable to map QOI source"));
+	if (!data)
 		return -1;
-	}
 
 	qoi_desc desc;
 	void *decoded_data = qoi_decode(data, length, &desc, 0);
 	if (!decoded_data) {
-		vips_error("VipsForeignLoadQoi",
+		vips_error(class->nickname,
 			_("unable to decode QOI data"));
 		return -1;
 	}
