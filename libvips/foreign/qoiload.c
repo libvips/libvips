@@ -184,6 +184,7 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 			_("unable to decode QOI data"));
 		return -1;
 	}
+	g_signal_connect(load->real, "close", G_CALLBACK(g_free), decoded_data);
 
 	t[0] = vips_image_new_from_memory(
 		decoded_data,
@@ -192,10 +193,8 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 		desc.channels,
 		VIPS_FORMAT_UCHAR);
 
-	if (!t[0]) {
-		free(decoded_data);
+	if (!t[0])
 		return -1;
-	}
 
 	vips_image_init_fields(t[0],
 		desc.width, desc.height,
@@ -205,13 +204,7 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0);
 
-	if (
-		vips_image_write(t[0], load->real))
-		return -1;
-
-	free(decoded_data);
-
-	return 0;
+	return vips_image_write(t[0], load->real);
 }
 
 static void
