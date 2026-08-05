@@ -143,8 +143,6 @@ static Read *
 read_new(const char *filename, VipsImage *out)
 {
 	Read *read;
-	int xmin, ymin;
-	int xmax, ymax;
 
 	if (!(read = VIPS_NEW(NULL, Read)))
 		return NULL;
@@ -182,15 +180,40 @@ read_new(const char *filename, VipsImage *out)
 		read->header = ImfTiledInputHeader(read->tiles);
 		read->tile_width = ImfTiledInputTileXSize(read->tiles);
 		read->tile_height = ImfTiledInputTileYSize(read->tiles);
+
+		// openexr does little sanity checking
+		if (read->tile_width > 8192 ||
+			read->tile_width <= 0 ||
+			read->tile_height > 8192 ||
+			read->tile_height <= 0) {
+			vips_error("exr2vips", _("bad tile geometry"));
+			return -1;
+		}
 	}
 	else
 		read->header = ImfInputHeader(read->lines);
 
+	int xmin, ymin, xmax, ymax;
 	ImfHeaderDataWindow(read->header, &xmin, &ymin, &xmax, &ymax);
+
+	if (xmin >= xmax ||
+		ymin >= ymax) {
+		vips_error("exr2vips", _("bad window geometry"));
+		return -1;
+	}
+
 	read->window.left = xmin;
 	read->window.top = ymin;
 	read->window.width = xmax - xmin + 1;
 	read->window.height = ymax - ymin + 1;
+
+	if (read->window.width <= 0 ||
+		read->window.height <= 0 ||
+		read->window.width >= VIPS_MAX_COORD ||
+		read->window.height >= VIPS_MAX_COORD) {
+		vips_error("exr2vips", _("bad image geometry"));
+		return -1;
+	}
 
 	return read;
 }
