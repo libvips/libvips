@@ -436,7 +436,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 			heif_chroma_downsampling_sharp_yuv;
 		cc_options->only_use_preferred_chroma_algorithm = 1;
 #else  /*!HAVE_HEIF_ENCODING_OPTIONS_COLOR_CONVERSION_OPTIONS*/
-		g_warning("libheif >= 1.16.0 required for smart_subsample");
+		g_warning("ignoring smart_subsample (requires libheif >= v1.16.0)");
 #endif /*HAVE_HEIF_ENCODING_OPTIONS_COLOR_CONVERSION_OPTIONS*/
 	}
 
