@@ -6,6 +6,7 @@ libvips/colour/profiles.c	linguist-generated
 
 # Excluded from stats
 libvips/foreign/libnsgif/*	linguist-vendored
+libvips/foreign/qoi/*		linguist-vendored
 
 # Omit from release tarball
 .clang-format				export-ignore

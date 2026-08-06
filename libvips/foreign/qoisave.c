@@ -53,13 +53,11 @@
 #define QOI_IMPLEMENTATION
 #include "qoi/qoi.h"
 
-typedef struct _VipsForeignSaveQoi VipsForeignSaveQoi;
-
-struct _VipsForeignSaveQoi {
+typedef struct _VipsForeignSaveQoi {
 	VipsForeignSave parent_object;
 
 	VipsTarget *target;
-};
+} VipsForeignSaveQoi;
 
 typedef VipsForeignSaveClass VipsForeignSaveQoiClass;
 
@@ -124,9 +122,9 @@ vips_foreign_save_qoi_build(VipsObject *object)
  */
 #define UC VIPS_FORMAT_UCHAR
 
-static int bandfmt_qoi[10] = {
-	/* UC  C   US  S   UI  I   F   X   D   DX */
-	UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
+static VipsBandFormat bandfmt_qoi[10] = {
+	/* Band format:  UC  C   US  S   UI  I   F   X   D   DX */
+	/* Promotion: */ UC, UC, UC, UC, UC, UC, UC, UC, UC, UC
 };
 
 static void
@@ -337,11 +335,12 @@ vips_foreign_save_qoi_target_init(VipsForeignSaveQoiTarget *target)
  * vips_qoisave: (method)
  * @in: image to save
  * @filename: file to write to
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Write to a file as QOI. Images are saved as 8-bit RGB or RGBA.
  *
- * See also: vips_image_write_to_file().
+ * ::: seealso
+ *   [ctor@Image.qoiload], [method@Image.write_to_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -359,44 +358,20 @@ vips_qoisave(VipsImage *in, const char *filename, ...)
 }
 
 /**
- * vips_qoisave_target: (method)
- * @in: image to save
- * @target: save image to this target
- * @...: %NULL-terminated list of optional named arguments
- *
- * As vips_qoisave(), but save to a target.
- *
- * See also: vips_qoisave().
- *
- * Returns: 0 on success, -1 on error.
- */
-int
-vips_qoisave_target(VipsImage *in, VipsTarget *target, ...)
-{
-	va_list ap;
-	int result;
-
-	va_start(ap, target);
-	result = vips_call_split("qoisave_target", ap, in, target);
-	va_end(ap);
-
-	return result;
-}
-
-/**
  * vips_qoisave_buffer: (method)
  * @in: image to save
  * @buf: (array length=len) (element-type guint8): return output buffer here
  * @len: (type gsize): return output length here
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
- * As vips_qoisave(), but save to a memory buffer.
+ * As [method@Image.qoisave], but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with g_free() when you
- * are done with it.
+ * @len. You are responsible for freeing the buffer with [func@GLib.free]
+ * when you are done with it.
  *
- * See also: vips_qoisave().
+ * ::: seealso
+ *     [method@Image.qoisave].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -424,6 +399,32 @@ vips_qoisave_buffer(VipsImage *in, void **buf, size_t *len, ...)
 
 		vips_area_unref(area);
 	}
+
+	return result;
+}
+
+/**
+ * vips_qoisave_target: (method)
+ * @in: image to save
+ * @target: save image to this target
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * As [method@Image.qoisave], but save to a target.
+ *
+ * ::: seealso
+ *     [method@Image.qoisave].
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_qoisave_target(VipsImage *in, VipsTarget *target, ...)
+{
+	va_list ap;
+	int result;
+
+	va_start(ap, target);
+	result = vips_call_split("qoisave_target", ap, in, target);
+	va_end(ap);
 
 	return result;
 }

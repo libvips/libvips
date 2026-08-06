@@ -170,7 +170,7 @@ vips_foreign_load_qoi_load(VipsForeignLoad *load)
 	VipsForeignLoadQoi *qoi = (VipsForeignLoadQoi *) load;
 
 	VipsImage **t = (VipsImage **)
-		vips_object_local_array((VipsObject *) load, 3);
+		vips_object_local_array((VipsObject *) load, 1);
 
 	size_t length;
 	const void *data = vips_source_map(qoi->source, &length);
@@ -265,10 +265,8 @@ vips_foreign_load_qoi_file_build(VipsObject *object)
 		!(qoi->source = vips_source_new_from_file(file->filename)))
 		return -1;
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_qoi_file_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_qoi_file_parent_class)
+		->build(object);
 }
 
 static void
@@ -392,10 +390,8 @@ vips_foreign_load_qoi_source_build(VipsObject *object)
 		g_object_ref(qoi->source);
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_foreign_load_qoi_source_parent_class)->build(object))
-		return -1;
-
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_foreign_load_qoi_source_parent_class)
+		->build(object);
 }
 
 static void
@@ -433,11 +429,12 @@ vips_foreign_load_qoi_source_init(VipsForeignLoadQoiSource *source)
  * vips_qoiload:
  * @filename: file to load
  * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * @...: `NULL`-terminated list of optional named arguments
  *
  * Read a QOI image. Images are RGB or RGBA, 8 bits.
  *
- * See also: vips_image_new_from_file().
+ * ::: seealso
+ *     [ctor@Image.new_from_file].
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -455,30 +452,19 @@ vips_qoiload(const char *filename, VipsImage **out, ...)
 }
 
 /**
- * vips_qoiload_source:
- * @source: source to load
- * @out: (out): output image
- * @...: %NULL-terminated list of optional named arguments
+ * vips_qoiload_buffer:
+ * @buf: (array length=len) (element-type guint8): memory area to load
+ * @len: (type gsize): size of memory area
+ * @out: (out): image to write
+ * @...: `NULL`-terminated list of optional named arguments
  *
- * Exactly as vips_qoiload(), but read from a source.
+ * Exactly as [ctor@Image.qoiload], but read from a memory source.
  *
- * See also: vips_qoiload().
+ * ::: seealso
+ *     [ctor@Image.qoiload].
  *
  * Returns: 0 on success, -1 on error.
  */
-int
-vips_qoiload_source(VipsSource *source, VipsImage **out, ...)
-{
-	va_list ap;
-	int result;
-
-	va_start(ap, out);
-	result = vips_call_split("qoiload_source", ap, source, out);
-	va_end(ap);
-
-	return result;
-}
-
 int
 vips_qoiload_buffer(void *buf, size_t len, VipsImage **out, ...)
 {
@@ -495,6 +481,32 @@ vips_qoiload_buffer(void *buf, size_t len, VipsImage **out, ...)
 	va_end(ap);
 
 	vips_area_unref(VIPS_AREA(blob));
+
+	return result;
+}
+
+/**
+ * vips_qoiload_source:
+ * @source: source to load
+ * @out: (out): output image
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Exactly as [ctor@Image.qoiload], but read from a source.
+ *
+ * ::: seealso
+ *     [ctor@Image.qoiload].
+ *
+ * Returns: 0 on success, -1 on error.
+ */
+int
+vips_qoiload_source(VipsSource *source, VipsImage **out, ...)
+{
+	va_list ap;
+	int result;
+
+	va_start(ap, out);
+	result = vips_call_split("qoiload_source", ap, source, out);
+	va_end(ap);
 
 	return result;
 }
