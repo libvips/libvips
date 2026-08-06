@@ -136,9 +136,9 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	const char *tune;
 
-	/* Chroma downsampling algorithm.
+	/* Enable smart chroma subsampling.
 	 */
-	VipsForeignHeifChromaDownsampling chroma_downsampling;
+	gboolean smart_subsample;
 
 } VipsForeignSaveHeif;
 
@@ -421,38 +421,24 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 		heif_image_set_content_light_level(heif->img, &clli);
 #endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
 
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_COLOR_CONVERSION_OPTIONS
-	/* AUTO leaves libheif's pipeline search to pick the algorithm. Any other
-	 * value forces that algorithm; the force flag is required, since without
-	 * it libheif's search picks the cheapest op regardless of preference.
+	/* Use sharp YUV for chroma downsampling, if requested.
 	 */
-	if (heif->chroma_downsampling != VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_AUTO) {
-		enum heif_chroma_downsampling_algorithm algorithm =
-			heif_chroma_downsampling_average;
+	if (heif->smart_subsample) {
+#ifdef HAVE_HEIF_ENCODING_OPTIONS_COLOR_CONVERSION_OPTIONS
+		/* Sharp YUV has to be forced: without the force flag libheif's
+		 * pipeline search picks the cheapest conversion regardless of the
+		 * preference, which for RGB input is nearest-neighbour.
+		 */
+		struct heif_color_conversion_options *cc_options =
+			&options->color_conversion_options;
 
-		switch (heif->chroma_downsampling) {
-		case VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_NEAREST:
-			algorithm = heif_chroma_downsampling_nearest_neighbor;
-			break;
-
-		case VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_AVERAGE:
-			algorithm = heif_chroma_downsampling_average;
-			break;
-
-		case VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_SHARP:
-			algorithm = heif_chroma_downsampling_sharp_yuv;
-			break;
-
-		default:
-			break;
-		}
-
-		options->color_conversion_options
-			.preferred_chroma_downsampling_algorithm = algorithm;
-		options->color_conversion_options
-			.only_use_preferred_chroma_algorithm = TRUE;
-	}
+		cc_options->preferred_chroma_downsampling_algorithm =
+			heif_chroma_downsampling_sharp_yuv;
+		cc_options->only_use_preferred_chroma_algorithm = 1;
+#else  /*!HAVE_HEIF_ENCODING_OPTIONS_COLOR_CONVERSION_OPTIONS*/
+		g_warning("libheif >= 1.16.0 required for smart_subsample");
 #endif /*HAVE_HEIF_ENCODING_OPTIONS_COLOR_CONVERSION_OPTIONS*/
+	}
 
 #ifdef DEBUG
 	GTimer *timer = g_timer_new();
@@ -993,14 +979,12 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveHeif, tune),
 		NULL);
 
-	VIPS_ARG_ENUM(class, "chroma_downsampling", 20,
-		_("Chroma downsampling"),
-		_("Chroma downsampling algorithm"),
+	VIPS_ARG_BOOL(class, "smart_subsample", 20,
+		_("Smart subsampling"),
+		_("Enable high quality chroma subsampling"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignSaveHeif, chroma_downsampling),
-		VIPS_TYPE_FOREIGN_HEIF_CHROMA_DOWNSAMPLING,
-		VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_AUTO);
-
+		G_STRUCT_OFFSET(VipsForeignSaveHeif, smart_subsample),
+		FALSE);
 }
 
 static void
@@ -1012,7 +996,6 @@ vips_foreign_save_heif_init(VipsForeignSaveHeif *heif)
 	heif->compression = VIPS_FOREIGN_HEIF_COMPRESSION_HEVC;
 	heif->effort = 4;
 	heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_AUTO;
-	heif->chroma_downsampling = VIPS_FOREIGN_HEIF_CHROMA_DOWNSAMPLING_AUTO;
 
 	/* Deprecated.
 	 */
