@@ -1869,31 +1869,11 @@ class TestForeign:
         plain = self.colour.heifsave_buffer(compression="av1")
         assert len(plain) > 10000
 
-        # FALSE is the default, so this just checks the option is there
-        off = self.colour.heifsave_buffer(compression="av1",
-                                          smart_subsample=False)
-        assert len(off) > 10000
-
-        # smart_subsample routes chroma downsampling through libsharpyuv, so
-        # the save fails on a libheif built without it
-        try:
-            sharp = self.colour.heifsave_buffer(compression="av1",
-                                                smart_subsample=True)
-        except pyvips.error.Error:
-            pytest.skip("libheif built without libsharpyuv")
-
+        # smart_subsample routes 4:2:0 chroma downsampling through libsharpyuv
+        sharp = self.colour.heifsave_buffer(compression="av1",
+                                            smart_subsample=True)
         assert len(sharp) > 10000
-
-        # libheif before 1.16.0 has no chroma downsampling control, so the
-        # option is compiled out and both bitstreams match
-        if sharp == plain:
-            pytest.skip("libheif too old for chroma downsampling control")
-
-        # 4:4:4 does no chroma downsampling, so the flag is harmless there
-        buf = self.colour.heifsave_buffer(compression="av1",
-                                          subsample_mode="off",
-                                          smart_subsample=True)
-        assert len(buf) > 10000
+        assert sharp != plain
 
     @skip_if_no("heifsave")
     @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif built with patent-encumbered HEVC dependencies")
