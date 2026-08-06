@@ -177,7 +177,7 @@ vips_foreign_load_jpeg_class_init(VipsForeignLoadJpegClass *class)
 
 	/* We are fast at is_a(), so high priority.
 	 */
-	foreign_class->priority = 50;
+	foreign_class->priority = 150;
 
 	load_class->get_flags_filename = vips_foreign_load_jpeg_get_flags_filename;
 	load_class->get_flags = vips_foreign_load_jpeg_get_flags;

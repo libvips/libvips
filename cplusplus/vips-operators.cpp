@@ -2736,6 +2736,19 @@ VImage::percent(double percent, VOption *options) const
 	return threshold;
 }
 
+double
+VImage::percent_lum(double percent, VOption *options) const
+{
+	double threshold;
+
+	call("percent_lum", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("threshold", &threshold)
+			->set("percent", percent));
+
+	return threshold;
+}
+
 VImage
 VImage::perlin(int width, int height, VOption *options)
 {
@@ -3316,6 +3329,18 @@ VImage::scRGB2BW(VOption *options) const
 	VImage out;
 
 	call("scRGB2BW", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
+VImage::scRGB2CICP(VOption *options) const
+{
+	VImage out;
+
+	call("scRGB2CICP", (options ? options : VImage::option())
 			->set("in", *this)
 			->set("out", &out));
 

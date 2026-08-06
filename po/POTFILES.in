@@ -123,6 +123,7 @@ libvips/colour/profile_load.c
 libvips/colour/profiles.c
 libvips/colour/rad2float.c
 libvips/colour/scRGB2BW.c
+libvips/colour/scRGB2CICP.c
 libvips/colour/scRGB2sRGB.c
 libvips/colour/scRGB2XYZ.c
 libvips/colour/sRGB2HSV.c
@@ -322,6 +323,7 @@ libvips/histogram/hist_plot.c
 libvips/histogram/hist_unary.c
 libvips/histogram/maplut.c
 libvips/histogram/percent.c
+libvips/histogram/percent_lum.c
 libvips/histogram/stdif.c
 libvips/iofuncs/buf.c
 libvips/iofuncs/buffer.c

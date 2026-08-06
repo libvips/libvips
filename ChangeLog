@@ -32,10 +32,41 @@ date-tbd 8.19.0
 - dcrawload: add half-size option
 - uhdrsave: expose peak-brightness and max-content-boost parameters [dshatz]
 - add vips_image_get_loop() [jcupitt]
+- add vips_region_blend_over() [jcupitt]
 - pngsave: add APNG support [felixbuenemann]
 - project: add combine option [jcupitt]
 - reducev: auto-vectorise the vertical reduce for all band formats, up to ~3x faster [dloebl]
 - add qoiload, qoisave [Snafuh]
+- pngload: add APNG support [felixbuenemann]
+- icc: fix black output when transforming float images [lancylot2004]
+- heifload, heifsave: preserve CLLI signaling [gregbenz]
+- pngload, pngsave: read and write cLLI metadata [gregbenz]
+- foreign: trim excess bands to the largest size the saver supports [Socialpranker]
+- update toolchain requirement to C11 [kleisauke]
+
+3/8/26 8.18.5
+
+- maplut: fix possible OOB read with complex images [sage-mode-hunter]
+- measure: verify image region is larger than patch count [lovell]
+- matload: more specific Matlab detection
+- reduceh: fix potential incorrect output with Highway < 1.1.0 [dloebl]
+- jxlsave: ensure EXIF data is freed on error [kleisauke]
+- icc_ac2rc: ensure ICC profile is closed on error [kleisauke]
+- buildlut: guard against NaN values [kleisauke]
+- tiffsave: better xyz handling [har-pi]
+- more use of vips_image_decode() [har-pi]
+- quantise: better conversion to rgba [har-pi]
+- jp2kload: support palette images [Socialpranker]
+- buildlut: better final write calculation [har-pi]
+
+5/7/26 8.18.4
+
+- heifload: raise security limits on references [caseywebdev]
+- tiffload: squash out read errors in openin_source_read [aleens-labs]
+- jxlsave: convert CMYK images to sRGB [DarthSim]
+- heifload: fix `-Winteger-overflow` warning on 32-bit platforms [kleisauke]
+- object: guard against non-input arguments [kleisauke]
+- enumtypes: avoid misuse of `G_GNUC_CONST` for GCC 17 compat [kleisauke]
 
 6/6/26 8.18.3
 

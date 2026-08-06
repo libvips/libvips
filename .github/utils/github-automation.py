@@ -17,8 +17,11 @@ from git import Repo  # type: ignore
 import github
 import os
 import re
+import string
 import sys
 from typing import List, Optional
+
+HEX_DIGITS = frozenset(string.hexdigits)
 
 
 def extract_commit_hash(arg: str):
@@ -30,7 +33,11 @@ def extract_commit_hash(arg: str):
     """
     github_prefix = "https://github.com/libvips/libvips/commit/"
     if arg.startswith(github_prefix):
-        return arg[len(github_prefix):]
+        arg = arg[len(github_prefix):]
+
+    if not HEX_DIGITS.issuperset(arg):
+        raise ValueError(f"Invalid commit hash: {arg}")
+
     return arg
 
 
@@ -300,24 +307,30 @@ class BackportWorkflow:
     def execute_command(self) -> bool:
         """
         This function reads lines from STDIN and executes the first command
-        that it finds.  The supported command is:
-        /cherry-pick< ><:> commit0 <commit1> <commit2> <...>
+        that it finds. The supported command is:
+        /cherry-pick commit0 <commit1> <commit2> <...>
         """
         for line in sys.stdin:
             line.rstrip()
-            m = re.search(r"/cherry-pick\s*:? *(.*)", line)
+            m = re.search(r"/cherry-pick +(.+)", line)
             if not m:
                 continue
 
             args = m.group(1)
 
-            arg_list = args.split()
-            commits = list(map(lambda a: extract_commit_hash(a), arg_list))
+            try:
+                arg_list = args.split()
+                commits = list(map(extract_commit_hash, arg_list))
+            except ValueError as e:
+                print(e)
+                return False
+
             return self.create_branch(commits)
 
         print("Do not understand input:")
         print(sys.stdin.readlines())
         return False
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

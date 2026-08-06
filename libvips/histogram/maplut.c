@@ -178,10 +178,15 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 				OUT *tlut = (OUT *) maplut->table[z]; \
 \
 				for (x = 0; x < ne; x += b) { \
-					int n = p[x] * 2; \
+					unsigned int index = p[x]; \
 \
-					q[0] = tlut[n]; \
-					q[1] = tlut[n + 1]; \
+					if (index > maplut->clp) { \
+						index = maplut->clp; \
+						seq->overflow++; \
+					} \
+\
+					q[0] = tlut[index * 2]; \
+					q[1] = tlut[index * 2 + 1]; \
 					q += b * 2; \
 				} \
 			} \
@@ -273,10 +278,15 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 			VipsPel *p = VIPS_REGION_ADDR(ir, le, y); \
 \
 			for (x = 0; x < ne; x++) { \
-				int n = p[x] * 2; \
+				unsigned int index = p[x]; \
 \
-				q[0] = tlut[n]; \
-				q[1] = tlut[n + 1]; \
+				if (index > maplut->clp) { \
+					index = maplut->clp; \
+					seq->overflow++; \
+				} \
+\
+				q[0] = tlut[index * 2]; \
+				q[1] = tlut[index * 2 + 1]; \
 				q += 2; \
 			} \
 		} \
@@ -364,11 +374,16 @@ vips_maplut_start(VipsImage *out, void *a, void *b)
 			VipsPel *p = VIPS_REGION_ADDR(ir, le, y); \
 \
 			for (x = 0; x < np; x++) { \
-				int n = p[x] * 2; \
+				unsigned int n = p[x]; \
+\
+				if (n > maplut->clp) { \
+					n = maplut->clp; \
+					seq->overflow++; \
+				} \
 \
 				for (z = 0; z < maplut->nb; z++) { \
-					q[0] = tlut[z][n]; \
-					q[1] = tlut[z][n + 1]; \
+					q[0] = tlut[z][n * 2]; \
+					q[1] = tlut[z][n * 2 + 1]; \
 					q += 2; \
 				} \
 			} \
