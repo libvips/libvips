@@ -409,6 +409,7 @@ vips_foreign_load_qoi_source_class_init(VipsForeignLoadQoiFileClass *class)
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "qoiload_source";
+	object_class->description = _("load qoi from source");
 	object_class->build = vips_foreign_load_qoi_source_build;
 
 	operation_class->flags = VIPS_OPERATION_NOCACHE;

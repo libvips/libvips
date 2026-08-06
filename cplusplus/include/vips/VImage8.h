@@ -5333,6 +5333,92 @@ public:
 	VImage project(VImage *rows, VOption *options = nullptr) const;
 
 	/**
+	 * Load qoi from file.
+	 *
+	 * **Optional parameters**
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param filename Filename to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage qoiload(const char *filename, VOption *options = nullptr);
+
+	/**
+	 * Load qoi from buffer.
+	 *
+	 * **Optional parameters**
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *   - **revalidate** -- Don't use a cached result for this operation, bool.
+	 *
+	 * @param buffer Buffer to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage qoiload_buffer(VipsBlob *buffer, VOption *options = nullptr);
+
+	/**
+	 * Load qoi from source.
+	 *
+	 * **Optional parameters**
+	 *   - **memory** -- Force open via memory, bool.
+	 *   - **access** -- Required access pattern for this file, VipsAccess.
+	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
+	 *
+	 * @param source Source to load from.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	static VImage qoiload_source(VSource source, VOption *options = nullptr);
+
+	/**
+	 * Save image to file as qoi.
+	 *
+	 * **Optional parameters**
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param filename Filename to save to.
+	 * @param options Set of options.
+	 */
+	void qoisave(const char *filename, VOption *options = nullptr) const;
+
+	/**
+	 * Save image to buffer as qoi.
+	 *
+	 * **Optional parameters**
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param options Set of options.
+	 * @return Buffer to save to.
+	 */
+	VipsBlob *qoisave_buffer(VOption *options = nullptr) const;
+
+	/**
+	 * Save image to target as qoi.
+	 *
+	 * **Optional parameters**
+	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
+	 *   - **background** -- Background value, std::vector<double>.
+	 *   - **page_height** -- Set page height for multipage save, int.
+	 *   - **profile** -- Filename of ICC profile to embed, const char *.
+	 *
+	 * @param target Target to save to.
+	 * @param options Set of options.
+	 */
+	void qoisave_target(VTarget target, VOption *options = nullptr) const;
+
+	/**
 	 * Resample an image with a quadratic transform.
 	 *
 	 * **Optional parameters**

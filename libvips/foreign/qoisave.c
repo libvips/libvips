@@ -261,6 +261,7 @@ vips_foreign_save_qoi_buffer_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "qoisave_buffer";
+	object_class->description = _("save image to buffer as QOI");
 	object_class->build = vips_foreign_save_qoi_buffer_build;
 
 	foreign_class->suffs = vips__qoi_suffs;
@@ -317,6 +318,7 @@ vips_foreign_save_qoi_target_class_init(
 	gobject_class->get_property = vips_object_get_property;
 
 	object_class->nickname = "qoisave_target";
+	object_class->description = _("save image to target as QOI");
 	object_class->build = vips_foreign_save_qoi_target_build;
 
 	foreign_class->suffs = vips__qoi_suffs;

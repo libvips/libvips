@@ -280,6 +280,8 @@ libvips/foreign/pngsave.c
 libvips/foreign/popplerload.c
 libvips/foreign/ppmload.c
 libvips/foreign/ppmsave.c
+libvips/foreign/qoiload.c
+libvips/foreign/qoisave.c
 libvips/foreign/quantise.c
 libvips/foreign/radiance.c
 libvips/foreign/radload.c
