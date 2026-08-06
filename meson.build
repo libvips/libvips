@@ -641,6 +641,7 @@ endforeach
 cfg_var.set('ENABLE_DEPRECATED', get_option('deprecated'))
 cfg_var.set('HAVE_NSGIF', get_option('nsgif'))
 cfg_var.set('HAVE_PPM', get_option('ppm'))
+cfg_var.set('HAVE_QOI', get_option('qoi'))
 cfg_var.set('HAVE_ANALYZE', get_option('analyze'))
 cfg_var.set('HAVE_RADIANCE', get_option('radiance'))
 
@@ -704,6 +705,7 @@ build_summary = {
      'enable RAD load/save': [get_option('radiance')],
      'enable Analyze7 load': [get_option('analyze')],
      'enable PPM load/save': [get_option('ppm')],
+     'enable QOI load/save': [get_option('qoi')],
      'enable GIF load': [get_option('nsgif')],
     },
 }

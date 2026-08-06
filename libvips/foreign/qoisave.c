@@ -50,6 +50,8 @@
 
 #include "pforeign.h"
 
+#ifdef HAVE_QOI
+
 #define QOI_IMPLEMENTATION
 #include "qoi/qoi.h"
 
@@ -330,6 +332,8 @@ static void
 vips_foreign_save_qoi_target_init(VipsForeignSaveQoiTarget *target)
 {
 }
+
+#endif /*HAVE_QOI*/
 
 /**
  * vips_qoisave: (method)

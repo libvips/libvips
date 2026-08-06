@@ -50,6 +50,9 @@
 #include <vips/internal.h>
 
 #include "pforeign.h"
+
+#ifdef HAVE_QOI
+
 #include "qoi/qoi.h"
 
 typedef struct _VipsForeignLoadQoi {
@@ -424,6 +427,8 @@ static void
 vips_foreign_load_qoi_source_init(VipsForeignLoadQoiSource *source)
 {
 }
+
+#endif /*HAVE_QOI*/
 
 /**
  * vips_qoiload:
