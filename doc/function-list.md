@@ -279,6 +279,12 @@ API docs each function links to for more details.
 | `profile` | Find image profiles | [method@Image.profile] |
 | `profile_load` | Load named icc profile | [ctor@Blob.profile_load] |
 | `project` | Find image projections | [method@Image.project] |
+| `qoiload` | Load qoi from file | [ctor@Image.qoiload] |
+| `qoiload_buffer` | Load qoi from buffer | [ctor@Image.qoiload_buffer] |
+| `qoiload_source` | Load qoi from source | [ctor@Image.qoiload_source] |
+| `qoisave` | Save image to file as qoi | [method@Image.qoisave] |
+| `qoisave_buffer` | Save image to buffer as qoi | [method@Image.qoisave_buffer] |
+| `qoisave_target` | Save image to target as qoi | [method@Image.qoisave_target] |
 | `quadratic` | Resample an image with a quadratic transform | [method@Image.quadratic] |
 | `rad2float` | Unpack radiance coding to float rgb | [method@Image.rad2float] |
 | `radload` | Load a radiance image from a file | [ctor@Image.radload] |

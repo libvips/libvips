@@ -816,6 +816,25 @@ int vips_ppmsave_target(VipsImage *in, VipsTarget *target, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API
+int vips_qoiload(const char *filename, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_qoiload_buffer(void *buf, size_t len, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_qoiload_source(VipsSource *source, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_qoisave(VipsImage *in, const char *filename, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_qoisave_buffer(VipsImage *in, void **buf, size_t *len, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
+int vips_qoisave_target(VipsImage *in, VipsTarget *target, ...)
+	G_GNUC_NULL_TERMINATED;
+
+VIPS_API
 int vips_matload(const char *filename, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 

@@ -119,6 +119,8 @@ extern const char *vips__rad_suffs[];
 
 extern const char *vips__jpeg_suffs[];
 
+extern const char *vips__qoi_suffs[];
+
 int vips__jpeg_write_target(VipsImage *in, VipsTarget *target,
 	int Q, const char *profile,
 	gboolean optimize_coding, gboolean progressive,
