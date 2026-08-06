@@ -477,7 +477,7 @@ vips_qoiload_buffer(void *buf, size_t len, VipsImage **out, ...)
 	blob = vips_blob_new(NULL, buf, len);
 
 	va_start(ap, out);
-	result = vips_call_split("load_buffer", ap, blob, out);
+	result = vips_call_split("qoiload_buffer", ap, blob, out);
 	va_end(ap);
 
 	vips_area_unref(VIPS_AREA(blob));
