@@ -230,6 +230,7 @@ cmake \
   -DBUILD_SHARED_LIBS=FALSE \
   -DUHDR_BUILD_EXAMPLES=FALSE \
   -DUHDR_MAX_DIMENSION=65500 \
+  -DUHDR_ENABLE_HEIF=FALSE \
   .
 cmake --build . --target install
 popd
