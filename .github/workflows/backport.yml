@@ -36,7 +36,8 @@ jobs:
     if: >-
       (github.repository == 'libvips/libvips') &&
       !startswith(github.event.comment.body, '<!--IGNORE-->') &&
-      contains(github.event.action == 'opened' && github.event.issue.body || github.event.comment.body, '/cherry-pick ')
+      contains(github.event.comment.body || github.event.issue.body, '/cherry-pick ') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.issue.author_association)
     steps:
       - name: Fetch sources
         uses: actions/checkout@v6
@@ -51,8 +52,8 @@ jobs:
 
       - name: Backport commits
         env:
-          COMMENT_BODY: ${{ github.event.action == 'opened' && github.event.issue.body || github.event.comment.body }}
-          REQUESTED_BY: ${{ (github.event.action == 'opened' && github.event.issue.user.login) || github.event.comment.user.login }}
+          COMMENT_BODY: ${{ github.event.comment.body || github.event.issue.body }}
+          REQUESTED_BY: ${{ github.event.comment.user.login || github.event.issue.user.login }}
         run: |
           printf "%s" "$COMMENT_BODY" |
           ./.github/utils/github-automation.py \
