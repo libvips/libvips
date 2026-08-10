@@ -434,22 +434,37 @@ vips_text_build(VipsObject *object)
 #ifdef HAVE_FONTCONFIG
 	if (text->fontfile &&
 		!g_hash_table_contains(vips_text_fontfiles, text->fontfile)) {
-		/* This can fail if you eg. add the same font from two
-		 * different files. Just warn.
-		 */
+		if (!vips_existsf("%s", text->fontfile)) {
+			vips_error(class->nickname,
+				_("fontfile \"%s\" does not exist"), text->fontfile);
+			g_mutex_unlock(&vips_text_lock);
+			return -1;
+		}
+		if (vips_isdirf("%s", text->fontfile)) {
+			vips_error(class->nickname,
+				_("fontfile \"%s\" is a directory"), text->fontfile);
+			g_mutex_unlock(&vips_text_lock);
+			return -1;
+		}
 		if (!FcConfigAppFontAddFile(NULL,
-				(const FcChar8 *) text->fontfile))
-			g_warning("unable to load fontfile \"%s\"",
+				(const FcChar8 *) text->fontfile)) {
+			g_warning("unable to load fontfile \"%s\": "
+					  "invalid or already registered)",
 				text->fontfile);
-		g_hash_table_insert(vips_text_fontfiles,
-			g_strdup(text->fontfile), NULL);
+			if (!PANGO_IS_FC_FONT_MAP(vips_text_fontmap))
+				g_warning("try setting PANGOCAIRO_BACKEND=fontconfig");
+		}
+		else {
+			g_hash_table_insert(vips_text_fontfiles,
+				g_strdup(text->fontfile), NULL);
 
-		/* We need to inform that pango should invalidate its
-		 * fontconfig cache whenever any changes are made.
-		 */
-		if (PANGO_IS_FC_FONT_MAP(vips_text_fontmap))
-			pango_fc_font_map_cache_clear(
-				PANGO_FC_FONT_MAP(vips_text_fontmap));
+			/* We need to inform that pango should invalidate its
+			 * fontconfig cache whenever any changes are made.
+			 */
+			if (PANGO_IS_FC_FONT_MAP(vips_text_fontmap))
+				pango_fc_font_map_cache_clear(
+					PANGO_FC_FONT_MAP(vips_text_fontmap));
+		}
 	}
 #else  /*!HAVE_FONTCONFIG*/
 	if (text->fontfile)

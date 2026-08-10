@@ -8,6 +8,7 @@ import pytest
 import pyvips
 
 IMAGES = os.path.join(os.path.dirname(__file__), os.pardir, 'images')
+FONTS = os.path.join(os.path.dirname(__file__), os.pardir, 'fonts')
 RAD_FILE = os.path.join(IMAGES, "sample.hdr")
 JPEG_FILE = os.path.join(IMAGES, "sample.jpg")
 JPEG_FILE_XYB = os.path.join(IMAGES, "sample-xyb.jpg")
@@ -71,6 +72,7 @@ MOSAIC_VERTICAL_MARKS = [[388, 44], [364, 346],
                          [527, 42], [503, 959]]
 JP2K_FILE = os.path.join(IMAGES, "world.jp2")
 UHDR_FILE = os.path.join(IMAGES, "ultra-hdr.jpg")
+TYPE_LIGHT_SANS_FONT = os.path.join(FONTS, "TypeLightSans.ttf") # CC0 https://ggbot.itch.io/ggbotnet-fonts-cc0
 
 unsigned_formats = ["uchar", "ushort", "uint"]
 signed_formats = ["char", "short", "int"]
