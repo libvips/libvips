@@ -449,7 +449,7 @@ vips_text_build(VipsObject *object)
 		if (!FcConfigAppFontAddFile(NULL,
 				(const FcChar8 *) text->fontfile)) {
 			g_warning("unable to load fontfile \"%s\": "
-					  "invalid or already registered)",
+					  "invalid or already registered",
 				text->fontfile);
 			if (!PANGO_IS_FC_FONT_MAP(vips_text_fontmap))
 				g_warning("try setting PANGOCAIRO_BACKEND=fontconfig");
