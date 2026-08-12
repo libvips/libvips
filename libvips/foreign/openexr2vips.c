@@ -187,7 +187,7 @@ read_new(const char *filename, VipsImage *out)
 			read->tile_height > 8192 ||
 			read->tile_height <= 0) {
 			vips_error("exr2vips", _("bad tile geometry"));
-			return -1;
+			return NULL;
 		}
 	}
 	else
@@ -199,7 +199,7 @@ read_new(const char *filename, VipsImage *out)
 	if (xmin >= xmax ||
 		ymin >= ymax) {
 		vips_error("exr2vips", _("bad window geometry"));
-		return -1;
+		return NULL;
 	}
 
 	read->window.left = xmin;
@@ -212,7 +212,7 @@ read_new(const char *filename, VipsImage *out)
 		read->window.width >= VIPS_MAX_COORD ||
 		read->window.height >= VIPS_MAX_COORD) {
 		vips_error("exr2vips", _("bad image geometry"));
-		return -1;
+		return NULL;
 	}
 
 	return read;
