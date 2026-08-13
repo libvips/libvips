@@ -144,15 +144,17 @@ read_new(const char *filename, VipsImage *out)
 {
 	Read *read;
 
+	/* we need a context for free.
+	 */
+	g_assert(out);
+
 	if (!(read = VIPS_NEW(NULL, Read)))
 		return NULL;
 	read->filename = vips_strdup(NULL, filename);
 	read->out = out;
 	read->tiles = NULL;
 	read->lines = NULL;
-	if (out)
-		g_signal_connect(out, "close",
-			G_CALLBACK(read_destroy), read);
+	g_signal_connect(out, "close", G_CALLBACK(read_destroy), read);
 
 	/* Try to open tiled first ... if that fails, fall back to scanlines.
 
@@ -163,9 +165,6 @@ read_new(const char *filename, VipsImage *out)
 	if (!(read->tiles = ImfOpenTiledInputFile(read->filename)) &&
 		!(read->lines = ImfOpenInputFile(read->filename))) {
 		get_imf_error();
-		if (!out)
-			read_destroy(NULL, read);
-
 		return NULL;
 	}
 
@@ -192,6 +191,11 @@ read_new(const char *filename, VipsImage *out)
 	}
 	else
 		read->header = ImfInputHeader(read->lines);
+
+	if (!read->header) {
+		get_imf_error();
+		return NULL;
+	}
 
 	int xmin, ymin, xmax, ymax;
 	ImfHeaderDataWindow(read->header, &xmin, &ymin, &xmax, &ymax);
@@ -224,10 +228,16 @@ vips__openexr_istiled(const char *filename)
 	Read *read;
 	gboolean tiled;
 
-	if (!(read = read_new(filename, NULL)))
+	VipsImage *context = vips_image_new();
+
+	if (!(read = read_new(filename, context))) {
+		VIPS_UNREF(context);
+
 		return FALSE;
+	}
 	tiled = read->tiles != NULL;
-	read_destroy(NULL, read);
+
+	VIPS_UNREF(context);
 
 	return tiled;
 }
@@ -336,12 +346,10 @@ vips__openexr_generate(VipsRegion *out,
 			}
 
 #ifdef DEBUG
-			printf("exr2vips: requesting tile %d x %d\n",
-				x / tw, y / th);
+			printf("exr2vips: requesting tile %d x %d\n", x / tw, y / th);
 #endif /*DEBUG*/
 
-			result = ImfTiledInputReadTile(read->tiles,
-				x / tw, y / th, 0, 0);
+			result = ImfTiledInputReadTile(read->tiles, x / tw, y / th, 0, 0);
 
 			if (!result) {
 				get_imf_error();
@@ -364,13 +372,11 @@ vips__openexr_generate(VipsRegion *out,
 			 */
 			for (z = 0; z < hit.height; z++) {
 				ImfRgba *p = imf_buffer +
-					(hit.left - tile.left) +
-					(hit.top - tile.top + z) * tw;
-				float *q = (float *) VIPS_REGION_ADDR(out,
-					hit.left, hit.top + z);
+					(hit.left - tile.left) + (hit.top - tile.top + z) * tw;
+				float *q =
+					(float *) VIPS_REGION_ADDR(out, hit.left, hit.top + z);
 
-				ImfHalfToFloatArray(4 * hit.width,
-					(ImfHalf *) p, q);
+				ImfHalfToFloatArray(4 * hit.width, (ImfHalf *) p, q);
 			}
 		}
 
@@ -432,22 +438,18 @@ vips__openexr_read(const char *filename, VipsImage *out)
 
 		for (y = 0; y < height; y++) {
 			if (!ImfInputSetFrameBuffer(read->lines,
-					imf_buffer - left - (top + y) * width,
-					1, width)) {
+					imf_buffer - left - (top + y) * width, 1, width)) {
 				get_imf_error();
 				return -1;
 			}
-			if (!ImfInputReadPixels(read->lines,
-					top + y, top + y)) {
+			if (!ImfInputReadPixels(read->lines, top + y, top + y)) {
 				get_imf_error();
 				return -1;
 			}
 
-			ImfHalfToFloatArray(4 * width,
-				(ImfHalf *) imf_buffer, vips_buffer);
+			ImfHalfToFloatArray(4 * width, (ImfHalf *) imf_buffer, vips_buffer);
 
-			if (vips_image_write_line(out, y,
-					(VipsPel *) vips_buffer))
+			if (vips_image_write_line(out, y, (VipsPel *) vips_buffer))
 				return -1;
 		}
 
