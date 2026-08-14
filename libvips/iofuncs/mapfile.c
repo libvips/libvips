@@ -77,6 +77,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif /*HAVE_IO_H*/
 
 #include <vips/vips.h>
 #include <vips/internal.h>
@@ -86,7 +89,6 @@
 #define S_ISREG(m) (!!(m & _S_IFREG))
 #endif
 #include <windows.h>
-#include <io.h>
 #endif /*G_OS_WIN32*/
 
 #ifdef _MSC_VER
