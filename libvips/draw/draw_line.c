@@ -22,6 +22,8 @@
  * 	- cleanups!
  * 6/2/14
  * 	- redo as a class
+ * 15/8/26
+ *	- add draw_point user function pointer
  */
 
 /*
@@ -72,6 +74,9 @@ typedef struct _VipsDrawLine {
 	int x2;
 	int y2;
 
+	VipsDrawPoint draw_point;
+	void *client;
+
 } VipsDrawLine;
 
 typedef struct _VipsDrawLineClass {
@@ -82,8 +87,8 @@ typedef struct _VipsDrawLineClass {
 G_DEFINE_TYPE(VipsDrawLine, vips_draw_line, VIPS_TYPE_DRAWINK);
 
 void
-vips__draw_line_direct(VipsImage *image, int x1, int y1, int x2, int y2,
-	VipsDrawPoint draw_point, void *client)
+vips__draw_line_direct(VipsImage *image, VipsPel *ink,
+	int x1, int y1, int x2, int y2, VipsDrawPoint draw_point, void *client)
 {
 	int dx, dy;
 	int x, y, err;
@@ -120,20 +125,20 @@ vips__draw_line_direct(VipsImage *image, int x1, int y1, int x2, int y2,
 	 */
 	if (dx == 0 &&
 		dy == 0)
-		draw_point(image, x, y, client);
+		draw_point(image, ink, x, y, client);
 	/* Special case vertical and horizontal lines for speed.
 	 */
 	else if (dx == 0) {
 		/* Vertical line going down.
 		 */
 		for (; y <= y2; y++)
-			draw_point(image, x, y, client);
+			draw_point(image, ink, x, y, client);
 	}
 	else if (dy == 0) {
 		/* Horizontal line to the right.
 		 */
 		for (; x <= x2; x++)
-			draw_point(image, x, y, client);
+			draw_point(image, ink, x, y, client);
 	}
 	/* Special case diagonal lines.
 	 */
@@ -142,21 +147,21 @@ vips__draw_line_direct(VipsImage *image, int x1, int y1, int x2, int y2,
 		/* Diagonal line going down and right.
 		 */
 		for (; x <= x2; x++, y++)
-			draw_point(image, x, y, client);
+			draw_point(image, ink, x, y, client);
 	}
 	else if (abs(dy) == abs(dx) &&
 		dy < 0) {
 		/* Diagonal line going up and right.
 		 */
 		for (; x <= x2; x++, y--)
-			draw_point(image, x, y, client);
+			draw_point(image, ink, x, y, client);
 	}
 	else if (abs(dy) < abs(dx) &&
 		dy > 0) {
 		/* Between -45 and 0 degrees.
 		 */
 		for (err = 0; x <= x2; x++) {
-			draw_point(image, x, y, client);
+			draw_point(image, ink, x, y, client);
 
 			err += dy;
 			if (err >= dx) {
@@ -170,7 +175,7 @@ vips__draw_line_direct(VipsImage *image, int x1, int y1, int x2, int y2,
 		/* Between 0 and 45 degrees.
 		 */
 		for (err = 0; x <= x2; x++) {
-			draw_point(image, x, y, client);
+			draw_point(image, ink, x, y, client);
 
 			err -= dy;
 			if (err >= dx) {
@@ -184,7 +189,7 @@ vips__draw_line_direct(VipsImage *image, int x1, int y1, int x2, int y2,
 		/* Between -45 and -90 degrees.
 		 */
 		for (err = 0; y <= y2; y++) {
-			draw_point(image, x, y, client);
+			draw_point(image, ink, x, y, client);
 
 			err += dx;
 			if (err >= dy) {
@@ -198,7 +203,7 @@ vips__draw_line_direct(VipsImage *image, int x1, int y1, int x2, int y2,
 		/* Between -90 and -135 degrees.
 		 */
 		for (err = 0; y <= y2; y++) {
-			draw_point(image, x, y, client);
+			draw_point(image, ink, x, y, client);
 
 			err -= dx;
 			if (err >= dy) {
@@ -212,28 +217,24 @@ vips__draw_line_direct(VipsImage *image, int x1, int y1, int x2, int y2,
 }
 
 static void
-vips_draw_line_draw_point_noclip(VipsImage *image, int x, int y, void *client)
+vips_draw_line_draw_point_noclip(VipsImage *image, VipsPel *ink,
+	int x, int y, void *client)
 {
-	VipsPel *ink = (VipsPel *) client;
 	VipsPel *q = VIPS_IMAGE_ADDR(image, x, y);
 	int psize = VIPS_IMAGE_SIZEOF_PEL(image);
 
-	int j;
-
-	/* Faster than memcopy() for n < about 20.
-	 */
-	for (j = 0; j < psize; j++)
-		q[j] = ink[j];
+	VIPS_MEMCPY(q, ink, psize);
 }
 
 static void
-vips_draw_line_draw_point_clip(VipsImage *image, int x, int y, void *client)
+vips_draw_line_draw_point_clip(VipsImage *image, VipsPel *ink,
+	int x, int y, void *client)
 {
 	if (x >= 0 &&
 		x < image->Xsize &&
 		y >= 0 &&
 		y < image->Ysize)
-		vips_draw_line_draw_point_noclip(image, x, y, client);
+		vips_draw_line_draw_point_noclip(image, ink, x, y, client);
 }
 
 static int
@@ -243,12 +244,13 @@ vips_draw_line_build(VipsObject *object)
 	VipsDrawink *drawink = VIPS_DRAWINK(object);
 	VipsDrawLine *line = (VipsDrawLine *) object;
 
-	VipsDrawPoint draw_point;
-
 	if (VIPS_OBJECT_CLASS(vips_draw_line_parent_class)->build(object))
 		return -1;
 
-	if (line->x1 < draw->image->Xsize &&
+	VipsDrawPoint draw_point;
+	if (line->draw_point)
+		draw_point = line->draw_point;
+	else if (line->x1 < draw->image->Xsize &&
 		line->x1 >= 0 &&
 		line->x2 < draw->image->Xsize &&
 		line->x2 >= 0 &&
@@ -260,9 +262,8 @@ vips_draw_line_build(VipsObject *object)
 	else
 		draw_point = vips_draw_line_draw_point_clip;
 
-	vips__draw_line_direct(draw->image,
-		line->x1, line->y1, line->x2, line->y2,
-		draw_point, drawink->pixel_ink);
+	vips__draw_line_direct(draw->image, drawink->pixel_ink,
+		line->x1, line->y1, line->x2, line->y2, draw_point, line->client);
 
 	return 0;
 }
@@ -307,6 +308,19 @@ vips_draw_line_class_init(VipsDrawLineClass *class)
 		VIPS_ARGUMENT_REQUIRED_INPUT,
 		G_STRUCT_OFFSET(VipsDrawLine, y2),
 		-1000000000, 1000000000, 0);
+
+	VIPS_ARG_POINTER(class, "draw-point", 7,
+		_("draw_point"),
+		_("Custom point draw function"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsDrawLine, draw_point));
+
+	VIPS_ARG_POINTER(class, "client", 8,
+		_("client"),
+		_("Client data for the point draw function"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsDrawLine, client));
+
 }
 
 static void
@@ -322,8 +336,7 @@ vips_draw_linev(VipsImage *image,
 	int result;
 
 	area_ink = VIPS_AREA(vips_array_double_new(ink, n));
-	result = vips_call_split("draw_line", ap,
-		image, area_ink, x1, y1, x2, y2);
+	result = vips_call_split("draw_line", ap, image, area_ink, x1, y1, x2, y2);
 	vips_area_unref(area_ink);
 
 	return result;
@@ -344,8 +357,25 @@ vips_draw_linev(VipsImage *image,
  *
  * @ink is an array of double containing values to draw.
  *
+ * Set @draw_point to set a custom point draw function. You can use this to
+ * draw thick lines, for example. The custom draw function should be a C
+ * function of type:
+ *
+ * ```C
+ * typedef void (*VipsDrawPoint)(VipsImage *image, VipsPel *pixel_ink,
+ *     int x, int y, void *client);
+ * ````
+ *
+ * `pixel_ink` is the @ink parameter to this operation converted to an image
+ * pixel value.
+ *
+ * ::: tip "Optional arguments"
+ *     * @draw-point: `pointer`, custom line draw function
+ *     * @client: `pointer`, client data for the point draw function
+ *
  * ::: seealso
- *     [method@Image.draw_line1], [method@Image.draw_circle], [method@Image.draw_mask].
+ *     [method@Image.draw_line1], [method@Image.draw_circle],
+ *     [method@Image.draw_mask].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -374,6 +404,10 @@ vips_draw_line(VipsImage *image,
  * @...: `NULL`-terminated list of optional named arguments
  *
  * As [method@Image.draw_line], but just take a single double for @ink.
+ *
+ * ::: tip "Optional arguments"
+ *     * @draw-point: `pointer`, custom line draw function
+ *     * @client: `pointer`, client data for the point draw function
  *
  * ::: seealso
  *     [method@Image.draw_line].
