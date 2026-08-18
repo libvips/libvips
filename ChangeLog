@@ -44,6 +44,7 @@ date-tbd 8.19.0
 - foreign: trim excess bands to the largest size the saver supports [Socialpranker]
 - update toolchain requirement to C11 [kleisauke]
 - invert: prevent integer overflow for 32-bit signed TIFF input [lovell]
+- affine: verify coordinates before adjusting margin [lovell]
 
 3/8/26 8.18.5
 
