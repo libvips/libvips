@@ -296,7 +296,7 @@ vips_foreign_save_heif_get_cicp(VipsImage *image,
 #ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
 static gboolean
 vips_foreign_save_heif_get_clli(VipsImage *image,
-	heif_content_light_level *content_light_level)
+	struct heif_content_light_level *content_light_level)
 {
 	int max_content_light_level;
 	int max_frame_average_light_level;
@@ -412,7 +412,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 #endif
 
 #ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
-	heif_content_light_level clli;
+	struct heif_content_light_level clli;
 
 	if (vips_foreign_save_heif_get_clli(save->ready, &clli))
 		heif_image_set_content_light_level(heif->img, &clli);
