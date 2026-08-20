@@ -791,7 +791,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	}
 
 #ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
-	heif_content_light_level clli;
+	struct heif_content_light_level clli;
 
 	if (heif_image_handle_get_content_light_level(heif->handle, &clli)) {
 		g_info("heifload: setting CLLI from content light level");
