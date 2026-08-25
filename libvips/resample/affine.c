@@ -279,6 +279,15 @@ vips_affine_gen(VipsRegion *out_region,
 	 *
 	 * Add an extra line along the right and bottom as well, for rounding.
 	 */
+	if (need.left <= -VIPS_MAX_COORD ||
+		need.left >= VIPS_MAX_COORD ||
+		need.top <= -VIPS_MAX_COORD ||
+		need.top >= VIPS_MAX_COORD ||
+		need.width >= VIPS_MAX_COORD ||
+		need.height >= VIPS_MAX_COORD) {
+		vips_error("affine", "%s", _("coordinates out of range"));
+		return -1;
+	}
 	vips_rect_marginadjust(&need, 1);
 
 	/* We need to fetch a larger area for the interpolator.

@@ -44,6 +44,7 @@ date-tbd 8.19.0
 - foreign: trim excess bands to the largest size the saver supports [Socialpranker]
 - update toolchain requirement to C11 [kleisauke]
 - invert: prevent integer overflow for 32-bit signed TIFF input [lovell]
+- affine: verify coordinates before adjusting margin [lovell]
 - draw_line: add draw-point optional parameter [jcupitt]
 - VipsRect: add g_autoptr cleanup
 - convi: sum using 128 bit integer, where available, before clipping [lovell]
