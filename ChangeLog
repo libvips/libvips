@@ -46,6 +46,7 @@ date-tbd 8.19.0
 - invert: prevent integer overflow for 32-bit signed TIFF input [lovell]
 - draw_line: add draw-point optional parameter [jcupitt]
 - VipsRect: add g_autoptr cleanup
+- convi: sum using 128 bit integer, where available, before clipping [lovell]
 
 3/8/26 8.18.5
 
