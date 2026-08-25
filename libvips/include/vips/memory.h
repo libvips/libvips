@@ -86,6 +86,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsTargetCustom, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsSbuf, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsInterpolate, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsOperation, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsRect, g_free);
 
 // FIXME ... need more of these
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(VipsArrayDouble, VipsArrayDouble_unref)
