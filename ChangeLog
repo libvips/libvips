@@ -45,6 +45,8 @@ date-tbd 8.19.0
 - update toolchain requirement to C11 [kleisauke]
 - invert: prevent integer overflow for 32-bit signed TIFF input [lovell]
 - affine: verify coordinates before adjusting margin [lovell]
+- draw_line: add draw-point optional parameter [jcupitt]
+- VipsRect: add g_autoptr cleanup
 
 3/8/26 8.18.5
 

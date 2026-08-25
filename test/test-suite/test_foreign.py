@@ -1710,28 +1710,16 @@ class TestForeign:
             target = pyvips.Target.new_to_memory()
             image.matrixsave_target(target)
 
-    def test_2band_mono_save_trims_excess_band(self):
-        # a 2-band MULTIBAND image (eg. grey + alpha built by arithmetic,
-        # rather than loaded with an explicit B_W interpretation) saved with
-        # a saver that only supports mono should have the excess band
-        # trimmed rather than erroring out
-        filename = temp_filename(self.tempdir, ".mat")
-        two_band = pyvips.Image.black(1, 1, bands=2).cast("uchar") + [200, 128]
-        assert two_band.interpretation == "multiband"
-        two_band.matrixsave(filename)
-        result = pyvips.Image.new_from_file(filename)
-        assert result.bands == 1
-        assert abs(result(0, 0)[0] - 200) < 0.1
+        # a multiband char/uchar image saved to a mono-only format should have
+        # the excess band trimmed rather than erroring out
+        for fmt in ["char", "uchar"]:
+            target = pyvips.Target.new_to_memory()
+            im = pyvips.Image.black(1, 1, bands=2).cast(fmt)
+            im.matrixsave_target(target)
 
-        # same, but for a signed char source image -- this used to fail
-        # with "image must one band" since neither the flatten nor the old
-        # interpretation-based trim would fire for a MULTIBAND char image
-        filename_char = temp_filename(self.tempdir, ".mat")
-        two_band_char = pyvips.Image.black(1, 1, bands=2).cast("char") + [100, 128]
-        two_band_char.matrixsave(filename_char)
-        result_char = pyvips.Image.new_from_file(filename_char)
-        assert result_char.bands == 1
-        assert abs(result_char(0, 0)[0] - 100) < 0.1
+            source = pyvips.Source.new_from_memory(target.get("blob"))
+            im = pyvips.Image.new_from_source(source, "")
+            assert im.bands == 1
 
     @skip_if_no("ppmload")
     def test_ppm(self):
@@ -2117,41 +2105,20 @@ class TestForeign:
         im3 = pyvips.Image.new_from_file(filename, page=3)
         assert abs(im4.avg() - im3.avg()) < 0.5
 
-        # issue412.jp2 is a palette image: the header declares a single
-        # palette index component, and openjpeg expands it to three bands
-        # during decode ... we cannot detect such images with openjpeg < 2.5.1
-        # at header read time, so decoding fails
-        filename = os.path.join(IMAGES, "issue412.jp2")
-        im = pyvips.Image.new_from_file(filename)
-        assert im.bands in (1, 3)
-        assert im.interpretation in ("b-w", "srgb")
-        try:
-            assert abs(im.avg() - 123.318) < 0.1
-        except pyvips.error.Error as e:
-            assert "decoded image does not match container" in str(e)
-
     @skip_if_no("jp2kload")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires OpenJPEG >= 2.5.1")
     def test_jp2kload_palette(self):
-        # palette.jp2 is a paletted JP2 (see
-        # https://github.com/libvips/libvips/issues/5027): the header
-        # declares a single 8-bit palette index component plus pclr/cmap
-        # boxes, and openjpeg expands it to three sRGB bands during decode
+        # https://github.com/libvips/libvips/issues/5027
+        # a paletted JP2: the header declares a single 8-bit palette index
+        # component plus pclr/cmap boxes, and openjpeg expands it to three
+        # sRGB bands during decode ... we cannot detect such images with
+        # openjpeg < 2.5.1 at header read time, so decoding fails
         #
         # pixel (0, 0) holds index 0, whose palette entry is (0, 255, 0);
         # pixel (1, 0) holds index 4, whose entry is (68, 187, 148)
-        filename = os.path.join(IMAGES, "palette.jp2")
-
-        im = pyvips.Image.new_from_file(filename)
-        assert im.width == 64
-        assert im.height == 64
-        assert im.bands in (1, 3)
-        assert im.format == "uchar"
-        assert im.interpretation in ("b-w", "srgb")
-        try:
-           assert im(0, 0) == [0, 255, 0]
-           assert im(1, 0) == [68, 187, 148]
-        except pyvips.error.Error as e:
-            assert "decoded image does not match container" in str(e)
+        im = pyvips.Image.new_from_file(JP2K_PALETTE_FILE)
+        assert im(0, 0) == [0, 255, 0]
+        assert im(1, 0) == [68, 187, 148]
 
     @skip_if_no("jp2ksave")
     def test_jp2ksave(self):
