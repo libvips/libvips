@@ -49,6 +49,11 @@ date-tbd 8.19.0
 - VipsRect: add g_autoptr cleanup
 - convi: sum using 128 bit integer, where available, before clipping [lovell]
 
+25/8/26 8.18.6
+
+- openexrload: more validation [Hygge Halcyon]
+- heifload: tag as UNTRUSTED for libheif before 1.23.2
+
 3/8/26 8.18.5
 
 - maplut: fix possible OOB read with complex images [sage-mode-hunter]

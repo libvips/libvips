@@ -1162,6 +1162,11 @@ vips_foreign_load_heif_class_init(VipsForeignLoadHeifClass *class)
 	 */
 	foreign_class->priority = 150;
 
+#if !LIBHEIF_HAVE_VERSION(1, 23, 2)
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
+#endif
+
 	load_class->get_flags = vips_foreign_load_heif_get_flags;
 	load_class->header = vips_foreign_load_heif_header;
 	load_class->load = vips_foreign_load_heif_load;
