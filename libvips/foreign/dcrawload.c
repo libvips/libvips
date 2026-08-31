@@ -3,6 +3,7 @@
  * 15/8/25 dvdkon
  *	- handle image rotation
  * 15/6/26
+ *	- add raw-preview-data, the largest embedded preview jpeg
  *	- add half_size
  */
 
@@ -280,45 +281,61 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	vips_image_set_int(image, VIPS_META_ORIENTATION, orientation);
 
 #if LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 21)
-	/* Search the available thumbnails for the largest that's smaller than
-	 * the main image and has a known type.
+	/* Search the available thumbnails for a thumbnail and a preview.
+	 *
+	 * thumbnail: largest that's under 1mb
+	 * preview: as large as possible
+	 *
+	 * both must be jpg, have the same number of bands as the main image, be 8
+	 * bit.
 	 */
-	libraw_image_sizes_t *sizes = &raw->raw_processor->sizes;
 	libraw_thumbnail_list_t *thumbs_list = &raw->raw_processor->thumbs_list;
 
 	int thumb_index;
+	int preview_index;
 
 	thumb_index = -1;
+	preview_index = -1;
 	for (int i = 0; i < thumbs_list->thumbcount; i++) {
-		libraw_thumbnail_item_t *best = thumb_index == -1 ?
-			NULL : &thumbs_list->thumblist[thumb_index];
 		libraw_thumbnail_item_t *this = &thumbs_list->thumblist[i];
+
+#ifdef DEBUG
+		printf("dcrawload: thumb %d, width = %d, height = %d, format = %d\n",
+				i, this->twidth, this->twidth, this->tformat);
+#endif /*DEBUG*/
 
 		// only support JPEG thumbnails for now
 		if (this->tformat != LIBRAW_INTERNAL_THUMBNAIL_JPEG)
 			continue;
 
-		// useless thumbnails the same size as the main image are very
-		// common
-		if (this->twidth >= sizes->iwidth &&
-			this->theight >= sizes->iheight)
-			continue;
-
 		// must be 8-bit, must match the main image in bands
 		int bpp = this->tmisc & ((1 << 5) - 1);
-		int bands = this->tmisc >> 5;
+		int this_bands = this->tmisc >> 5 > 1 ? 3 : 1;
+		int image_bands = raw->raw_processor->idata.colors > 1 ? 3 : 1;
 		if (bpp != 8 ||
-			bands != raw->raw_processor->idata.colors)
+			this_bands != image_bands)
 			continue;
 
-		// size must be sane (under 1mb).
-		if (this->tlength > 1024 * 1024)
-			continue;
+		// thumbnails must be under 1mb
+		if (this->tlength < 1024 * 1024) {
+			libraw_thumbnail_item_t *thumb = thumb_index == -1 ?
+				NULL : &thumbs_list->thumblist[thumb_index];
 
-		if (!best ||
-			this->twidth > best->twidth ||
-			this->theight > best->theight)
-			thumb_index = i;
+			if (!thumb ||
+				this->twidth > thumb->twidth ||
+				this->theight > thumb->theight)
+				thumb_index = i;
+		}
+
+		// preview is just the largest
+		libraw_thumbnail_item_t *preview = preview_index == -1 ?
+			NULL : &thumbs_list->thumblist[preview_index];
+
+		if (!preview ||
+			this->twidth > preview->twidth ||
+			this->theight > preview->theight)
+			preview_index = i;
+
 	}
 
 	if (thumb_index != -1) {
@@ -330,10 +347,31 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 			return -1;
 		}
 
+		vips_image_set_blob_copy(image, "jpeg-thumbnail-data",
+			raw->raw_processor->thumbnail.thumb,
+			raw->raw_processor->thumbnail.tlength);
+
+		// old deprecated name for compat
 		vips_image_set_blob_copy(image, "raw-thumbnail-data",
 			raw->raw_processor->thumbnail.thumb,
 			raw->raw_processor->thumbnail.tlength);
 	}
+
+	if (preview_index != -1 &&
+		preview_index != thumb_index) {
+		int result;
+		result = libraw_unpack_thumb_ex(raw->raw_processor, preview_index);
+		if (result != LIBRAW_SUCCESS) {
+			vips_foreign_load_dcraw_error(raw,
+				_("unable to unpack preview"), result);
+			return -1;
+		}
+
+		vips_image_set_blob_copy(image, "jpeg-preview-data",
+			raw->raw_processor->thumbnail.thumb,
+			raw->raw_processor->thumbnail.tlength);
+	}
+
 #endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 21)*/
 
 	return 0;
@@ -716,6 +754,8 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * grayscale image suitable for further processing. It attaches XMP and ICC
  * metadata, if present.
  *
+ * The loader will search for embedded, JPEG-encoded thumbnail and preview
+ * images, attaching them as `jpeg-thumbnail-data` and `jpeg-preview-data`.
  * Set @half_size to decode at half-size. This can be much faster, though of
  * course the image is smaller.
  *
