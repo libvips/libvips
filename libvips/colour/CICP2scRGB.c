@@ -40,6 +40,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcolour.h"
 
@@ -413,14 +414,11 @@ vips_CICP2scRGB_build(VipsObject *object)
 
 	if (cicp->in) {
 
-		if (vips_check_u8or16(class->nickname, cicp->in))
+		if (!vips__image_is_cicp(cicp->in,
+				&colour_primaries, &transfer_characteristics,
+				&matrix_coefficients, &cicp->full_range_flag)) {
 			return -1;
-
-		if (vips_image_get_int(cicp->in, "cicp-colour-primaries", &colour_primaries) ||
-			vips_image_get_int(cicp->in, "cicp-transfer-characteristics", &transfer_characteristics) ||
-			vips_image_get_int(cicp->in, "cicp-matrix-coefficients", &matrix_coefficients) ||
-			vips_image_get_int(cicp->in, "cicp-full-range-flag", &cicp->full_range_flag))
-			return -1;
+		}
 
 		cicp->colour_primaries = colour_primaries;
 		cicp->transfer_characteristics = transfer_characteristics;
@@ -502,27 +500,67 @@ vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
 	colour->bands = 3;
 }
 
-/**
- * vips__image_is_cicp_hdr:
- * @image: image to check
- *
- * Check if @image has CICP metadata indicating an HDR transfer
- * function (PQ or HLG).
- *
- * Returns: %TRUE if the image has HDR CICP metadata.
- */
+/* Read a complete CICP record. A partial or invalid record is ignored. */
+gboolean
+vips__image_get_cicp(VipsImage *image, int *colour_primaries,
+	int *transfer_characteristics, int *matrix_coefficients,
+	int *full_range_flag)
+{
+	if (!vips_image_get_typeof(image, "cicp-colour-primaries") ||
+		!vips_image_get_typeof(image, "cicp-transfer-characteristics") ||
+		!vips_image_get_typeof(image, "cicp-matrix-coefficients") ||
+		!vips_image_get_typeof(image, "cicp-full-range-flag"))
+		return FALSE;
+
+	if (vips_image_get_int(image,
+			"cicp-colour-primaries", colour_primaries) ||
+		vips_image_get_int(image,
+			"cicp-transfer-characteristics", transfer_characteristics) ||
+		vips_image_get_int(image,
+			"cicp-matrix-coefficients", matrix_coefficients) ||
+		vips_image_get_int(image,
+			"cicp-full-range-flag", full_range_flag))
+		return FALSE;
+
+	return *colour_primaries >= 0 && *colour_primaries <= 255 &&
+		*transfer_characteristics >= 0 && *transfer_characteristics <= 255 &&
+		*matrix_coefficients >= 0 && *matrix_coefficients <= 255 &&
+		(*full_range_flag == 0 || *full_range_flag == 1);
+}
+
+/* Check for a decodable CICP record. */
+gboolean
+vips__image_is_cicp(VipsImage *image, int *colour_primaries,
+	int *transfer_characteristics, int *matrix_coefficients,
+	int *full_range_flag)
+{
+	if (image->BandFmt != VIPS_FORMAT_UCHAR &&
+		image->BandFmt != VIPS_FORMAT_USHORT)
+		return FALSE;
+
+	if (!vips__image_get_cicp(image, colour_primaries,
+			transfer_characteristics, matrix_coefficients,
+			full_range_flag))
+		return FALSE;
+
+	return *colour_primaries != VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED &&
+		*transfer_characteristics != VIPS_CICP_TRANSFER_UNSPECIFIED;
+}
+
+/* Check for a decodable CICP record with an HDR transfer function. */
 gboolean
 vips__image_is_cicp_hdr(VipsImage *image)
 {
-	int transfer;
+	int colour_primaries;
+	int transfer_characteristics;
+	int matrix_coefficients;
+	int full_range_flag;
 
-	if (vips_image_get_typeof(image, "cicp-transfer-characteristics") &&
-		!vips_image_get_int(image,
-			"cicp-transfer-characteristics", &transfer))
-		return transfer == VIPS_CICP_TRANSFER_PQ ||
-			transfer == VIPS_CICP_TRANSFER_HLG;
-
-	return FALSE;
+	return vips__image_is_cicp(image, &colour_primaries,
+			&transfer_characteristics, &matrix_coefficients,
+			&full_range_flag) &&
+		(transfer_characteristics == VIPS_CICP_TRANSFER_PQ ||
+			transfer_characteristics == VIPS_CICP_TRANSFER_HLG);
 }
 
 /**

@@ -267,32 +267,6 @@ vips_foreign_save_heif_add_orig_icc(VipsForeignSaveHeif *heif)
 	return 0;
 }
 
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
-static gboolean
-vips_foreign_save_heif_get_cicp(VipsImage *image,
-	int *colour_primaries, int *transfer_characteristics,
-	int *matrix_coefficients, int *full_range_flag)
-{
-	if (!vips_image_get_typeof(image, "cicp-colour-primaries") ||
-		!vips_image_get_typeof(image, "cicp-transfer-characteristics") ||
-		!vips_image_get_typeof(image, "cicp-matrix-coefficients") ||
-		!vips_image_get_typeof(image, "cicp-full-range-flag"))
-		return FALSE;
-
-	if (vips_image_get_int(image, "cicp-colour-primaries",
-			colour_primaries) ||
-		vips_image_get_int(image, "cicp-transfer-characteristics",
-			transfer_characteristics) ||
-		vips_image_get_int(image, "cicp-matrix-coefficients",
-			matrix_coefficients) ||
-		vips_image_get_int(image, "cicp-full-range-flag",
-			full_range_flag))
-		return FALSE;
-
-	return TRUE;
-}
-#endif /*HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
-
 #ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
 static gboolean
 vips_foreign_save_heif_get_clli(VipsImage *image,
@@ -358,9 +332,9 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	int matrix_coefficients;
 	int full_range_flag;
 
-	if (vips_foreign_save_heif_get_cicp(save->ready,
-			&colour_primaries, &transfer_characteristics,
-			&matrix_coefficients, &full_range_flag)) {
+	if (vips__image_get_cicp(save->ready, &colour_primaries,
+		&transfer_characteristics, &matrix_coefficients,
+		&full_range_flag)) {
 
 		if (!(nclx = heif_nclx_color_profile_alloc())) {
 			heif_encoding_options_free(options);

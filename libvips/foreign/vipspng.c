@@ -909,7 +909,7 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 		vips_image_set_int(out,
 			"cicp-full-range-flag", full_range_flag);
 	}
-#endif
+#endif /*PNG_cICP_SUPPORTED*/
 
 	/* Read cLLI chunk and normalize from 0.0001 nit units to whole nits.
 	 */
@@ -925,7 +925,7 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 		vips_image_set_int(out, "clli-max-frame-average-light-level",
 			(int) (((guint64) max_fall + 5000) / 10000));
 	}
-#endif /*PNG_cICP_SUPPORTED*/
+#endif /*PNG_cLLI_SUPPORTED*/
 
 	/* Some libpng warn you to call png_set_interlace_handling(); here, but
 	 * that can actually break interlace on older libpngs.
@@ -1790,7 +1790,7 @@ vips_png_get_clli(VipsImage *in,
 
 	return TRUE;
 }
-#endif
+#endif /*PNG_cLLI_SUPPORTED*/
 
 /* Write a VIPS image to PNG.
  */
@@ -2001,15 +2001,8 @@ write_vips(Write *write,
 	int matrix_coefficients;
 	int full_range_flag;
 
-	if (vips_image_get_typeof(in, "cicp-colour-primaries") &&
-		!vips_image_get_int(in, "cicp-colour-primaries",
-			&colour_primaries) &&
-		!vips_image_get_int(in, "cicp-transfer-characteristics",
-			&transfer_characteristics) &&
-		!vips_image_get_int(in, "cicp-matrix-coefficients",
-			&matrix_coefficients) &&
-		!vips_image_get_int(in, "cicp-full-range-flag",
-			&full_range_flag)) {
+	if (vips__image_get_cicp(in, &colour_primaries, &transfer_characteristics,
+			&matrix_coefficients, &full_range_flag)) {
 		png_set_cICP(write->pPng, write->pInfo,
 			(png_byte) colour_primaries,
 			(png_byte) transfer_characteristics,
@@ -2030,7 +2023,7 @@ write_vips(Write *write,
 	if (vips_png_get_clli(in, &max_cll, &max_fall))
 		png_set_cLLI_fixed(write->pPng, write->pInfo,
 			max_cll, max_fall);
-#endif
+#endif /*PNG_cLLI_SUPPORTED*/
 
 #ifdef HAVE_QUANTIZATION
 	if (palette) {
