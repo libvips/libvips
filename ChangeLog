@@ -49,6 +49,7 @@ date-tbd 8.19.0
 - VipsRect: add g_autoptr cleanup
 - convi: sum using 128 bit integer, where available, before clipping [lovell]
 - colour: do not strip cicp or clli signaling [mertalev]
+- thumbnail: respect output profile and linear mode for cicp images [mertalev]
 
 25/8/26 8.18.6
 

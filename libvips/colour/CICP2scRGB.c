@@ -553,6 +553,22 @@ vips__image_is_cicp_hdr(VipsImage *image)
 			transfer_characteristics == VIPS_CICP_TRANSFER_HLG);
 }
 
+void
+vips__image_remove_cicp(VipsImage *image)
+{
+	vips_image_remove(image, VIPS_META_CICP_COLOUR_PRIMARIES);
+	vips_image_remove(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS);
+	vips_image_remove(image, VIPS_META_CICP_MATRIX_COEFFICIENTS);
+	vips_image_remove(image, VIPS_META_CICP_FULL_RANGE_FLAG);
+}
+
+void
+vips__image_remove_clli(VipsImage *image)
+{
+	vips_image_remove(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL);
+	vips_image_remove(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL);
+}
+
 /**
  * vips_CICP2scRGB: (method)
  * @in: input image

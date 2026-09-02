@@ -46,8 +46,19 @@ def add_clli(im, max_content_light_level=1624,
     return im
 
 
+def set_cicp(im, primaries, transfer, mc=0, full_range=1):
+    for name, value in [("colour-primaries", primaries),
+                        ("transfer-characteristics", transfer),
+                        ("matrix-coefficients", mc),
+                        ("full-range-flag", full_range)]:
+        im.set_type(pyvips.GValue.gint_type, f"cicp-{name}", value)
+
+    return im
+
+
 # CICP transfer characteristic codes
 TRANSFER_BT709 = 1
+TRANSFER_UNSPECIFIED = 2
 TRANSFER_BT470M = 4
 TRANSFER_BT470BG = 5
 TRANSFER_BT601 = 6
@@ -66,6 +77,7 @@ TRANSFER_HLG = 18
 
 # CICP colour primaries codes
 PRIMARIES_BT709 = 1
+PRIMARIES_UNSPECIFIED = 2
 PRIMARIES_BT470M = 4
 PRIMARIES_BT470BG = 5
 PRIMARIES_BT601 = 6
@@ -702,3 +714,86 @@ class TestCICP:
         assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
         assert out.get("clli-max-content-light-level") == 1624
         assert out.get("clli-max-frame-average-light-level") == 182
+
+    @skip_if_no("thumbnail")
+    def test_thumbnail_returns_cicp_to_its_own_encoding(self):
+        im = make_cicp_image(
+            37_888, 22_272, 12_544,
+            primaries=PRIMARIES_BT2020, transfer=TRANSFER_PQ,
+            fmt="ushort", width=32, height=32
+        )
+
+        out = pyvips.Image.thumbnail_image(im, 16)
+
+        assert out.format == "ushort"
+        assert out.interpretation == "rgb16"
+        assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
+        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+
+    @skip_if_no("thumbnail")
+    def test_thumbnail_leaves_cicp_alone_without_linear(self):
+        im = make_cicp_image(
+            37_888, 22_272, 12_544,
+            primaries=PRIMARIES_BT2020, transfer=TRANSFER_PQ,
+            fmt="ushort", width=32, height=32
+        )
+        im = (im + pyvips.Image.xyz(32, 32).bandjoin(0) * 300).cast("ushort")
+        im = set_cicp(im.copy(interpretation="rgb16"),
+                      PRIMARIES_BT2020, TRANSFER_PQ)
+
+        out = pyvips.Image.thumbnail_image(im, 32)
+
+        assert (out - im).abs().max() == 0
+        assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
+
+    @skip_if_no("thumbnail")
+    def test_thumbnail_honours_output_profile_for_cicp(self):
+        im = make_cicp_image(
+            37_888, 22_272, 12_544,
+            primaries=PRIMARIES_BT2020, transfer=TRANSFER_PQ,
+            fmt="ushort", width=32, height=32
+        )
+
+        out = pyvips.Image.thumbnail_image(im, 16, output_profile="srgb")
+
+        assert out.format == "uchar"
+        assert out.interpretation == "srgb"
+        assert out.get_typeof("cicp-colour-primaries") == 0
+        assert out.get_typeof("cicp-transfer-characteristics") == 0
+
+    @skip_if_no("thumbnail")
+    def test_thumbnail_averages_cicp_in_linear_light(self):
+        xy = pyvips.Image.xyz(32, 32)
+        cell = ((xy[0] + xy[1]) % 2) * 30_000
+        im = set_cicp(cell.bandjoin([cell, cell]).cast("ushort")
+                      .copy(interpretation="rgb16"),
+                      PRIMARIES_BT2020, TRANSFER_PQ)
+
+        out = pyvips.Image.thumbnail_image(im, 1, linear=True)
+
+        light = im.CICP2scRGB().avg()
+        expected = ((pyvips.Image.black(1, 1, bands=3) + light)
+                    .copy(interpretation="scrgb")
+                    .scRGB2CICP(colour_primaries=PRIMARIES_BT2020,
+                                transfer_characteristics=TRANSFER_PQ,
+                                depth=16))
+        assert out(0, 0) == expected(0, 0)
+
+    @skip_if_no("thumbnail")
+    @pytest.mark.parametrize("primaries,transfer,peak,fmt,space,options", [
+        (PRIMARIES_BT709, TRANSFER_SRGB, 255, "uchar", "srgb", {}),
+        (PRIMARIES_UNSPECIFIED, TRANSFER_UNSPECIFIED, 40_000, "ushort",
+         "rgb16", {"output_profile": "srgb"}),
+    ], ids=["decodable", "unspecified"])
+    def test_thumbnail_cicp_matches_the_same_image_untagged(
+            self, primaries, transfer, peak, fmt, space, options):
+        xy = pyvips.Image.xyz(32, 32)
+        cell = ((xy[0] + xy[1]) % 2) * peak
+        checks = (cell.bandjoin([cell, cell])
+                  .cast(fmt).copy(interpretation=space))
+        tagged = set_cicp(checks.copy(), primaries, transfer)
+
+        a = pyvips.Image.thumbnail_image(tagged, 16, **options)
+        b = pyvips.Image.thumbnail_image(checks, 16, **options)
+
+        assert (a - b).abs().max() == 0

@@ -765,17 +765,21 @@ vips_thumbnail_build(VipsObject *object)
 	 */
 	preshrunk_page_height = vips_image_get_page_height(in);
 
-	needs_icc_transform = thumbnail->output_profile &&
+	int cicp_primaries;
+	int cicp_transfer;
+	int cicp_matrix;
+	int cicp_range;
+	gboolean is_cicp = vips__image_is_cicp(in, &cicp_primaries,
+		&cicp_transfer, &cicp_matrix, &cicp_range);
+	int source_depth = in->BandFmt == VIPS_FORMAT_USHORT ? 16 : 8;
+
+	gboolean cicp_convert = is_cicp &&
+		(thumbnail->output_profile || thumbnail->linear);
+
+	needs_icc_transform = !is_cicp &&
+		thumbnail->output_profile &&
 		(thumbnail->input_profile ||
 			vips_image_get_typeof(in, VIPS_META_ICC_NAME));
-
-	/* CICP-tagged images should not have their
-	 * colourspace converted - the pixel values are in a specific
-	 * signal encoding that would be destroyed. Resize in the
-	 * original encoding and let the saver preserve the metadata.
-	 */
-	gboolean has_cicp =
-		vips_image_get_typeof(in, VIPS_META_CICP_TRANSFER_CHARACTERISTICS) != 0;
 
 	/* RAD needs special unpacking.
 	 */
@@ -793,10 +797,11 @@ vips_thumbnail_build(VipsObject *object)
 	 * vips_resize().
 	 */
 	have_imported = FALSE;
-	if (has_cicp) {
-		/* Skip colourspace conversion for CICP images.
-		 */
-		g_info("CICP image, skipping colourspace conversion");
+	if (cicp_convert) {
+		g_info("linearising CICP to scRGB");
+		if (vips_CICP2scRGB(in, &t[2], NULL))
+			return -1;
+		in = t[2];
 	}
 	else if (thumbnail->linear) {
 		/* If we are doing colour management (there's an input
@@ -839,9 +844,10 @@ vips_thumbnail_build(VipsObject *object)
 			in = t[2];
 		}
 	}
-	else if (!needs_icc_transform) {
+	else if (!needs_icc_transform && !is_cicp) {
 		/* In non-linear mode, use sRGB or B_W as the processing space
 		 * but only when not transforming with a pair of ICC profiles.
+		 * Converting via interpretation is incorrect for CICP images.
 		 */
 		VipsInterpretation interpretation;
 
@@ -955,11 +961,16 @@ vips_thumbnail_build(VipsObject *object)
 	 *
 	 * We always export as depth 8, to match the no profile case which
 	 * uses vips_colourspace(sRGB|B_W).
-	 *
-	 * Skip for CICP images - their pixel encoding must be preserved.
 	 */
-	if (has_cicp) {
-		g_info("CICP image, skipping colour management");
+	if (cicp_convert && !thumbnail->output_profile) {
+		g_info("re-encoding to CICP");
+		if (vips_scRGB2CICP(in, &t[9],
+				"colour_primaries", cicp_primaries,
+				"transfer_characteristics", cicp_transfer,
+				"depth", source_depth,
+				NULL))
+			return -1;
+		in = t[9];
 	}
 	else if (have_imported) {
 		/* We are in PCS. Export with the output profile, if any (this
@@ -1019,6 +1030,17 @@ vips_thumbnail_build(VipsObject *object)
 		if (vips_colourspace(in, &t[9], interpretation, NULL))
 			return -1;
 		in = t[9];
+	}
+
+	/* The CICP/CLLI metadata is stale after transforming to the output profile.
+	 */
+	if (thumbnail->output_profile) {
+		if (vips_copy(in, &t[4], NULL))
+			return -1;
+		in = t[4];
+
+		vips__image_remove_cicp(in);
+		vips__image_remove_clli(in);
 	}
 
 	if (thumbnail->auto_rotate &&
@@ -1490,7 +1512,11 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * will be transformed to the target colourspace before writing to the
  * output. You can also give an @input_profile which will be used if the
  * input image has no ICC profile, or if the profile embedded in the
- * input image is broken.
+ * input image is broken, or if the input has a valid CICP record.
+ *
+ * A CICP record describes the encoding, so it is what @linear linearises
+ * through. Such images are returned in the encoding and bit depth they arrived
+ * in, unless @output_profile asks for something else.
  *
  * Use @intent to set the rendering intent for any ICC transform. The default
  * is [enum@Vips.Intent.RELATIVE].
