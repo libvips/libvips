@@ -443,16 +443,6 @@ vips_CICP2scRGB_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_CICP2scRGB_parent_class)->build(object))
 		return -1;
 
-	/* Strip CICP and CLLI signalling from the output - it no longer
-	 * describes the pixel values after linearization to scRGB.
-	 */
-	vips_image_remove(colour->out, "cicp-colour-primaries");
-	vips_image_remove(colour->out, "cicp-transfer-characteristics");
-	vips_image_remove(colour->out, "cicp-matrix-coefficients");
-	vips_image_remove(colour->out, "cicp-full-range-flag");
-	vips_image_remove(colour->out, "clli-max-content-light-level");
-	vips_image_remove(colour->out, "clli-max-frame-average-light-level");
-
 	return 0;
 }
 
@@ -570,6 +560,16 @@ vips__image_is_cicp_hdr(VipsImage *image)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * Transform an image with CICP signal to scRGB.
+ *
+ * This operation does not remove CICP metadata from @out. The following tags
+ * should be updated or removed to reflect the conversion:
+ * - [const@META_CICP_COLOUR_PRIMARIES]
+ * - [const@META_CICP_TRANSFER_CHARACTERISTICS]
+ * - [const@META_CICP_MATRIX_COEFFICIENTS]
+ * - [const@META_CICP_FULL_RANGE_FLAG]
+ * 
+ * ::: seealso
+ *     [method@Image.scRGB2CICP].
  *
  * Returns: 0 on success, -1 on error
  */
