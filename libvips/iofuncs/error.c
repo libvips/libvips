@@ -374,6 +374,40 @@ vips_error_exit(const char *fmt, ...)
 }
 
 /**
+ * vips_check_draw:
+ * @domain: the originating domain for the error message
+ * @image: image to check
+ *
+ * Check that the image can be drawn on, that is, that image is fully in memory
+ * and can be written to. If not, set an error message and return non-zero.
+ *
+ * Use [method@Image.copy_draw] to make an image that can be drawn on.
+ *
+ * ::: seealso
+ *     [func@error]. [method@Image.copy_draw].
+ *
+ * Returns: 0 on OK, or -1 on error.
+ */
+int
+vips_check_draw(const char *domain, VipsImage *image)
+{
+	switch (image->dtype) {
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPINRW:
+		// in malloced memory, in memory someone else has malloced, or in a
+		// read-write mmaped file
+		return 0;
+
+	default:
+		break;
+	}
+
+	vips_error(domain, "%s", _("image cannot be drawn on"));
+	return -1;
+}
+
+/**
  * vips_check_uncoded:
  * @domain: the originating domain for the error message
  * @im: image to check

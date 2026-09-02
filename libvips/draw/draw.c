@@ -77,7 +77,7 @@ vips_draw_build(VipsObject *object)
 		return -1;
 
 	if (vips_check_coding_known(class->nickname, draw->image) ||
-		vips_image_inplace(draw->image))
+		vips_check_draw(class->nickname, draw->image))
 		return -1;
 
 	draw->lsize = VIPS_IMAGE_SIZEOF_LINE(draw->image);

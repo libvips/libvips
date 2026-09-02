@@ -68,6 +68,8 @@ void vips_error_exit(const char *fmt, ...)
 	G_GNUC_NORETURN G_GNUC_PRINTF(1, 2);
 
 VIPS_API
+int vips_check_draw(const char *domain, VipsImage *image);
+VIPS_API
 int vips_check_uncoded(const char *domain, VipsImage *im);
 VIPS_API
 int vips_check_coding(const char *domain, VipsImage *im, VipsCoding coding);
