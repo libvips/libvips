@@ -3600,6 +3600,14 @@ vips__image_wio_output(VipsImage *image)
 int
 vips_image_inplace(VipsImage *image)
 {
+#ifdef DEBUG_LEAK
+	/* Warn if inplace is being called on a shared image.
+	 */
+	if (vips__leak &&
+		G_OBJECT(image)->ref_count > 2)
+		printf("vips_image_inplace: shared image %p\n", image);
+#endif /*DEBUG_LEAK*/
+
 	/* Do an vips_image_wio_input(). This will rewind, generate, etc.
 	 */
 	if (vips_image_wio_input(image))

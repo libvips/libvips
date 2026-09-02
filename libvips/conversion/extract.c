@@ -400,8 +400,7 @@ vips_extract_band_build(VipsObject *object)
 		bandary->out_bands = extract->n;
 
 		if ((guint64) extract->band + extract->n > bands) {
-			vips_error(class->nickname,
-				"%s", _("bad extract band"));
+			vips_error(class->nickname, "%s", _("bad extract band"));
 			return -1;
 		}
 
