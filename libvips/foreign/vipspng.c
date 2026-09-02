@@ -901,13 +901,13 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 		&colour_primaries, &transfer_characteristics,
 		&matrix_coefficients, &full_range_flag)) {
 		vips_image_set_int(out,
-			"cicp-colour-primaries", colour_primaries);
+			VIPS_META_CICP_COLOUR_PRIMARIES, colour_primaries);
 		vips_image_set_int(out,
-			"cicp-transfer-characteristics", transfer_characteristics);
+			VIPS_META_CICP_TRANSFER_CHARACTERISTICS, transfer_characteristics);
 		vips_image_set_int(out,
-			"cicp-matrix-coefficients", matrix_coefficients);
+			VIPS_META_CICP_MATRIX_COEFFICIENTS, matrix_coefficients);
 		vips_image_set_int(out,
-			"cicp-full-range-flag", full_range_flag);
+			VIPS_META_CICP_FULL_RANGE_FLAG, full_range_flag);
 	}
 #endif /*PNG_cICP_SUPPORTED*/
 
@@ -920,9 +920,9 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 
 	if (png_get_cLLI_fixed(read->pPng, read->pInfo,
 			&max_cll, &max_fall)) {
-		vips_image_set_int(out, "clli-max-content-light-level",
+		vips_image_set_int(out, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
 			(int) (((guint64) max_cll + 5000) / 10000));
-		vips_image_set_int(out, "clli-max-frame-average-light-level",
+		vips_image_set_int(out, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
 			(int) (((guint64) max_fall + 5000) / 10000));
 	}
 #endif /*PNG_cLLI_SUPPORTED*/
@@ -1765,13 +1765,13 @@ vips_png_get_clli(VipsImage *in,
 	guint64 scaled_max_cll;
 	guint64 scaled_max_fall;
 
-	if (!vips_image_get_typeof(in, "clli-max-content-light-level") ||
-		!vips_image_get_typeof(in, "clli-max-frame-average-light-level"))
+	if (!vips_image_get_typeof(in, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL) ||
+		!vips_image_get_typeof(in, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL))
 		return FALSE;
 
-	if (vips_image_get_int(in, "clli-max-content-light-level",
+	if (vips_image_get_int(in, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
 			&max_content_light_level) ||
-		vips_image_get_int(in, "clli-max-frame-average-light-level",
+		vips_image_get_int(in, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
 			&max_frame_average_light_level))
 		return FALSE;
 

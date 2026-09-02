@@ -275,13 +275,13 @@ vips_foreign_save_heif_get_clli(VipsImage *image,
 	int max_content_light_level;
 	int max_frame_average_light_level;
 
-	if (!vips_image_get_typeof(image, "clli-max-content-light-level") ||
-		!vips_image_get_typeof(image, "clli-max-frame-average-light-level"))
+	if (!vips_image_get_typeof(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL) ||
+		!vips_image_get_typeof(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL))
 		return FALSE;
 
-	if (vips_image_get_int(image, "clli-max-content-light-level",
+	if (vips_image_get_int(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
 			&max_content_light_level) ||
-		vips_image_get_int(image, "clli-max-frame-average-light-level",
+		vips_image_get_int(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
 			&max_frame_average_light_level))
 		return FALSE;
 
@@ -611,9 +611,9 @@ vips_foreign_save_heif_build(VipsObject *object)
 	 * subsampling is only valid for YCbCr.
 	 */
 	int matrix_coefficients;
-	if (vips_image_get_typeof(save->ready, "cicp-matrix-coefficients") &&
+	if (vips_image_get_typeof(save->ready, VIPS_META_CICP_MATRIX_COEFFICIENTS) &&
 		!vips_image_get_int(save->ready,
-			"cicp-matrix-coefficients", &matrix_coefficients) &&
+			VIPS_META_CICP_MATRIX_COEFFICIENTS, &matrix_coefficients) &&
 		matrix_coefficients == VIPS_CICP_MATRIX_RGB)
 		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
 

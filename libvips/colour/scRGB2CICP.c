@@ -433,12 +433,12 @@ vips_scRGB2CICP_build(VipsObject *object)
 		return -1;
 
 	vips_image_set_int(colour->out,
-		"cicp-colour-primaries", cicp->colour_primaries);
+		VIPS_META_CICP_COLOUR_PRIMARIES, cicp->colour_primaries);
 	vips_image_set_int(colour->out,
-		"cicp-transfer-characteristics", cicp->transfer_characteristics);
+		VIPS_META_CICP_TRANSFER_CHARACTERISTICS, cicp->transfer_characteristics);
 	vips_image_set_int(colour->out,
-		"cicp-matrix-coefficients", cicp->matrix_coefficients);
-	vips_image_set_int(colour->out, "cicp-full-range-flag", 1);
+		VIPS_META_CICP_MATRIX_COEFFICIENTS, cicp->matrix_coefficients);
+	vips_image_set_int(colour->out, VIPS_META_CICP_FULL_RANGE_FLAG, 1);
 
 	return 0;
 }

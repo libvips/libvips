@@ -496,20 +496,20 @@ vips__image_get_cicp(VipsImage *image, int *colour_primaries,
 	int *transfer_characteristics, int *matrix_coefficients,
 	int *full_range_flag)
 {
-	if (!vips_image_get_typeof(image, "cicp-colour-primaries") ||
-		!vips_image_get_typeof(image, "cicp-transfer-characteristics") ||
-		!vips_image_get_typeof(image, "cicp-matrix-coefficients") ||
-		!vips_image_get_typeof(image, "cicp-full-range-flag"))
+	if (!vips_image_get_typeof(image, VIPS_META_CICP_COLOUR_PRIMARIES) ||
+		!vips_image_get_typeof(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS) ||
+		!vips_image_get_typeof(image, VIPS_META_CICP_MATRIX_COEFFICIENTS) ||
+		!vips_image_get_typeof(image, VIPS_META_CICP_FULL_RANGE_FLAG))
 		return FALSE;
 
 	if (vips_image_get_int(image,
-			"cicp-colour-primaries", colour_primaries) ||
+			VIPS_META_CICP_COLOUR_PRIMARIES, colour_primaries) ||
 		vips_image_get_int(image,
-			"cicp-transfer-characteristics", transfer_characteristics) ||
+			VIPS_META_CICP_TRANSFER_CHARACTERISTICS, transfer_characteristics) ||
 		vips_image_get_int(image,
-			"cicp-matrix-coefficients", matrix_coefficients) ||
+			VIPS_META_CICP_MATRIX_COEFFICIENTS, matrix_coefficients) ||
 		vips_image_get_int(image,
-			"cicp-full-range-flag", full_range_flag))
+			VIPS_META_CICP_FULL_RANGE_FLAG, full_range_flag))
 		return FALSE;
 
 	return *colour_primaries >= 0 && *colour_primaries <= 255 &&
