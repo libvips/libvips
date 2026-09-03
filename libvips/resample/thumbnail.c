@@ -775,7 +775,7 @@ vips_thumbnail_build(VipsObject *object)
 	 * original encoding and let the saver preserve the metadata.
 	 */
 	gboolean has_cicp =
-		vips_image_get_typeof(in, "cicp-transfer-characteristics") != 0;
+		vips_image_get_typeof(in, VIPS_META_CICP_TRANSFER_CHARACTERISTICS) != 0;
 
 	/* RAD needs special unpacking.
 	 */

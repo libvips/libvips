@@ -242,18 +242,15 @@ class TestCICP:
         assert result.interpretation == "scrgb"
         assert result.bands == 3
 
-    def test_CICP2scRGB_strips_cicp_clli_metadata(self):
+    def test_CICP2scRGB_keeps_cicp_clli_metadata(self):
         im = make_cicp_image(128, 128, 128,
                              primaries=PRIMARIES_BT2020,
                              transfer=TRANSFER_PQ)
         add_clli(im)
         result = im.CICP2scRGB()
-        assert result.get_typeof("cicp-colour-primaries") == 0
-        assert result.get_typeof("cicp-transfer-characteristics") == 0
-        assert result.get_typeof("cicp-matrix-coefficients") == 0
-        assert result.get_typeof("cicp-full-range-flag") == 0
-        assert result.get_typeof("clli-max-content-light-level") == 0
-        assert result.get_typeof("clli-max-frame-average-light-level") == 0
+        assert result.get("cicp-colour-primaries") == PRIMARIES_BT2020
+        assert result.get("cicp-transfer-characteristics") == TRANSFER_PQ
+        assert result.get("clli-max-content-light-level") == 1624
 
     @skip_if_no("scRGB2CICP")
     @pytest.mark.parametrize("transfer,name,cases,tolerance", TRANSFER_CASES,
@@ -332,7 +329,7 @@ class TestCICP:
         assert result.get("cicp-full-range-flag") == 1
 
     @skip_if_no("scRGB2CICP")
-    def test_scRGB2CICP_strips_clli_metadata(self):
+    def test_scRGB2CICP_keeps_clli_metadata(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
              + [0.5, 0.5, 0.5]
         add_clli(im)
@@ -340,8 +337,8 @@ class TestCICP:
                                transfer_characteristics=TRANSFER_PQ)
         assert result.get("cicp-colour-primaries") == PRIMARIES_BT2020
         assert result.get("cicp-transfer-characteristics") == TRANSFER_PQ
-        assert result.get_typeof("clli-max-content-light-level") == 0
-        assert result.get_typeof("clli-max-frame-average-light-level") == 0
+        assert result.get("clli-max-content-light-level") == 1624
+        assert result.get("clli-max-frame-average-light-level") == 182
 
     @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_ushort_roundtrip(self):

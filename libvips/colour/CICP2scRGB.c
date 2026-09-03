@@ -40,6 +40,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcolour.h"
 
@@ -413,14 +414,11 @@ vips_CICP2scRGB_build(VipsObject *object)
 
 	if (cicp->in) {
 
-		if (vips_check_u8or16(class->nickname, cicp->in))
+		if (!vips__image_is_cicp(cicp->in,
+				&colour_primaries, &transfer_characteristics,
+				&matrix_coefficients, &cicp->full_range_flag)) {
 			return -1;
-
-		if (vips_image_get_int(cicp->in, "cicp-colour-primaries", &colour_primaries) ||
-			vips_image_get_int(cicp->in, "cicp-transfer-characteristics", &transfer_characteristics) ||
-			vips_image_get_int(cicp->in, "cicp-matrix-coefficients", &matrix_coefficients) ||
-			vips_image_get_int(cicp->in, "cicp-full-range-flag", &cicp->full_range_flag))
-			return -1;
+		}
 
 		cicp->colour_primaries = colour_primaries;
 		cicp->transfer_characteristics = transfer_characteristics;
@@ -444,16 +442,6 @@ vips_CICP2scRGB_build(VipsObject *object)
 
 	if (VIPS_OBJECT_CLASS(vips_CICP2scRGB_parent_class)->build(object))
 		return -1;
-
-	/* Strip CICP and CLLI signalling from the output - it no longer
-	 * describes the pixel values after linearization to scRGB.
-	 */
-	vips_image_remove(colour->out, "cicp-colour-primaries");
-	vips_image_remove(colour->out, "cicp-transfer-characteristics");
-	vips_image_remove(colour->out, "cicp-matrix-coefficients");
-	vips_image_remove(colour->out, "cicp-full-range-flag");
-	vips_image_remove(colour->out, "clli-max-content-light-level");
-	vips_image_remove(colour->out, "clli-max-frame-average-light-level");
 
 	return 0;
 }
@@ -502,27 +490,67 @@ vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
 	colour->bands = 3;
 }
 
-/**
- * vips__image_is_cicp_hdr:
- * @image: image to check
- *
- * Check if @image has CICP metadata indicating an HDR transfer
- * function (PQ or HLG).
- *
- * Returns: %TRUE if the image has HDR CICP metadata.
- */
+/* Read a complete CICP record. A partial or invalid record is ignored. */
+gboolean
+vips__image_get_cicp(VipsImage *image, int *colour_primaries,
+	int *transfer_characteristics, int *matrix_coefficients,
+	int *full_range_flag)
+{
+	if (!vips_image_get_typeof(image, VIPS_META_CICP_COLOUR_PRIMARIES) ||
+		!vips_image_get_typeof(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS) ||
+		!vips_image_get_typeof(image, VIPS_META_CICP_MATRIX_COEFFICIENTS) ||
+		!vips_image_get_typeof(image, VIPS_META_CICP_FULL_RANGE_FLAG))
+		return FALSE;
+
+	if (vips_image_get_int(image,
+			VIPS_META_CICP_COLOUR_PRIMARIES, colour_primaries) ||
+		vips_image_get_int(image,
+			VIPS_META_CICP_TRANSFER_CHARACTERISTICS, transfer_characteristics) ||
+		vips_image_get_int(image,
+			VIPS_META_CICP_MATRIX_COEFFICIENTS, matrix_coefficients) ||
+		vips_image_get_int(image,
+			VIPS_META_CICP_FULL_RANGE_FLAG, full_range_flag))
+		return FALSE;
+
+	return *colour_primaries >= 0 && *colour_primaries <= 255 &&
+		*transfer_characteristics >= 0 && *transfer_characteristics <= 255 &&
+		*matrix_coefficients >= 0 && *matrix_coefficients <= 255 &&
+		(*full_range_flag == 0 || *full_range_flag == 1);
+}
+
+/* Check for a decodable CICP record. */
+gboolean
+vips__image_is_cicp(VipsImage *image, int *colour_primaries,
+	int *transfer_characteristics, int *matrix_coefficients,
+	int *full_range_flag)
+{
+	if (image->BandFmt != VIPS_FORMAT_UCHAR &&
+		image->BandFmt != VIPS_FORMAT_USHORT)
+		return FALSE;
+
+	if (!vips__image_get_cicp(image, colour_primaries,
+			transfer_characteristics, matrix_coefficients,
+			full_range_flag))
+		return FALSE;
+
+	return *colour_primaries != VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED &&
+		*transfer_characteristics != VIPS_CICP_TRANSFER_UNSPECIFIED;
+}
+
+/* Check for a decodable CICP record with an HDR transfer function. */
 gboolean
 vips__image_is_cicp_hdr(VipsImage *image)
 {
-	int transfer;
+	int colour_primaries;
+	int transfer_characteristics;
+	int matrix_coefficients;
+	int full_range_flag;
 
-	if (vips_image_get_typeof(image, "cicp-transfer-characteristics") &&
-		!vips_image_get_int(image,
-			"cicp-transfer-characteristics", &transfer))
-		return transfer == VIPS_CICP_TRANSFER_PQ ||
-			transfer == VIPS_CICP_TRANSFER_HLG;
-
-	return FALSE;
+	return vips__image_is_cicp(image, &colour_primaries,
+			&transfer_characteristics, &matrix_coefficients,
+			&full_range_flag) &&
+		(transfer_characteristics == VIPS_CICP_TRANSFER_PQ ||
+			transfer_characteristics == VIPS_CICP_TRANSFER_HLG);
 }
 
 /**
@@ -532,6 +560,16 @@ vips__image_is_cicp_hdr(VipsImage *image)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * Transform an image with CICP signal to scRGB.
+ *
+ * This operation does not remove CICP metadata from @out. The following tags
+ * should be updated or removed to reflect the conversion:
+ * - [const@META_CICP_COLOUR_PRIMARIES]
+ * - [const@META_CICP_TRANSFER_CHARACTERISTICS]
+ * - [const@META_CICP_MATRIX_COEFFICIENTS]
+ * - [const@META_CICP_FULL_RANGE_FLAG]
+ * 
+ * ::: seealso
+ *     [method@Image.scRGB2CICP].
  *
  * Returns: 0 on success, -1 on error
  */
