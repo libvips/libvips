@@ -113,10 +113,6 @@ typedef struct _VipsForeignLoadSvg {
 	 */
 	double scale;
 
-	/* The total scale factor we render with.
-	 */
-	double total_scale;
-
 	/* Allow SVGs of any size.
 	 */
 	gboolean unlimited;
@@ -183,11 +179,9 @@ vips_utf8_strcasestr(const char *haystack_start, const char *needle_start,
 			 * might end half-way through a utf-8 character, so we
 			 * need to be careful not to run off the end.
 			 */
-			gunichar a =
-				g_utf8_get_char_validated(haystack_char,
-					haystack_start + len_bytes - haystack);
-			gunichar b =
-				g_utf8_get_char_validated(needle_char, -1);
+			gunichar a = g_utf8_get_char_validated(haystack_char,
+				haystack_start + len_bytes - haystack);
+			gunichar b = g_utf8_get_char_validated(needle_char, -1);
 
 			/* Invalid utf8?
 			 *
@@ -215,9 +209,8 @@ vips_utf8_strcasestr(const char *haystack_start, const char *needle_start,
 			if (g_unichar_tolower(a) != g_unichar_tolower(b))
 				break;
 
-			haystack_char =
-				g_utf8_find_next_char(haystack_char,
-					haystack_start + len_bytes);
+			haystack_char = g_utf8_find_next_char(haystack_char,
+				haystack_start + len_bytes);
 
 			/* End of haystack. There can't be a complete needle
 			 * anywhere.
@@ -227,8 +220,7 @@ vips_utf8_strcasestr(const char *haystack_start, const char *needle_start,
 
 			/* needle_char will never be NULL.
 			 */
-			needle_char =
-				g_utf8_find_next_char(needle_char, NULL);
+			needle_char = g_utf8_find_next_char(needle_char, NULL);
 		}
 
 		if (i == needle_len)
@@ -359,10 +351,7 @@ vips_foreign_load_svg_build(VipsObject *object)
 	}
 #endif /*HAVE_CAIRO_FORMAT_RGBA128F*/
 
-	svg->total_scale = svg->scale * svg->dpi / 72.0;
-
-	return VIPS_OBJECT_CLASS(vips_foreign_load_svg_parent_class)
-		->build(object);
+	return VIPS_OBJECT_CLASS(vips_foreign_load_svg_parent_class)->build(object);
 }
 
 static VipsForeignFlags
@@ -398,35 +387,43 @@ svg_css_length_to_pixels(RsvgLength length, double dpi)
 		/* Already a pixel value.
 		 */
 		break;
+
 	case RSVG_UNIT_EM:
 		value *= font_size;
 		break;
+
 	case RSVG_UNIT_EX:
 		value *= font_size / 2.0;
 		break;
+
 	case RSVG_UNIT_IN:
 		value *= dpi;
 		break;
+
 	case RSVG_UNIT_CM:
 		/* 2.54 cm in an inch.
 		 */
 		value = dpi * value / 2.54;
 		break;
+
 	case RSVG_UNIT_MM:
 		/* 25.4 mm in an inch.
 		 */
 		value = dpi * value / 25.4;
 		break;
+
 	case RSVG_UNIT_PT:
 		/* 72 points in an inch.
 		 */
 		value = dpi * value / 72;
 		break;
+
 	case RSVG_UNIT_PC:
 		/* 6 picas in an inch.
 		 */
 		value = dpi * value / 6;
 		break;
+
 	default:
 		/* Probably RSVG_UNIT_PERCENT. We can't know what the
 		 * pixel value is without more information.
@@ -442,15 +439,12 @@ static int
 vips_foreign_load_svg_get_natural_size(VipsForeignLoadSvg *svg,
 	double *out_width, double *out_height)
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(svg);
-
 	double width;
 	double height;
 
 #if LIBRSVG_CHECK_VERSION(2, 52, 0)
 
-	if (!rsvg_handle_get_intrinsic_size_in_pixels(svg->page,
-			&width, &height)) {
+	if (!rsvg_handle_get_intrinsic_size_in_pixels(svg->page, &width, &height)) {
 		RsvgRectangle viewbox;
 
 		/* Try the intrinsic dimensions first.
@@ -475,17 +469,15 @@ vips_foreign_load_svg_get_natural_size(VipsForeignLoadSvg *svg,
 		has_width = width > 0.0;
 		has_height = height > 0.0;
 
-		if (has_width && has_height) {
+		if (has_width && has_height)
 			/* Success! Taking the viewbox into account is not
 			 * needed.
 			 */
-		}
-		else if (has_width && has_viewbox) {
+			;
+		else if (has_width && has_viewbox)
 			height = width * viewbox.height / viewbox.width;
-		}
-		else if (has_height && has_viewbox) {
+		else if (has_height && has_viewbox)
 			width = height * viewbox.width / viewbox.height;
-		}
 		else if (has_viewbox) {
 			width = viewbox.width;
 			height = viewbox.height;
@@ -535,14 +527,6 @@ vips_foreign_load_svg_get_natural_size(VipsForeignLoadSvg *svg,
 
 #endif /*LIBRSVG_CHECK_VERSION(2, 52, 0)*/
 
-	/* width or height below 0.5 can't be rounded to 1.
-	 */
-	if (width < 0.5 ||
-		height < 0.5) {
-		vips_error(class->nickname, "%s", _("bad dimensions"));
-		return -1;
-	}
-
 	*out_width = width;
 	*out_height = height;
 
@@ -562,11 +546,11 @@ vips_foreign_load_svg_get_scaled_size(VipsForeignLoadSvg *svg,
 	if (vips_foreign_load_svg_get_natural_size(svg, &width, &height))
 		return -1;
 
-	width *= svg->total_scale;
-	height *= svg->total_scale;
-
-	*out_width = VIPS_ROUND_UINT(width);
-	*out_height = VIPS_ROUND_UINT(height);
+	/* librsvg does not scale pixel units by DPI, so we must also scale with
+	 * our scale param.
+	 */
+	*out_width = ceil(width * svg->scale);
+	*out_height = ceil(height * svg->scale);
 
 	return 0;
 }
@@ -624,10 +608,6 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	const VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(svg);
 	const VipsRect *r = &out_region->valid;
 
-	cairo_surface_t *surface;
-	cairo_t *cr;
-	int y;
-
 #ifdef DEBUG
 	printf("vips_foreign_load_svg_generate: %p \n     "
 		   "left = %d, top = %d, width = %d, height = %d\n",
@@ -646,12 +626,12 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	cairo_format_t format = CAIRO_FORMAT_ARGB32;
 #endif /*HAVE_CAIRO_FORMAT_RGBA128F*/
 
-	surface = cairo_image_surface_create_for_data(
+	cairo_surface_t *surface = cairo_image_surface_create_for_data(
 		VIPS_REGION_ADDR(out_region, r->left, r->top),
 		format,
 		r->width, r->height,
 		VIPS_REGION_LSKIP(out_region));
-	cr = cairo_create(surface);
+	cairo_t *cr = cairo_create(surface);
 	cairo_surface_destroy(surface);
 
 #if LIBRSVG_CHECK_VERSION(2, 48, 0)
@@ -697,15 +677,12 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 			vips_g_error(&error);
 			return -1;
 		}
-
-		cairo_destroy(cr);
 	}
 
 #else /*!LIBRSVG_CHECK_VERSION(2, 46, 0)*/
 
-	cairo_scale(cr, svg->total_scale, svg->total_scale);
-	cairo_translate(cr, -r->left / svg->total_scale,
-		-r->top / svg->total_scale);
+	cairo_scale(cr, svg->scale, svg->scale);
+	cairo_translate(cr, -r->left / svg->scale, -r->top / svg->scale);
 
 	if (!rsvg_handle_render_cairo(svg->page, cr)) {
 		cairo_destroy(cr);
@@ -715,14 +692,15 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 		return -1;
 	}
 
+#endif /*LIBRSVG_CHECK_VERSION(2, 46, 0)*/
+
 	cairo_destroy(cr);
 
-#endif /*LIBRSVG_CHECK_VERSION(2, 46, 0)*/
 	if (svg->high_bitdepth) {
 		/* Assuming the surface is RGBA128F and the data is premultiplied.
-		   Loop through each row and unpremultiply the float data.
-		*/
-		for (y = 0; y < r->height; y++)
+		 * Loop through each row and unpremultiply the float data.
+		 */
+		for (int y = 0; y < r->height; y++)
 			vips__premultiplied_rgb1282scrgba(
 				(float *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
 				r->width);
@@ -730,7 +708,7 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 	else {
 		/* Cairo makes pre-multipled BRGA -- we must byteswap and unpremultiply.
 		 */
-		for (y = 0; y < r->height; y++)
+		for (int y = 0; y < r->height; y++)
 			vips__premultiplied_bgra2rgba(
 				(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y),
 				r->width);
@@ -858,10 +836,9 @@ gboolean
 vips_foreign_load_svg_source_is_a_source(VipsSource *source)
 {
 	unsigned char *data;
-	gint64 bytes_read;
-
-	if ((bytes_read = vips_source_sniff_at_most(source,
-			 &data, SVG_HEADER_SIZE)) <= 0)
+	gint64 bytes_read =
+		vips_source_sniff_at_most(source, &data, SVG_HEADER_SIZE);
+	if (bytes_read <= 0)
 		return FALSE;
 
 	return vips_foreign_load_svg_is_a(data, bytes_read);
@@ -871,8 +848,7 @@ static int
 vips_foreign_load_svg_source_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
-	VipsForeignLoadSvgSource *source =
-		(VipsForeignLoadSvgSource *) load;
+	VipsForeignLoadSvgSource *source = (VipsForeignLoadSvgSource *) load;
 	RsvgHandleFlags flags = svg->unlimited ? RSVG_HANDLE_FLAG_UNLIMITED : 0;
 
 	GError *error = NULL;
@@ -883,8 +859,9 @@ vips_foreign_load_svg_source_header(VipsForeignLoad *load)
 		return -1;
 
 	gstream = vips_g_input_stream_new_from_source(source->source);
-	if (!(svg->page = rsvg_handle_new_from_stream_sync(
-			  gstream, NULL, flags, NULL, &error))) {
+	svg->page = rsvg_handle_new_from_stream_sync(gstream,
+		NULL, flags, NULL, &error);
+	if (!svg->page) {
 		g_object_unref(gstream);
 		vips_g_error(&error);
 		return -1;
@@ -958,10 +935,9 @@ static gboolean
 vips_foreign_load_svg_file_is_a(const char *filename)
 {
 	unsigned char buf[SVG_HEADER_SIZE];
-	guint64 bytes;
+	guint64 bytes = vips__get_bytes(filename, buf, SVG_HEADER_SIZE);
 
-	return (bytes = vips__get_bytes(filename, buf,
-				SVG_HEADER_SIZE)) > 0 &&
+	return bytes > 0 &&
 		vips_foreign_load_svg_is_a(buf, bytes);
 }
 
@@ -977,8 +953,8 @@ vips_foreign_load_svg_file_header(VipsForeignLoad *load)
 	GFile *gfile;
 
 	gfile = g_file_new_for_path(file->filename);
-	if (!(svg->page = rsvg_handle_new_from_gfile_sync(
-			  gfile, flags, NULL, &error))) {
+	svg->page = rsvg_handle_new_from_gfile_sync(gfile, flags, NULL, &error);
+	if (!svg->page) {
 		g_object_unref(gfile);
 		vips_g_error(&error);
 		return -1;
@@ -1051,8 +1027,7 @@ static int
 vips_foreign_load_svg_buffer_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadSvg *svg = (VipsForeignLoadSvg *) load;
-	VipsForeignLoadSvgBuffer *buffer =
-		(VipsForeignLoadSvgBuffer *) load;
+	VipsForeignLoadSvgBuffer *buffer = (VipsForeignLoadSvgBuffer *) load;
 	RsvgHandleFlags flags = svg->unlimited ? RSVG_HANDLE_FLAG_UNLIMITED : 0;
 
 	GError *error = NULL;
@@ -1061,8 +1036,9 @@ vips_foreign_load_svg_buffer_header(VipsForeignLoad *load)
 
 	gstream = g_memory_input_stream_new_from_data(
 		buffer->buf->data, buffer->buf->length, NULL);
-	if (!(svg->page = rsvg_handle_new_from_stream_sync(
-			  gstream, NULL, flags, NULL, &error))) {
+	svg->page = rsvg_handle_new_from_stream_sync(gstream,
+		NULL, flags, NULL, &error);
+	if (!svg->page) {
 		g_object_unref(gstream);
 		vips_g_error(&error);
 		return -1;
