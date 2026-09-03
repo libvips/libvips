@@ -433,14 +433,12 @@ vips_scRGB2CICP_build(VipsObject *object)
 		return -1;
 
 	vips_image_set_int(colour->out,
-		"cicp-colour-primaries", cicp->colour_primaries);
+		VIPS_META_CICP_COLOUR_PRIMARIES, cicp->colour_primaries);
 	vips_image_set_int(colour->out,
-		"cicp-transfer-characteristics", cicp->transfer_characteristics);
+		VIPS_META_CICP_TRANSFER_CHARACTERISTICS, cicp->transfer_characteristics);
 	vips_image_set_int(colour->out,
-		"cicp-matrix-coefficients", cicp->matrix_coefficients);
-	vips_image_set_int(colour->out, "cicp-full-range-flag", 1);
-	vips_image_remove(colour->out, "clli-max-content-light-level");
-	vips_image_remove(colour->out, "clli-max-frame-average-light-level");
+		VIPS_META_CICP_MATRIX_COEFFICIENTS, cicp->matrix_coefficients);
+	vips_image_set_int(colour->out, VIPS_META_CICP_FULL_RANGE_FLAG, 1);
 
 	return 0;
 }
@@ -513,6 +511,17 @@ vips_scRGB2CICP_init(VipsscRGB2CICP *cicp)
  *
  * Currently only @matrix_coefficients %VIPS_CICP_MATRIX_RGB and
  * full-range output is supported.
+ *
+ * The target CICP encoding is written to @out as the following tags:
+ * - [const@META_CICP_COLOUR_PRIMARIES]
+ * - [const@META_CICP_TRANSFER_CHARACTERISTICS]
+ * - [const@META_CICP_MATRIX_COEFFICIENTS]
+ * - [const@META_CICP_FULL_RANGE_FLAG]
+ *
+ * If luminance has changed (such as from clipping), you may also recalculate or
+ * remove the following tags, as they might no longer be accurate:
+ * - [const@META_CLLI_MAX_CONTENT_LIGHT_LEVEL]
+ * - [const@META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL]
  *
  * ::: tip "Optional arguments"
  *     * @colour_primaries: #VipsCICPColourPrimaries, target primaries (default %VIPS_CICP_COLOUR_PRIMARIES_BT709)

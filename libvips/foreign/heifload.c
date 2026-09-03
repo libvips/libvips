@@ -780,13 +780,13 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 
 		g_info("heifload: setting CICP from nclx");
 
-		vips_image_set_int(out, "cicp-colour-primaries",
+		vips_image_set_int(out, VIPS_META_CICP_COLOUR_PRIMARIES,
 			colour_primaries);
-		vips_image_set_int(out, "cicp-transfer-characteristics",
+		vips_image_set_int(out, VIPS_META_CICP_TRANSFER_CHARACTERISTICS,
 			transfer_characteristics);
-		vips_image_set_int(out, "cicp-matrix-coefficients",
+		vips_image_set_int(out, VIPS_META_CICP_MATRIX_COEFFICIENTS,
 			matrix_coefficients);
-		vips_image_set_int(out, "cicp-full-range-flag",
+		vips_image_set_int(out, VIPS_META_CICP_FULL_RANGE_FLAG,
 			full_range_flag);
 	}
 
@@ -796,9 +796,9 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	if (heif_image_handle_get_content_light_level(heif->handle, &clli)) {
 		g_info("heifload: setting CLLI from content light level");
 
-		vips_image_set_int(out, "clli-max-content-light-level",
+		vips_image_set_int(out, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
 			clli.max_content_light_level);
-		vips_image_set_int(out, "clli-max-frame-average-light-level",
+		vips_image_set_int(out, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
 			clli.max_pic_average_light_level);
 	}
 #endif
