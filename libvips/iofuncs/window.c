@@ -187,9 +187,10 @@ trace_mmap_usage(void)
 static int
 vips_getpagesize(void)
 {
+	static gsize initialized = 0;
 	static int pagesize = 0;
 
-	if (!pagesize) {
+	if (g_once_init_enter(&initialized)) {
 #ifdef G_OS_WIN32
 		SYSTEM_INFO si;
 
@@ -199,6 +200,8 @@ vips_getpagesize(void)
 #else  /*!G_OS_WIN32*/
 		pagesize = sysconf(_SC_PAGESIZE);
 #endif /*G_OS_WIN32*/
+
+		g_once_init_leave(&initialized, TRUE);
 	}
 
 	return pagesize;

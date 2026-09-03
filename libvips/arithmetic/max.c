@@ -319,7 +319,7 @@ vips_max_stop(VipsStatistic *statistic, void *seq)
 				m = values->value[0]; \
 \
 				if (m >= UPPER) { \
-					statistic->stop = TRUE; \
+					g_atomic_int_set(stop, TRUE); \
 					break; \
 				} \
 			} \
@@ -381,7 +381,7 @@ vips_max_stop(VipsStatistic *statistic, void *seq)
  */
 static int
 vips_max_scan(VipsStatistic *statistic, void *seq,
-	int x, int y, void *in, int n)
+	int x, int y, void *in, int n, gboolean *stop)
 {
 	VipsValues *values = (VipsValues *) seq;
 	const int bands = vips_image_get_bands(statistic->ready);

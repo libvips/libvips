@@ -270,11 +270,11 @@ typedef struct _VipsThreadpool {
 
 	/* Set this to abort evaluation early with an error.
 	 */
-	gboolean error;
+	gboolean error; // (atomic)
 
 	/* Ask threads to exit, either set by allocate, or on free.
 	 */
-	gboolean stop;
+	gboolean stop; // (atomic)
 } VipsThreadpool;
 
 static int
@@ -310,7 +310,7 @@ vips_worker_work_unit(VipsWorker *worker)
 
 	/* Has another worker signaled stop while we've been waiting?
 	 */
-	if (pool->stop) {
+	if (g_atomic_int_get(&pool->stop)) {
 		g_mutex_unlock(&pool->allocate_lock);
 		return -1;
 	}
@@ -332,14 +332,14 @@ vips_worker_work_unit(VipsWorker *worker)
 	}
 
 	if (vips_worker_allocate(worker)) {
-		pool->error = TRUE;
+		g_atomic_int_set(&pool->error, TRUE);
 		g_mutex_unlock(&pool->allocate_lock);
 		return -1;
 	}
 
 	/* Have we just signalled stop?
 	 */
-	if (pool->stop) {
+	if (g_atomic_int_get(&pool->stop)) {
 		g_mutex_unlock(&pool->allocate_lock);
 		return -1;
 	}
@@ -360,7 +360,7 @@ vips_worker_work_unit(VipsWorker *worker)
 	/* Process a work unit.
 	 */
 	if (pool->work(worker->state, pool->a)) {
-		pool->error = TRUE;
+		g_atomic_int_set(&pool->error, TRUE);
 		return -1;
 	}
 
@@ -467,7 +467,7 @@ vips_threadpool_wait(VipsThreadpool *pool)
 {
 	/* Wait for them all to exit.
 	 */
-	pool->stop = TRUE;
+	g_atomic_int_set(&pool->stop, TRUE);
 	vips_semaphore_downn(&pool->n_workers, 0);
 }
 
@@ -660,12 +660,12 @@ vips_threadpool_run(VipsImage *im,
 
 		if (progress &&
 			progress(pool->a)) {
-			pool->error = TRUE;
+			g_atomic_int_set(&pool->error, TRUE);
 			break;
 		}
 
-		if (pool->stop ||
-			pool->error)
+		if (g_atomic_int_get(&pool->stop) ||
+			g_atomic_int_get(&pool->error))
 			break;
 
 		n_waiting = g_atomic_int_get(&pool->n_waiting);

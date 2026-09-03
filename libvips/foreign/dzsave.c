@@ -1121,7 +1121,7 @@ image_strip_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	 * tiles across.
 	 */
 	if (strip->x / dz->tile_step >= level->tiles_across) {
-		*stop = TRUE;
+		g_atomic_int_set(stop, TRUE);
 #ifdef DEBUG_VERBOSE
 		printf("image_strip_allocate: done\n");
 #endif /*DEBUG_VERBOSE*/
@@ -1525,7 +1525,7 @@ direct_strip_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	 * tiles across.
 	 */
 	if (strip->x / dz->tile_step >= level->tiles_across) {
-		*stop = TRUE;
+		g_atomic_int_set(stop, TRUE);
 #ifdef DEBUG_VERBOSE
 		printf("direct_strip_allocate: done\n");
 #endif /*DEBUG_VERBOSE*/

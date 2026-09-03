@@ -131,7 +131,7 @@ vips_hough_stop(VipsStatistic *statistic, void *seq)
 
 static int
 vips_hough_scan(VipsStatistic *statistic,
-	void *seq, int x, int y, void *in, int n)
+	void *seq, int x, int y, void *in, int n, gboolean *stop)
 {
 	VipsHough *hough = (VipsHough *) statistic;
 	VipsHoughClass *class = VIPS_HOUGH_GET_CLASS(hough);
