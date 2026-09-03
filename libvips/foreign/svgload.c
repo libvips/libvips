@@ -113,10 +113,6 @@ typedef struct _VipsForeignLoadSvg {
 	 */
 	double scale;
 
-	/* The total scale factor we render with.
-	 */
-	double total_scale;
-
 	/* Allow SVGs of any size.
 	 */
 	gboolean unlimited;
@@ -359,8 +355,6 @@ vips_foreign_load_svg_build(VipsObject *object)
 	}
 #endif /*HAVE_CAIRO_FORMAT_RGBA128F*/
 
-	svg->total_scale = svg->scale * svg->dpi / 72.0;
-
 	return VIPS_OBJECT_CLASS(vips_foreign_load_svg_parent_class)
 		->build(object);
 }
@@ -562,11 +556,11 @@ vips_foreign_load_svg_get_scaled_size(VipsForeignLoadSvg *svg,
 	if (vips_foreign_load_svg_get_natural_size(svg, &width, &height))
 		return -1;
 
-	width *= svg->total_scale;
-	height *= svg->total_scale;
-
-	*out_width = VIPS_ROUND_UINT(width);
-	*out_height = VIPS_ROUND_UINT(height);
+	/* librsvg does not scale pixel units by DPI, so we must also scale with
+	 * our scale param.
+	 */
+	*out_width = ceil(width * svg->scale);
+	*out_height = ceil(height * svg->scale);
 
 	return 0;
 }
@@ -703,9 +697,8 @@ vips_foreign_load_svg_generate(VipsRegion *out_region,
 
 #else /*!LIBRSVG_CHECK_VERSION(2, 46, 0)*/
 
-	cairo_scale(cr, svg->total_scale, svg->total_scale);
-	cairo_translate(cr, -r->left / svg->total_scale,
-		-r->top / svg->total_scale);
+	cairo_scale(cr, svg->scale, svg->scale);
+	cairo_translate(cr, -r->left / svg->scale, -r->top / svg->scale);
 
 	if (!rsvg_handle_render_cairo(svg->page, cr)) {
 		cairo_destroy(cr);
