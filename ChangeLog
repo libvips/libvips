@@ -2,6 +2,7 @@
 
 - openexrload: more validation [Hygge Halcyon]
 - heifload: tag as UNTRUSTED for libheif before 1.23.2
+- pdfiumload: check for buffer too small [Ada Logics]
 
 3/8/26 8.18.5
 
