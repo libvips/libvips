@@ -143,7 +143,7 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 	}
 
 	if (xlow < INT_MIN ||
-		xhigh > INT_MAX)
+		xhigh > INT_MAX) {
 		vips_error(class->nickname, "%s", _("x range too large"));
 		return -1;
 	}
