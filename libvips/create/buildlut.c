@@ -142,15 +142,14 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 			xhigh = v;
 	}
 
-	if (xlow < INT_MIN || xhigh > INT_MAX ||
-		xhigh - xlow + 1 > VIPS_MAX_COORD) {
+	if (xlow < INT_MIN ||
+		xhigh > INT_MAX)
 		vips_error(class->nickname, "%s", _("x range too large"));
 		return -1;
 	}
-
 	lut->xlow = (int) xlow;
-	lut->lut_size = (int) (xhigh - xlow + 1);
 
+	lut->lut_size = (int) (xhigh - xlow + 1);
 	if (lut->lut_size < 1 ||
 		lut->lut_size > 100000 ||
 		lut->mat->Xsize > 512) {
