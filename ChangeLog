@@ -1,6 +1,7 @@
 tbd 8.18.7
 
 - tiffload: copy colormaps on page load [Ada Logics]
+- hough_line: improve bounds check [Ada Logics]
 
 25/8/26 8.18.6
 
