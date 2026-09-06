@@ -61,7 +61,7 @@ The next steps are:
 
 ## Security Announcements
 
-Annoucements will be made on:
+Announcements will be made on:
 
 https://github.com/libvips/libvips/security/advisories
 
