@@ -58,7 +58,7 @@ https://github.com/libvips/libvips/security/advisories
 
 ## Acknowledgements
 
-This text was based with thanks on the [glib security
+This text was based with thanks on the [GLib security
 policy](https://gitlab.gnome.org/GNOME/glib/-/blob/main/SECURITY.md).
 
 
