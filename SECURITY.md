@@ -48,7 +48,7 @@ The next steps are:
  * The fix is submitted to the public repository.
  * A new release containing the fix is issued.
  * After a period of grace to allow downstream updates, an announcement will
-   be made on the [public channels listed below](#Security-Announcements).
+   be made on the [public channels listed below](#security-announcements).
 
 ## Security Announcements
 
