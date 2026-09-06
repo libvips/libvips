@@ -28,8 +28,8 @@ Please do not submit reports for untrusted loaders.
 
 If you think you've identified a security issue in a project under the
 libvips umbrella, please **do not** report the issue publicly via a mailing
-list, gitter, a public issue on the github issue tracker, a merge request,
-or any other public venue.
+list, Gitter, a issue on the GitHub issue tracker, a pull request, or any
+other public venue.
 
 Instead, [report via email to the
 maintainers](https://github.com/google/oss-fuzz/blob/4f9a1fec7341ed2549652724c2c71ff01f01b817/projects/libvips/project.yaml#L4-L7).
