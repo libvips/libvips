@@ -45,26 +45,29 @@ your confidential issue as patch files.
 Confidential issues are only visible to the reporter and the libvips
 maintainers.
 
-As the next steps are then:
+The next steps are:
 
  * The report is triaged.
  * Code is audited to find any potential similar problems.
  * If it is determined, in consultation with the submitter, that a CVE is
-   required, we will obtain one.
+   required, we will obtain one. Please do not request your CVE ID, we will
+   not recognise it.
  * The fix is prepared for the development branch, and for the most recent
    stable branch.
  * The fix is submitted to the public repository.
- * On the day the issue and fix are made public, an announcement is made on the
-   [public channels listed below](#Security-Announcements).
  * A new release containing the fix is issued.
+ * After a period of grace to allow downstream updates, an announcement will
+   be made on the [public channels listed below](#Security-Announcements).
 
 ## Security Announcements
 
-(FIXME ... add an announcement mechanism)
+Annoucements will be made on:
+
+https://github.com/libvips/libvips/security/advisories
 
 ## Acknowledgements
 
-This text was partially based with thanks on the [glib security
+This text was based with thanks on the [glib security
 policy](https://raw.githubusercontent.com/GNOME/glib/refs/heads/main/SECURITY.md).
 
 
