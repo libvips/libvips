@@ -31,19 +31,10 @@ libvips umbrella, please **do not** report the issue publicly via a mailing
 list, gitter, a public issue on the github issue tracker, a merge request,
 or any other public venue.
 
-Instead, report a [*confidential* issue in the github issue
-tracker](https://github.com/libvips/libvips/-/issues/new?issue[confidential]=1),
-with the “This issue is confidential” box checked. Please include as many
-details as possible, including a minimal reproducible example of the issue,
-and an idea of how exploitable/severe you think it is.
-
-(FIXME ... we need to set this up and test it)
-
-If you have patches which fix the security issue, please attach them to
-your confidential issue as patch files.
-
-Confidential issues are only visible to the reporter and the libvips
-maintainers.
+Instead, [report via email to the
+maintainers](https://github.com/google/oss-fuzz/blob/4f9a1fec7341ed2549652724c2c71ff01f01b817/projects/libvips/project.yaml#L4-L7).
+Please include as many details as possible, including a minimal reproducible
+example of the issue, and an idea of how exploitable/severe you think it is.
 
 The next steps are:
 
@@ -61,7 +52,7 @@ The next steps are:
 
 ## Security Announcements
 
-Annoucements will be made on:
+Announcements will be made on:
 
 https://github.com/libvips/libvips/security/advisories
 
