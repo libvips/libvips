@@ -15,7 +15,7 @@ libvips contains loaders for many file formats whose load libraries are
 not well tested. These loaders are tagged as `untrusted` in libvips, you
 can check the status of a loader with, for example:
 
-```
+```console
 $ vips -l matload
     VipsForeignLoadMat (matload), load mat from file (.mat),
         priority=0, untrusted, is_a, get_flags, get_flags_filename,
