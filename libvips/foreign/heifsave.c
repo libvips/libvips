@@ -267,32 +267,6 @@ vips_foreign_save_heif_add_orig_icc(VipsForeignSaveHeif *heif)
 	return 0;
 }
 
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
-static gboolean
-vips_foreign_save_heif_get_cicp(VipsImage *image,
-	int *colour_primaries, int *transfer_characteristics,
-	int *matrix_coefficients, int *full_range_flag)
-{
-	if (!vips_image_get_typeof(image, "cicp-colour-primaries") ||
-		!vips_image_get_typeof(image, "cicp-transfer-characteristics") ||
-		!vips_image_get_typeof(image, "cicp-matrix-coefficients") ||
-		!vips_image_get_typeof(image, "cicp-full-range-flag"))
-		return FALSE;
-
-	if (vips_image_get_int(image, "cicp-colour-primaries",
-			colour_primaries) ||
-		vips_image_get_int(image, "cicp-transfer-characteristics",
-			transfer_characteristics) ||
-		vips_image_get_int(image, "cicp-matrix-coefficients",
-			matrix_coefficients) ||
-		vips_image_get_int(image, "cicp-full-range-flag",
-			full_range_flag))
-		return FALSE;
-
-	return TRUE;
-}
-#endif /*HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
-
 #ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
 static gboolean
 vips_foreign_save_heif_get_clli(VipsImage *image,
@@ -301,13 +275,13 @@ vips_foreign_save_heif_get_clli(VipsImage *image,
 	int max_content_light_level;
 	int max_frame_average_light_level;
 
-	if (!vips_image_get_typeof(image, "clli-max-content-light-level") ||
-		!vips_image_get_typeof(image, "clli-max-frame-average-light-level"))
+	if (!vips_image_get_typeof(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL) ||
+		!vips_image_get_typeof(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL))
 		return FALSE;
 
-	if (vips_image_get_int(image, "clli-max-content-light-level",
+	if (vips_image_get_int(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
 			&max_content_light_level) ||
-		vips_image_get_int(image, "clli-max-frame-average-light-level",
+		vips_image_get_int(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
 			&max_frame_average_light_level))
 		return FALSE;
 
@@ -358,9 +332,9 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	int matrix_coefficients;
 	int full_range_flag;
 
-	if (vips_foreign_save_heif_get_cicp(save->ready,
-			&colour_primaries, &transfer_characteristics,
-			&matrix_coefficients, &full_range_flag)) {
+	if (vips__image_get_cicp(save->ready, &colour_primaries,
+		&transfer_characteristics, &matrix_coefficients,
+		&full_range_flag)) {
 
 		if (!(nclx = heif_nclx_color_profile_alloc())) {
 			heif_encoding_options_free(options);
@@ -637,9 +611,9 @@ vips_foreign_save_heif_build(VipsObject *object)
 	 * subsampling is only valid for YCbCr.
 	 */
 	int matrix_coefficients;
-	if (vips_image_get_typeof(save->ready, "cicp-matrix-coefficients") &&
+	if (vips_image_get_typeof(save->ready, VIPS_META_CICP_MATRIX_COEFFICIENTS) &&
 		!vips_image_get_int(save->ready,
-			"cicp-matrix-coefficients", &matrix_coefficients) &&
+			VIPS_META_CICP_MATRIX_COEFFICIENTS, &matrix_coefficients) &&
 		matrix_coefficients == VIPS_CICP_MATRIX_RGB)
 		heif->subsample_mode = VIPS_FOREIGN_SUBSAMPLE_OFF;
 
