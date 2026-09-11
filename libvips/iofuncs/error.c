@@ -397,14 +397,19 @@ vips_check_draw(const char *domain, VipsImage *image)
 	case VIPS_IMAGE_MMAPINRW:
 		// in malloced memory, in memory someone else has malloced, or in a
 		// read-write mmaped file
-		return 0;
+		break;
 
 	default:
-		break;
+		vips_error(domain, "%s", _("image cannot be drawn on"));
+		return -1;
 	}
 
-	vips_error(domain, "%s", _("image cannot be drawn on"));
-	return -1;
+	if (!image->data) {
+		vips_error(domain, "%s", _("image has no data"));
+		return -1;
+	}
+
+	return 0;
 }
 
 /**

@@ -207,7 +207,7 @@ vips_hough_circle_vote(VipsHough *hough, VipsImage *accumulator, int x, int y)
 		else
 			draw_scanline = vips_hough_circle_vote_endpoints_clip;
 
-		vips__draw_circle_direct(accumulator,
+		(void) vips__draw_circle_direct(accumulator,
 			cx, cy, r, draw_scanline, &rb);
 	}
 }

@@ -188,7 +188,7 @@ vips_fill_nearest_grow_seed(VipsFillNearest *nearest, Seed *seed)
 	else
 		circle.nearest_pixel = vips_fill_nearest_pixel_clip;
 
-	vips__draw_circle_direct(nearest->distance,
+	(void) vips__draw_circle_direct(nearest->distance,
 		seed->x, seed->y, seed->r,
 		vips_fill_nearest_scanline, &circle);
 
