@@ -1604,23 +1604,32 @@ vips__foreign_convert_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* There might be more than one alpha ... drop any remaining excess
-	 * bands.
+	/* Drop any remaining excess bands, eg. we might have more than one
+	 * alpha.
 	 */
 	if (in->Coding == VIPS_CODING_NONE) {
-		// use a sanity-checked interpretation
-		VipsInterpretation interpretation = vips_image_guess_interpretation(in);
-
+		// the smallest number of colour bands the saver can handle that
+		// is no larger than the number of bands in the image
 		int bands;
-
-		bands = vips_interpretation_bands(interpretation);
 		if (saveable == VIPS_FOREIGN_SAVEABLE_ANY)
 			bands = in->Bands;
-		else if (saveable & VIPS_FOREIGN_SAVEABLE_ALPHA)
+		else if ((saveable & VIPS_FOREIGN_SAVEABLE_CMYK) &&
+			in->Bands >= 4)
+			bands = 4;
+		else if ((saveable & VIPS_FOREIGN_SAVEABLE_RGB) &&
+			in->Bands >= 3)
+			bands = 3;
+		else if ((saveable & VIPS_FOREIGN_SAVEABLE_MONO) &&
+			in->Bands >= 1)
+			bands = 1;
+		else
+			bands = in->Bands;
+
+		if ((saveable & VIPS_FOREIGN_SAVEABLE_ALPHA) &&
+			in->Bands > bands)
 			bands += 1;
 
-		if (bands > 0 &&
-			in->Bands > bands) {
+		if (in->Bands > bands) {
 			if (vips_extract_band(in, &out, 0,
 					"n", bands,
 					NULL)) {
@@ -2984,6 +2993,13 @@ vips_foreign_operation_init(void)
 	extern GType vips_foreign_save_pfm_target_get_type(void);
 	extern GType vips_foreign_save_pnm_target_get_type(void);
 
+	extern GType vips_foreign_load_qoi_file_get_type(void);
+	extern GType vips_foreign_load_qoi_buffer_get_type(void);
+	extern GType vips_foreign_load_qoi_source_get_type(void);
+	extern GType vips_foreign_save_qoi_file_get_type(void);
+	extern GType vips_foreign_save_qoi_buffer_get_type(void);
+	extern GType vips_foreign_save_qoi_target_get_type(void);
+
 	extern GType vips_foreign_load_png_file_get_type(void);
 	extern GType vips_foreign_load_png_buffer_get_type(void);
 	extern GType vips_foreign_load_png_source_get_type(void);
@@ -3158,6 +3174,15 @@ vips_foreign_operation_init(void)
 	vips_foreign_save_pfm_target_get_type();
 	vips_foreign_save_pnm_target_get_type();
 #endif /*HAVE_PPM*/
+
+#ifdef HAVE_QOI
+	vips_foreign_load_qoi_file_get_type();
+	vips_foreign_load_qoi_buffer_get_type();
+	vips_foreign_load_qoi_source_get_type();
+	vips_foreign_save_qoi_file_get_type();
+	vips_foreign_save_qoi_buffer_get_type();
+	vips_foreign_save_qoi_target_get_type();
+#endif /*HAVE_QOI*/
 
 #ifdef HAVE_RADIANCE
 	vips_foreign_load_rad_file_get_type();

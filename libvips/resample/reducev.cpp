@@ -404,47 +404,6 @@ vips_reducev_compile(VipsReducev *reducev)
 }
 #endif /*HAVE_ORC*/
 
-/* You'd think this would vectorise, but gcc hates mixed types in nested loops
- * :-(
- */
-template <typename T, T max_value>
-static void inline reducev_unsigned_int_tab(VipsReducev *reducev,
-	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const short *restrict cy)
-{
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reducev->n_point;
-	const int l1 = lskip / sizeof(T);
-
-	for (int z = 0; z < ne; z++) {
-		typename LongT<T>::type sum;
-
-		sum = reduce_sum<T>(in + z, l1, cy, n);
-		sum = unsigned_fixed_round(sum);
-		out[z] = VIPS_CLIP(0, sum, max_value);
-	}
-}
-
-template <typename T, int min_value, int max_value>
-static void inline reducev_signed_int_tab(VipsReducev *reducev,
-	VipsPel *pout, const VipsPel *pin,
-	const int ne, const int lskip, const short *restrict cy)
-{
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reducev->n_point;
-	const int l1 = lskip / sizeof(T);
-
-	for (int z = 0; z < ne; z++) {
-		typename LongT<T>::type sum;
-
-		sum = reduce_sum<T>(in + z, l1, cy, n);
-		sum = signed_fixed_round(sum);
-		out[z] = VIPS_CLIP(min_value, sum, max_value);
-	}
-}
-
 /* Reduce a block of "width" output elements at once (width <= REDUCEV_BLOCK),
  * with the tap loop outermost and the element loop innermost. Consecutive
  * output elements are contiguous within each input line, so the inner
@@ -452,27 +411,75 @@ static void inline reducev_signed_int_tab(VipsReducev *reducev,
  * dependency chains for better instruction-level parallelism (ILP). Each
  * element sums its taps in the same order as reduce_sum(), so the result is
  * identical.
+ *
+ * finalize() maps one accumulated sum to an output pixel: identity for the
+ * float formats, fixed-point round + clip for the integer formats.
  */
 static constexpr int REDUCEV_BLOCK = 32; // multiple of common SIMD widths, tuned
 
-template <typename T, typename CT, typename IT = typename LongT<T>::type>
+template <typename T, typename CT, typename Finalize,
+	typename IT = typename LongT<T>::type>
 static void inline reducev_block(T *restrict out, const T *restrict in,
-	int width, int lskip, const CT *restrict cy, int n)
+	int width, int lskip, const CT *restrict cy, int n, Finalize finalize)
 {
 	const int l1 = lskip / sizeof(T);
 
 	g_assert(width <= REDUCEV_BLOCK);
-	IT sum[REDUCEV_BLOCK] = { 0.0 };
+	IT sum[REDUCEV_BLOCK] = {};
 
 	for (int i = 0; i < n; i++) {
-		const CT c = cy[i];
+		const IT c = cy[i];
 		const T *restrict p = in + i * l1;
 		for (int k = 0; k < width; k++)
 			sum[k] += c * p[k];
 	}
 
 	for (int k = 0; k < width; k++)
-		out[k] = sum[k];
+		out[k] = finalize(sum[k]);
+}
+
+/* Reduce a whole line of "ne" output elements, one REDUCEV_BLOCK at a time.
+ * finalize() is forwarded to reducev_block() and applied to each output.
+ */
+template <typename T, typename CT, typename Finalize>
+static void inline reducev_line(T *restrict out, const T *restrict in,
+	int ne, int lskip, const CT *restrict cy, int n, Finalize finalize)
+{
+	int z;
+
+	/* do as many complete blocks as we can
+	 */
+	for (z = 0; z + REDUCEV_BLOCK <= ne; z += REDUCEV_BLOCK)
+		reducev_block<T>(out + z, in + z, REDUCEV_BLOCK, lskip, cy, n,
+			finalize);
+
+	/* do the tail (fewer than a full block)
+	 */
+	reducev_block<T>(out + z, in + z, ne - z, lskip, cy, n, finalize);
+}
+
+template <typename T, T max_value>
+static void inline reducev_unsigned_int_tab(VipsReducev *reducev,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const short *restrict cy)
+{
+	using IT = typename LongT<T>::type;
+
+	reducev_line<T>((T *) pout, (const T *) pin, ne, lskip, cy,
+		reducev->n_point,
+		[](IT s) -> T { return VIPS_CLIP(0, unsigned_fixed_round(s), max_value); });
+}
+
+template <typename T, int min_value, int max_value>
+static void inline reducev_signed_int_tab(VipsReducev *reducev,
+	VipsPel *pout, const VipsPel *pin,
+	const int ne, const int lskip, const short *restrict cy)
+{
+	using IT = typename LongT<T>::type;
+
+	reducev_line<T>((T *) pout, (const T *) pin, ne, lskip, cy,
+		reducev->n_point,
+		[](IT s) -> T { return VIPS_CLIP(min_value, signed_fixed_round(s), max_value); });
 }
 
 /* Floating-point version.
@@ -482,20 +489,10 @@ static void inline reducev_float_tab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
 	const int ne, const int lskip, const double *restrict cy)
 {
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reducev->n_point;
+	using IT = typename LongT<T>::type;
 
-	int z;
-
-	/* do as many complete blocks as we can
-	 */
-	for (z = 0; z + REDUCEV_BLOCK <= ne; z += REDUCEV_BLOCK)
-		reducev_block<T>(out + z, in + z, REDUCEV_BLOCK, lskip, cy, n);
-
-	/* do the tail (fewer than a full block)
-	 */
-	reducev_block<T>(out + z, in + z, ne - z, lskip, cy, n);
+	reducev_line<T>((T *) pout, (const T *) pin, ne, lskip, cy,
+		reducev->n_point, [](IT s) -> T { return s; });
 }
 
 /* Ultra-high-quality version for double images.
@@ -505,18 +502,15 @@ static void inline reducev_notab(VipsReducev *reducev,
 	VipsPel *pout, const VipsPel *pin,
 	const int ne, const int lskip, double y)
 {
-	T *restrict out = (T *) pout;
-	const T *restrict in = (T *) pin;
-	const int n = reducev->n_point;
-	const int l1 = lskip / sizeof(T);
+	using IT = typename LongT<T>::type;
 
-	typename LongT<T>::type cy[MAX_POINT];
+	IT cy[MAX_POINT];
 
 	vips_reduce_make_mask(cy, reducev->kernel, reducev->n_point,
 		reducev->residual_vshrink, y);
 
-	for (int z = 0; z < ne; z++)
-		out[z] = reduce_sum<T>(in + z, l1, cy, n);
+	reducev_line<T>((T *) pout, (const T *) pin, ne, lskip, cy,
+		reducev->n_point, [](IT s) -> T { return s; });
 }
 
 static int

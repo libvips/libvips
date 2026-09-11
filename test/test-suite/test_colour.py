@@ -165,6 +165,18 @@ class TestColour:
         im = test.icc_import()
         assert im.interpretation == pyvips.Interpretation.LAB
 
+    # a float image should transform the same as the equivalent 8-bit image
+    @skip_if_no("icc_import")
+    def test_icc_float_input(self):
+        test = pyvips.Image.new_from_file(JPEG_FILE)
+        test_float = (test / 255).cast(pyvips.BandFormat.FLOAT)
+
+        from_uchar = test.icc_import(input_profile=SRGB_FILE)
+        from_float = test_float.icc_import(input_profile=SRGB_FILE)
+
+        assert from_float.avg() > 1
+        assert (from_uchar - from_float).abs().max() < 3
+
     # even without lcms, we should have a working approximation
     def test_cmyk(self):
         test = pyvips.Image.new_from_file(JPEG_FILE)

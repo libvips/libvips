@@ -25,9 +25,6 @@ on:
     types:
       - opened
 
-env:
-  COMMENT_BODY: ${{ github.event.action == 'opened' && github.event.issue.body || github.event.comment.body }}
-
 jobs:
   backport-commits:
     name: Backport commits
@@ -39,10 +36,11 @@ jobs:
     if: >-
       (github.repository == 'libvips/libvips') &&
       !startswith(github.event.comment.body, '<!--IGNORE-->') &&
-      contains(github.event.action == 'opened' && github.event.issue.body || github.event.comment.body, '/cherry-pick')
+      contains(github.event.comment.body || github.event.issue.body, '/cherry-pick ') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.issue.author_association)
     steps:
       - name: Fetch sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -53,10 +51,13 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Backport commits
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body || github.event.issue.body }}
+          REQUESTED_BY: ${{ github.event.comment.user.login || github.event.issue.user.login }}
         run: |
           printf "%s" "$COMMENT_BODY" |
           ./.github/utils/github-automation.py \
           --repo "$GITHUB_REPOSITORY" \
           --token "${{ secrets.GITHUB_TOKEN }}" \
           --issue-number ${{ github.event.issue.number }} \
-          --requested-by ${{ (github.event.action == 'opened' && github.event.issue.user.login) || github.event.comment.user.login }}
+          --requested-by "$REQUESTED_BY"

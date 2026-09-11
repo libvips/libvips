@@ -182,6 +182,31 @@ show_values(ExifData *data)
 }
 #endif /*DEBUG_VERBOSE*/
 
+static void *
+vips_exif_mem_alloc_cb(ExifLong ds)
+{
+	return g_malloc0((size_t) ds);
+}
+
+static void *
+vips_exif_mem_realloc_cb(void *ptr, ExifLong ds)
+{
+	return g_realloc(ptr, (size_t) ds);
+}
+
+static void
+vips_exif_mem_free_cb(void *ptr)
+{
+	g_free(ptr);
+}
+
+static ExifMem *
+vips_exif_mem_new()
+{
+	return exif_mem_new(vips_exif_mem_alloc_cb, vips_exif_mem_realloc_cb,
+		vips_exif_mem_free_cb);
+}
+
 /* Like exif_data_new_from_data(), but don't default missing fields.
  *
  * If we do exif_data_new_from_data(), then missing fields are set to
@@ -190,8 +215,6 @@ show_values(ExifData *data)
 static ExifData *
 vips_exif_load_data_without_fix(const void *data, size_t length)
 {
-	ExifData *ed;
-
 	/* exif_data_load_data() only allows uint for length. Limit it to less
 	 * than that: 2**23 should be enough for anyone.
 	 */
@@ -204,17 +227,16 @@ vips_exif_load_data_without_fix(const void *data, size_t length)
 		return NULL;
 	}
 
-	if (!(ed = exif_data_new())) {
-		vips_error("exif", "%s", _("unable to init exif"));
-		return NULL;
-	}
+	ExifMem *mem = vips_exif_mem_new();
+	ExifData *ed = exif_data_new_mem(mem);
+	exif_mem_unref(mem);
 
 	exif_data_unset_option(ed, EXIF_DATA_OPTION_FOLLOW_SPECIFICATION);
 	if (!vips_isprefix("Exif", (char *) data)) {
 		/* Ensure "Exif" prefix as loaders may not provide it.
 		 */
 		void *data_with_prefix;
-		data_with_prefix = g_malloc0(length + 6);
+		data_with_prefix = g_malloc(length + 6);
 		memcpy(data_with_prefix, "Exif\0\0", 6);
 		memcpy((char *) data_with_prefix + 6, data, length);
 		exif_data_load_data(ed, data_with_prefix, length + 6);
@@ -532,7 +554,7 @@ vips_image_resolution_from_exif(VipsImage *image, ExifData *ed)
 
 /* Need to fwd ref this.
  */
-static int
+static void
 vips_exif_resolution_from_image(ExifData *ed, VipsImage *image);
 
 /* Scan the exif block on the image, if any, and make a set of vips metadata
@@ -565,11 +587,8 @@ vips__exif_parse(VipsImage *image)
 	 * If the fields are missing, set them from the image, which will have
 	 * previously had them set from something like JFIF.
 	 */
-	if (vips_image_resolution_from_exif(image, ed) &&
-		vips_exif_resolution_from_image(ed, image)) {
-		exif_data_free(ed);
-		return -1;
-	}
+	if (vips_image_resolution_from_exif(image, ed))
+		vips_exif_resolution_from_image(ed, image);
 
 	/* Make sure all required fields are there before we attach the vips
 	 * metadata.
@@ -882,11 +901,10 @@ vips_exif_alloc_string(ExifEntry *entry, unsigned long components)
 	g_assert(!entry->data);
 
 	/* The string in the entry must be allocated with the same allocator
-	 * that was used to allocate the entry itself. We can't do this
-	 * because the allocator is private :( so we must assume the entry was
-	 * created with the default one.
+	 * that was used to allocate the entry itself. We should use the exif
+	 * allocator attached to this entry, but it is not exposed!
 	 */
-	mem = exif_mem_new_default();
+	mem = vips_exif_mem_new();
 
 	/* EXIF_FORMAT_UNDEFINED is correct for EXIF_TAG_USER_COMMENT, our
 	 * caller should change this if it wishes.
@@ -896,7 +914,7 @@ vips_exif_alloc_string(ExifEntry *entry, unsigned long components)
 	entry->components = components;
 	entry->format = EXIF_FORMAT_UNDEFINED;
 
-	VIPS_FREEF(exif_mem_unref, mem);
+	exif_mem_unref(mem);
 }
 
 /* The final " (xx, yy, zz, kk)" part of the string (if present) was
@@ -1022,7 +1040,9 @@ vips_exif_set_tag(ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data)
 		fn(ed, entry, 0, data);
 	}
 	else {
-		entry = exif_entry_new();
+		ExifMem *mem = vips_exif_mem_new();
+		entry = exif_entry_new_mem(mem);
+		exif_mem_unref(mem);
 
 		/* tag must be set before calling exif_content_add_entry.
 		 */
@@ -1048,7 +1068,7 @@ vips_exif_set_tag(ExifData *ed, int ifd, ExifTag tag, write_fn fn, void *data)
 
 /* Set the EXIF resolution from the vips xres/yres tags.
  */
-static int
+static void
 vips_exif_resolution_from_image(ExifData *ed, VipsImage *image)
 {
 	double xres, yres;
@@ -1088,7 +1108,7 @@ vips_exif_resolution_from_image(ExifData *ed, VipsImage *image)
 
 	default:
 		g_warning("unknown EXIF resolution unit");
-		return 0;
+		return;
 	}
 
 	/* Main image xres/yres/unit are in ifd0. ifd1 has the thumbnail
@@ -1100,13 +1120,11 @@ vips_exif_resolution_from_image(ExifData *ed, VipsImage *image)
 		vips_exif_set_double, (void *) &yres);
 	vips_exif_set_tag(ed, 0, EXIF_TAG_RESOLUTION_UNIT,
 		vips_exif_set_int, (void *) &unit);
-
-	return 0;
 }
 
 /* Exif also tracks image dimensions.
  */
-static int
+static void
 vips_exif_set_dimensions(ExifData *ed, VipsImage *im)
 {
 	VIPS_DEBUG_MSG("vips_exif_set_dimensions: vips size of %d, %d\n",
@@ -1116,13 +1134,11 @@ vips_exif_set_dimensions(ExifData *ed, VipsImage *im)
 		vips_exif_set_int, (void *) &im->Xsize);
 	vips_exif_set_tag(ed, 2, EXIF_TAG_PIXEL_Y_DIMENSION,
 		vips_exif_set_int, (void *) &im->Ysize);
-
-	return 0;
 }
 
 /* And orientation.
  */
-static int
+static void
 vips_exif_set_orientation(ExifData *ed, VipsImage *im)
 {
 	int orientation;
@@ -1138,8 +1154,6 @@ vips_exif_set_orientation(ExifData *ed, VipsImage *im)
 
 	vips_exif_set_tag(ed, 0, EXIF_TAG_ORIENTATION,
 		vips_exif_set_int, (void *) &orientation);
-
-	return 0;
 }
 
 /* And thumbnail.
@@ -1148,14 +1162,13 @@ static int
 vips_exif_set_thumbnail(ExifData *ed, VipsImage *im)
 {
 	/* Delete any old thumbnail data. We should use the exif free func,
-	 * but the memory allocator is not exposed by libexif! Hopefully they
-	 * are just using free().
+	 * but the memory allocator is not exposed by libexif!
 	 *
 	 * exif.c makes this assumption too when it tries to update a
 	 * thumbnail.
 	 */
 	if (ed->data) {
-		free(ed->data);
+		g_free(ed->data);
 		ed->data = NULL;
 	}
 	ed->size = 0;
@@ -1175,7 +1188,7 @@ vips_exif_set_thumbnail(ExifData *ed, VipsImage *im)
 		 */
 		if (size > 0 &&
 			data) {
-			ed->data = malloc(size);
+			ed->data = g_malloc(size);
 			memcpy(ed->data, data, size);
 			ed->size = size;
 		}
@@ -1469,7 +1482,9 @@ vips__exif_update(VipsImage *image)
 			return -1;
 	}
 	else {
-		ed = exif_data_new();
+		ExifMem *mem = vips_exif_mem_new();
+		ed = exif_data_new_mem(mem);
+		exif_mem_unref(mem);
 
 		exif_data_set_option(ed,
 			EXIF_DATA_OPTION_FOLLOW_SPECIFICATION);
@@ -1488,24 +1503,15 @@ vips__exif_update(VipsImage *image)
 
 	/* Update EXIF resolution from the vips image header.
 	 */
-	if (vips_exif_resolution_from_image(ed, image)) {
-		exif_data_free(ed);
-		return -1;
-	}
+	vips_exif_resolution_from_image(ed, image);
 
 	/* Update EXIF image dimensions from the vips image header.
 	 */
-	if (vips_exif_set_dimensions(ed, image)) {
-		exif_data_free(ed);
-		return -1;
-	}
+	vips_exif_set_dimensions(ed, image);
 
 	/* Update EXIF orientation from the vips image header.
 	 */
-	if (vips_exif_set_orientation(ed, image)) {
-		exif_data_free(ed);
-		return -1;
-	}
+	vips_exif_set_orientation(ed, image);
 
 	/* Update the thumbnail.
 	 */

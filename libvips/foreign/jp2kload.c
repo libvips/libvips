@@ -527,6 +527,27 @@ vips_foreign_load_jp2k_get_ycc(opj_image_t *image)
 	return ycc;
 }
 
+/* Predict the number of bands the decoded image will have.
+ */
+static int
+vips_foreign_load_jp2k_get_bands(opj_image_t *image)
+{
+	/* Only OpenJPEG >= 2.5.1 sets color_space early enough to detect palette
+	 * images.
+	 * https://github.com/uclouvain/openjpeg/commit/0f528e95788863608aa1772f5370659edf618793
+	 */
+	switch (image->color_space) {
+	case OPJ_CLRSPC_SRGB:
+	case OPJ_CLRSPC_SYCC:
+	case OPJ_CLRSPC_EYCC:
+		// numcomps can be 1 for palette images
+		return VIPS_MAX(3, image->numcomps);
+
+	default:
+		return image->numcomps;
+	}
+}
+
 static gboolean
 vips_foreign_load_jp2k_get_upsample(opj_image_t *image)
 {
@@ -565,7 +586,8 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 	 * are scaled by the page number.
 	 */
 	vips_image_init_fields(out,
-		jp2k->width, jp2k->height, jp2k->image->numcomps, format,
+		jp2k->width, jp2k->height,
+		vips_foreign_load_jp2k_get_bands(jp2k->image), format,
 		VIPS_CODING_NONE, interpretation, 1.0, 1.0);
 
 	/* openjpeg allows left and top of the coordinate grid to be

@@ -160,8 +160,7 @@ vips_malloc(VipsObject *object, size_t size)
 	buf = g_malloc0(size);
 
 	if (object) {
-		g_signal_connect(object, "postclose",
-			G_CALLBACK(vips_malloc_cb), buf);
+		g_signal_connect(object, "postclose", G_CALLBACK(vips_malloc_cb), buf);
 		object->local_memory += size;
 	}
 

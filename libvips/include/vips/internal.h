@@ -275,13 +275,13 @@ int vips__draw_flood_direct(VipsImage *image, VipsImage *test,
 int vips__draw_mask_direct(VipsImage *image, VipsImage *mask,
 	VipsPel *ink, int x, int y);
 
-typedef void (*VipsDrawPoint)(VipsImage *image,
+typedef void (*VipsDrawPoint)(VipsImage *image, VipsPel *ink,
 	int x, int y, void *client);
 typedef void (*VipsDrawScanline)(VipsImage *image,
 	int y, int x1, int x2, int quadrant, void *client);
 
-void vips__draw_line_direct(VipsImage *image, int x1, int y1, int x2, int y2,
-	VipsDrawPoint draw_point, void *client);
+void vips__draw_line_direct(VipsImage *image, VipsPel *ink,
+	int x1, int y1, int x2, int y2, VipsDrawPoint draw_point, void *client);
 void vips__draw_circle_direct(VipsImage *image, int cx, int cy, int r,
 	VipsDrawScanline draw_scanline, void *client);
 

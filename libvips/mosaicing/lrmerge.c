@@ -773,12 +773,10 @@ vips__build_mergestate(const char *domain,
 		vips__bandalike(domain, t[0], t[1], &t[2], &t[3]))
 		return NULL;
 
-	if (!(array = vips_allocate_input_array(out,
-			  t[2], t[3], NULL)))
+	if (!(array = vips_allocate_input_array(out, t[2], t[3], NULL)))
 		return NULL;
 
-	if (vips_image_pipeline_array(out,
-			VIPS_DEMAND_STYLE_SMALLTILE, array))
+	if (vips_image_pipeline_array(out, VIPS_DEMAND_STYLE_SMALLTILE, array))
 		return NULL;
 
 	if (mwidth < -1) {
@@ -854,8 +852,7 @@ vips__build_mergestate(const char *domain,
 
 	g_mutex_init(&ovlap->fl_lock);
 
-	g_signal_connect(out, "close",
-		G_CALLBACK(ovlap_free), ovlap);
+	g_signal_connect(out, "close", G_CALLBACK(ovlap_free), ovlap);
 
 	return ovlap;
 }

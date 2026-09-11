@@ -49,6 +49,9 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /*HAVE_UNISTD_H*/
+#ifdef HAVE_IO_H
+#include <io.h>
+#endif /*HAVE_IO_H*/
 #include <string.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -56,11 +59,6 @@
 #include <fcntl.h>
 
 #include <vips/vips.h>
-
-#ifdef G_OS_WIN32
-#include <io.h>
-#endif /*G_OS_WIN32*/
-
 #include <vips/debug.h>
 #include <vips/internal.h>
 

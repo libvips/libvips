@@ -125,7 +125,6 @@ vips_foreign_save_magick_next_image(VipsForeignSaveMagick *magick)
 	VipsImage *im = save->ready;
 
 	Image *image;
-	int number;
 	const char *str;
 	int page_index;
 
@@ -169,26 +168,7 @@ vips_foreign_save_magick_next_image(VipsForeignSaveMagick *magick)
 				rint(magick->delays[page_index] / 10.0);
 	}
 
-	/* ImageMagick uses iterations like this (at least in gif save):
-	 * 	0 - set 0 loops (infinite)
-	 * 	1 - don't write the netscape extension block
-	 * 	2 - loop once
-	 * 	3 - loop twice etc.
-	 */
-	if (vips_image_get_typeof(im, "loop") &&
-		!vips_image_get_int(im, "loop", &number)) {
-		image->iterations = (size_t) number;
-	}
-	else {
-		/* DEPRECATED "gif-loop"
-		 *
-		 * We have the simple gif meaning, so we must add one unless
-		 * it's zero.
-		 */
-		if (vips_image_get_typeof(im, "gif-loop") &&
-			!vips_image_get_int(im, "gif-loop", &number))
-			image->iterations = (size_t) (number ? number + 1 : 0);
-	}
+	image->iterations = (size_t) vips_image_get_loop(im);
 
 	if (vips_image_get_typeof(im, "gif-comment") &&
 		!vips_image_get_string(im, "gif-comment", &str))

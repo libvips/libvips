@@ -468,8 +468,8 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 
 	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
-	/* We need to be ahead of JPEG and TIFF, since many cameras use those
-	 * formats as containers. We are slow to open, but we only test the
+	/* We need to be ahead of TIFF, since many cameras use that
+	 * format as a container. We are slow to open, but we only test the
 	 * filename suffix, so that's fine.
 	 */
 	foreign_class->priority = 100;

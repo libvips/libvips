@@ -985,7 +985,7 @@ vips_foreign_load_openslide_class_init(VipsForeignLoadOpenslideClass *class)
 	 * We need to be ahead of JPEG, since MRXS images are also
 	 * JPEGs.
 	 */
-	foreign_class->priority = 100;
+	foreign_class->priority = 152;
 
 	/* openslide is not fuzzed too heavily.
 	 */

@@ -424,7 +424,7 @@ int im_cache(IMAGE *in, IMAGE *out, int width, int height, int max);
 	G_STMT_START \
 	{ \
 		if (S) { \
-			(void) F((S)); \
+			(void) (F((S))); \
 			(S) = 0; \
 		} \
 	} \

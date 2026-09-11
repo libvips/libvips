@@ -129,7 +129,7 @@ vips_reduceh_uchar_hwy(VipsPel *pout, VipsPel *pin,
 		HWY_ENDIAN_LOHI(6, -1), HWY_ENDIAN_LOHI(9, -1),
 		HWY_ENDIAN_LOHI(7, -1), HWY_ENDIAN_LOHI(10, -1),
 		HWY_ENDIAN_LOHI(8, -1), HWY_ENDIAN_LOHI(11, -1),
-		-1, -1 -1, -1
+		-1, -1, -1, -1
 	};
 
 	/*  0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15

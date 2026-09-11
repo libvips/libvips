@@ -439,6 +439,8 @@ vips_scRGB2CICP_build(VipsObject *object)
 	vips_image_set_int(colour->out,
 		"cicp-matrix-coefficients", cicp->matrix_coefficients);
 	vips_image_set_int(colour->out, "cicp-full-range-flag", 1);
+	vips_image_remove(colour->out, "clli-max-content-light-level");
+	vips_image_remove(colour->out, "clli-max-frame-average-light-level");
 
 	return 0;
 }

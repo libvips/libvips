@@ -459,8 +459,7 @@ vips_ifthenelse_build(VipsObject *object)
 
 	VipsImage **band = (VipsImage **) vips_object_local_array(object, 3);
 	VipsImage **size = (VipsImage **) vips_object_local_array(object, 3);
-	VipsImage **format =
-		(VipsImage **) vips_object_local_array(object, 3);
+	VipsImage **format = (VipsImage **) vips_object_local_array(object, 3);
 
 	VipsImage *all[3];
 

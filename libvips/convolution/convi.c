@@ -129,6 +129,12 @@
 
 #include "pconvolution.h"
 
+#ifdef __SIZEOF_INT128__
+#define VIPS_CONVI_INT128 __int128
+#else
+#define VIPS_CONVI_INT128 int64_t
+#endif
+
 #ifdef HAVE_ORC
 #include <orc/orc.h>
 
@@ -702,7 +708,7 @@ vips_convi_gen_vector(VipsRegion *out_region,
 		int *restrict offsets = seq->offsets; \
 \
 		for (x = 0; x < sz; x++) { \
-			int64_t sum; \
+			VIPS_CONVI_INT128 sum; \
 			int i; \
 \
 			sum = 0; \

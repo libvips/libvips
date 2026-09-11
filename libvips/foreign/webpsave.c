@@ -554,24 +554,7 @@ vips_webp_add_metadata(VipsForeignSaveWebp *webp)
 		return -1;
 	}
 
-	if (vips_image_get_typeof(save->ready, "loop")) {
-		int loop;
-
-		if (vips_image_get_int(save->ready, "loop", &loop))
-			return -1;
-
-		vips_webp_set_count(webp, loop);
-	}
-	else if (vips_image_get_typeof(save->ready, "gif-loop")) {
-		/* DEPRECATED "gif-loop"
-		 */
-		int gif_loop;
-
-		if (vips_image_get_int(save->ready, "gif-loop", &gif_loop))
-			return -1;
-
-		vips_webp_set_count(webp, gif_loop == 0 ? 0 : gif_loop + 1);
-	}
+	vips_webp_set_count(webp, vips_image_get_loop(save->ready));
 
 	/* Metadata
 	 */
@@ -714,10 +697,7 @@ vips_foreign_save_webp_finish_anim(VipsForeignSaveWebp *webp)
 	/* Terrible. This will only work if the output buffer is currently
 	 * empty.
 	 */
-	if (webp->memory_writer.mem != NULL) {
-		vips_error("webpsave", "%s", _("internal error"));
-		return -1;
-	}
+	g_assert(webp->memory_writer.mem == NULL);
 
 	webp->memory_writer.mem = (uint8_t *) webp_data.bytes;
 	webp->memory_writer.size = webp_data.size;
@@ -1278,8 +1258,8 @@ vips_webpsave(VipsImage *in, const char *filename, ...)
  * As [method@Image.webpsave], but save to a memory buffer.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
- * @len. You are responsible for freeing the buffer with [func@GLib.free] when you
- * are done with it.
+ * @len. You are responsible for freeing the buffer with [func@GLib.free]
+ * when you are done with it.
  *
  * ::: tip "Optional arguments"
  *     * @Q: `gint`, quality factor
