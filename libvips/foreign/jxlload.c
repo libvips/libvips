@@ -759,7 +759,7 @@ vips_foreign_load_jxl_set_cicp(const JxlColorEncoding *enc, VipsImage *out)
 				break;
 			}
 	}
-	vips_image_set_int(out, "cicp-colour-primaries", cp);
+	vips_image_set_int(out, VIPS_META_CICP_COLOUR_PRIMARIES, cp);
 
 	/* Transfer function: gamma needs special handling.
 	 */
@@ -780,10 +780,10 @@ vips_foreign_load_jxl_set_cicp(const JxlColorEncoding *enc, VipsImage *out)
 				break;
 			}
 	}
-	vips_image_set_int(out, "cicp-transfer-characteristics", tc);
+	vips_image_set_int(out, VIPS_META_CICP_TRANSFER_CHARACTERISTICS, tc);
 
-	vips_image_set_int(out, "cicp-matrix-coefficients", 0);
-	vips_image_set_int(out, "cicp-full-range-flag", 1);
+	vips_image_set_int(out, VIPS_META_CICP_MATRIX_COEFFICIENTS, 0);
+	vips_image_set_int(out, VIPS_META_CICP_FULL_RANGE_FLAG, 1);
 }
 
 static int

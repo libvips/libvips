@@ -433,6 +433,17 @@ const char *vips__windows_prefix(void);
 
 char *vips__get_iso8601(void);
 
+/* TODO(kleisauke): VIPS_API is required by the heif and jxl modules.
+ */
+VIPS_API
+gboolean vips__image_get_cicp(VipsImage *image, int *colour_primaries,
+	int *transfer_characteristics, int *matrix_coefficients,
+	int *full_range_flag);
+void vips__image_remove_cicp(VipsImage *image);
+void vips__image_remove_clli(VipsImage *image);
+gboolean vips__image_is_cicp(VipsImage *image, int *colour_primaries,
+	int *transfer_characteristics, int *matrix_coefficients,
+	int *full_range_flag);
 gboolean vips__image_is_cicp_hdr(VipsImage *image);
 
 #ifdef __cplusplus

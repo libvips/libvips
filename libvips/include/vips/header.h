@@ -192,6 +192,18 @@ extern "C" {
  */
 #define VIPS_META_TILE_HEIGHT "tile-height"
 
+#define VIPS_META_CICP_COLOUR_PRIMARIES "cicp-colour-primaries"
+
+#define VIPS_META_CICP_TRANSFER_CHARACTERISTICS "cicp-transfer-characteristics"
+
+#define VIPS_META_CICP_MATRIX_COEFFICIENTS "cicp-matrix-coefficients"
+
+#define VIPS_META_CICP_FULL_RANGE_FLAG "cicp-full-range-flag"
+
+#define VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL "clli-max-content-light-level"
+
+#define VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL "clli-max-frame-average-light-level"
+
 VIPS_API
 guint64 vips_format_sizeof(VipsBandFormat format);
 VIPS_API
