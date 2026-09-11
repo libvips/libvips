@@ -1854,7 +1854,7 @@ wtiff_layer_row_allocate(VipsThreadState *state, void *a, gboolean *stop)
 #endif /*DEBUG_VERBOSE*/
 
 	if (row->x >= im->Xsize) {
-		*stop = TRUE;
+		g_atomic_int_set(stop, TRUE);
 #ifdef DEBUG_VERBOSE
 		printf("wtiff_layer_row_allocate: done\n");
 #endif /*DEBUG_VERBOSE*/

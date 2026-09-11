@@ -247,7 +247,7 @@ vips_hist_find_ndim_stop(VipsStatistic *statistic, void *seq)
 
 static int
 vips_hist_find_ndim_scan(VipsStatistic *statistic, void *seq,
-	int x, int y, void *in, int n)
+	int x, int y, void *in, int n, gboolean *stop)
 {
 	Histogram *hist = (Histogram *) seq;
 	VipsHistFindNDim *ndim = (VipsHistFindNDim *) statistic;

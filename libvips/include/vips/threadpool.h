@@ -119,7 +119,7 @@ typedef VipsThreadState *(*VipsThreadStartFn)(VipsImage *im, void *a);
 
 /* A work allocate function. This is run single-threaded by a worker to
  * set up a new work unit.
- * Return non-zero for errors. Set *stop for "no more work to do"
+ * Return non-zero for errors. Set *stop atomically for "no more work to do"
  */
 typedef int (*VipsThreadpoolAllocateFn)(VipsThreadState *state,
 	void *a, gboolean *stop);
