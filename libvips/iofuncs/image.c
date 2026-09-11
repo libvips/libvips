@@ -684,9 +684,11 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 		break;
 
 	case VIPS_CODING_LABQ:
+		// we've used LAB and LABQ interpretation for LABQ coding
 		if (image->BandFmt != VIPS_FORMAT_UCHAR ||
 			image->Bands != 4 ||
-			image->Type != VIPS_INTERPRETATION_LABQ)
+			(image->Type != VIPS_INTERPRETATION_LABQ &&
+			 image->Type != VIPS_INTERPRETATION_LAB))
 			vips_buf_appends(buf, "bad labq format\n");
 		break;
 
