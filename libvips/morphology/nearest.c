@@ -123,18 +123,12 @@ vips_fill_nearest_pixel(Circle *circle, int x, int y, int octant)
 		VipsMorphology *morphology = VIPS_MORPHOLOGY(circle->nearest);
 		VipsImage *in = morphology->in;
 		int ps = VIPS_IMAGE_SIZEOF_PEL(in);
-		VipsPel *pi = VIPS_IMAGE_ADDR(in,
-			circle->seed->x, circle->seed->y);
-		VipsPel *qi = VIPS_IMAGE_ADDR(circle->nearest->out,
-			x, y);
-
-		int i;
+		VipsPel *pi = VIPS_IMAGE_ADDR(in, circle->seed->x, circle->seed->y);
+		VipsPel *qi = VIPS_IMAGE_ADDR(circle->nearest->out, x, y);
 
 		p[0] = radius;
 		circle->octant_mask |= 1 << octant;
-
-		for (i = 0; i < ps; i++)
-			qi[i] = pi[i];
+		VIPS_MEMCPY(qi, pi, ps);
 	}
 }
 
@@ -213,8 +207,7 @@ vips_fill_nearest_build(VipsObject *object)
 	VipsFillNearest *nearest = (VipsFillNearest *) object;
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
 
-	int ps;
-	int x, y, i;
+	int i;
 
 	if (VIPS_OBJECT_CLASS(vips_fill_nearest_parent_class)->build(object))
 		return -1;
@@ -224,13 +217,13 @@ vips_fill_nearest_build(VipsObject *object)
 	nearest->width = morphology->in->Xsize;
 	nearest->height = morphology->in->Ysize;
 
-	ps = VIPS_IMAGE_SIZEOF_PEL(morphology->in);
+	int ps = VIPS_IMAGE_SIZEOF_PEL(morphology->in);
 	nearest->seeds = g_array_new(FALSE, FALSE, sizeof(Seed));
-	for (y = 0; y < nearest->height; y++) {
+	for (int y = 0; y < nearest->height; y++) {
 		VipsPel *p;
 
 		p = VIPS_IMAGE_ADDR(morphology->in, 0, y);
-		for (x = 0; x < nearest->width; x++) {
+		for (int x = 0; x < nearest->width; x++) {
 			for (i = 0; i < ps; i++)
 				if (p[i])
 					break;
@@ -253,14 +246,16 @@ vips_fill_nearest_build(VipsObject *object)
 
 	/* Create the output and distance images in memory.
 	 */
-	g_object_set(object, "distance", vips_image_new_memory(), NULL);
 	if (vips_black(&t[0], nearest->width, nearest->height, NULL) ||
-		vips_cast(t[0], &t[1], VIPS_FORMAT_FLOAT, NULL) ||
-		vips_image_write(t[1], nearest->distance))
+		vips_cast(t[0], &t[1], VIPS_FORMAT_FLOAT, NULL))
 		return -1;
 
-	g_object_set(object, "out", vips_image_new_memory(), NULL);
-	if (vips_image_write(morphology->in, nearest->out))
+	g_object_set(object, "distance", vips_image_copy_draw(t[1]), NULL);
+	if (!nearest->distance)
+		return -1;
+
+	g_object_set(object, "out", vips_image_copy_draw(morphology->in), NULL);
+	if (!nearest->out)
 		return -1;
 
 	while (nearest->seeds->len > 0) {

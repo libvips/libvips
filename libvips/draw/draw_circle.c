@@ -117,12 +117,7 @@ vips_draw_circle_draw_point(VipsImage *image, int x, int y, void *client)
 	VipsPel *q = VIPS_IMAGE_ADDR(image, x, y);
 	int psize = VIPS_IMAGE_SIZEOF_PEL(image);
 
-	int j;
-
-	/* Faster than memcopy() for n < about 20.
-	 */
-	for (j = 0; j < psize; j++)
-		q[j] = ink[j];
+	VIPS_MEMCPY(q, ink, psize);
 }
 
 /* Paint endpoints, with clip.
@@ -163,7 +158,6 @@ vips_draw_circle_draw_scanline(VipsImage *image,
 
 	VipsPel *q;
 	int len;
-	int i, j;
 
 	g_assert(x1 <= x2);
 
@@ -182,9 +176,8 @@ vips_draw_circle_draw_scanline(VipsImage *image,
 	q = VIPS_IMAGE_ADDR(image, x1, y);
 	len = x2 - x1 + 1;
 
-	for (i = 0; i < len; i++) {
-		for (j = 0; j < psize; j++)
-			q[j] = ink[j];
+	for (int i = 0; i < len; i++) {
+		VIPS_MEMCPY(q, ink, psize);
 
 		q += psize;
 	}
