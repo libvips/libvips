@@ -280,9 +280,9 @@ typedef void (*VipsDrawPoint)(VipsImage *image, VipsPel *ink,
 typedef void (*VipsDrawScanline)(VipsImage *image,
 	int y, int x1, int x2, int quadrant, void *client);
 
-void vips__draw_line_direct(VipsImage *image, VipsPel *ink,
+int vips__draw_line_direct(VipsImage *image, VipsPel *ink,
 	int x1, int y1, int x2, int y2, VipsDrawPoint draw_point, void *client);
-void vips__draw_circle_direct(VipsImage *image, int cx, int cy, int r,
+int vips__draw_circle_direct(VipsImage *image, int cx, int cy, int r,
 	VipsDrawScanline draw_scanline, void *client);
 
 int vips__insert_paste_region(VipsRegion *out, VipsRegion *in, VipsRect *pos);

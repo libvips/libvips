@@ -78,12 +78,15 @@ typedef struct _VipsDrawCircleClass {
 
 G_DEFINE_TYPE(VipsDrawCircle, vips_draw_circle, VIPS_TYPE_DRAWINK);
 
-void
+int
 vips__draw_circle_direct(VipsImage *image, int cx, int cy, int r,
 	VipsDrawScanline draw_scanline, void *client)
 {
 	int x, y;
 	int64_t d;
+
+	if (vips_check_draw("vips__draw_circle_direct", image))
+		return -1;
 
 	y = r;
 	d = 3 - 2 * r;
@@ -108,6 +111,8 @@ vips__draw_circle_direct(VipsImage *image, int cx, int cy, int r,
 		draw_scanline(image, cy + x, cx - y, cx + y, 2, client);
 		draw_scanline(image, cy - x, cx - y, cx + y, 3, client);
 	}
+
+	return 0;
 }
 
 static inline void
@@ -117,12 +122,7 @@ vips_draw_circle_draw_point(VipsImage *image, int x, int y, void *client)
 	VipsPel *q = VIPS_IMAGE_ADDR(image, x, y);
 	int psize = VIPS_IMAGE_SIZEOF_PEL(image);
 
-	int j;
-
-	/* Faster than memcopy() for n < about 20.
-	 */
-	for (j = 0; j < psize; j++)
-		q[j] = ink[j];
+	VIPS_MEMCPY(q, ink, psize);
 }
 
 /* Paint endpoints, with clip.
@@ -163,7 +163,6 @@ vips_draw_circle_draw_scanline(VipsImage *image,
 
 	VipsPel *q;
 	int len;
-	int i, j;
 
 	g_assert(x1 <= x2);
 
@@ -182,9 +181,8 @@ vips_draw_circle_draw_scanline(VipsImage *image,
 	q = VIPS_IMAGE_ADDR(image, x1, y);
 	len = x2 - x1 + 1;
 
-	for (i = 0; i < len; i++) {
-		for (j = 0; j < psize; j++)
-			q[j] = ink[j];
+	for (int i = 0; i < len; i++) {
+		VIPS_MEMCPY(q, ink, psize);
 
 		q += psize;
 	}
@@ -212,11 +210,9 @@ vips_draw_circle_build(VipsObject *object)
 	else
 		draw_scanline = vips_draw_circle_draw_endpoints_clip;
 
-	vips__draw_circle_direct(draw->image,
+	return vips__draw_circle_direct(draw->image,
 		circle->cx, circle->cy, circle->radius,
 		draw_scanline, drawink->pixel_ink);
-
-	return 0;
 }
 
 static void
