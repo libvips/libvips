@@ -3628,8 +3628,7 @@ vips__image_wio_output(VipsImage *image)
 		break;
 
 	default:
-		vips_error("vips__image_wio_output",
-			"%s", _("image not writeable"));
+		vips_error("vips__image_wio_output", "%s", _("image not writeable"));
 		return -1;
 	}
 
@@ -3638,20 +3637,46 @@ vips__image_wio_output(VipsImage *image)
 
 /**
  * vips_image_inplace:
- * @image: image to check
+ * @image: image to make read-write
  *
- * Deprecated for [func@check_draw].
+ * Gets @image ready for an in-place operation, such as
+ * [method@Image.draw_circle]. After calling this function you can both read
+ * and write the image with [func@IMAGE_ADDR].
+ *
+ * This method is called for you by the base class of the draw operations,
+ * there's no need to call it yourself.
+ *
+ * Since this function modifies @image, it is not thread-safe. Only call it on
+ * images which you are sure have not been shared with another thread.
+ * All in-place operations are inherently not thread-safe, so you need to take
+ * great care in any case.
+ *
+ * Use [method@Image.copy_draw] as a threadsafe alternative.
  *
  * ::: seealso
  *     [method@Image.draw_circle], [method@Image.copy_draw].
- *     [method@Image.check_draw].
  *
  * Returns: 0 on success, or -1 on error.
  */
 int
 vips_image_inplace(VipsImage *image)
 {
-	return vips_check_draw("vips_image_inplace", image);
+#ifdef DEBUG_LEAK
+	/* Warn if inplace is being called on a shared image.
+	 */
+	if (vips__leak &&
+		G_OBJECT(image)->ref_count > 2)
+		printf("vips_image_inplace: shared image %p\n", image);
+#endif /*DEBUG_LEAK*/
+
+	/* Do an vips_image_wio_input() to rewind, generate, etc., then verify
+	 * that the image is drawable.
+	 */
+	if (vips_image_wio_input(image) ||
+		vips_check_draw("vips_image_inplace", image))
+		return -1;
+
+	return 0;
 }
 
 /**
