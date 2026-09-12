@@ -3672,8 +3672,16 @@ vips_image_inplace(VipsImage *image)
 	/* Do an vips_image_wio_input() to rewind, generate, etc., then verify
 	 * that the image is drawable.
 	 */
-	if (vips_image_wio_input(image) ||
-		vips_check_draw("vips_image_inplace", image))
+	if (vips_image_wio_input(image))
+		return -1;
+
+	/* Turn read-only mmap images into read-write.
+	 */
+	if (image->dtype == VIPS_IMAGE_MMAPIN &&
+		vips_remapfilerw(image))
+		return -1;
+
+	if (vips_check_draw("vips_image_inplace", image))
 		return -1;
 
 	return 0;
