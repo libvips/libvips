@@ -40,7 +40,7 @@ jobs:
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association || github.event.issue.author_association)
     steps:
       - name: Fetch sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 

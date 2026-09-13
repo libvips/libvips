@@ -5105,9 +5105,8 @@ im_draw_line_user(VipsImage *image,
 	line.b = b;
 	line.c = c;
 
-	vips__draw_line_direct(image, a, x1, y1, x2, y2, draw_line_wrapper, &line);
-
-	return 0;
+	return vips__draw_line_direct(image,
+		a, x1, y1, x2, y2, draw_line_wrapper, &line);
 }
 
 int

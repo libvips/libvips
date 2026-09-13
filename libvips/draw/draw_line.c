@@ -86,12 +86,15 @@ typedef struct _VipsDrawLineClass {
 
 G_DEFINE_TYPE(VipsDrawLine, vips_draw_line, VIPS_TYPE_DRAWINK);
 
-void
+int
 vips__draw_line_direct(VipsImage *image, VipsPel *ink,
 	int x1, int y1, int x2, int y2, VipsDrawPoint draw_point, void *client)
 {
 	int dx, dy;
 	int x, y, err;
+
+	if (vips_check_draw("vips__draw_line_direct", image))
+		return -1;
 
 	dx = x2 - x1;
 	dy = y2 - y1;
@@ -214,6 +217,8 @@ vips__draw_line_direct(VipsImage *image, VipsPel *ink,
 	}
 	else
 		g_assert_not_reached();
+
+	return 0;
 }
 
 static void
@@ -262,10 +267,8 @@ vips_draw_line_build(VipsObject *object)
 	else
 		draw_point = vips_draw_line_draw_point_clip;
 
-	vips__draw_line_direct(draw->image, drawink->pixel_ink,
+	return vips__draw_line_direct(draw->image, drawink->pixel_ink,
 		line->x1, line->y1, line->x2, line->y2, draw_point, line->client);
-
-	return 0;
 }
 
 static void
