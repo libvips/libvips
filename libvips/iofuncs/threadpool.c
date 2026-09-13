@@ -322,8 +322,6 @@ vips_worker_work_unit(VipsWorker *worker)
 	if (worker->state &&
 		pool->progress &&
 		pool->progress(pool->a)) {
-		// TODO: pool->error is atomic after PR #5092.
-		//g_atomic_int_set(&pool->error, TRUE);
 		pool->error = TRUE;
 		g_mutex_unlock(&pool->allocate_lock);
 		return -1;
