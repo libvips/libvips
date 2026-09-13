@@ -37,6 +37,7 @@ gtype_to_cpp = {
     GValue.gint_type: 'int',
     GValue.gdouble_type: 'double',
     GValue.gstr_type: 'const char *',
+    GValue.gpointer_type: 'void *',
     GValue.refstr_type: 'char *',
     GValue.image_type: 'VImage',
     GValue.source_type: 'VSource',

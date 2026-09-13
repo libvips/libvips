@@ -287,6 +287,12 @@ public:
 	set(const char *name, const char *value);
 
 	/**
+	 * Set an input pointer option.
+	 */
+	VOption *
+	set(const char *name, void *value);
+
+	/**
 	 * Set a libvips object as an option. These can be images, sources,
 	 * targets, etc.
 	 *
@@ -2946,6 +2952,11 @@ public:
 
 	/**
 	 * Draw a line on an image.
+	 *
+	 * **Optional parameters**
+	 *   - **draw_point** -- Custom point draw function, void *.
+	 *   - **client** -- Client data for the point draw function, void *.
+	 *
 	 * @param ink Color for pixels.
 	 * @param x1 Start of draw_line.
 	 * @param y1 Start of draw_line.
