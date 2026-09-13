@@ -8,6 +8,7 @@ import pytest
 import pyvips
 
 IMAGES = os.path.join(os.path.dirname(__file__), os.pardir, 'images')
+FONTS = os.path.join(os.path.dirname(__file__), os.pardir, 'fonts')
 RAD_FILE = os.path.join(IMAGES, "sample.hdr")
 JPEG_FILE = os.path.join(IMAGES, "sample.jpg")
 JPEG_FILE_XYB = os.path.join(IMAGES, "sample-xyb.jpg")
@@ -46,6 +47,13 @@ GIF_ANIM_DISPOSE_BACKGROUND_FILE = os.path.join(IMAGES, "dispose-background.gif"
 GIF_ANIM_DISPOSE_BACKGROUND_EXPECTED_PNG_FILE = os.path.join(IMAGES, "dispose-background.png")
 GIF_ANIM_DISPOSE_PREVIOUS_FILE = os.path.join(IMAGES, "dispose-previous.gif")
 GIF_ANIM_DISPOSE_PREVIOUS_EXPECTED_PNG_FILE = os.path.join(IMAGES, "dispose-previous.png")
+APNG_ANIM_FILE = os.path.join(IMAGES, "cogs-apng.png")
+APNG_DISPOSE_BACKGROUND_FILE = os.path.join(IMAGES, "apng-dispose-background.png")
+APNG_DISPOSE_PREVIOUS_FILE = os.path.join(IMAGES, "apng-dispose-previous.png")
+APNG_BLEND_OVER_FILE = os.path.join(IMAGES, "apng-blend-over.png")
+APNG_HIDDEN_FRAME_FILE = os.path.join(IMAGES, "apng-hidden-frame.png")
+APNG_OPAQUE_FILE = os.path.join(IMAGES, "apng-opaque.png")
+APNG_16BIT_FILE = os.path.join(IMAGES, "apng-16bit.png")
 DICOM_FILE = os.path.join(IMAGES, "dicom_test_image.dcm")
 BMP_FILE = os.path.join(IMAGES, "MARBLES.BMP")
 NIFTI_FILE = os.path.join(IMAGES, "avg152T1_LR_nifti.nii.gz")
@@ -58,6 +66,8 @@ AVIF_FILE_HUGE = os.path.join(IMAGES, "17000x17000.avif")
 HEIC_FILE = os.path.join(IMAGES, "heic-orientation-6.heic")
 RGBA_FILE = os.path.join(IMAGES, "rgba.png")
 RGBA_CORRECT_FILE = os.path.join(IMAGES, "rgba-correct.ppm")
+QOI_FILE = os.path.join(IMAGES, "sample.qoi")
+QOI_RGBA_FILE = os.path.join(IMAGES, "rgba.qoi")
 MOSAIC_FILES = [os.path.join(IMAGES, "cd1.1.jpg"), os.path.join(IMAGES, "cd1.2.jpg"),
                 os.path.join(IMAGES, "cd2.1.jpg"), os.path.join(IMAGES, "cd2.2.jpg"),
                 os.path.join(IMAGES, "cd3.1.jpg"), os.path.join(IMAGES, "cd3.2.jpg"),
@@ -70,7 +80,9 @@ MOSAIC_VERTICAL_MARKS = [[388, 44], [364, 346],
                          [384, 17], [385, 629],
                          [527, 42], [503, 959]]
 JP2K_FILE = os.path.join(IMAGES, "world.jp2")
+JP2K_PALETTE_FILE = os.path.join(IMAGES, "palette.jp2") # https://github.com/libvips/libvips/pull/5136
 UHDR_FILE = os.path.join(IMAGES, "ultra-hdr.jpg")
+TYPE_LIGHT_SANS_FONT = os.path.join(FONTS, "TypeLightSans.ttf") # CC0 https://ggbot.itch.io/ggbotnet-fonts-cc0
 
 unsigned_formats = ["uchar", "ushort", "uint"]
 signed_formats = ["char", "short", "int"]
@@ -164,6 +176,20 @@ def have(name):
 def skip_if_no(operation_name):
     return pytest.mark.skipif(not have(operation_name),
                         reason='no {}, skipping test'.format(operation_name))
+
+
+def have_apng():
+    if not have("pngload"):
+        return False
+    try:
+        im = pyvips.Image.pngload(APNG_ANIM_FILE, n=-1)
+        return im.get_typeof("n-pages") != 0 and im.get("n-pages") > 1
+    except Exception:
+        return False
+
+
+skip_if_no_apng = pytest.mark.skipif(not have_apng(),
+                        reason='no APNG support, skipping test')
 
 
 # run a 2-ary function on two things -- loop over elements pairwise if the

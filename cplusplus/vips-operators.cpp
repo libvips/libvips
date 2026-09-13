@@ -2736,6 +2736,19 @@ VImage::percent(double percent, VOption *options) const
 	return threshold;
 }
 
+double
+VImage::percent_lum(double percent, VOption *options) const
+{
+	double threshold;
+
+	call("percent_lum", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("threshold", &threshold)
+			->set("percent", percent));
+
+	return threshold;
+}
+
 VImage
 VImage::perlin(int width, int height, VOption *options)
 {
@@ -2938,6 +2951,70 @@ VImage::project(VImage *rows, VOption *options) const
 			->set("rows", rows));
 
 	return columns;
+}
+
+VImage
+VImage::qoiload(const char *filename, VOption *options)
+{
+	VImage out;
+
+	call("qoiload", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("filename", filename));
+
+	return out;
+}
+
+VImage
+VImage::qoiload_buffer(VipsBlob *buffer, VOption *options)
+{
+	VImage out;
+
+	call("qoiload_buffer", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("buffer", buffer));
+
+	return out;
+}
+
+VImage
+VImage::qoiload_source(VSource source, VOption *options)
+{
+	VImage out;
+
+	call("qoiload_source", (options ? options : VImage::option())
+			->set("out", &out)
+			->set("source", source));
+
+	return out;
+}
+
+void
+VImage::qoisave(const char *filename, VOption *options) const
+{
+	call("qoisave", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("filename", filename));
+}
+
+VipsBlob *
+VImage::qoisave_buffer(VOption *options) const
+{
+	VipsBlob *buffer;
+
+	call("qoisave_buffer", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("buffer", &buffer));
+
+	return buffer;
+}
+
+void
+VImage::qoisave_target(VTarget target, VOption *options) const
+{
+	call("qoisave_target", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("target", target));
 }
 
 VImage
@@ -3316,6 +3393,18 @@ VImage::scRGB2BW(VOption *options) const
 	VImage out;
 
 	call("scRGB2BW", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
+VImage::scRGB2CICP(VOption *options) const
+{
+	VImage out;
+
+	call("scRGB2CICP", (options ? options : VImage::option())
 			->set("in", *this)
 			->set("out", &out));
 

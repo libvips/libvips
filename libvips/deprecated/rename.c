@@ -912,8 +912,6 @@ vips_cache_operation_lookup(VipsOperation *operation)
 /**
  * vips_target_finish:
  * @target: target to operate on
- * @buffer: bytes to write
- * @length: length of @buffer in bytes
  *
  * Deprecated in favour of vips_target_end().
  */

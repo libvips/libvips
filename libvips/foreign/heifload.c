@@ -791,7 +791,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	}
 
 #ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
-	heif_content_light_level clli;
+	struct heif_content_light_level clli;
 
 	if (heif_image_handle_get_content_light_level(heif->handle, &clli)) {
 		g_info("heifload: setting CLLI from content light level");
@@ -1161,6 +1161,11 @@ vips_foreign_load_heif_class_init(VipsForeignLoadHeifClass *class)
 	/* Our is_a() is a cheap ISOBMFF brand check, so high priority.
 	 */
 	foreign_class->priority = 150;
+
+#if !LIBHEIF_HAVE_VERSION(1, 23, 2)
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
+#endif
 
 	load_class->get_flags = vips_foreign_load_heif_get_flags;
 	load_class->header = vips_foreign_load_heif_header;

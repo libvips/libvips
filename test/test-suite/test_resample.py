@@ -74,6 +74,11 @@ class TestResample:
 
             assert (x - im).abs().max() == 0
 
+        with pytest.raises(pyvips.error.Error, match="coordinates out of range"):
+            im = pyvips.Image.black(1, 1)
+            im = im.affine([0.000000001, 1.0, 0.0, 1.0])
+            im.rawsave_buffer()
+
     def test_reduce(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
         # cast down to 0-127, the smallest range, so we aren't messed up by

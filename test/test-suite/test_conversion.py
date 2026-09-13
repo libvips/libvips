@@ -565,6 +565,12 @@ class TestConversion:
                 # differs ... don't require huge accuracy
                 assert abs(x - y) < 2
 
+        # https://github.com/libvips/libvips/issues/5182
+        # unpremultiply values above UCHAR_MAX must be clipped
+        im = (pyvips.Image.black(1, 1, bands=2) + [20, 10]).cast("uchar")
+        unpremultiplied = im.unpremultiply(uchar=True)
+        assert unpremultiplied(0, 0) == [255, 10]
+
     def test_flip(self):
         for fmt in all_formats:
             test = self.colour.cast(fmt)

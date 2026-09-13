@@ -425,6 +425,26 @@ class TestCreate:
         im2 = pyvips.Image.text("helloworld", width=100, dpi=500, wrap="char")
         assert im1.width > im2.width
 
+        # test with valid fontfile
+        im1 = pyvips.Image.text("helloworld", width=100, fontfile=TYPE_LIGHT_SANS_FONT)
+        assert im1.width > 50
+        assert im1.height > 5
+
+        # test with repeated valid fontfile
+        im2 = pyvips.Image.text("helloworld", width=100, fontfile=TYPE_LIGHT_SANS_FONT)
+        assert im2.width > 50
+        assert im2.height > 5
+        assert im1.width == im2.width
+        assert im1.height == im2.height
+
+        # test with missing fontfile
+        with pytest.raises(pyvips.Error, match=r"does not exist"):
+            pyvips.Image.text("helloworld", fontfile="missing.ttf")
+
+        # test with directory as fontfile
+        with pytest.raises(pyvips.Error, match=r"is a directory"):
+            pyvips.Image.text("helloworld", fontfile=FONTS)
+
     def test_tonelut(self):
         im = pyvips.Image.tonelut()
         assert im.bands == 1

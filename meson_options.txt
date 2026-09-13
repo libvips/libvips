@@ -271,6 +271,11 @@ option('ppm',
   value: true,
   description: 'Build with ppm')
 
+option('qoi',
+  type: 'boolean',
+  value: true,
+  description: 'Build with qoi')
+
 option('analyze',
   type: 'boolean',
   value: true,
