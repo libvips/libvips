@@ -48,6 +48,7 @@ date-tbd 8.19.0
 - draw_line: add draw-point optional parameter [jcupitt]
 - VipsRect: add g_autoptr cleanup
 - convi: sum using 128 bit integer, where available, before clipping [lovell]
+- add vips_check_draw(), vips_image_copy_draw() [jcupitt]
 
 25/8/26 8.18.6
 

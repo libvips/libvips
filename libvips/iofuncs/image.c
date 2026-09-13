@@ -20,6 +20,8 @@
  * 	- fix up vips_image_dump(), it was still using ints not enums
  * 10/12/19
  * 	- add vips_image_new_from_source / vips_image_write_to_target()
+ * 2/9/26
+ *	- add vips_image_copy_draw()
  */
 
 /*
@@ -682,9 +684,11 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 		break;
 
 	case VIPS_CODING_LABQ:
+		// we've used LAB and LABQ interpretation for LABQ coding
 		if (image->BandFmt != VIPS_FORMAT_UCHAR ||
 			image->Bands != 4 ||
-			image->Type != VIPS_INTERPRETATION_LABQ)
+			(image->Type != VIPS_INTERPRETATION_LABQ &&
+			 image->Type != VIPS_INTERPRETATION_LAB))
 			vips_buf_appends(buf, "bad labq format\n");
 		break;
 
@@ -3391,8 +3395,65 @@ vips_image_copy_memory(VipsImage *image)
 		break;
 
 	default:
-		vips_error("vips_image_copy_memory",
-			"%s", _("image not readable"));
+		vips_error("vips_image_copy_memory", "%s", _("image not readable"));
+		return NULL;
+	}
+
+	return new;
+}
+
+/**
+ * vips_image_copy_draw:
+ * @image: image to copy to a drawable image
+ *
+ * This function allocates memory, renders @image into it, builds a new
+ * image around the memory area, and returns that.
+ *
+ * If the image is already a simple area of memory, it just refs @image and
+ * returns it.
+ *
+ * Call this before using the draw operations to make sure you have a
+ * memory image that can be modified.
+ *
+ * ::: seealso
+ *     [method@Image.wio_input].
+ *
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
+ */
+VipsImage *
+vips_image_copy_draw(VipsImage *image)
+{
+	VipsImage *new;
+
+	switch (image->dtype) {
+	case VIPS_IMAGE_SETBUF:
+	case VIPS_IMAGE_SETBUF_FOREIGN:
+	case VIPS_IMAGE_MMAPINRW:
+		/* Can write to all these.
+		 */
+		new = image;
+		g_object_ref(new);
+		break;
+
+	case VIPS_IMAGE_MMAPIN:
+		/* we could use vips_remapfilerw() to remap the file as read-write,
+		 * but unfortunately it's not threadsafe :(
+		 *
+		 * Fall through to copy-to-ram instead.
+		 */
+
+	case VIPS_IMAGE_OPENOUT:
+	case VIPS_IMAGE_OPENIN:
+	case VIPS_IMAGE_PARTIAL:
+		new = vips_image_new_memory();
+		if (vips_image_write(image, new)) {
+			g_object_unref(new);
+			return NULL;
+		}
+		break;
+
+	default:
+		vips_error("vips_image_copy_draw", "%s", _("image not writeable"));
 		return NULL;
 	}
 
@@ -3506,8 +3567,7 @@ vips_image_wio_input(VipsImage *image)
 		 */
 		if (vips_mapfile(image))
 			return -1;
-		image->data = (VipsPel *) image->baseaddr +
-			image->sizeof_header;
+		image->data = (VipsPel *) image->baseaddr + image->sizeof_header;
 		image->dtype = VIPS_IMAGE_MMAPIN;
 
 		break;
@@ -3568,8 +3628,7 @@ vips__image_wio_output(VipsImage *image)
 		break;
 
 	default:
-		vips_error("vips__image_wio_output",
-			"%s", _("image not writeable"));
+		vips_error("vips__image_wio_output", "%s", _("image not writeable"));
 		return -1;
 	}
 
@@ -3592,8 +3651,10 @@ vips__image_wio_output(VipsImage *image)
  * All in-place operations are inherently not thread-safe, so you need to take
  * great care in any case.
  *
+ * Use [method@Image.copy_draw] as a threadsafe alternative.
+ *
  * ::: seealso
- *     [method@Image.draw_circle], [method@Image.wio_input].
+ *     [method@Image.draw_circle], [method@Image.copy_draw].
  *
  * Returns: 0 on success, or -1 on error.
  */
@@ -3608,39 +3669,20 @@ vips_image_inplace(VipsImage *image)
 		printf("vips_image_inplace: shared image %p\n", image);
 #endif /*DEBUG_LEAK*/
 
-	/* Do an vips_image_wio_input(). This will rewind, generate, etc.
+	/* Do an vips_image_wio_input() to rewind, generate, etc., then verify
+	 * that the image is drawable.
 	 */
 	if (vips_image_wio_input(image))
 		return -1;
 
-	/* Look at the type.
+	/* Turn read-only mmap images into read-write.
 	 */
-	switch (image->dtype) {
-	case VIPS_IMAGE_SETBUF:
-	case VIPS_IMAGE_SETBUF_FOREIGN:
-	case VIPS_IMAGE_MMAPINRW:
-		/* No action necessary.
-		 */
-		break;
-
-	case VIPS_IMAGE_MMAPIN:
-		/* Try to remap read-write.
-		 */
-		if (vips_remapfilerw(image))
-			return -1;
-
-		break;
-
-	default:
-		vips_error("vips_image_inplace",
-			"%s", _("bad file type"));
+	if (image->dtype == VIPS_IMAGE_MMAPIN &&
+		vips_remapfilerw(image))
 		return -1;
-	}
 
-	/* This image is about to be changed (probably). Make sure it's not
-	 * in cache.
-	 */
-	vips_image_invalidate_all(image);
+	if (vips_check_draw("vips_image_inplace", image))
+		return -1;
 
 	return 0;
 }
