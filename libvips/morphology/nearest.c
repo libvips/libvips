@@ -254,9 +254,15 @@ vips_fill_nearest_build(VipsObject *object)
 	if (!nearest->distance)
 		return -1;
 
-	g_object_set(object, "out", vips_image_copy_draw(morphology->in), NULL);
-	if (!nearest->out)
+	/* We need a copy of morph->in that we can write to without damaging
+	 * morphology->in, so we must make a fresh memory copy.
+	 */
+	VipsImage *out = vips_image_new_memory();
+	if (vips_image_write(morphology->in, out)) {
+		VIPS_UNREF(out);
 		return -1;
+	}
+	g_object_set(object, "out", out, NULL);
 
 	while (nearest->seeds->len > 0) {
 #ifdef DEBUG
