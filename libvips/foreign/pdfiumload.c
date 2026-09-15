@@ -401,9 +401,6 @@ static int n_metadata = VIPS_NUMBER(vips_foreign_load_pdf_metadata);
 static int
 vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 {
-	int i;
-	double res;
-
 #ifdef DEBUG
 	printf("vips_foreign_load_pdf_set_image: %p\n", pdf);
 #endif /*DEBUG*/
@@ -420,23 +417,22 @@ vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 
 	g_mutex_lock(&vips_pdfium_mutex);
 
-	for (i = 0; i < n_metadata; i++) {
+	for (int i = 0; i < n_metadata; i++) {
 		VipsForeignLoadPdfMetadata *metadata =
 			&vips_foreign_load_pdf_metadata[i];
 
 		char text[1024];
 		int len;
-
-		len = FPDF_GetMetaText(pdf->doc, metadata->tag, text, 1024);
-		if (len > 0) {
+		len = FPDF_GetMetaText(pdf->doc, metadata->tag, text, sizeof(text));
+		if (len > 0 &&
+			len <= sizeof(text)) {
 			char *str;
 
 			/* Silently ignore coding errors.
 			 */
-			if ((str = g_utf16_to_utf8((gunichar2 *) text, len,
+			if ((str = g_utf16_to_utf8((gunichar2 *) text, -1,
 					 NULL, NULL, NULL))) {
-				vips_image_set_string(out,
-					metadata->field, str);
+				vips_image_set_string(out, metadata->field, str);
 				g_free(str);
 			}
 		}
@@ -446,7 +442,7 @@ vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 
 	/* We need pixels/mm for vips.
 	 */
-	res = pdf->dpi / 25.4;
+	double res = pdf->dpi / 25.4;
 
 	vips_image_init_fields(out,
 		pdf->image.width, pdf->image.height,

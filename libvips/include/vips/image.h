@@ -551,6 +551,8 @@ gboolean vips_image_hasalpha(VipsImage *image);
 VIPS_API
 VipsImage *vips_image_copy_memory(VipsImage *image);
 VIPS_API
+VipsImage *vips_image_copy_draw(VipsImage *image);
+VIPS_API
 int vips_image_wio_input(VipsImage *image);
 VIPS_API
 int vips_image_pio_input(VipsImage *image);
