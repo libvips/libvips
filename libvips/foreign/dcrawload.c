@@ -427,7 +427,17 @@ vips_foreign_load_dcraw_load(VipsForeignLoad *load)
 		raw->bitdepth > 8 ?
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR)))
 		return -1;
-	image->Type = vips_image_guess_interpretation(image);
+
+	if (raw->bitdepth > 8)
+		if (raw->processed->colors < 3)
+			image->Type = VIPS_INTERPRETATION_GREY16;
+		else
+			image->Type = VIPS_INTERPRETATION_RGB16;
+	else
+		if (raw->processed->colors < 3)
+			image->Type = VIPS_INTERPRETATION_B_W;
+		else
+			image->Type = VIPS_INTERPRETATION_sRGB;
 
 	if (vips_foreign_load_dcraw_set_metadata(raw, image)) {
 		VIPS_UNREF(image);
