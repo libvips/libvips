@@ -118,13 +118,12 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(lut);
 
-	int y;
 	double xlow, xhigh;
 
 	/* Need xlow and xhigh to get the size of the LUT we build.
 	 */
 	xlow = xhigh = rint(*VIPS_MATRIX(lut->mat, 0, 0));
-	for (y = 0; y < lut->mat->Ysize; y++) {
+	for (int y = 0; y < lut->mat->Ysize; y++) {
 		double v = *VIPS_MATRIX(lut->mat, 0, y);
 
 		/* Allow for being a bit off.
@@ -143,23 +142,24 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 			xhigh = v;
 	}
 
-	if (xlow < INT_MIN || xhigh > INT_MAX ||
-		xhigh - xlow + 1 > VIPS_MAX_COORD) {
+	if (xlow < INT_MIN ||
+		xhigh > INT_MAX) {
 		vips_error(class->nickname, "%s", _("x range too large"));
 		return -1;
 	}
-
 	lut->xlow = (int) xlow;
-	lut->lut_size = (int) (xhigh - xlow + 1);
 
-	if (lut->lut_size < 1) {
-		vips_error(class->nickname, "%s", _("x range too small"));
+	lut->lut_size = (int) (xhigh - xlow + 1);
+	if (lut->lut_size < 1 ||
+		lut->lut_size > 100000 ||
+		lut->mat->Xsize > 512) {
+		vips_error(class->nickname, "%s", _("bad lut size"));
 		return -1;
 	}
 
 	if (!(lut->data = VIPS_ARRAY(NULL, lut->mat->Ysize, double *)))
 		return -1;
-	for (y = 0; y < lut->mat->Ysize; y++)
+	for (int y = 0; y < lut->mat->Ysize; y++)
 		lut->data[y] = VIPS_MATRIX(lut->mat, 0, y);
 
 	if (!(lut->buf = VIPS_ARRAY(NULL,
@@ -173,12 +173,10 @@ vips_buildlut_build_init(VipsBuildlut *lut)
 
 #ifdef DEBUG
 	printf("Input table, sorted by 1st column\n");
-	for (y = 0; y < lut->mat->Ysize; y++) {
-		int x;
-
+	for (int y = 0; y < lut->mat->Ysize; y++) {
 		printf("%.4d ", y);
 
-		for (x = 0; x < lut->mat->Xsize; x++)
+		for (int x = 0; x < lut->mat->Xsize; x++)
 			printf("%.9f ", lut->data[y][x]);
 
 		printf("\n");

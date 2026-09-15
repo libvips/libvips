@@ -51,6 +51,14 @@ date-tbd 8.19.0
 - cpp: add support for pointer args [kleisauke]
 - add vips_check_draw(), vips_image_copy_draw() [jcupitt]
 
+tbd 8.18.7
+
+- tiffload: copy colormaps on page load [Ada Logics]
+- buildlut: limit output lut size [Ada Logics]
+- tiffload: check for undersized jp2k tiles [Ada Logics]
+- hough_line: improve bounds check [Ada Logics]
+- pdfiumload: check for buffer too small [Ada Logics]
+
 25/8/26 8.18.6
 
 - openexrload: more validation [Hygge Halcyon]
