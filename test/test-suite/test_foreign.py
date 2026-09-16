@@ -1653,8 +1653,16 @@ class TestForeign:
         assert abs(im.width * 2 - x.width) < 2
         assert abs(im.height * 2 - x.height) < 2
 
+        # this SVG file has pixel dimensions in the header, so DPI should not
+        # affect render size
         im = pyvips.Image.new_from_file(SVG_FILE)
         x = pyvips.Image.new_from_file(SVG_FILE, dpi=144)
+        assert im.width == x.width
+        assert im.height == x.height
+
+        # but scale= should
+        im = pyvips.Image.new_from_file(SVG_FILE)
+        x = pyvips.Image.new_from_file(SVG_FILE, scale=2)
         assert abs(im.width * 2 - x.width) < 2
         assert abs(im.height * 2 - x.height) < 2
 
