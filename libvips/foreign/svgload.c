@@ -1087,13 +1087,14 @@ vips_foreign_load_svg_buffer_init(VipsForeignLoadSvgBuffer *buffer)
  *
  * Render a SVG file into a VIPS image.
  *
- * Rendering uses the librsvg library and should be fast.
+ * Use @dpi to set the rendering resolution (default 72). Rendering resolution
+ * affects the number of output pixels if the SVG `viewBox` has dimensions
+ * specified in physical units, like mm. If the SVG has `viewBox` dimensions
+ * in pixels, then @dpi will only change the output resolution metadata
+ * (the xres / yres fields).
  *
- * Use @dpi to set the rendering resolution. The default is 72. Additionally,
- * you can scale by setting @scale. If you set both, they combine.
- *
- * This function only reads the image header and does not render any pixel
- * data. Rendering occurs when pixels are accessed.
+ * Use @scale to scale the number of output pixels. This does not affect the
+ * output resolution metadata.
  *
  * SVGs larger than 10MB are normally blocked for security. Set @unlimited to
  * allow SVGs of any size.
