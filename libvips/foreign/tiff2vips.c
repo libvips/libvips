@@ -3382,7 +3382,8 @@ rtiff_header_equal(RtiffHeader *h1, RtiffHeader *h2)
 		h1->compression != h2->compression ||
 		h1->separate != h2->separate ||
 		h1->tiled != h2->tiled ||
-		h1->orientation != h2->orientation)
+		h1->orientation != h2->orientation ||
+		h1->read_as_rgba != h2->read_as_rgba)
 		return 0;
 
 	if (h1->tiled) {
