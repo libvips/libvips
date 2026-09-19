@@ -7,16 +7,19 @@ it has a fun new feature: a simple image paintbox.
 
 ![paintbox](/assets/images/paintbox.png)
 
-It's extremely basic, but it's enough for simple image annotation. 
+It's pretty basic, but it's enough for simple image annotations. 
 
-The only interesting thing about it is that it can draw with pixels in any of
-the numeric formats that libvips supports, so for example you can paint with
-double-precision complex pixels.
+It will force the whole image into memory, so you can't use it on extremely
+large objects. We're hoping to add some more features in the next version.
 
-The tools are in the bar at the bottom and from the left they are:
+Use View > Paintbox to open the paintbox bar.
 
-- undo
-- redo 
+The first box has buttons for paintbox undo and rebo. You can also use ctrl-Z
+and ctrl-Y as shortcuts.
+
+The next box has a set of radio buttons which set the current tool. From the 
+left they are:
+
 - pointer mode (ie. paintbox is off)
 - freehand draw, use the slider to set brush width
 - straight line draw, use the slider to set brush width
@@ -27,7 +30,13 @@ The tools are in the bar at the bottom and from the left they are:
 - fill while equal to start pixel
 - render text
 
+You can use shift-drag to pan the image whatever tool is selected.
 
-- ^Z, ^Y, shift-drag
+The final box has the tool parameters. From the left they are:
 
+- circles and rectangles can be empty of filled
+- the current ink, click to change the ink colour
+- brush width for line drawing
+- current font for text
+- string to draw
 
