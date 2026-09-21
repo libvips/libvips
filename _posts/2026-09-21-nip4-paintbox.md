@@ -37,12 +37,12 @@ Fill until equal to ink is handy for drawing polygons. You can outline a shape
 in some way, then use fill until to make it solid.
 
 Fill while equal to start pixel is useful for recolouring regions. If you have
-an area that's a certain colour, you can select a different colour ten use
+an area that's a certain colour, you can select a different colour then use
 fill-while to change the colour of all connected pixels.
 
 The final box has the tool parameters. From the left they are:
 
-- circles and rectangles can be empty of filled
+- circles and rectangles can be empty or filled
 - the current ink, click to change the ink colour
 - brush width for line drawing
 - current font for text
