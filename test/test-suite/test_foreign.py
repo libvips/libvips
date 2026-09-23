@@ -450,6 +450,12 @@ class TestForeign:
         value = im.get("icc-profile-data")
         assert len(value) > 100
 
+    @skip_if_no("uhdrload")
+    def test_uhdrload_odd_dimensions(self):
+        # 129x97 image with 65x49 gain map
+        im = pyvips.Image.uhdrload(UHDR_ODD_DIMENSIONS_FILE)
+        assert im.get("gainmap-scale-factor") == 2
+
     @skip_if_no("uhdrsave")
     def test_uhdrsave(self):
         im = pyvips.Image.uhdrload(UHDR_FILE)
