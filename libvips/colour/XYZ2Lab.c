@@ -118,6 +118,13 @@ vips_col_XYZ2Lab_helper(VipsXYZ2Lab *XYZ2Lab,
 	nY = QUANT_ELEMENTS * Y / XYZ2Lab->Y0;
 	nZ = QUANT_ELEMENTS * Z / XYZ2Lab->Z0;
 
+	/* Clamp in the float domain first: VIPS_CLIP only applies after
+	 * the int conversion, so it cannot protect against overflow here.
+	 */
+	nX = VIPS_FCLIP(0, nX, QUANT_ELEMENTS - 1);
+	nY = VIPS_FCLIP(0, nY, QUANT_ELEMENTS - 1);
+	nZ = VIPS_FCLIP(0, nZ, QUANT_ELEMENTS - 1);
+
 	/* CLIP is much faster than FCLIP, and we want an int result.
 	 */
 	i = VIPS_CLIP(0, (int) nX, QUANT_ELEMENTS - 2);
