@@ -211,7 +211,6 @@ typedef struct _VipsForeignLoadHeif {
 
 } VipsForeignLoadHeif;
 
-#ifdef HAVE_HEIF_INIT
 static void *
 vips__heif_init_once(void *client)
 {
@@ -225,16 +224,13 @@ vips__heif_init_once(void *client)
 
 	return NULL;
 }
-#endif /*HAVE_HEIF_INIT*/
 
 void
 vips__heif_init(void)
 {
-#ifdef HAVE_HEIF_INIT
 	static GOnce once = G_ONCE_INIT;
 
 	VIPS_ONCE(&once, vips__heif_init_once, NULL);
-#endif /*HAVE_HEIF_INIT*/
 }
 
 void
@@ -355,7 +351,6 @@ vips_foreign_load_heif_build(VipsObject *object)
 		 */
 		heif_context_set_maximum_image_size_limit(heif->ctx,
 			heif->unlimited ? USHRT_MAX : 0x4000);
-#ifdef HAVE_HEIF_MAX_TOTAL_MEMORY
 		if (!heif->unlimited) {
 			heif_security_limits *limits =
 				heif_context_get_security_limits(heif->ctx);
@@ -364,12 +359,9 @@ vips_foreign_load_heif_build(VipsObject *object)
 			limits->max_memory_block_size = 1024 * 1024 * 1024;
 			limits->max_items = 256;
 		}
-#endif /* HAVE_HEIF_MAX_TOTAL_MEMORY */
-#ifdef HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS
 		if (heif->unlimited)
 			heif_context_set_security_limits(heif->ctx,
 				heif_get_disabled_security_limits());
-#endif /* HAVE_HEIF_GET_DISABLED_SECURITY_LIMITS */
 		error = heif_context_read_from_reader(heif->ctx,
 			heif->reader, heif, NULL);
 		if (error.code) {
@@ -790,9 +782,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 			full_range_flag);
 	}
 
-#ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
 	struct heif_content_light_level clli;
-
 	if (heif_image_handle_get_content_light_level(heif->handle, &clli)) {
 		g_info("heifload: setting CLLI from content light level");
 
@@ -801,7 +791,6 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		vips_image_set_int(out, "clli-max-frame-average-light-level",
 			clli.max_pic_average_light_level);
 	}
-#endif
 
 	vips_image_set_int(out, "heif-primary", heif->primary_page);
 	vips_image_set_int(out, VIPS_META_N_PAGES, heif->n_top);

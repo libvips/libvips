@@ -267,7 +267,6 @@ vips_foreign_save_heif_add_orig_icc(VipsForeignSaveHeif *heif)
 	return 0;
 }
 
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
 static gboolean
 vips_foreign_save_heif_get_cicp(VipsImage *image,
 	int *colour_primaries, int *transfer_characteristics,
@@ -291,9 +290,7 @@ vips_foreign_save_heif_get_cicp(VipsImage *image,
 
 	return TRUE;
 }
-#endif /*HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
 
-#ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
 static gboolean
 vips_foreign_save_heif_get_clli(VipsImage *image,
 	struct heif_content_light_level *content_light_level)
@@ -324,7 +321,6 @@ vips_foreign_save_heif_get_clli(VipsImage *image,
 
 	return TRUE;
 }
-#endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
 
 static int
 vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
@@ -333,9 +329,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 
 	struct heif_error error;
 	struct heif_encoding_options *options;
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
 	struct heif_color_profile_nclx *nclx = NULL;
-#endif
 
 	/* A profile supplied as an argument overrides an embedded
 	 * profile.
@@ -352,7 +346,6 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	options = heif_encoding_options_alloc();
 	options->save_alpha_channel = save->ready->Bands > 3;
 
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
 	int colour_primaries;
 	int transfer_characteristics;
 	int matrix_coefficients;
@@ -374,7 +367,6 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 
 		options->output_nclx_profile = nclx;
 
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_SAVE_TWO_COLR_BOXES
 		/* When we have both ICC and NCLX with an HDR transfer function,
 		 * write both colr boxes so the NCLX is preserved. ICC alone
 		 * cannot describe PQ or HLG.
@@ -384,7 +376,6 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 			(transfer_characteristics == VIPS_CICP_TRANSFER_PQ ||
 				transfer_characteristics == VIPS_CICP_TRANSFER_HLG))
 			options->save_two_colr_boxes_when_ICC_and_nclx_available = 1;
-#endif
 	}
 	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless
 	 * mode.
@@ -402,21 +393,15 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 		 */
 		options->macOS_compatibility_workaround_no_nclx_profile = 0;
 	}
-#endif /*HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE*/
 
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_IMAGE_ORIENTATION
 	/* EXIF orientation is informational in the HEIF specification.
 	 * Orientation is defined using irot and imir transformations.
 	 */
 	options->image_orientation = vips_image_get_orientation(save->ready);
-#endif
 
-#ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
 	struct heif_content_light_level clli;
-
 	if (vips_foreign_save_heif_get_clli(save->ready, &clli))
 		heif_image_set_content_light_level(heif->img, &clli);
-#endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
 
 #ifdef DEBUG
 	GTimer *timer = g_timer_new();
@@ -432,9 +417,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 #endif /*DEBUG*/
 
 	heif_encoding_options_free(options);
-#ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
 	VIPS_FREEF(heif_nclx_color_profile_free, nclx);
-#endif
 
 	if (error.code) {
 		vips__heif_error(&error);
@@ -586,13 +569,7 @@ vips_foreign_save_heif_write(struct heif_context *ctx,
 {
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) userdata;
 
-	struct heif_error error;
-
-#ifdef HAVE_HEIF_ERROR_SUCCESS
-	error = heif_error_success;
-#else
-	error.code = heif_error_Ok;
-#endif /*HAVE_HEIF_ERROR_SUCCESS*/
+	struct heif_error error = heif_error_success;
 
 	if (vips_target_write(heif->target, data, length)) {
 		error.code = heif_error_Encoding_error;
@@ -613,9 +590,7 @@ vips_foreign_save_heif_build(VipsObject *object)
 	struct heif_writer writer;
 	char *chroma;
 	const struct heif_encoder_descriptor *out_encoder;
-#ifdef HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES
 	const struct heif_encoder_parameter *const *param;
-#endif
 	gboolean has_alpha;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_heif_parent_class)->build(object))
@@ -730,7 +705,6 @@ vips_foreign_save_heif_build(VipsObject *object)
 		return -1;
 	}
 
-#ifdef HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES
 	for (param = heif_encoder_list_parameters(heif->encoder);
 		*param; param++) {
 		int have_minimum;
@@ -756,7 +730,6 @@ vips_foreign_save_heif_build(VipsObject *object)
 			return -1;
 		}
 	}
-#endif /*HAVE_HEIF_ENCODER_PARAMETER_GET_VALID_INTEGER_VALUES*/
 
 	/* Try to enable auto_tiles. This can make AVIF encoding a lot faster,
 	 * with only a very small increase in file size.
