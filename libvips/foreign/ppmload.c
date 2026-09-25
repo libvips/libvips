@@ -493,8 +493,23 @@ vips_foreign_load_ppm_map(VipsForeignLoadPpm *ppm)
 	data = (char *) data + header_offset;
 	length -= header_offset;
 
-	if (!(out = vips_image_new_from_memory(data, length,
-			  ppm->width, ppm->height, ppm->bands, ppm->format)))
+	/* The pixel data starts at header_offset into the (page-aligned) mmap
+	 * base, so the typed pixel pointer is aligned only when header_offset is
+	 * a multiple of the sample size.  A text header that does not end on a
+	 * sample boundary leaves a float (PFM) or uint16 (>8-bit PGM) pointer
+	 * misaligned: undefined behaviour, SIGBUS on strict-alignment targets
+	 * and a UBSan abort under -fsanitize=alignment.  Fall back to the
+	 * copying constructor for that case, which hands back an aligned
+	 * buffer; the zero-copy path is kept for the aligned case.
+	 */
+	if (header_offset % (gint64) vips_format_sizeof(ppm->format) != 0)
+		out = vips_image_new_from_memory_copy(data, length,
+			  ppm->width, ppm->height, ppm->bands, ppm->format);
+	else
+		out = vips_image_new_from_memory(data, length,
+			  ppm->width, ppm->height, ppm->bands, ppm->format);
+
+	if (!out)
 		return NULL;
 
 	vips_foreign_load_ppm_set_image_metadata(ppm, out);
