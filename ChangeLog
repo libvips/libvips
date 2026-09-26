@@ -9,6 +9,7 @@
 - uhdrload: calculate gain map scale factor using round-to-nearest [lovell]
 - jp2ksave: tag as UNTRUSTED [kleisauke]
 - header: only parse EXIF metadata for blob values [Shopify]
+- jp2kload: more size validation [Akokonunes]
 
 25/8/26 8.18.6
 
