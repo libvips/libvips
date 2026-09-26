@@ -666,6 +666,7 @@ static int
 vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jp2k);
 
 #ifdef DEBUG
 	printf("vips_foreign_load_jp2k_header:\n");
@@ -717,6 +718,14 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 		VIPS_ROUND_UINT((double) first->x0 / jp2k->shrink);
 	jp2k->height = first->h -
 		VIPS_ROUND_UINT((double) first->y0 / jp2k->shrink);
+
+	if (jp2k->width <= 0 ||
+		jp2k->width >= VIPS_MAX_COORD ||
+		jp2k->height <= 0 ||
+		jp2k->height >= VIPS_MAX_COORD) {
+		vips_error(class->nickname, "%s", _("bad dimensions"));
+		return -1;
+	}
 
 #ifdef DEBUG
 	vips_foreign_load_jp2k_print(jp2k);
