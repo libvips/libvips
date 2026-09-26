@@ -8,6 +8,7 @@ tbd 8.18.7
 - tiffload: check rgba settings between directories [Tanto Security]
 - uhdrload: calculate gain map scale factor using round-to-nearest [lovell]
 - jp2ksave: tag as UNTRUSTED [kleisauke]
+- header: only parse EXIF metadata for blob values [Shopify]
 
 25/8/26 8.18.6
 
