@@ -1,4 +1,4 @@
-tbd 8.18.7
+20/9/26 8.18.7
 
 - tiffload: copy colormaps on page load [Ada Logics]
 - buildlut: limit output lut size [Ada Logics]
