@@ -265,7 +265,7 @@ vips_sRGB_inverse_oetf(float E)
 	const float slope = 12.92f;
 	const float signal_beta = slope * linear_beta;
 	const float alpha = 1.05501071894759f;
-	const float gamma = 2.4f;
+	const float gamma = 2.2f;
 
 	if (E < 0.0f)
 		return 0.0f;

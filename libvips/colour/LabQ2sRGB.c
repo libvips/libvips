@@ -138,7 +138,7 @@ calcul_tables(int range, int *Y2v, float *v2Y)
 		if (f <= 0.0031308)
 			v = 12.92F * f;
 		else
-			v = (1.0F + 0.055F) * powf(f, 1.0F / 2.4F) - 0.055F;
+			v = (1.0F + 0.055F) * powf(f, 1.0F / 2.2F) - 0.055F;
 
 		Y2v[i] = rintf((range - 1) * v);
 	}
@@ -154,7 +154,7 @@ calcul_tables(int range, int *Y2v, float *v2Y)
 		if (f <= 0.04045)
 			v2Y[i] = f / 12.92F;
 		else
-			v2Y[i] = powf((f + 0.055F) / (1 + 0.055F), 2.4F);
+			v2Y[i] = powf((f + 0.055F) / (1 + 0.055F), 2.2F);
 	}
 }
 
