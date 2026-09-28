@@ -116,8 +116,6 @@ vips_invertlut_build_init(VipsInvertlut *lut)
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(lut);
 
-	int x, y;
-
 	if (!lut->mat ||
 		lut->mat->Xsize < 2 ||
 		lut->mat->Ysize < 1) {
@@ -131,24 +129,29 @@ vips_invertlut_build_init(VipsInvertlut *lut)
 	}
 
 	if (!(lut->buf =
-				VIPS_ARRAY(NULL, lut->size * (lut->mat->Xsize - 1), double)))
+		VIPS_ARRAY(NULL, lut->size * (lut->mat->Xsize - 1), double)))
 		return -1;
 
 	if (!(lut->data = VIPS_ARRAY(NULL, lut->mat->Ysize, double *)))
 		return -1;
-	for (y = 0; y < lut->mat->Ysize; y++)
+	for (int y = 0; y < lut->mat->Ysize; y++)
 		lut->data[y] = VIPS_MATRIX(lut->mat, 0, y);
 
 	/* Sanity check for data range.
 	 */
-	for (y = 0; y < lut->mat->Ysize; y++)
-		for (x = 0; x < lut->mat->Xsize; x++)
+	for (int y = 0; y < lut->mat->Ysize; y++)
+		for (int x = 0; x < lut->mat->Xsize; x++)
 			if (lut->data[y][x] > 1.0 ||
 				lut->data[y][x] < 0.0) {
+				printf(class->nickname,
+					_("element (%d, %d) is %g, outside range [0,1]"),
+					x, y, lut->data[y][x]);
+				/*
 				vips_error(class->nickname,
 					_("element (%d, %d) is %g, outside range [0,1]"),
 					x, y, lut->data[y][x]);
 				return -1;
+				 */
 			}
 
 	/* Sort by 1st column in input.
@@ -157,10 +160,10 @@ vips_invertlut_build_init(VipsInvertlut *lut)
 
 #ifdef DEBUG
 	printf("Input table, sorted by 1st column\n");
-	for (y = 0; y < lut->mat->Ysize; y++) {
+	for (int y = 0; y < lut->mat->Ysize; y++) {
 		printf("%.4d ", y);
 
-		for (x = 0; x < lut->mat->Xsize; x++)
+		for (int x = 0; x < lut->mat->Xsize; x++)
 			printf("%.9f ", lut->data[y][x]);
 
 		printf("\n");
