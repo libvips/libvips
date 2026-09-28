@@ -116,6 +116,8 @@ vips_invertlut_build_init(VipsInvertlut *lut)
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(lut);
 
+	printf("vips_invertlut_build_init:\n");
+
 	if (!lut->mat ||
 		lut->mat->Xsize < 2 ||
 		lut->mat->Ysize < 1) {
@@ -181,11 +183,9 @@ vips_invertlut_build_create(VipsInvertlut *lut)
 	int bands = lut->mat->Xsize - 1;
 	int height = lut->mat->Ysize;
 
-	int b;
-
 	/* Do each output channel separately.
 	 */
-	for (b = 0; b < bands; b++) {
+	for (int b = 0; b < bands; b++) {
 		/* The first and last lut positions we know real values for.
 		 */
 		int first = lut->data[0][b + 1] * (lut->size - 1);
