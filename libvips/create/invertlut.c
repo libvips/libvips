@@ -55,8 +55,8 @@
 #include "pcreate.h"
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 /* Our state.
  */
