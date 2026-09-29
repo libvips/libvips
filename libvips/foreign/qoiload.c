@@ -412,7 +412,7 @@ vips_foreign_load_qoi_source_class_init(VipsForeignLoadQoiFileClass *class)
 	object_class->description = _("load qoi from source");
 	object_class->build = vips_foreign_load_qoi_source_build;
 
-	operation_class->flags = VIPS_OPERATION_NOCACHE;
+	operation_class->flags |= VIPS_OPERATION_NOCACHE;
 
 	load_class->is_a_source = vips_foreign_load_qoi_is_a_source;
 
