@@ -671,7 +671,7 @@ vips_foreign_load_magick_parse(VipsForeignLoadMagick *magick,
 		} \
 	}
 
-#define RGBA_LOOP(TYPE, MAX, CONVERT) \
+#define RGBA_LOOP(TYPE, CONVERT) \
 	{ \
 		TYPE *q = (TYPE *) q8; \
 \
