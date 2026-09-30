@@ -54,6 +54,7 @@ date-tbd 8.19.0
 - cache: ensure entry invalidation uses mutex [Albert Ebb]
 - qoiload: ensure a custom source retains existing flags [Tan-JunWei]
 - magickload: scale and round Quantum values on unpack [kleisauke]
+- thumbnail: pass missing `fail_on` arg to loaders [kleisauke]
 
 20/9/26 8.18.7
 

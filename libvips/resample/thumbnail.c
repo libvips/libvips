@@ -1369,6 +1369,7 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 		else
 			return vips_image_new_from_file(file->filename,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
@@ -1581,6 +1582,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"shrink", (int) factor,
 			NULL);
 	}
@@ -1590,6 +1592,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"level", (int) factor,
 			NULL);
 	}
@@ -1600,6 +1603,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
 			NULL);
 	}
@@ -1611,6 +1615,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
@@ -1618,6 +1623,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
@@ -1629,6 +1635,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"subifd", (int) factor,
 				NULL);
 		else if (thumbnail->page_pyramid)
@@ -1636,6 +1643,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
@@ -1643,6 +1651,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
@@ -1650,6 +1659,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"thumbnail", (int) factor,
 			NULL);
 	}
@@ -1658,6 +1668,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			NULL);
 	}
 }
@@ -1800,6 +1811,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"shrink", (int) factor,
 			NULL);
 	}
@@ -1808,6 +1820,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"level", (int) factor,
 			NULL);
 	}
@@ -1818,6 +1831,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
 			NULL);
 	}
@@ -1829,6 +1843,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
@@ -1836,6 +1851,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
@@ -1847,6 +1863,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"subifd", (int) factor,
 				NULL);
 		else if (thumbnail->page_pyramid)
@@ -1854,6 +1871,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
@@ -1861,6 +1879,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
@@ -1868,6 +1887,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"thumbnail", (int) factor,
 			NULL);
 	}
@@ -1876,6 +1896,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			NULL);
 	}
 }
