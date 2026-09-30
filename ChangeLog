@@ -53,6 +53,7 @@ date-tbd 8.19.0
 - add vips_check_draw(), vips_image_copy_draw() [jcupitt]
 - cache: ensure entry invalidation uses mutex [Albert Ebb]
 - qoiload: ensure a custom source retains existing flags [Tan-JunWei]
+- magickload: scale and round Quantum values on unpack [kleisauke]
 
 20/9/26 8.18.7
 
