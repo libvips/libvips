@@ -101,8 +101,6 @@ vips_draw_rect_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_draw_rect_parent_class)->build(object))
 		return -1;
 
-	return 0;
-
 	/* Also use a solid fill for very narrow unfilled rects.
 	 */
 	if (!draw_rect->fill &&
