@@ -197,7 +197,7 @@ sink_memory_area_allocate_fn(VipsThreadState *state, void *a, gboolean *stop)
 			/* End of image?
 			 */
 			if (sink_base->y >= sink_base->im->Ysize) {
-				*stop = TRUE;
+				g_atomic_int_set(stop, TRUE);
 				return 0;
 			}
 
