@@ -585,7 +585,7 @@ class TestConversion:
             assert diff == 0
 
     def test_gamma(self):
-        exponent = 2.4
+        exponent = 2.2
         for fmt in noncomplex_formats:
             mx = max_value[fmt]
             test = (self.colour + mx / 2.0).cast(fmt)

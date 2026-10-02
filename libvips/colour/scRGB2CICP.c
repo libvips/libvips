@@ -176,7 +176,7 @@ vips_bt709_oetf(float L)
 }
 
 /* sRGB OETF (H.273 Table 3, value 13 with MatrixCoefficients == 0).
- * V = alpha * Lc^(1/2.4) - (alpha - 1), for Lc >= beta
+ * V = alpha * Lc^(1/2.2) - (alpha - 1), for Lc >= beta
  * V = 12.92 * Lc, for Lc < beta
  */
 static inline float
@@ -191,7 +191,7 @@ vips_sRGB_oetf(float L)
 	if (L < beta)
 		return 12.92f * L;
 	else
-		return alpha * powf(L, 1.0f / 2.4f) - (alpha - 1.0f);
+		return alpha * powf(L, 1.0f / 2.2f) - (alpha - 1.0f);
 }
 
 /* PQ inverse EOTF (H.273 Table 3, value 16).

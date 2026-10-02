@@ -66,14 +66,15 @@ where:
    out          - Output image, output VipsImage
 optional arguments:
    exponent     - Gamma factor, input gdouble
-                  default: 0.416667
+                  default: 0.454545455
                   min: 1e-06, max: 1000
 operation flags: sequential
 ```
 
 [method@Image.gamma] applies a gamma factor to an image. By
-default, it uses 2.4, the sRGB gamma factor, but you can specify any
-gamma with the `exponent` option.
+default, it uses 2.2, which approximately matches sRGB's gamma factor,
+but you can specify any gamma with the `exponent` option.
+The exponent can be calculated by calculating 1/gamma.
 
 Use it from the command-line like this:
 
