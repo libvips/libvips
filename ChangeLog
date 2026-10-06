@@ -29,6 +29,7 @@ date-tbd 8.19.0
 - add VIPS_UHDR_TO_SCRGB
 - add uchar options to premultiply and unpremultiply [jcupitt]
 - vipsthumbnail: add '@' modifier for size to pixel count
+- dcrawload: attach preview jpeg as metadata
 - dcrawload: add half-size option
 - uhdrsave: expose peak-brightness and max-content-boost parameters [dshatz]
 - add vips_image_get_loop() [jcupitt]
@@ -39,6 +40,7 @@ date-tbd 8.19.0
 - add qoiload, qoisave [Snafuh]
 - pngload: add APNG support [felixbuenemann]
 - icc: fix black output when transforming float images [lancylot2004]
+- thumbnail: add dcrawload thumbnail and preview support
 - heifload, heifsave: preserve CLLI signaling [gregbenz]
 - pngload, pngsave: read and write cLLI metadata [gregbenz]
 - foreign: trim excess bands to the largest size the saver supports [Socialpranker]
@@ -97,6 +99,7 @@ date-tbd 8.19.0
 - heifload: fix `-Winteger-overflow` warning on 32-bit platforms [kleisauke]
 - object: guard against non-input arguments [kleisauke]
 - enumtypes: avoid misuse of `G_GNUC_CONST` for GCC 17 compat [kleisauke]
+>>>>>>> master
 
 6/6/26 8.18.3
 
