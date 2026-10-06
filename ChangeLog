@@ -37,6 +37,7 @@ date-tbd 8.19.0
 - project: add combine option [jcupitt]
 - reducev: auto-vectorise the vertical reduce for all band formats, up to ~3x faster [dloebl]
 - icc: fix black output when transforming float images [lancylot2004]
+- thumbnail: add dcrawload thumbnail and preview support
 
 6/6/26 8.18.3
 
