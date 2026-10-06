@@ -163,6 +163,9 @@ VIPS_API
 void vips_region_copy(VipsRegion *reg, VipsRegion *dest,
 	const VipsRect *r, int x, int y);
 VIPS_API
+void vips_region_blend_over(VipsRegion *reg, VipsRegion *dest,
+	const VipsRect *r, int x, int y);
+VIPS_API
 int vips_region_shrink_method(VipsRegion *from, VipsRegion *to,
 	const VipsRect *target, VipsRegionShrink method);
 VIPS_API

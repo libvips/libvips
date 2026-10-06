@@ -112,9 +112,10 @@ openin_source_read(thandle_t st, tdata_t data, tsize_t size)
 		gint64 bytes_read;
 
 		bytes_read = vips_source_read(source, data, size - total_read);
-		if (bytes_read == -1)
-			return -1;
-		if (bytes_read == 0)
+		/* libtiff does not allow error returns from read, so any -1s need to
+		 * be squashed out as EOF.
+		 */
+		if (bytes_read <= 0)
 			break;
 
 		total_read += bytes_read;

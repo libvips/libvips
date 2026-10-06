@@ -730,6 +730,41 @@ vips_thumbnail_get_level(VipsThumbnail *thumbnail)
 	return im;
 }
 
+/* Crop the same window from every page of an image and rejoin.
+ *
+ * left/top are relative to a page, not to the whole stack.
+ */
+static VipsImage *
+vips_thumbnail_crop_pages(VipsObject *object, VipsImage *in,
+	int left, int top, int width, int height, int page_height, int n_pages)
+{
+	VipsImage **pages = (VipsImage **) vips_object_local_array(object, n_pages);
+
+	VipsImage *out;
+
+	for (int i = 0; i < n_pages; i++)
+		if (vips_crop(in, &pages[i],
+				left, i * page_height + top, width, height, NULL))
+			return NULL;
+	if (vips_arrayjoin(pages, &out, n_pages, "across", 1, NULL))
+		return NULL;
+
+	if (n_pages > 1) {
+		VipsImage *t;
+
+		if (vips_copy(out, &t, NULL)) {
+			g_object_unref(out);
+			return NULL;
+		}
+		g_object_unref(out);
+		out = t;
+
+		vips_image_set_int(out, VIPS_META_PAGE_HEIGHT, height);
+	}
+
+	return out;
+}
+
 static int
 vips_thumbnail_build(VipsObject *object)
 {
@@ -1068,13 +1103,15 @@ vips_thumbnail_build(VipsObject *object)
 	/* Crop after rotate so we don't need to rotate the crop box.
 	 */
 	if (thumbnail->crop != VIPS_INTERESTING_NONE) {
-		/* The image can be smaller than the target. Adjust the
-		 * arguments to vips_smartcrop().
+		int page_height = vips_image_get_page_height(in);
+		int n_pages = thumbnail->n_loaded_pages;
+
+		/* crop_height is relative to a single frame.
 		 */
 		int crop_width = VIPS_MIN(thumbnail->width, in->Xsize);
-		int crop_height = VIPS_MIN(thumbnail->height, in->Ysize);
+		int crop_height = VIPS_MIN(thumbnail->height,
+			n_pages > 1 ? page_height : in->Ysize);
 		int original_width = in->Xsize;
-		int original_height = in->Ysize;
 
 		g_info("cropping to %dx%d", crop_width, crop_height);
 
@@ -1084,34 +1121,68 @@ vips_thumbnail_build(VipsObject *object)
 		double overall_hshrink = (double) rotated_input_width / in->Xsize;
 		double overall_vshrink = (double) rotated_input_height / in->Ysize;
 
+		int bbox_x, bbox_y;
+
 		/* Need to copy to memory, we have to stay seq.
 		 *
 		 * FIXME ... could skip the copy if we've rotated.
 		 */
-		if (!(t[13] = vips_image_copy_memory(in)) ||
-			vips_smartcrop(t[13], &t[14], crop_width, crop_height,
+		if (!(t[13] = vips_image_copy_memory(in)))
+			return -1;
+
+		/* Smartcrop the first page to find a shared crop window, then
+		 * apply that same window to every page (and to the gainmap, if
+		 * any) so the bbox does not drift frame-to-frame.
+		 */
+		if (vips_crop(t[13], &t[18],
+				0, 0, in->Xsize, page_height, NULL))
+			return -1;
+
+		if (vips_smartcrop(t[18], &t[19],
+				crop_width, crop_height,
 				"interesting", thumbnail->crop,
 				"interesting_x", VIPS_ROUND_UINT((double) thumbnail->interesting_x / overall_vshrink),
 				"interesting_y", VIPS_ROUND_UINT((double) thumbnail->interesting_y / overall_hshrink),
 				NULL))
 			return -1;
-		in = t[14];
 
-		int crop_left = -vips_image_get_xoffset(in);
-		int crop_top = -vips_image_get_yoffset(in);
+		bbox_x = -vips_image_get_xoffset(t[19]);
+		bbox_y = -vips_image_get_yoffset(t[19]);
+
+		if (!(t[14] = vips_thumbnail_crop_pages(object, t[13],
+				  bbox_x, bbox_y, crop_width, crop_height,
+				  page_height, n_pages)))
+			return -1;
+		in = t[14];
 
 		/* Also crop the gainmap, if any.
 		 */
-		if ((gainmap = vips_image_get_gainmap(in))) {
+		if ((gainmap = vips_image_get_gainmap(t[13]))) {
+			int gm_page_height = vips_image_get_page_height(gainmap);
+			int gm_n_pages = gainmap->Ysize / gm_page_height;
 			double xscale = (double) gainmap->Xsize / original_width;
-			double yscale = (double) gainmap->Ysize / original_height;
+			double yscale = (double) gm_page_height / page_height;
 
-			if (vips_crop(gainmap, &t[16],
-					crop_left * xscale, crop_top * yscale,
-					crop_width * xscale, crop_height * yscale,
-					NULL))
+			if (gm_n_pages != n_pages) {
+				g_object_unref(gainmap);
+				vips_error("thumbnail", "%s",
+					"gainmap page count does not match "
+					"image page count");
 				return -1;
+			}
+
+			if (!(t[16] = vips_thumbnail_crop_pages(object, gainmap,
+					  bbox_x * xscale, bbox_y * yscale,
+					  crop_width * xscale, crop_height * yscale,
+					  gm_page_height, gm_n_pages))) {
+				g_object_unref(gainmap);
+				return -1;
+			}
 			g_object_unref(gainmap);
+
+			if (vips_copy(in, &t[8], NULL))
+				return -1;
+			in = t[8];
 
 			vips_image_set_image(in, "gainmap", t[16]);
 		}
@@ -1354,6 +1425,7 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 		else
 			return vips_image_new_from_file(file->filename,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
@@ -1583,6 +1655,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"shrink", (int) factor,
 			NULL);
 	}
@@ -1592,6 +1665,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"level", (int) factor,
 			NULL);
 	}
@@ -1602,6 +1676,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
 			NULL);
 	}
@@ -1613,6 +1688,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
@@ -1620,6 +1696,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
@@ -1631,6 +1708,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"subifd", (int) factor,
 				NULL);
 		else if (thumbnail->page_pyramid)
@@ -1638,6 +1716,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
@@ -1645,6 +1724,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 				buffer->buf->data, buffer->buf->length,
 				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
@@ -1652,6 +1732,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"thumbnail", (int) factor,
 			NULL);
 	}
@@ -1660,6 +1741,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			buffer->buf->data, buffer->buf->length,
 			buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			NULL);
 	}
 }
@@ -1802,6 +1884,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"shrink", (int) factor,
 			NULL);
 	}
@@ -1810,6 +1893,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"level", (int) factor,
 			NULL);
 	}
@@ -1820,6 +1904,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
 			NULL);
 	}
@@ -1831,6 +1916,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
@@ -1838,6 +1924,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader)) {
@@ -1849,6 +1936,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"subifd", (int) factor,
 				NULL);
 		else if (thumbnail->page_pyramid)
@@ -1856,6 +1944,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
@@ -1863,6 +1952,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 				source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
+				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
@@ -1870,6 +1960,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			"thumbnail", (int) factor,
 			NULL);
 	}
@@ -1878,6 +1969,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 			source->source,
 			source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
 			NULL);
 	}
 }

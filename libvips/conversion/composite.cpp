@@ -590,7 +590,7 @@ vips_composite_base_blend(VipsCompositeBase *composite,
 	/* Load and scale the pixel to 0 - 1.
 	 */
 	for (int b = 0; b <= bands; b++)
-		A[b] = p[b] * composite->max_band[b];
+		A[b] = p[b] / composite->max_band[b];
 
 	aA = A[bands];
 	aB = B[bands];

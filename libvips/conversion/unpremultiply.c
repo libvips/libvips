@@ -213,8 +213,10 @@ vips_unpremultiply_gen(VipsRegion *out_region,
 				int scale = unpremultiply->scale[alpha];
 
 				int i;
-				for (i = 0; i < bands - 1; i++)
-					out[i] = (in[i] * scale + 128) >> 8;
+				for (i = 0; i < bands - 1; i++) {
+					int value = (in[i] * scale + 128) >> 8;
+					out[i] = VIPS_MIN(value, UCHAR_MAX);
+				}
 				out[i] = alpha;
 
 				in += bands;

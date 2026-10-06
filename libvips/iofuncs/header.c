@@ -1344,7 +1344,8 @@ vips_image_set(VipsImage *image, const char *name, GValue *value)
 	 * We do this here rather than in meta_new() since we don't want to
 	 * trigger on copy_fields.
 	 */
-	if (strcmp(name, VIPS_META_EXIF_NAME) == 0)
+	if (G_VALUE_TYPE(value) == VIPS_TYPE_BLOB &&
+		strcmp(name, VIPS_META_EXIF_NAME) == 0)
 		if (vips__exif_parse(image))
 			g_warning("image_set: bad exif data");
 

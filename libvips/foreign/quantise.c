@@ -350,20 +350,17 @@ vips__quantise_image(VipsImage *in,
 
 	/* Ensure input is sRGB.
 	 */
-	if (in->Type != VIPS_INTERPRETATION_sRGB) {
-		if (vips_colourspace(in, &quantise->t[0],
-				VIPS_INTERPRETATION_sRGB, NULL)) {
-			vips__quantise_free(quantise);
-			return -1;
-		}
-		in = quantise->t[0];
+	if (vips_colourspace(in, &quantise->t[0], VIPS_INTERPRETATION_sRGB, NULL)) {
+		vips__quantise_free(quantise);
+		return -1;
 	}
+	in = quantise->t[0];
 
 	/* Add alpha channel if missing.
 	 */
 	added_alpha = FALSE;
 	if (!vips_image_hasalpha(in)) {
-		if (vips_bandjoin_const1(in, &quantise->t[1], 255, NULL)) {
+		if (vips_addalpha(in, &quantise->t[1], NULL)) {
 			vips__quantise_free(quantise);
 			return -1;
 		}

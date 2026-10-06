@@ -173,6 +173,7 @@ VOption::set(const char *name, double value)
 	return this;
 }
 
+// input string
 VOption *
 VOption::set(const char *name, const char *value)
 {
@@ -181,6 +182,20 @@ VOption::set(const char *name, const char *value)
 	pair->input = true;
 	g_value_init(&pair->value, G_TYPE_STRING);
 	g_value_set_string(&pair->value, value);
+	options.push_back(pair);
+
+	return this;
+}
+
+// input pointer
+VOption *
+VOption::set(const char *name, void *value)
+{
+	Pair *pair = new Pair(name);
+
+	pair->input = true;
+	g_value_init(&pair->value, G_TYPE_POINTER);
+	g_value_set_pointer(&pair->value, value);
 	options.push_back(pair);
 
 	return this;

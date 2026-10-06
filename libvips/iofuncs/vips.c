@@ -130,7 +130,7 @@ vips__open_image_read(const char *filename)
 {
 	int fd;
 
-	/* Try to open read-write, so that calls to vips_image_inplace() will
+	/* Try to open read-write, so that calls to vips_image_copy_draw() will
 	 * work. When we later mmap this file, we set read-only, so there
 	 * is little danger of scrubbing over files we own.
 	 */

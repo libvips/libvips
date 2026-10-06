@@ -1072,7 +1072,7 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 	 *
 	 * Don't set for logluv: libtiff does this for us.
 	 */
-	if (wtiff->input->Type != VIPS_INTERPRETATION_XYZ) {
+	if (wtiff->compression != COMPRESSION_SGILOG) {
 		int format;
 
 		format = SAMPLEFORMAT_UINT;
@@ -1404,11 +1404,6 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		return NULL;
 	}
 
-	/* XYZ images are written as libtiff LOGLUV.
-	 */
-	if (wtiff->ready->Type == VIPS_INTERPRETATION_XYZ)
-		wtiff->compression = COMPRESSION_SGILOG;
-
 	/* Multipage image? 0 is the default for this argument.
 	 */
 	if (wtiff->page_height == 0)
@@ -1456,6 +1451,13 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		}
 	}
 
+	/* XYZ images are written as libtiff LOGLUV.
+	 */
+	if (wtiff->ready->Type == VIPS_INTERPRETATION_XYZ &&
+		wtiff->ready->Bands >= 3 &&
+		wtiff->ready->BandFmt == VIPS_FORMAT_FLOAT)
+		wtiff->compression = COMPRESSION_SGILOG;
+
 	/* If compression is off and we're writing a >4gb image, automatically
 	 * enable bigtiff.
 	 *
@@ -1473,8 +1475,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		if ((wtiff->tilew & 0xf) != 0 ||
 			(wtiff->tileh & 0xf) != 0) {
 			wtiff_free(wtiff);
-			vips_error("vips2tiff",
-				"%s", _("tile size not a multiple of 16"));
+			vips_error("vips2tiff", "%s", _("tile size not a multiple of 16"));
 			return NULL;
 		}
 	}
@@ -1529,8 +1530,7 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 	else if (wtiff->bitdepth == 4)
 		wtiff->tls = VIPS_ROUND_UP(wtiff->tilew, 2) / 2;
 	else
-		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL(wtiff->ready) *
-			wtiff->tilew;
+		wtiff->tls = VIPS_IMAGE_SIZEOF_PEL(wtiff->ready) * wtiff->tilew;
 
 	return wtiff;
 }
@@ -1736,7 +1736,7 @@ wtiff_pack2tiff(Wtiff *wtiff, Layer *layer,
 			LabQ2LabC(q, p, area->width);
 		else if (wtiff->bitdepth > 0)
 			eightbit2nbit(wtiff, q, p, area->width);
-		else if (wtiff->input->Type == VIPS_INTERPRETATION_XYZ)
+		else if (wtiff->compression == COMPRESSION_SGILOG)
 			XYZ2tiffxyz(q, p, area->width, in->im->Bands);
 		else if ((in->im->Bands == 1 || in->im->Bands == 2) &&
 			wtiff->miniswhite)
@@ -2066,7 +2066,7 @@ wtiff_layer_write_strip(Wtiff *wtiff, Layer *layer, VipsRegion *strip)
 			LabS2Lab16(wtiff->tbuf, p, im->Xsize, im->Bands);
 			p = wtiff->tbuf;
 		}
-		else if (wtiff->input->Type == VIPS_INTERPRETATION_XYZ) {
+		else if (wtiff->compression == COMPRESSION_SGILOG) {
 			XYZ2tiffxyz(wtiff->tbuf, p, im->Xsize, im->Bands);
 			p = wtiff->tbuf;
 		}

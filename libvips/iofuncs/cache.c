@@ -610,10 +610,10 @@ vips_object_unref_arg(VipsObject *object,
 }
 
 static void
-vips_cache_free_cb(VipsOperationCacheEntry *entry)
+vips_cache_free(VipsOperationCacheEntry *entry)
 {
 #ifdef DEBUG
-	printf("vips_cache_free_cb: ");
+	printf("vips_cache_free: ");
 	vips_object_print_summary(VIPS_OBJECT(entry->operation));
 #endif /*DEBUG*/
 
@@ -636,7 +636,7 @@ vips__cache_once_init(void *data)
 		(GHashFunc) vips_operation_hash,
 		(GEqualFunc) vips_operation_equal,
 		NULL,
-		(GDestroyNotify) vips_cache_free_cb);
+		NULL);
 
 	return NULL;
 }
@@ -696,11 +696,17 @@ vips_cache_operation_get(VipsOperation *operation)
 }
 
 /* Remove an operation from the cache.
+ * Caller must free the returned entry.
  */
-static void
-vips_cache_remove(VipsOperation *operation)
+static VipsOperationCacheEntry *
+vips_cache_steal(VipsOperation *operation)
 {
-	g_hash_table_remove(vips_cache_table, operation);
+	VipsOperationCacheEntry *entry =
+		g_hash_table_lookup(vips_cache_table, operation);
+	if (entry)
+		g_hash_table_steal(vips_cache_table, operation);
+
+	return entry;
 }
 
 static void *
@@ -806,15 +812,27 @@ vips_entry_ref(VipsOperationCacheEntry *entry)
 }
 
 static void
-vips_cache_invalidate_cb(VipsOperation *operation,
-	VipsOperationCacheEntry *entry)
+vips_cache_invalidate(VipsOperation *operation)
 {
 #ifdef DEBUG
-	printf("vips_cache_invalidate_cb: ");
+	printf("vips_cache_invalidate: ");
 	vips_object_print_summary(VIPS_OBJECT(operation));
 #endif /*DEBUG*/
 
-	entry->invalid = TRUE;
+	g_mutex_lock(&vips_cache_lock);
+
+	VipsOperationCacheEntry *entry =
+		vips_cache_operation_get(operation);
+	if (entry)
+		entry->invalid = TRUE;
+
+	g_mutex_unlock(&vips_cache_lock);
+}
+
+static void
+vips_cache_invalidate_cb(VipsOperation *operation, void *user_data)
+{
+	vips_cache_invalidate(operation);
 }
 
 static void
@@ -839,7 +857,7 @@ vips_cache_insert(VipsOperation *operation)
 	 * for removal.
 	 */
 	entry->invalidate_id = g_signal_connect(operation, "invalidate",
-		G_CALLBACK(vips_cache_invalidate_cb), entry);
+		G_CALLBACK(vips_cache_invalidate_cb), NULL);
 }
 
 /**
@@ -861,11 +879,21 @@ vips_cache_drop_all(void)
 		if (vips__cache_dump)
 			vips_cache_print_nolock();
 
-		g_hash_table_remove_all(vips_cache_table);
-		VIPS_FREEF(g_hash_table_unref, vips_cache_table);
-	}
+		GList *entries = g_hash_table_get_values(vips_cache_table);
+		g_hash_table_steal_all(vips_cache_table);
 
-	g_mutex_unlock(&vips_cache_lock);
+		GHashTable *table_ref = vips_cache_table;
+		vips_cache_table = NULL;
+		g_mutex_unlock(&vips_cache_lock);
+
+		for (GList *item = entries; item; item = item->next)
+			vips_cache_free(item->data);
+		g_list_free(entries);
+
+		VIPS_FREEF(g_hash_table_unref, table_ref);
+	} else {
+		g_mutex_unlock(&vips_cache_lock);
+	}
 }
 
 static void
@@ -915,7 +943,12 @@ vips_cache_trim(void)
 		vips_object_print_summary(VIPS_OBJECT(operation));
 #endif /*DEBUG*/
 
-		vips_cache_remove(operation);
+		VipsOperationCacheEntry *entry = vips_cache_steal(operation);
+		if (entry) {
+			g_mutex_unlock(&vips_cache_lock);
+			vips_cache_free(entry);
+			g_mutex_lock(&vips_cache_lock);
+		}
 	}
 
 	g_mutex_unlock(&vips_cache_lock);
@@ -994,6 +1027,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 	VipsOperationFlags flags = vips_operation_get_flags(*operation);
 
 	VipsOperationCacheEntry *hit;
+	VipsOperationCacheEntry *hit_invalid = NULL;
 
 	g_assert(VIPS_IS_OPERATION(*operation));
 
@@ -1016,7 +1050,7 @@ vips_cache_operation_buildp(VipsOperation **operation)
 		if (hit->invalid ||
 			(flags & VIPS_OPERATION_BLOCKED) ||
 			(flags & VIPS_OPERATION_REVALIDATE)) {
-			vips_cache_remove(hit->operation);
+			hit_invalid = vips_cache_steal(hit->operation);
 			hit = NULL;
 		}
 	}
@@ -1036,6 +1070,9 @@ vips_cache_operation_buildp(VipsOperation **operation)
 	}
 
 	g_mutex_unlock(&vips_cache_lock);
+
+	if (hit_invalid)
+		vips_cache_free(hit_invalid);
 
 	/* If there was a miss, we need to build this operation and add
 	 * it to the cache, if appropriate.

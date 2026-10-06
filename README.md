@@ -46,6 +46,7 @@ Full bindings are available for:
 | Elixir | [vix](https://github.com/akash-akya/vix) |
 | Java | [vips-ffm](https://github.com/lopcode/vips-ffm) |
 | Nim | [libvips-nim](https://github.com/openpeeps/libvips-nim) |
+| Rust | [vips-rs](https://github.com/houseme/vips-rs) |
 
 libvips is used as an image processing engine by:
 

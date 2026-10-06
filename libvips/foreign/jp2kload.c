@@ -527,6 +527,27 @@ vips_foreign_load_jp2k_get_ycc(opj_image_t *image)
 	return ycc;
 }
 
+/* Predict the number of bands the decoded image will have.
+ */
+static int
+vips_foreign_load_jp2k_get_bands(opj_image_t *image)
+{
+	/* Only OpenJPEG >= 2.5.1 sets color_space early enough to detect palette
+	 * images.
+	 * https://github.com/uclouvain/openjpeg/commit/0f528e95788863608aa1772f5370659edf618793
+	 */
+	switch (image->color_space) {
+	case OPJ_CLRSPC_SRGB:
+	case OPJ_CLRSPC_SYCC:
+	case OPJ_CLRSPC_EYCC:
+		// numcomps can be 1 for palette images
+		return VIPS_MAX(3, image->numcomps);
+
+	default:
+		return image->numcomps;
+	}
+}
+
 static gboolean
 vips_foreign_load_jp2k_get_upsample(opj_image_t *image)
 {
@@ -565,7 +586,8 @@ vips_foreign_load_jp2k_set_header(VipsForeignLoadJp2k *jp2k, VipsImage *out)
 	 * are scaled by the page number.
 	 */
 	vips_image_init_fields(out,
-		jp2k->width, jp2k->height, jp2k->image->numcomps, format,
+		jp2k->width, jp2k->height,
+		vips_foreign_load_jp2k_get_bands(jp2k->image), format,
 		VIPS_CODING_NONE, interpretation, 1.0, 1.0);
 
 	/* openjpeg allows left and top of the coordinate grid to be
@@ -644,6 +666,7 @@ static int
 vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 {
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) load;
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(jp2k);
 
 #ifdef DEBUG
 	printf("vips_foreign_load_jp2k_header:\n");
@@ -695,6 +718,14 @@ vips_foreign_load_jp2k_header(VipsForeignLoad *load)
 		VIPS_ROUND_UINT((double) first->x0 / jp2k->shrink);
 	jp2k->height = first->h -
 		VIPS_ROUND_UINT((double) first->y0 / jp2k->shrink);
+
+	if (jp2k->width <= 0 ||
+		jp2k->width >= VIPS_MAX_COORD ||
+		jp2k->height <= 0 ||
+		jp2k->height >= VIPS_MAX_COORD) {
+		vips_error(class->nickname, "%s", _("bad dimensions"));
+		return -1;
+	}
 
 #ifdef DEBUG
 	vips_foreign_load_jp2k_print(jp2k);
@@ -1526,12 +1557,6 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 	size_t pel_size = VIPS_IMAGE_SIZEOF_PEL(out);
 	size_t line_size = pel_size * width;
 
-	TileDecompress decompress = { 0 };
-	opj_dparameters_t parameters;
-	gboolean upsample;
-	VipsPel *q;
-	int y;
-
 #ifdef DEBUG
 	printf("vips__foreign_load_jp2k_decompress: width = %d, height = %d, "
 		   "ycc_to_rgb = %d, from_length = %zd, to_length = %zd\n",
@@ -1542,7 +1567,10 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 	 */
 	ycc_to_rgb = ycc_to_rgb && out->Bands == 3;
 
+	opj_dparameters_t parameters;
 	opj_set_default_decoder_parameters(&parameters);
+
+	TileDecompress decompress = { 0 };
 	decompress.codec = opj_create_decompress(OPJ_CODEC_J2K);
 	opj_set_info_handler(decompress.codec, info_callback, NULL);
 	opj_set_warning_handler(decompress.codec, warning_callback, NULL);
@@ -1562,9 +1590,9 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 	if (vips_foreign_load_jp2k_check_supported(decompress.image))
 		return -1;
 
-	if (decompress.image->x1 > width ||
-		decompress.image->y1 > height ||
-		decompress.image->numcomps > out->Bands ||
+	if (decompress.image->x1 != width ||
+		decompress.image->y1 != height ||
+		decompress.image->numcomps != out->Bands ||
 		line_size * height > to_length) {
 		vips_error("jp2kload", "%s", ("bad dimensions"));
 		vips__foreign_load_jp2k_decompress_free(&decompress);
@@ -1579,12 +1607,12 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 
 	/* Do any components need upsampling?
 	 */
-	upsample = vips_foreign_load_jp2k_get_upsample(decompress.image);
+	gboolean upsample = vips_foreign_load_jp2k_get_upsample(decompress.image);
 
 	/* Unpack hit pixels to buffer in vips layout.
 	 */
-	q = to;
-	for (y = 0; y < height; y++) {
+	VipsPel *q = to;
+	for (int y = 0; y < height; y++) {
 		vips_foreign_load_jp2k_pack(upsample,
 			decompress.image, out, q, 0, y, width);
 

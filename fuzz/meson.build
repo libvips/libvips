@@ -50,6 +50,9 @@ endif
 if get_option('ppm')
     fuzz_save_buffer_progs += {'ppmsave': '.ppm'}
 endif
+if get_option('qoi')
+    fuzz_save_buffer_progs += {'qoisave': '.qoi'}
+endif
 if libjpeg_dep.found()
     fuzz_save_buffer_progs += {'jpegsave': '.jpg'}
 endif

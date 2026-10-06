@@ -648,14 +648,14 @@ vips__draw_flood_direct(VipsImage *image, VipsImage *test,
 {
 	Flood flood;
 
-	if (vips_check_format("vips__draw_flood_direct",
-			image, VIPS_FORMAT_INT) ||
+	if (vips_image_wio_input(test))
+		return -1;
+
+	if (vips_check_format("vips__draw_flood_direct", image, VIPS_FORMAT_INT) ||
 		vips_check_mono("vips__draw_flood_direct", image) ||
 		vips_check_coding_known("vips__draw_flood_direct", test) ||
-		vips_check_size_same("vips__draw_flood_direct",
-			test, image) ||
-		vips_image_wio_input(test) ||
-		vips_image_inplace(image))
+		vips_check_size_same("vips__draw_flood_direct", test, image) ||
+		vips_check_draw("vips__draw_flood_direct", image))
 		return -1;
 
 	flood.test = test;
@@ -672,8 +672,7 @@ vips__draw_flood_direct(VipsImage *image, VipsImage *test,
 
 	if (!(flood.edge = VIPS_ARRAY(image, flood.tsize, VipsPel)))
 		return -1;
-	memcpy(flood.edge,
-		VIPS_IMAGE_ADDR(test, x, y), flood.tsize);
+	memcpy(flood.edge, VIPS_IMAGE_ADDR(test, x, y), flood.tsize);
 
 	flood_all(&flood, x, y);
 

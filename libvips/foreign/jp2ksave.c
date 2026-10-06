@@ -954,6 +954,7 @@ vips_foreign_save_jp2k_class_init(VipsForeignSaveJp2kClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
 	VipsForeignClass *foreign_class = (VipsForeignClass *) class;
 	VipsForeignSaveClass *save_class = (VipsForeignSaveClass *) class;
 
@@ -964,6 +965,10 @@ vips_foreign_save_jp2k_class_init(VipsForeignSaveJp2kClass *class)
 	object_class->nickname = "jp2ksave_base";
 	object_class->description = _("save image in JPEG2000 format");
 	object_class->build = vips_foreign_save_jp2k_build;
+
+	/* OpenJPEG is fuzzed, but not by us.
+	 */
+	operation_class->flags |= VIPS_OPERATION_UNTRUSTED;
 
 	foreign_class->suffs = vips__jp2k_suffs;
 
