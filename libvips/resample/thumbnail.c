@@ -262,8 +262,6 @@ get_blob(VipsImage *image, int level)
 static void
 vips_thumbnail_read_header(VipsThumbnail *thumbnail, VipsImage *image)
 {
-	printf("vips_thumbnail_read_header:\n");
-
 	thumbnail->input_width = image->Xsize;
 	thumbnail->input_height = image->Ysize;
 	thumbnail->orientation = vips_image_get_orientation(image);
