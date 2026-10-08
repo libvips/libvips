@@ -43,7 +43,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install \
-            meson gi-docgen pkg-config \
+            meson pkgconf \
+            gi-docgen gobject-introspection \
             libarchive-dev libcfitsio-dev libcgif-dev \
             libexif-dev libexpat1-dev libffi-dev \
             libfftw3-dev libheif-dev libheif-plugin-aomenc \
