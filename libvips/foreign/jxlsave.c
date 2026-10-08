@@ -591,10 +591,8 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 #ifdef DEBUG
 		printf("attaching %zd bytes of ICC\n", length);
 #endif /*DEBUG*/
-		if (JxlEncoderSetICCProfile(jxl->encoder, (guint8 *) data, length)) {
-			vips_foreign_save_jxl_error(jxl, "JxlEncoderSetColorEncoding");
-			return -1;
-		}
+		if (JxlEncoderSetICCProfile(jxl->encoder, (guint8 *) data, length))
+			g_debug("bad ICC profile not saved");
 	}
 	else {
 		/* If there's no ICC profile, we must set the colour encoding
