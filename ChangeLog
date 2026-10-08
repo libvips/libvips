@@ -1,3 +1,7 @@
+tdb 8.18.8
+
+- jxlsave: don't save bad profiles [Lumaraf]
+
 20/9/26 8.18.7
 
 - tiffload: copy colormaps on page load [Ada Logics]
