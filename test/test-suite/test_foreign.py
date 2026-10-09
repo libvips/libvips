@@ -499,6 +499,15 @@ class TestForeign:
         im = pyvips.Image.uhdrload_buffer(data)
         assert im.get("gainmap-scale-factor") == 4
 
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave_beyond_jpeg_limits(self):
+        too_wide = pyvips.Image.black(65501, 1)
+        too_high = pyvips.Image.black(1, 65501)
+        with pytest.raises(pyvips.Error, match="image too large"):
+            too_wide.uhdrsave_buffer()
+        with pytest.raises(pyvips.Error, match="image too large"):
+            too_high.uhdrsave_buffer()
+
     @skip_if_no("uhdrload")
     def test_uhdr_thumbnail(self):
         im = pyvips.Image.uhdrload(UHDR_FILE)
