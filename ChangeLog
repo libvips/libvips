@@ -1,6 +1,7 @@
 tdb 8.18.8
 
 - jxlsave: don't save bad profiles [Lumaraf]
+- invertlut: prevent possible integer overflow [Shubham Raj]
 
 20/9/26 8.18.7
 
