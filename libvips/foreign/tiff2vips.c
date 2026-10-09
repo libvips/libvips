@@ -3080,6 +3080,15 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 			break;
 		}
 
+	/* We don't decompress jp2k tiles if jp2kload_source is blocked or
+	 * unavailable.
+	 */
+	if ((header->compression == JP2K_YCC ||
+			header->compression == JP2K_RGB ||
+			header->compression == JP2K_LOSSY) &&
+		!vips__foreign_load_jp2k_can_load())
+		return -1;
+
 	/* We must set this here since it'll change the value of scanline_size.
 	 */
 	rtiff_set_decode_format(rtiff);
