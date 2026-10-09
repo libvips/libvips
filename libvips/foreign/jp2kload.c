@@ -1543,6 +1543,22 @@ vips__foreign_load_jp2k_decompress_free(TileDecompress *decompress)
 	VIPS_UNREF(decompress->source);
 }
 
+gboolean
+vips__foreign_load_jp2k_can_load(void)
+{
+	VipsForeignLoadJp2kSourceClass *class =
+		g_type_class_peek(vips_foreign_load_jp2k_source_get_type());
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+
+	if (operation_class->flags & VIPS_OPERATION_BLOCKED) {
+		vips_error(VIPS_OBJECT_CLASS(operation_class)->nickname,
+			"%s", _("operation is blocked"));
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 /* Called from tiff2vips to decode a jp2k-compressed tile.
  *
  * width/height is the tile size. If this is an edge tile, and smaller than
@@ -1631,14 +1647,20 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 
 #else /*!HAVE_LIBOPENJP2*/
 
+gboolean
+vips__foreign_load_jp2k_can_load(void)
+{
+	vips_error("jp2k",
+		"%s", _("libvips built without JPEG2000 support"));
+	return FALSE;
+}
+
 int
 vips__foreign_load_jp2k_decompress(VipsImage *out,
 	int width, int height, gboolean ycc_to_rgb,
 	void *from, size_t from_length,
 	void *to, size_t to_length)
 {
-	vips_error("jp2k",
-		"%s", _("libvips built without JPEG2000 support"));
 	return -1;
 }
 

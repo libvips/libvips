@@ -907,6 +907,8 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 		wtiff->predictor != VIPS_FOREIGN_TIFF_PREDICTOR_NONE)
 		TIFFSetField(tif, TIFFTAG_PREDICTOR, wtiff->predictor);
 
+	/* One of the types we compress?
+	 */
 	for (i = 0; i < VIPS_NUMBER(wtiff_we_compress); i++)
 		if (wtiff->compression == wtiff_we_compress[i]) {
 			wtiff->we_compress = TRUE;
@@ -919,6 +921,13 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 	if (wtiff->compression == COMPRESSION_JPEG &&
 		!wtiff->tile)
 		wtiff->we_compress = FALSE;
+
+	/* We don't compress jp2k tiles if jp2ksave_target is blocked or
+	 * unavailable.
+	 */
+	if (wtiff->compression == JP2K_LOSSY &&
+		!vips__foreign_save_jp2k_can_save())
+		return -1;
 
 	/* Don't write mad resolutions (eg. zero), it confuses some programs.
 	 */
