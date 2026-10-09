@@ -3,6 +3,7 @@ tdb 8.18.8
 - jxlsave: don't save bad profiles [Lumaraf]
 - invertlut: prevent possible integer overflow [Shubham Raj]
 - image_sanity: allow LAB interp for LABQ coding [jcupitt]
+- mosaic: add areas bounds check, required for small search size [Shubham Raj]
 
 20/9/26 8.18.7
 
