@@ -1641,6 +1641,11 @@ vips__temp_name(const char *format)
 	char file2[FILENAME_MAX];
 	char *name;
 
+	const char *percent = strchr(format, '%');
+	if (percent &&
+		(percent[1] != 's' || strchr(percent + 2, '%')))
+		return NULL;
+
 	int serial = g_atomic_int_add(&global_serial, 1);
 
 	g_snprintf(file, FILENAME_MAX, "vips-%d-%u", serial, g_random_int());

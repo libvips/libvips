@@ -2113,5 +2113,13 @@ class TestForeign:
             im = pyvips.Image.csvload_source(source, fail_on="warning")
             im.avg() > 0
 
+    def test_new_temp_file_invalid_format(self):
+        with pytest.raises(pyvips.error.Error):
+            pyvips.Image.new_temp_file("%d.jpg")
+        with pytest.raises(pyvips.error.Error):
+            pyvips.Image.new_temp_file("%s%s.jpg")
+        with pytest.raises(pyvips.error.Error):
+            pyvips.Image.new_temp_file("%%s.jpg")
+
 if __name__ == '__main__':
     pytest.main()
