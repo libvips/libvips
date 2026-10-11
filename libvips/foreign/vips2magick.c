@@ -371,7 +371,7 @@ vips_foreign_save_magick_build(VipsObject *object)
 	/* Get as a gvalue so we can keep a ref to the delay array while we
 	 * need it.
 	 */
-	if (vips_image_get_typeof(im, "delay")) {
+	if (vips_image_get_typeof(im, "delay") == VIPS_TYPE_ARRAY_INT) {
 		g_value_unset(&magick->delay_gvalue);
 		if (vips_image_get(im, "delay", &magick->delay_gvalue))
 			return -1;
