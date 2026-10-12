@@ -1664,16 +1664,22 @@ vips__png_set_text(png_structp pPng, png_infop pInfo,
 {
 	png_text text;
 
-	text.compression = 0;
+	/* We write iTXt (utf-8), as required by eg. the XMP spec. This is always
+	 * compression 0.
+	 */
+	text.compression = PNG_ITXT_COMPRESSION_NONE;
 	text.key = (char *) key;
 	text.text = (char *) value;
-	text.text_length = strlen(value);
 
-	/* Before 1.4, these fields were only there if explicitly enabled.
+	/* itxt write is disabled by default before libpng 1.4.
 	 */
 #if PNG_LIBPNG_VER > 10400
-	text.itxt_length = 0;
-	text.lang = NULL;
+	text.text_length = 0;
+	text.itxt_length = strlen(value);
+	text.lang = "";
+	text.lang_key = "";
+#else
+	text.text_length = strlen(value);
 #endif
 
 	png_set_text(pPng, pInfo, &text, 1);
