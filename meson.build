@@ -343,7 +343,7 @@ endif
 png_package = disabler()
 
 # look for libpng first
-png_dep = dependency('libpng', version: '>=1.2.9', required: get_option('png'))
+png_dep = dependency('libpng', version: '>=1.4.0', required: get_option('png'))
 if png_dep.found()
     external_deps += png_dep
     cfg_var.set('HAVE_PNG', true)
