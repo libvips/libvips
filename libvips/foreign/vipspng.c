@@ -666,7 +666,7 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 	png_textp text_ptr;
 	int num_text;
 
-	png_charp profile;
+	png_bytep profile;
 	png_uint_32 proflen;
 
 	int bands;
