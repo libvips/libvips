@@ -1325,6 +1325,22 @@ vips__foreign_save_jp2k_compress_free(TileCompress *compress)
 	VIPS_FREE(compress->accumulate);
 }
 
+gboolean
+vips__foreign_save_jp2k_can_save(void)
+{
+	VipsForeignSaveJp2kTargetClass *class =
+		g_type_class_peek(vips_foreign_save_jp2k_target_get_type());
+	VipsOperationClass *operation_class = VIPS_OPERATION_CLASS(class);
+
+	if (operation_class->flags & VIPS_OPERATION_BLOCKED) {
+		vips_error(VIPS_OBJECT_CLASS(operation_class)->nickname,
+			"%s", _("operation is blocked"));
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
 /* Compress area @tile within @region and write to @target as a @tile_width by
  * @tile_height jp2k compressed image. This is called from eg. vips2tiff to
  * write jp2k-compressed tiles.
@@ -1428,14 +1444,20 @@ vips__foreign_save_jp2k_compress(VipsRegion *region,
 
 #else /*!HAVE_LIBOPENJP2*/
 
+gboolean
+vips__foreign_save_jp2k_can_save(void)
+{
+	vips_error("jp2k",
+		"%s", _("libvips built without JPEG2000 support"));
+	return FALSE;
+}
+
 int
 vips__foreign_save_jp2k_compress(VipsRegion *region,
 	VipsRect *tile, VipsTarget *target,
 	int tile_width, int tile_height,
 	gboolean save_as_ycc, gboolean subsample, gboolean lossless, int Q)
 {
-	vips_error("jp2k",
-		"%s", _("libvips built without JPEG2000 support"));
 	return -1;
 }
 

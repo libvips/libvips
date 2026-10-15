@@ -194,10 +194,12 @@ void vips__heif_image_print(struct heif_image *img);
 void vips__heif_error(struct heif_error *error);
 
 extern const char *vips__jp2k_suffs[];
+gboolean vips__foreign_load_jp2k_can_load(void);
 int vips__foreign_load_jp2k_decompress(VipsImage *out,
 	int width, int height, gboolean ycc_to_rgb,
 	void *from, size_t from_length,
 	void *to, size_t to_length);
+gboolean vips__foreign_save_jp2k_can_save(void);
 int vips__foreign_save_jp2k_compress(VipsRegion *region,
 	VipsRect *tile, VipsTarget *target,
 	int tile_width, int tile_height,
