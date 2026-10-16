@@ -416,7 +416,7 @@ render_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	if (render_reschedule ||
 		!(tile = render_tile_dirty_get(render))) {
 		VIPS_DEBUG_MSG_GREEN("render_allocate: stopping\n");
-		*stop = TRUE;
+		g_atomic_int_set(stop, TRUE);
 		rstate->tile = NULL;
 	}
 	else
@@ -1091,7 +1091,7 @@ render_allocate_private(VipsThreadState *state, void *a, gboolean *stop)
 	/* The mask or image is closing, we must exit.
 	 */
 	if (render->shutdown) {
-		*stop = TRUE;
+		g_atomic_int_set(stop, TRUE);
 		rstate->tile = NULL;
 		return 0;
 	}
