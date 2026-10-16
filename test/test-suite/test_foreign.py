@@ -994,6 +994,17 @@ class TestForeign:
                             "[tile,pyramid,subifd,compression=jp2k]",
                             self.colour, 80)
 
+        # embedded jp2k tile with 3px offset from left
+        im = pyvips.Image.tiffload(TIF_JP2K_OFFSET_TILE_FILE)
+        data = im.tiffsave_buffer(compression="none")
+        im = pyvips.Image.new_from_buffer(data, "")
+        assert im.width == 64
+        assert im.height == 64
+        # first three columns are zero
+        assert im.extract_area(0, 0, 3, im.height).sum() == 0.0
+        # fourth column is non-zero
+        assert im.extract_area(3, 0, 1, im.height).avg() > 80.0
+
     @skip_if_no("magickload")
     def test_magickload(self):
         def bmp_valid(im):

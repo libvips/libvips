@@ -9,6 +9,7 @@ tdb 8.18.8
 - popplerload: synchronise dimension check with pdfiumload [Aziz Elbelaychy]
 - magicksave: guard against non-integer frame delay [Aziz Elbelaychy]
 - histogram: double band count for complex images [ZeroVuln Labs]
+- tiffload: add support for offset JP2K tiles [lovell]
 
 20/9/26 8.18.7
 
