@@ -1150,6 +1150,10 @@ class TestForeign:
         assert y.get("tile-width") == 192
         assert y.get("tile-height") == 224
 
+        # Complex IEEE sample format is unsupported
+        with pytest.raises(pyvips.error.Error, match="samples out of range"):
+            x = pyvips.Image.new_from_file(TIF_COMPLEX_IEEE)
+
     @skip_if_no("tiffload")
     @pytest.mark.xfail(raises=AssertionError, reason="fails when libtiff was configured with --disable-old-jpeg")
     def test_tiff_ojpeg(self):

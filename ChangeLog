@@ -56,6 +56,7 @@ date-tbd 8.19.0
 - magickload: scale and round Quantum values on unpack [kleisauke]
 - thumbnail: pass missing `fail_on` arg to loaders [kleisauke]
 - pngsave: write iTXt chunks for text data (utf-8) [tonymarklove]
+- tiffload: remove unreachable code due to bits_per_sample limit of 32 [lovell]
 
 20/9/26 8.18.7
 

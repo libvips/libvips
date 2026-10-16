@@ -981,18 +981,6 @@ rtiff_guess_format(Rtiff *rtiff)
 			return VIPS_FORMAT_FLOAT;
 		break;
 
-	case 64:
-		if (sample_format == SAMPLEFORMAT_IEEEFP)
-			return VIPS_FORMAT_DOUBLE;
-		if (sample_format == SAMPLEFORMAT_COMPLEXIEEEFP)
-			return VIPS_FORMAT_COMPLEX;
-		break;
-
-	case 128:
-		if (sample_format == SAMPLEFORMAT_COMPLEXIEEEFP)
-			return VIPS_FORMAT_DPCOMPLEX;
-		break;
-
 	default:
 		break;
 	}
@@ -1407,10 +1395,6 @@ rtiff_greyscale_line(Rtiff *rtiff,
 		}
 		break;
 
-	case VIPS_FORMAT_DOUBLE:
-		GREY_LOOP(double, 1.0);
-		break;
-
 	default:
 		g_assert_not_reached();
 	}
@@ -1436,11 +1420,6 @@ rtiff_parse_greyscale(Rtiff *rtiff, VipsImage *out)
 		out->Type = VIPS_INTERPRETATION_GREY16;
 	else
 		out->Type = VIPS_INTERPRETATION_B_W;
-
-	/* rtiff_greyscale_line() doesn't do complex.
-	 */
-	if (vips_check_noncomplex("tiff2vips", out))
-		return -1;
 
 	rtiff->sfn = rtiff_greyscale_line;
 
@@ -1713,10 +1692,6 @@ rtiff_memcpy_f16_line(Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client)
 {
 	VipsImage *im = (VipsImage *) client;
 	size_t len = (size_t) n * im->Bands;
-
-	if (im->BandFmt == VIPS_FORMAT_COMPLEX ||
-		im->BandFmt == VIPS_FORMAT_DPCOMPLEX)
-		len *= 2;
 
 	int i;
 
