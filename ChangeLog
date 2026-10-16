@@ -5,6 +5,7 @@ tdb 8.18.8
 - image_sanity: allow LAB interp for LABQ coding [jcupitt]
 - tiff{load,save}: honour block state for jp2k tiles [kleisauke]
 - uhdrsave: verify dimensions are within JPEG limits [Shubham Raj]
+- mosaic: add areas bounds check, required for small search size [Shubham Raj]
 
 20/9/26 8.18.7
 
