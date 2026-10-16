@@ -1606,8 +1606,11 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 	if (vips_foreign_load_jp2k_check_supported(decompress.image))
 		return -1;
 
-	if (decompress.image->x1 != width ||
-		decompress.image->y1 != height ||
+	if (width <= 0 || height <= 0 ||
+		decompress.image->x1 < decompress.image->x0 ||
+		decompress.image->y1 < decompress.image->y0 ||
+		decompress.image->x1 > (uint32_t) width ||
+		decompress.image->y1 > (uint32_t) height ||
 		decompress.image->numcomps != out->Bands ||
 		line_size * height > to_length) {
 		vips_error("jp2kload", "%s", ("bad dimensions"));
@@ -1627,17 +1630,21 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 
 	/* Unpack hit pixels to buffer in vips layout.
 	 */
+	const int image_width = decompress.image->x1 - decompress.image->x0;
+	const int image_height = decompress.image->y1 - decompress.image->y0;
 	VipsPel *q = to;
-	for (int y = 0; y < height; y++) {
+	for (int y = 0; y < image_height; y++) {
+		q = (VipsPel *) to +
+			(decompress.image->y0 + y) * line_size +
+			decompress.image->x0 * pel_size;
+
 		vips_foreign_load_jp2k_pack(upsample,
-			decompress.image, out, q, 0, y, width);
+			decompress.image, out, q, 0, y, image_width);
 
 		if (ycc_to_rgb)
-			vips_foreign_load_jp2k_ycc_to_rgb(decompress.image, out, q, width);
+			vips_foreign_load_jp2k_ycc_to_rgb(decompress.image, out, q, image_width);
 
-		vips_foreign_load_jp2k_ljust(decompress.image, out, q, width);
-
-		q += line_size;
+		vips_foreign_load_jp2k_ljust(decompress.image, out, q, image_width);
 	}
 
 	vips__foreign_load_jp2k_decompress_free(&decompress);
