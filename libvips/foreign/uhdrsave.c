@@ -432,6 +432,11 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_uhdr_parent_class)->build(object))
 		return -1;
 
+	if (save->ready->Xsize > 65500 || save->ready->Ysize > 65500) {
+		vips_error("uhdrsave", "%s", _("image too large"));
+		return -1;
+	}
+
 	VipsImage *image = save->ready;
 	g_object_ref(image);
 
