@@ -8,6 +8,7 @@ tdb 8.18.8
 - mosaic: add areas bounds check, required for small search size [Shubham Raj]
 - popplerload: synchronise dimension check with pdfiumload [Aziz Elbelaychy]
 - magicksave: guard against non-integer frame delay [Aziz Elbelaychy]
+- histogram: double band count for complex images [ZeroVuln Labs]
 
 20/9/26 8.18.7
 

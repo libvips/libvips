@@ -168,6 +168,8 @@ vips_histogram_build(VipsObject *object)
 	if (hclass->format_table)
 		histogram->out->BandFmt =
 			hclass->format_table[histogram->ready[0]->BandFmt];
+	histogram->out->Bands = histogram->ready[0]->Bands *
+		(vips_band_format_iscomplex(histogram->ready[0]->BandFmt) ? 2 : 1);
 	histogram->out->Type = VIPS_INTERPRETATION_HISTOGRAM;
 
 	if (!(outbuf = vips_malloc(object,
