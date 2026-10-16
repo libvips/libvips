@@ -365,9 +365,11 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 		 */
 		pdf->pages[i].width = rint(width * pdf->total_scale);
 		pdf->pages[i].height = rint(height * pdf->total_scale);
-		if (pdf->pages[i].width <= 0 ||
-			pdf->pages[i].height <= 0) {
-			vips_error(class->nickname, "%s", _("zero-sized image"));
+		if (pdf->pages[i].width < 1 ||
+			pdf->pages[i].height < 1 ||
+			pdf->pages[i].width > VIPS_MAX_COORD ||
+			pdf->pages[i].height > VIPS_MAX_COORD) {
+			vips_error(class->nickname, "%s", _("page size out of range"));
 			return -1;
 		}
 
