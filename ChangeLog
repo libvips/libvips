@@ -99,7 +99,6 @@ date-tbd 8.19.0
 - heifload: fix `-Winteger-overflow` warning on 32-bit platforms [kleisauke]
 - object: guard against non-input arguments [kleisauke]
 - enumtypes: avoid misuse of `G_GNUC_CONST` for GCC 17 compat [kleisauke]
->>>>>>> master
 
 6/6/26 8.18.3
 
