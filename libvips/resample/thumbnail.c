@@ -225,7 +225,7 @@ get_int(VipsImage *image, const char *field, int default_value)
  * NULL return means level is missing and is not an error.
  */
 static VipsImage *
-get_blob(VipsImage *image, int level)
+vips_thumbnail_get_blob(VipsThumbnail *thumbnail, VipsImage *image, int level)
 {
 	const void *data;
 	size_t size;
@@ -305,7 +305,7 @@ vips_thumbnail_read_header(VipsThumbnail *thumbnail, VipsImage *image)
 		for (int i = 0; i < 3; i++) {
 			VipsImage *blob;
 
-			if ((blob = get_blob(image, i))) {
+			if ((blob = vips_thumbnail_get_blob(thumbnail, image, i))) {
 				thumbnail->level_width[i] = blob->Xsize;
 				thumbnail->level_height[i] = blob->Ysize;
 
@@ -1468,7 +1468,7 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 			return NULL;
 
 		VipsImage *blob;
-		if (!(blob = get_blob(image, factor))) {
+		if (!(blob = vips_thumbnail_get_blob(thumbnail, image, factor))) {
 			VIPS_UNREF(image);
 			return NULL;
 		}
