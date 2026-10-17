@@ -253,7 +253,9 @@ get_blob(VipsImage *image, int level)
 	if (vips_image_get_blob(image, field, &data, &size))
 		return NULL;
 	VipsImage *blob;
-	if (!(blob = vips_image_new_from_buffer(data, size, "", NULL)))
+	if (!(blob = vips_image_new_from_buffer(data, size, "",
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			NULL)))
 		return NULL;
 
 	return blob;
