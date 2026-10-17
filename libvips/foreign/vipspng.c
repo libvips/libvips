@@ -151,10 +151,6 @@ const char *vips__png_suffs[] = { ".png", NULL };
 
 #include <png.h>
 
-#if PNG_LIBPNG_VER < 10003
-#error "PNG library too old."
-#endif
-
 /* Compat defines for APNG constants.
  * libpng 1.8+ uses PNG_fcTL_DISPOSE_OP_NONE etc.
  * libpng 1.6 + APNG patch uses PNG_DISPOSE_OP_NONE etc.
@@ -541,8 +537,7 @@ vips__set_text(VipsImage *out, int i, const char *key, const char *text)
 		 * Note that this will remove the null-termination from the
 		 * string. We must carefully reattach this.
 		 */
-		vips_image_set_blob_copy(out,
-			VIPS_META_XMP_NAME, text, strlen(text));
+		vips_image_set_blob_copy(out, VIPS_META_XMP_NAME, text, strlen(text));
 	}
 	else if (strcmp(key, "Raw profile type exif") == 0 ||
 		strcmp(key, "Raw profile type APP1") == 0) {
@@ -554,8 +549,7 @@ vips__set_text(VipsImage *out, int i, const char *key, const char *text)
 			uint8_t *exif_data = vips__parse_raw_profile(text, &exif_length);
 			if (exif_data) {
 				vips_image_set_blob(out, VIPS_META_EXIF_NAME,
-					(VipsCallbackFn) g_free,
-					exif_data, exif_length);
+					(VipsCallbackFn) g_free, exif_data, exif_length);
 			}
 		}
 	}
@@ -672,14 +666,7 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 	png_textp text_ptr;
 	int num_text;
 
-	/* Well thank you, libpng.
-	 */
-#if PNG_LIBPNG_VER < 10400
-	png_charp profile;
-#else
 	png_bytep profile;
-#endif
-
 	png_uint_32 proflen;
 
 	int bands;
@@ -1664,17 +1651,16 @@ vips__png_set_text(png_structp pPng, png_infop pInfo,
 {
 	png_text text;
 
-	text.compression = 0;
+	/* We write iTXt (utf-8), as required by eg. the XMP spec. This should
+	 * always be uncompressed.
+	 */
+	text.compression = PNG_ITXT_COMPRESSION_NONE;
 	text.key = (char *) key;
 	text.text = (char *) value;
-	text.text_length = strlen(value);
-
-	/* Before 1.4, these fields were only there if explicitly enabled.
-	 */
-#if PNG_LIBPNG_VER > 10400
-	text.itxt_length = 0;
-	text.lang = NULL;
-#endif
+	text.text_length = 0;
+	text.itxt_length = strlen(value);
+	text.lang = "";
+	text.lang_key = "";
 
 	png_set_text(pPng, pInfo, &text, 1);
 }
