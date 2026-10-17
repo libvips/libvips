@@ -1459,6 +1459,7 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 		VipsImage *image;
 
 		if (!(image	= vips_image_new_from_file(file->filename,
+			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			NULL)))
 			return NULL;
