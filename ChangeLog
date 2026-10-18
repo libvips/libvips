@@ -11,6 +11,7 @@ tdb 8.18.8
 - histogram: double band count for complex images [ZeroVuln Labs]
 - tiffload: add support for offset JP2K tiles [lovell]
 - temp_name: allow only one string substitution [Aziz Elbelaychy]
+- tiffload: limit total height [JiHeun]
 
 20/9/26 8.18.7
 
