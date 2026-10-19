@@ -830,12 +830,12 @@ vips_icc_import_build(VipsObject *object)
 	 */
 	if (icc->non_standard_input_profile &&
 		icc->in_blob) {
-		const void *data;
-		size_t size;
+		GValue blob = G_VALUE_INIT;
 
-		data = vips_blob_get(icc->in_blob, &size);
-		vips_image_set_blob(colour->out, VIPS_META_ICC_NAME,
-			NULL, data, size);
+		g_value_init(&blob, VIPS_TYPE_BLOB);
+		g_value_set_boxed(&blob, icc->in_blob);
+		vips_image_set(colour->out, VIPS_META_ICC_NAME, &blob);
+		g_value_unset(&blob);
 	}
 
 	return 0;
