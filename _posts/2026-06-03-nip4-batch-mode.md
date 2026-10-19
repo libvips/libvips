@@ -76,10 +76,24 @@ Will print the first 10 prime numbers:
     [1, 2, 3, 5, 7, 11, 13, 17, 19, 23]
     $
 
+## #include
+
+Scripts can include other scripts, for example:
+
+    #!/usr/bin/env snip
+
+    #include "prime-number-generator.def"
+
+    main = take 10 prime_numbers;
+
+Where the file `prime-number-generator.def` contains a set of definitions for
+a a prime number generator. Paths are resolved relative to the including
+file.
+
 ## Command-line arguments
 
-Any command-line arguments are added to the declaration of `argv`, for
-example:
+Unrecognised command-line arguments are added to the declaration of 
+`argv`, for example:
 
     #!/usr/bin/env snip
 
