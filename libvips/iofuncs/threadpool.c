@@ -237,13 +237,15 @@ typedef struct _VipsWorker {
 typedef struct _VipsThreadpool {
 	VipsImage *im; /* Image we are calculating */
 
-	/* Start a thread, do a unit of work (runs in parallel) and allocate
-	 * a unit of work (serial). Plus the mutex we use to serialize work
-	 * allocation.
+	/* Start a thread, allocate a unit of work (serial) and do a unit of
+	 * work (runs in parallel). Plus the mutex we use to serialize work
+	 * allocation. The same mutex is also used for @progress, which is
+	 * called once per processed work unit.
 	 */
 	VipsThreadStartFn start;
 	VipsThreadpoolAllocateFn allocate;
 	VipsThreadpoolWorkFn work;
+	VipsThreadpoolProgressFn progress;
 	GMutex allocate_lock;
 	void *a; /* User argument to start / allocate / etc. */
 
@@ -270,11 +272,11 @@ typedef struct _VipsThreadpool {
 
 	/* Set this to abort evaluation early with an error.
 	 */
-	gboolean error;
+	gboolean error; // (atomic)
 
 	/* Ask threads to exit, either set by allocate, or on free.
 	 */
-	gboolean stop;
+	gboolean stop; // (atomic)
 } VipsThreadpool;
 
 static int
@@ -310,7 +312,17 @@ vips_worker_work_unit(VipsWorker *worker)
 
 	/* Has another worker signaled stop while we've been waiting?
 	 */
-	if (pool->stop) {
+	if (g_atomic_int_get(&pool->stop)) {
+		g_mutex_unlock(&pool->allocate_lock);
+		return -1;
+	}
+
+	/* Report progress of the previously processed work unit.
+	 */
+	if (worker->state &&
+		pool->progress &&
+		pool->progress(pool->a)) {
+		g_atomic_int_set(&pool->error, TRUE);
 		g_mutex_unlock(&pool->allocate_lock);
 		return -1;
 	}
@@ -332,14 +344,14 @@ vips_worker_work_unit(VipsWorker *worker)
 	}
 
 	if (vips_worker_allocate(worker)) {
-		pool->error = TRUE;
+		g_atomic_int_set(&pool->error, TRUE);
 		g_mutex_unlock(&pool->allocate_lock);
 		return -1;
 	}
 
 	/* Have we just signalled stop?
 	 */
-	if (pool->stop) {
+	if (g_atomic_int_get(&pool->stop)) {
 		g_mutex_unlock(&pool->allocate_lock);
 		return -1;
 	}
@@ -360,7 +372,7 @@ vips_worker_work_unit(VipsWorker *worker)
 	/* Process a work unit.
 	 */
 	if (pool->work(worker->state, pool->a)) {
-		pool->error = TRUE;
+		g_atomic_int_set(&pool->error, TRUE);
 		return -1;
 	}
 
@@ -382,7 +394,7 @@ vips_thread_main_loop(void *a, void *b)
 	/* Process work units! Always tick, even if we are stopping, so the
 	 * main thread will wake up for exit.
 	 */
-	int result = 0;
+	int result;
 	do {
 		VIPS_GATE_START("vips_worker_work_unit: u");
 		result = vips_worker_work_unit(worker);
@@ -467,7 +479,7 @@ vips_threadpool_wait(VipsThreadpool *pool)
 {
 	/* Wait for them all to exit.
 	 */
-	pool->stop = TRUE;
+	g_atomic_int_set(&pool->stop, TRUE);
 	vips_semaphore_downn(&pool->n_workers, 0);
 }
 
@@ -583,8 +595,8 @@ vips_threadpool_new(VipsImage *im)
  * VipsThreadpoolProgressFn:
  * @a: client data
  *
- * This function is called by the main thread once for every work unit
- * processed. It can be used to give the user progress feedback.
+ * This function is run single-threaded by a worker once for every work
+ * unit processed. It can be used to give the user progress feedback.
  *
  * ::: seealso
  *     [func@threadpool_run].
@@ -611,10 +623,8 @@ vips_threadpool_new(VipsImage *im)
  * The object returned by @start must be an instance of a subclass of
  * [class@ThreadState]. Use this to communicate between @allocate and @work.
  *
- * @allocate and @start are always single-threaded (so they can write to the
- * per-pool state), whereas @work can be executed concurrently. @progress is
- * always called by
- * the main thread (ie. the thread which called [func@threadpool_run]).
+ * @start, @allocate and @progress are always single-threaded (so they can write
+ * to the per-pool state), whereas @work can be executed concurrently.
  *
  * ::: seealso
  *     [func@concurrency_set].
@@ -640,6 +650,7 @@ vips_threadpool_run(VipsImage *im,
 	pool->start = start;
 	pool->allocate = allocate;
 	pool->work = work;
+	pool->progress = progress;
 	pool->a = a;
 
 	/* Start with half of the max number of threads, then let it drift up
@@ -658,14 +669,8 @@ vips_threadpool_run(VipsImage *im,
 
 		VIPS_DEBUG_MSG("vips_threadpool_run: tick\n");
 
-		if (progress &&
-			progress(pool->a)) {
-			pool->error = TRUE;
-			break;
-		}
-
-		if (pool->stop ||
-			pool->error)
+		if (g_atomic_int_get(&pool->stop) ||
+			g_atomic_int_get(&pool->error))
 			break;
 
 		n_waiting = g_atomic_int_get(&pool->n_waiting);

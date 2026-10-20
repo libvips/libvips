@@ -29,6 +29,7 @@ date-tbd 8.19.0
 - add VIPS_UHDR_TO_SCRGB
 - add uchar options to premultiply and unpremultiply [jcupitt]
 - vipsthumbnail: add '@' modifier for size to pixel count
+- dcrawload: attach preview jpeg as metadata
 - dcrawload: add half-size option
 - uhdrsave: expose peak-brightness and max-content-boost parameters [dshatz]
 - add vips_image_get_loop() [jcupitt]
@@ -39,6 +40,7 @@ date-tbd 8.19.0
 - add qoiload, qoisave [Snafuh]
 - pngload: add APNG support [felixbuenemann]
 - icc: fix black output when transforming float images [lancylot2004]
+- thumbnail: add dcrawload thumbnail and preview support
 - heifload, heifsave: preserve CLLI signaling [gregbenz]
 - pngload, pngsave: read and write cLLI metadata [gregbenz]
 - foreign: trim excess bands to the largest size the saver supports [Socialpranker]
@@ -49,6 +51,28 @@ date-tbd 8.19.0
 - VipsRect: add g_autoptr cleanup
 - convi: sum using 128 bit integer, where available, before clipping [lovell]
 - colour: do not strip cicp or clli signaling [mertalev]
+- svgload: dpi= only scales DPI, scale= only scales dimensions [Czoczaj]
+- cpp: add support for pointer args [kleisauke]
+- add vips_check_draw(), vips_image_copy_draw() [jcupitt]
+- cache: ensure entry invalidation uses mutex [Albert Ebb]
+- qoiload: ensure a custom source retains existing flags [Tan-JunWei]
+- magickload: scale and round Quantum values on unpack [kleisauke]
+- thumbnail: pass missing `fail_on` arg to loaders [kleisauke]
+- pngsave: write iTXt chunks for text data (utf-8) [tonymarklove]
+- tiffload: remove unreachable code due to bits_per_sample limit of 32 [lovell]
+
+20/9/26 8.18.7
+
+- tiffload: copy colormaps on page load [Ada Logics]
+- buildlut: limit output lut size [Ada Logics]
+- tiffload: check for undersized jp2k tiles [Ada Logics]
+- hough_line: improve bounds check [Ada Logics]
+- pdfiumload: check for buffer too small [Ada Logics]
+- tiffload: check rgba settings between directories [Tanto Security]
+- uhdrload: calculate gain map scale factor using round-to-nearest [lovell]
+- jp2ksave: tag as UNTRUSTED [kleisauke]
+- header: only parse EXIF metadata for blob values [Shopify]
+- jp2kload: more size validation [Akokonunes]
 
 25/8/26 8.18.6
 

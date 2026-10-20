@@ -62,11 +62,6 @@ vips_labelregions_build(VipsObject *object)
 	VipsMorphology *morphology = VIPS_MORPHOLOGY(object);
 	VipsImage *in = morphology->in;
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 2);
-	VipsImage *mask;
-
-	int segments;
-	int *m;
-	int x, y;
 
 	if (VIPS_OBJECT_CLASS(vips_labelregions_parent_class)->build(object))
 		return -1;
@@ -75,28 +70,26 @@ vips_labelregions_build(VipsObject *object)
 	 */
 	if (vips_black(&t[0], in->Xsize, in->Ysize, NULL) ||
 		vips_cast(t[0], &t[1], VIPS_FORMAT_INT, NULL) ||
-		!(t[2] = vips_image_copy_memory(t[1])))
+		!(t[2] = vips_image_copy_draw(t[1])))
 		return -1;
 
-	mask = t[2];
+	VipsImage *mask = t[2];
 	g_object_set(object,
 		"mask", mask,
 		NULL);
 
-	segments = 1;
-	m = (int *) mask->data;
-	for (y = 0; y < mask->Ysize; y++) {
-		for (x = 0; x < mask->Xsize; x++) {
+	int segments = 1;
+	int *m = (int *) mask->data;
+	for (int y = 0; y < mask->Ysize; y++) {
+		for (int x = 0; x < mask->Xsize; x++)
 			if (!m[x]) {
 				/* Use a direct path for speed.
 				 */
-				if (vips__draw_flood_direct(mask, in,
-						segments, x, y))
+				if (vips__draw_flood_direct(mask, in, segments, x, y))
 					return -1;
 
 				segments += 1;
 			}
-		}
 
 		m += mask->Xsize;
 	}

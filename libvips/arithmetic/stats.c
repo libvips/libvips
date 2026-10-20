@@ -379,7 +379,7 @@ vips_stats_start(VipsStatistic *statistic)
  */
 static int
 vips_stats_scan(VipsStatistic *statistic, void *seq,
-	int x, int y, void *in, int n)
+	int x, int y, void *in, int n, gboolean *stop)
 {
 	const int bands = vips_image_get_bands(statistic->ready);
 	VipsStats *local = (VipsStats *) seq;

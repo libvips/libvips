@@ -981,18 +981,6 @@ rtiff_guess_format(Rtiff *rtiff)
 			return VIPS_FORMAT_FLOAT;
 		break;
 
-	case 64:
-		if (sample_format == SAMPLEFORMAT_IEEEFP)
-			return VIPS_FORMAT_DOUBLE;
-		if (sample_format == SAMPLEFORMAT_COMPLEXIEEEFP)
-			return VIPS_FORMAT_COMPLEX;
-		break;
-
-	case 128:
-		if (sample_format == SAMPLEFORMAT_COMPLEXIEEEFP)
-			return VIPS_FORMAT_DPCOMPLEX;
-		break;
-
 	default:
 		break;
 	}
@@ -1407,10 +1395,6 @@ rtiff_greyscale_line(Rtiff *rtiff,
 		}
 		break;
 
-	case VIPS_FORMAT_DOUBLE:
-		GREY_LOOP(double, 1.0);
-		break;
-
 	default:
 		g_assert_not_reached();
 	}
@@ -1436,11 +1420,6 @@ rtiff_parse_greyscale(Rtiff *rtiff, VipsImage *out)
 		out->Type = VIPS_INTERPRETATION_GREY16;
 	else
 		out->Type = VIPS_INTERPRETATION_B_W;
-
-	/* rtiff_greyscale_line() doesn't do complex.
-	 */
-	if (vips_check_noncomplex("tiff2vips", out))
-		return -1;
 
 	rtiff->sfn = rtiff_greyscale_line;
 
@@ -1597,19 +1576,30 @@ rtiff_parse_palette(Rtiff *rtiff, VipsImage *out)
 	if (!(read = VIPS_NEW(out, PaletteRead)) ||
 		!(read->red8 = VIPS_ARRAY(out, len, VipsPel)) ||
 		!(read->green8 = VIPS_ARRAY(out, len, VipsPel)) ||
-		!(read->blue8 = VIPS_ARRAY(out, len, VipsPel)))
+		!(read->blue8 = VIPS_ARRAY(out, len, VipsPel)) ||
+		!(read->red16 = VIPS_ARRAY(out, len, guint16)) ||
+		!(read->green16 = VIPS_ARRAY(out, len, guint16)) ||
+		!(read->blue16 = VIPS_ARRAY(out, len, guint16)))
 		return -1;
 
-	/* Get maps, convert to 8-bit data.
+	/* We have to copy the maps or we'll lose them on the next libtiff dir
+	 * change.
 	 */
+	guint16 *red16;
+	guint16 *green16;
+	guint16 *blue16;
 	if (!TIFFGetField(rtiff->tiff,
-			TIFFTAG_COLORMAP,
-			&read->red16, &read->green16, &read->blue16)) {
+			TIFFTAG_COLORMAP, &red16, &green16, &blue16)) {
 		vips_error("tiff2vips", "%s", _("bad colormap"));
 		return -1;
 	}
+	memcpy(read->red16, red16, 2 * len);
+	memcpy(read->green16, green16, 2 * len);
+	memcpy(read->blue16, blue16, 2 * len);
 
-	/* Old-style colourmaps were 8-bit. If all the top bytes are zero,
+	/* Convert to 8 bit.
+	 *
+	 * Old-style colourmaps were 8-bit. If all the top bytes are zero,
 	 * assume we have one of these.
 	 *
 	 * See: https://github.com/libvips/libvips/issues/220
@@ -1702,10 +1692,6 @@ rtiff_memcpy_f16_line(Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *client)
 {
 	VipsImage *im = (VipsImage *) client;
 	size_t len = (size_t) n * im->Bands;
-
-	if (im->BandFmt == VIPS_FORMAT_COMPLEX ||
-		im->BandFmt == VIPS_FORMAT_DPCOMPLEX)
-		len *= 2;
 
 	int i;
 
@@ -3372,7 +3358,8 @@ rtiff_header_equal(RtiffHeader *h1, RtiffHeader *h2)
 		h1->compression != h2->compression ||
 		h1->separate != h2->separate ||
 		h1->tiled != h2->tiled ||
-		h1->orientation != h2->orientation)
+		h1->orientation != h2->orientation ||
+		h1->read_as_rgba != h2->read_as_rgba)
 		return 0;
 
 	if (h1->tiled) {

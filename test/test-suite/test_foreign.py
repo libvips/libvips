@@ -450,6 +450,12 @@ class TestForeign:
         value = im.get("icc-profile-data")
         assert len(value) > 100
 
+    @skip_if_no("uhdrload")
+    def test_uhdrload_odd_dimensions(self):
+        # 129x97 image with 65x49 gain map
+        im = pyvips.Image.uhdrload(UHDR_ODD_DIMENSIONS_FILE)
+        assert im.get("gainmap-scale-factor") == 2
+
     @skip_if_no("uhdrsave")
     def test_uhdrsave(self):
         im = pyvips.Image.uhdrload(UHDR_FILE)
@@ -1144,6 +1150,10 @@ class TestForeign:
         assert y.get("tile-width") == 192
         assert y.get("tile-height") == 224
 
+        # Complex IEEE sample format is unsupported
+        with pytest.raises(pyvips.error.Error, match="samples out of range"):
+            x = pyvips.Image.new_from_file(TIF_COMPLEX_IEEE)
+
     @skip_if_no("tiffload")
     @pytest.mark.xfail(raises=AssertionError, reason="fails when libtiff was configured with --disable-old-jpeg")
     def test_tiff_ojpeg(self):
@@ -1653,8 +1663,16 @@ class TestForeign:
         assert abs(im.width * 2 - x.width) < 2
         assert abs(im.height * 2 - x.height) < 2
 
+        # this SVG file has pixel dimensions in the header, so DPI should not
+        # affect render size
         im = pyvips.Image.new_from_file(SVG_FILE)
         x = pyvips.Image.new_from_file(SVG_FILE, dpi=144)
+        assert im.width == x.width
+        assert im.height == x.height
+
+        # but scale= should
+        im = pyvips.Image.new_from_file(SVG_FILE)
+        x = pyvips.Image.new_from_file(SVG_FILE, scale=2)
         assert abs(im.width * 2 - x.width) < 2
         assert abs(im.height * 2 - x.height) < 2
 

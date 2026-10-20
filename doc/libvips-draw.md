@@ -19,9 +19,8 @@ might be drawing a curved line from a set of straight line segments: if you
 need to draw 1,000 straight lines, a 1,000 operation-deep pipeline is going
 to be a slow way to do it. This is where the draw operations come in.
 
-To use these operations, use [method@Image.copy_memory] to make a private
-memory copy of the image you want to modify, then call a series of draw
-operations.
+To use these operations, use [method@Image.copy_draw] to make a private
+copy of the image you want to modify, then call a series of draw operations.
 
 Once you are done drawing, return to normal use of vips operations. Any time
 you want to start drawing again, you'll need to copy again.

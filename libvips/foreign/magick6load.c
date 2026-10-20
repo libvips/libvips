@@ -136,8 +136,11 @@
 
 /* pre-float Magick used to call this MaxRGB.
  */
-#if !defined(QuantumRange)
+#ifndef QuantumRange
 #define QuantumRange MaxRGB
+#endif
+#ifndef QuantumScale
+#define QuantumScale ((double) 1.0 / (double) QuantumRange)
 #endif
 
 /* And this used to be UseHDRI.
@@ -626,58 +629,57 @@ vips_foreign_load_magick_parse(VipsForeignLoadMagick *magick,
 	return 0;
 }
 
-/* Divide by this to get 0 - MAX from a Quantum. Eg. consider QuantumRange ==
- * 65535, MAX == 255 (a Q16 ImageMagic representing an 8-bit image). Make sure
- * this can't be zero (if QuantumRange < MAX) .. can happen if we have a Q8
- * ImageMagick trying to represent a 16-bit image.
- */
-#define SCALE(MAX) \
-	(QuantumRange < (MAX) \
-			? 1 \
-			: ((QuantumRange + 1) / ((MAX) + 1)))
+#define SCALE_UCHAR(X) ((double) (X) * QuantumScale * UCHAR_MAX + 0.5)
+#define SCALE_USHORT(X) ((double) (X) * QuantumScale * USHRT_MAX + 0.5)
+#define SCALE_UINT(X) ((double) (X) * QuantumScale * UINT_MAX + 0.5)
+#define SCALE_NONE(X) (X)
 
-#define GRAY_LOOP(TYPE, MAX) \
+#define GRAY_LOOP(TYPE, CONVERT) \
 	{ \
 		TYPE *q = (TYPE *) q8; \
 \
 		for (x = 0; x < n; x++) \
-			q[x] = pixels[x].green / SCALE(MAX); \
+			q[x] = CONVERT(pixels[x].green); \
 	}
 
-#define GRAYA_LOOP(TYPE, MAX) \
+/* IM6 and GM stores transparency as opacity:
+ * 0 = opaque, QuantumRange = transparent.
+ * Convert to alpha by inverting in Quantum space.
+ */
+#define GRAYA_LOOP(TYPE, CONVERT) \
 	{ \
 		TYPE *q = (TYPE *) q8; \
 \
 		for (x = 0; x < n; x++) { \
-			q[0] = pixels[x].green / SCALE(MAX); \
-			q[1] = MAX - pixels[x].opacity / SCALE(MAX); \
+			q[0] = CONVERT(pixels[x].green); \
+			q[1] = CONVERT(QuantumRange - pixels[x].opacity); \
 \
 			q += 2; \
 		} \
 	}
 
-#define RGB_LOOP(TYPE, MAX) \
+#define RGB_LOOP(TYPE, CONVERT) \
 	{ \
 		TYPE *q = (TYPE *) q8; \
 \
 		for (x = 0; x < n; x++) { \
-			q[0] = pixels[x].red / SCALE(MAX); \
-			q[1] = pixels[x].green / SCALE(MAX); \
-			q[2] = pixels[x].blue / SCALE(MAX); \
+			q[0] = CONVERT(pixels[x].red); \
+			q[1] = CONVERT(pixels[x].green); \
+			q[2] = CONVERT(pixels[x].blue); \
 \
 			q += 3; \
 		} \
 	}
 
-#define RGBA_LOOP(TYPE, MAX) \
+#define RGBA_LOOP(TYPE, CONVERT) \
 	{ \
 		TYPE *q = (TYPE *) q8; \
 \
 		for (x = 0; x < n; x++) { \
-			q[0] = pixels[x].red / SCALE(MAX); \
-			q[1] = pixels[x].green / SCALE(MAX); \
-			q[2] = pixels[x].blue / SCALE(MAX); \
-			q[3] = MAX - pixels[x].opacity / SCALE(MAX); \
+			q[0] = CONVERT(pixels[x].red); \
+			q[1] = CONVERT(pixels[x].green); \
+			q[2] = CONVERT(pixels[x].blue); \
+			q[3] = CONVERT(QuantumRange - pixels[x].opacity); \
 \
 			q += 4; \
 		} \
@@ -694,16 +696,16 @@ unpack_pixels(VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n)
 		 */
 		switch (im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			GRAY_LOOP(unsigned char, 255);
+			GRAY_LOOP(unsigned char, SCALE_UCHAR);
 			break;
 		case VIPS_FORMAT_USHORT:
-			GRAY_LOOP(unsigned short, 65535);
+			GRAY_LOOP(unsigned short, SCALE_USHORT);
 			break;
 		case VIPS_FORMAT_UINT:
-			GRAY_LOOP(unsigned int, 4294967295UL);
+			GRAY_LOOP(unsigned int, SCALE_UINT);
 			break;
 		case VIPS_FORMAT_DOUBLE:
-			GRAY_LOOP(double, QuantumRange);
+			GRAY_LOOP(double, SCALE_NONE);
 			break;
 
 		default:
@@ -716,16 +718,16 @@ unpack_pixels(VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n)
 		 */
 		switch (im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			GRAYA_LOOP(unsigned char, 255);
+			GRAYA_LOOP(unsigned char, SCALE_UCHAR);
 			break;
 		case VIPS_FORMAT_USHORT:
-			GRAYA_LOOP(unsigned short, 65535);
+			GRAYA_LOOP(unsigned short, SCALE_USHORT);
 			break;
 		case VIPS_FORMAT_UINT:
-			GRAYA_LOOP(unsigned int, 4294967295UL);
+			GRAYA_LOOP(unsigned int, SCALE_UINT);
 			break;
 		case VIPS_FORMAT_DOUBLE:
-			GRAYA_LOOP(double, QuantumRange);
+			GRAYA_LOOP(double, SCALE_NONE);
 			break;
 
 		default:
@@ -738,16 +740,16 @@ unpack_pixels(VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n)
 		 */
 		switch (im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			RGB_LOOP(unsigned char, 255);
+			RGB_LOOP(unsigned char, SCALE_UCHAR);
 			break;
 		case VIPS_FORMAT_USHORT:
-			RGB_LOOP(unsigned short, 65535);
+			RGB_LOOP(unsigned short, SCALE_USHORT);
 			break;
 		case VIPS_FORMAT_UINT:
-			RGB_LOOP(unsigned int, 4294967295UL);
+			RGB_LOOP(unsigned int, SCALE_UINT);
 			break;
 		case VIPS_FORMAT_DOUBLE:
-			RGB_LOOP(double, QuantumRange);
+			RGB_LOOP(double, SCALE_NONE);
 			break;
 
 		default:
@@ -760,16 +762,16 @@ unpack_pixels(VipsImage *im, VipsPel *q8, PixelPacket *pixels, int n)
 		 */
 		switch (im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			RGBA_LOOP(unsigned char, 255);
+			RGBA_LOOP(unsigned char, SCALE_UCHAR);
 			break;
 		case VIPS_FORMAT_USHORT:
-			RGBA_LOOP(unsigned short, 65535);
+			RGBA_LOOP(unsigned short, SCALE_USHORT);
 			break;
 		case VIPS_FORMAT_UINT:
-			RGBA_LOOP(unsigned int, 4294967295UL);
+			RGBA_LOOP(unsigned int, SCALE_UINT);
 			break;
 		case VIPS_FORMAT_DOUBLE:
-			RGBA_LOOP(double, QuantumRange);
+			RGBA_LOOP(double, SCALE_NONE);
 			break;
 
 		default:

@@ -24,6 +24,7 @@ TIF4_FILE = os.path.join(IMAGES, "4bit.tif")
 TIF_OJPEG_TILE_FILE = os.path.join(IMAGES, "ojpeg-tile.tif")
 TIF_OJPEG_STRIP_FILE = os.path.join(IMAGES, "ojpeg-strip.tif")
 TIF_SUBSAMPLED_FILE = os.path.join(IMAGES, "subsampled.tif")
+TIF_COMPLEX_IEEE = os.path.join(IMAGES, "complex-ieee.tif")
 OME_FILE = os.path.join(IMAGES, "multi-channel-z-series.ome.tif")
 ANALYZE_FILE = os.path.join(IMAGES, "t00740_tr1_segm.hdr")
 GIF_FILE = os.path.join(IMAGES, "cramps.gif")
@@ -83,6 +84,7 @@ JP2K_FILE = os.path.join(IMAGES, "world.jp2")
 JP2K_PALETTE_FILE = os.path.join(IMAGES, "palette.jp2") # https://github.com/libvips/libvips/pull/5136
 UHDR_FILE = os.path.join(IMAGES, "ultra-hdr.jpg")
 TYPE_LIGHT_SANS_FONT = os.path.join(FONTS, "TypeLightSans.ttf") # CC0 https://ggbot.itch.io/ggbotnet-fonts-cc0
+UHDR_ODD_DIMENSIONS_FILE = os.path.join(IMAGES, "gainmap-odd-dimensions.jpg")
 
 unsigned_formats = ["uchar", "ushort", "uint"]
 signed_formats = ["char", "short", "int"]

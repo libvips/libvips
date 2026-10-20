@@ -65,6 +65,7 @@ VIPS-INFO: thumbnailing k2.jpg as ./tn_k2.jpg
 * [func@error_g]
 * [func@g_error]
 * [func@error_exit]
+* [func@check_draw]
 * [func@check_uncoded]
 * [func@check_coding]
 * [func@check_coding_known]

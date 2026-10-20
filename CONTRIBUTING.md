@@ -95,51 +95,19 @@ options:
 - Backport pull requests: use "Rebase and merge" to avoid duplicate references
   and unnecessary "Co-authored-by:" lines in commit messages.
 
-## AI Contribution Policy
+## AI Policy
 
-We are a project by humans for humans. We prefer contributions that
-are produced by human creativity, we expect a human to take full
-responsibility for each contribution, and we will take more joy in
-reviewing contributions when there are people at the other end of the
-line to stand by their changes.
+We do not accept contributions containing code or other content made, in whole
+or in part, using generative AI tools.
 
-If you use LLM/GenAI tools for your contributions, here are the rules
-you must follow:
+This policy applies to this repository and other repositories under the
+[libvips](https://github.com/libvips) umbrella.
 
-### Requirements
+The sources used to train AI models are generally not known, so we cannot
+determine whether their output may contain material protected by someone
+else's copyright. We therefore do not accept such contributions because of
+the related legal risks.
 
-1. Use AI as a tool. Verify behavior, correctness, and compatibility
-   yourself prior to submitting your contribution. Do not ask the
-   maintainers to do this for you.
-2. Keep changes narrow and limited. Do **NOT** use LLM/GenAI tools to
-   generate broad rewrites, large refactorings, or style changes.
-3. Do **NOT** submit generated code, documentation, or tests that you
-   don't understand.
-4. Do **NOT** fabricate benchmarks, bug reports, test results, code
-   samples, or reproducers.
-5. Do **NOT** include private code, credentials, tokens, or any other
-   confidential material.
-6. Respect the licensing and attribution requirements.
-
-### Disclosure
-
-Always disclose the use of LLM/GenAI tools when creating an issue or
-a merge request. Do not include trailers like "Co-authored-by:" or
-"Assisted-by:" in commit messages, since they serve as free advertising
-for AI companies.
-
-### Reviews
-
-1. Describe your changes, and the verification steps.
-2. Be prepared to explain all the changes yourself.
-3. Do **NOT** feed the review feedback to an LLM/GenAI tool.
-
-### Maintainers expectations
-
-1. Review LLM/GenAI-assisted contributions more strictly than any other contribution.
-2. Require reproducibility in fixes and tests.
-3. Reject changes that appear to be unverified LLM/GenAI output.
-4. Reject comments and feedback that appear to be LLM/GenAI output.
-
-> A COMPUTER CAN NEVER BE HELD ACCOUNTABLE.
-> THEREFORE A COMPUTER MUST NEVER MAKE A MAINTENANCE DECISION.
+Contributors are expected to understand and take responsibility for everything
+they submit. We rely on contributors to follow this policy in good faith and
+may ask whether AI tools were used during review.

@@ -636,25 +636,27 @@ vips_foreign_load_magick7_parse(VipsForeignLoadMagick7 *magick7,
 	return 0;
 }
 
+#define SCALE_UCHAR(X) ((double) (X) * QuantumScale * UCHAR_MAX + 0.5)
+#define SCALE_USHORT(X) ((double) (X) * QuantumScale * USHRT_MAX + 0.5)
+#define SCALE_NONE(X) (X)
+
 /* We don't bother with GetPixelReadMask(), assume it's everywhere. Don't
  * bother with traits, assume that's always updated.
  *
  * We do skip index channels. Palette images add extra index channels
  * containing the index value from the file before colourmap lookup.
  */
-#define UNPACK(TYPE) \
+#define UNPACK(TYPE, CONVERT) \
 	{ \
 		TYPE *restrict tq = (TYPE *) q; \
-		int x; \
-		int b; \
 \
-		for (x = 0; x < r->width; x++) { \
-			for (b = 0; b < GetPixelChannels(image); b++) { \
+		for (int x = 0; x < r->width; x++) { \
+			for (int b = 0; b < GetPixelChannels(image); b++) { \
 				PixelChannel channel = \
 					GetPixelChannelChannel(image, b); \
 \
 				if (channel != IndexPixelChannel) \
-					*tq++ = p[b]; \
+					*tq++ = CONVERT(p[b]); \
 			} \
 \
 			p += GetPixelChannels(image); \
@@ -669,9 +671,7 @@ vips_foreign_load_magick7_fill_region(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	VipsImage *im = out_region->im;
 
-	int y;
-
-	for (y = 0; y < r->height; y++) {
+	for (int y = 0; y < r->height; y++) {
 		int top = r->top + y;
 		int frame = top / magick7->frame_height;
 		int line = top % magick7->frame_height;
@@ -699,19 +699,19 @@ vips_foreign_load_magick7_fill_region(VipsRegion *out_region,
 
 		switch (im->BandFmt) {
 		case VIPS_FORMAT_UCHAR:
-			UNPACK(unsigned char);
+			UNPACK(unsigned char, SCALE_UCHAR);
 			break;
 
 		case VIPS_FORMAT_USHORT:
-			UNPACK(unsigned short);
+			UNPACK(unsigned short, SCALE_USHORT);
 			break;
 
 		case VIPS_FORMAT_FLOAT:
-			UNPACK(float);
+			UNPACK(float, SCALE_NONE);
 			break;
 
 		case VIPS_FORMAT_DOUBLE:
-			UNPACK(double);
+			UNPACK(double, SCALE_NONE);
 			break;
 
 		default:
