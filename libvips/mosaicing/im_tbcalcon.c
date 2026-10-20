@@ -122,7 +122,7 @@ vips__tbcalcon(VipsImage *ref, TiePoints *points)
 
 	/* Loop over areas, finding points.
 	 */
-	for (i = 0; area.left < ref->Xsize; area.left += awidth, i++)
+	for (i = 0; area.left < ref->Xsize && i < AREAS; area.left += awidth, i++)
 		if (vips__find_best_contrast(ref,
 				area.left, area.top, area.width, area.height,
 				points->x_reference + i * len,

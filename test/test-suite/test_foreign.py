@@ -517,6 +517,15 @@ class TestForeign:
 
         assert len(data) != len(data_interlace)
 
+    @skip_if_no("uhdrsave")
+    def test_uhdrsave_beyond_jpeg_limits(self):
+        too_wide = pyvips.Image.black(65501, 1)
+        too_high = pyvips.Image.black(1, 65501)
+        with pytest.raises(pyvips.Error, match="image too large"):
+            too_wide.uhdrsave_buffer()
+        with pytest.raises(pyvips.Error, match="image too large"):
+            too_high.uhdrsave_buffer()
+
     @skip_if_no("uhdrload")
     def test_uhdr_thumbnail(self):
         im = pyvips.Image.uhdrload(UHDR_FILE)
@@ -1190,6 +1199,17 @@ class TestForeign:
         self.save_load_file(".tif",
                             "[tile,pyramid,subifd,compression=jp2k]",
                             self.colour, 80)
+
+        # embedded jp2k tile with 3px offset from left
+        im = pyvips.Image.tiffload(TIF_JP2K_OFFSET_TILE_FILE)
+        data = im.tiffsave_buffer(compression="none")
+        im = pyvips.Image.new_from_buffer(data, "")
+        assert im.width == 64
+        assert im.height == 64
+        # first three columns are zero
+        assert im.extract_area(0, 0, 3, im.height).sum() == 0.0
+        # fourth column is non-zero
+        assert im.extract_area(3, 0, 1, im.height).avg() > 80.0
 
     @skip_if_no("magickload")
     def test_magickload(self):
@@ -2338,6 +2358,14 @@ class TestForeign:
         with pytest.raises(Exception) as e_info:
             im = pyvips.Image.csvload_source(source, fail_on="warning")
             im.avg() > 0
+
+    def test_new_temp_file_invalid_format(self):
+        with pytest.raises(pyvips.error.Error):
+            pyvips.Image.new_temp_file("%d.jpg")
+        with pytest.raises(pyvips.error.Error):
+            pyvips.Image.new_temp_file("%s%s.jpg")
+        with pytest.raises(pyvips.error.Error):
+            pyvips.Image.new_temp_file("%%s.jpg")
 
 if __name__ == '__main__':
     pytest.main()

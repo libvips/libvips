@@ -60,6 +60,24 @@ date-tbd 8.19.0
 - pngsave: write iTXt chunks for text data (utf-8) [tonymarklove]
 - tiffload: remove unreachable code due to bits_per_sample limit of 32 [lovell]
 
+tdb 8.18.8
+
+- jxlsave: don't save bad profiles [Lumaraf]
+- invertlut: prevent possible integer overflow [Shubham Raj]
+- image_sanity: allow LAB interp for LABQ coding [jcupitt]
+- tiff{load,save}: honour block state for jp2k tiles [kleisauke]
+- uhdrsave: verify dimensions are within JPEG limits [Shubham Raj]
+- mosaic: add areas bounds check, required for small search size [Shubham Raj]
+- popplerload: synchronise dimension check with pdfiumload [Aziz Elbelaychy]
+- magicksave: guard against non-integer frame delay [Aziz Elbelaychy]
+- histogram: double band count for complex images [ZeroVuln Labs]
+- tiffload: add support for offset JP2K tiles [lovell]
+- temp_name: allow only one string substitution [Aziz Elbelaychy]
+- tiffload: limit total height [JiHeun]
+- sink_screen: move render_free() inside the global render lock [octopus-kkk]
+- icc_transform: copy blob, not raw pointer [chehov]
+- heifload, pdfload, webpload, gifload: check total height in multipage images
+
 20/9/26 8.18.7
 
 - tiffload: copy colormaps on page load [Ada Logics]

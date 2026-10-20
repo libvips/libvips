@@ -131,7 +131,7 @@ vips_invertlut_build_init(VipsInvertlut *lut)
 	}
 
 	if (!(lut->buf =
-				VIPS_ARRAY(NULL, lut->size * (lut->mat->Xsize - 1), double)))
+				VIPS_ARRAY(NULL, (size_t) lut->size * (lut->mat->Xsize - 1), double)))
 		return -1;
 
 	if (!(lut->data = VIPS_ARRAY(NULL, lut->mat->Ysize, double *)))

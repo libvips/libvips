@@ -3056,6 +3056,15 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 			break;
 		}
 
+	/* We don't decompress jp2k tiles if jp2kload_source is blocked or
+	 * unavailable.
+	 */
+	if ((header->compression == JP2K_YCC ||
+			header->compression == JP2K_RGB ||
+			header->compression == JP2K_LOSSY) &&
+		!vips__foreign_load_jp2k_can_load())
+		return -1;
+
 	/* We must set this here since it'll change the value of scanline_size.
 	 */
 	rtiff_set_decode_format(rtiff);
@@ -3403,9 +3412,7 @@ rtiff_header_read_all(Rtiff *rtiff)
 	if (rtiff->n == -1)
 		rtiff->n = rtiff->n_pages - rtiff->page;
 	if (rtiff->n > 1) {
-		int i;
-
-		for (i = 1; i < rtiff->n; i++) {
+		for (int i = 1; i < rtiff->n; i++) {
 			RtiffHeader header;
 
 #ifdef DEBUG
@@ -3428,6 +3435,15 @@ rtiff_header_read_all(Rtiff *rtiff)
 		 */
 		rtiff->current_page = -1;
 	}
+
+	/* And the total image height has to be within VIPS_MAX_COORD.
+	 */
+	gint64 final_ysize = (gint64) rtiff->header.height * rtiff->n;
+    if (final_ysize <= 0 ||
+		final_ysize >= VIPS_MAX_COORD) {
+        vips_error("tiff2vips", "%s", _("image too large"));
+        return -1;
+    }
 
 	return 0;
 }

@@ -16,6 +16,15 @@ class TestHistogram:
         p = cum(255, 0)
         assert p[0] == sum
 
+    def test_hist_cum_complex(self):
+        pixel = pyvips.Image.new_from_array([[1]])
+        im = pixel.complexform(pixel + 1)
+        hist = im.hist_cum()
+
+        assert hist.width == 1
+        assert hist.bands == 2
+        assert hist(0, 0) == [1.0, 2.0]
+
     def test_hist_equal(self):
         im = pyvips.Image.new_from_file(JPEG_FILE)
 
