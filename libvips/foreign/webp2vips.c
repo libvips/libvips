@@ -205,7 +205,6 @@ vips_image_paint_area(VipsImage *image, const VipsRect *r, const VipsPel *ink)
 		int ws = ovl.width * ps;
 
 		VipsPel *to, *q;
-		int x, y, z;
 
 		/* We plot the first line pointwise, then memcpy() it for the
 		 * subsequent lines. We need to work for RGB and RGBA, so we
@@ -214,17 +213,17 @@ vips_image_paint_area(VipsImage *image, const VipsRect *r, const VipsPel *ink)
 		to = VIPS_IMAGE_ADDR(image, ovl.left, ovl.top);
 
 		q = to;
-		for (x = 0; x < ovl.width; x++) {
+		for (int x = 0; x < ovl.width; x++) {
 			/* Faster than memcpy() for about ps < 20.
 			 */
-			for (z = 0; z < ps; z++)
+			for (int z = 0; z < ps; z++)
 				q[z] = ink[z];
 
 			q += ps;
 		}
 
 		q = to + ls;
-		for (y = 1; y < ovl.height; y++) {
+		for (int y = 1; y < ovl.height; y++) {
 			memcpy(q, to, ws);
 			q += ls;
 		}
@@ -290,22 +289,20 @@ vips_image_paint_image(VipsImage *frame,
 	vips_rect_intersectrect(&frame_rect, &sub_rect, &ovl);
 	if (!vips_rect_isempty(&ovl)) {
 		VipsPel *p, *q;
-		int x, y;
 
 		p = VIPS_IMAGE_ADDR(sub, ovl.left - left, ovl.top - top);
 		q = VIPS_IMAGE_ADDR(frame, ovl.left, ovl.top);
 
-		for (y = 0; y < ovl.height; y++) {
+		for (int y = 0; y < ovl.height; y++) {
 			if (blend) {
 				guint32 *A = (guint32 *) p;
 				guint32 *B = (guint32 *) q;
 
-				for (x = 0; x < ovl.width; x++)
+				for (int x = 0; x < ovl.width; x++)
 					B[x] = blend_pixel(A[x], B[x]);
 			}
 			else
-				memcpy((char *) q, (char *) p,
-					(size_t) ovl.width * ps);
+				memcpy((char *) q, (char *) p, (size_t) ovl.width * ps);
 
 			p += VIPS_IMAGE_SIZEOF_LINE(sub);
 			q += VIPS_IMAGE_SIZEOF_LINE(frame);
@@ -372,8 +369,7 @@ read_new(VipsImage *out, VipsSource *source, int page, int n, double scale)
 	/* Everything has to stay open until read has finished, unfortunately,
 	 * since webp relies on us mapping the whole source.
 	 */
-	g_signal_connect(out, "close",
-		G_CALLBACK(read_close_cb), read);
+	g_signal_connect(out, "close", G_CALLBACK(read_close_cb), read);
 
 	WebPInitDecoderConfig(&read->config);
 	read->config.options.use_threads = 1;
@@ -381,8 +377,7 @@ read_new(VipsImage *out, VipsSource *source, int page, int n, double scale)
 
 	/* Map the whole source into memory.
 	 */
-	if (!(read->data.bytes =
-				vips_source_map(source, &read->data.size)))
+	if (!(read->data.bytes = vips_source_map(source, &read->data.size)))
 		return NULL;
 
 	return read;
@@ -400,15 +395,11 @@ const int vips__n_webp_names = VIPS_NUMBER(vips__webp_names);
 static int
 read_header(Read *read, VipsImage *out)
 {
-	int flags;
-	int i;
-
 	if (!(read->demux = WebPDemux(&read->data))) {
 		vips_error("webp", "%s", _("unable to parse image"));
 		return -1;
 	}
-
-	flags = WebPDemuxGetI(read->demux, WEBP_FF_FORMAT_FLAGS);
+	int flags = WebPDemuxGetI(read->demux, WEBP_FF_FORMAT_FLAGS);
 
 	read->alpha = flags & ALPHA_FLAG;
 
@@ -417,18 +408,15 @@ read_header(Read *read, VipsImage *out)
 	 */
 	read->config.output.colorspace = MODE_RGBA;
 
-	read->canvas_width =
-		WebPDemuxGetI(read->demux, WEBP_FF_CANVAS_WIDTH);
-	read->canvas_height =
-		WebPDemuxGetI(read->demux, WEBP_FF_CANVAS_HEIGHT);
+	read->canvas_width = WebPDemuxGetI(read->demux, WEBP_FF_CANVAS_WIDTH);
+	read->canvas_height = WebPDemuxGetI(read->demux, WEBP_FF_CANVAS_HEIGHT);
 
 	if (flags & ANIMATION_FLAG) {
 		int loop_count;
 		WebPIterator iter;
 
 		loop_count = WebPDemuxGetI(read->demux, WEBP_FF_LOOP_COUNT);
-		read->frame_count = WebPDemuxGetI(read->demux,
-			WEBP_FF_FRAME_COUNT);
+		read->frame_count = WebPDemuxGetI(read->demux, WEBP_FF_FRAME_COUNT);
 
 #ifdef DEBUG
 		printf("webp2vips: animation\n");
@@ -447,19 +435,15 @@ read_header(Read *read, VipsImage *out)
 			loop_count == 0 ? 0 : loop_count - 1);
 
 		if (WebPDemuxGetFrame(read->demux, 1, &iter)) {
-			int i;
-
-			read->delays = (int *)
-				g_malloc0(read->frame_count * sizeof(int));
-			for (i = 0; i < read->frame_count; i++)
+			read->delays = (int *) g_malloc0(read->frame_count * sizeof(int));
+			for (int i = 0; i < read->frame_count; i++)
 				read->delays[i] = 40;
 
 			do {
 				g_assert(iter.frame_num >= 1 &&
 					iter.frame_num <= read->frame_count);
 
-				read->delays[iter.frame_num - 1] =
-					iter.duration;
+				read->delays[iter.frame_num - 1] = iter.duration;
 
 				/* We need the alpha in an animation if:
 				 *   - any frame has transparent pixels
@@ -485,8 +469,7 @@ read_header(Read *read, VipsImage *out)
 
 			/* webp uses ms for delays, gif uses centiseconds.
 			 */
-			vips_image_set_int(out, "gif-delay",
-				rint(read->delays[0] / 10.0));
+			vips_image_set_int(out, "gif-delay", rint(read->delays[0] / 10.0));
 		}
 
 		WebPDemuxReleaseIterator(&iter);
@@ -497,8 +480,7 @@ read_header(Read *read, VipsImage *out)
 		if (read->page < 0 ||
 			read->n <= 0 ||
 			read->page + read->n > read->frame_count) {
-			vips_error("webp",
-				"%s", _("bad page number"));
+			vips_error("webp", "%s", _("bad page number"));
 			return -1;
 		}
 
@@ -525,11 +507,18 @@ read_header(Read *read, VipsImage *out)
 		 * this could accidentally turn into an animated image later.
 		 */
 		if (read->n > 1)
-			vips_image_set_int(out,
-				VIPS_META_PAGE_HEIGHT, read->frame_height);
+			vips_image_set_int(out, VIPS_META_PAGE_HEIGHT, read->frame_height);
 
 		read->width = read->frame_width;
-		read->height = read->n * read->frame_height;
+
+		gint64 final_height = (gint64) read->n * read->frame_height;
+		if (final_height <= 0 ||
+			final_height >= VIPS_MAX_COORD) {
+			vips_error("webp", "%s", _("image too large"));
+			return -1;
+		}
+
+		read->height = final_height;
 	}
 	else {
 		read->width = read->frame_width;
@@ -551,7 +540,7 @@ read_header(Read *read, VipsImage *out)
 		return -1;
 	}
 
-	for (i = 0; i < vips__n_webp_names; i++) {
+	for (int i = 0; i < vips__n_webp_names; i++) {
 		const char *vips = vips__webp_names[i].vips;
 		const char *webp = vips__webp_names[i].webp;
 
@@ -574,8 +563,7 @@ read_header(Read *read, VipsImage *out)
 		VIPS_FORMAT_UCHAR, VIPS_CODING_NONE,
 		VIPS_INTERPRETATION_sRGB,
 		1.0, 1.0);
-	if (vips_image_pipelinev(read->frame,
-			VIPS_DEMAND_STYLE_THINSTRIP, NULL) ||
+	if (vips_image_pipelinev(read->frame, VIPS_DEMAND_STYLE_THINSTRIP, NULL) ||
 		vips_image_write_prepare(read->frame))
 		return -1;
 
@@ -591,8 +579,7 @@ read_header(Read *read, VipsImage *out)
 		vips_connection_filename(VIPS_CONNECTION(read->source)));
 
 	if (!WebPDemuxGetFrame(read->demux, 1, &read->iter)) {
-		vips_error("webp",
-			"%s", _("unable to loop through frames"));
+		vips_error("webp", "%s", _("unable to loop through frames"));
 		return -1;
 	}
 
@@ -603,8 +590,7 @@ read_header(Read *read, VipsImage *out)
  * blended into the accumulator at some offset.
  */
 static VipsImage *
-read_frame(Read *read,
-	int width, int height, const guint8 *data, size_t length)
+read_frame(Read *read, int width, int height, const guint8 *data, size_t length)
 {
 	VipsImage *frame;
 
@@ -720,8 +706,7 @@ read_next_frame(Read *read)
 	 */
 	if (read->iter.frame_num < read->frame_count) {
 		if (!WebPDemuxNextFrame(&read->iter)) {
-			vips_error("webp2vips",
-				"%s", _("not enough frames"));
+			vips_error("webp2vips", "%s", _("not enough frames"));
 			return -1;
 		}
 	}
@@ -759,7 +744,6 @@ read_webp_generate(VipsRegion *out_region,
 			VIPS_IMAGE_ADDR(read->frame, 0, line),
 			VIPS_IMAGE_SIZEOF_LINE(read->frame));
 	else {
-		int x;
 		VipsPel *p;
 		VipsPel *q;
 
@@ -768,7 +752,7 @@ read_webp_generate(VipsRegion *out_region,
 		 */
 		p = VIPS_IMAGE_ADDR(read->frame, 0, line);
 		q = VIPS_REGION_ADDR(out_region, 0, r->top);
-		for (x = 0; x < r->width; x++) {
+		for (int x = 0; x < r->width; x++) {
 			q[0] = p[0];
 			q[1] = p[1];
 			q[2] = p[2];
@@ -784,8 +768,7 @@ read_webp_generate(VipsRegion *out_region,
 static int
 read_image(Read *read, VipsImage *out)
 {
-	VipsImage **t = (VipsImage **)
-		vips_object_local_array(VIPS_OBJECT(out), 2);
+	VipsImage **t = (VipsImage **) vips_object_local_array(VIPS_OBJECT(out), 2);
 
 	/* Make the output pipeline.
 	 */
@@ -793,8 +776,7 @@ read_image(Read *read, VipsImage *out)
 	if (read_header(read, t[0]))
 		return -1;
 
-	if (vips_image_generate(t[0],
-			NULL, read_webp_generate, NULL, read, NULL) ||
+	if (vips_image_generate(t[0], NULL, read_webp_generate, NULL, read, NULL) ||
 		vips_sequential(t[0], &t[1], NULL) ||
 		vips_image_write(t[1], out))
 		return -1;
