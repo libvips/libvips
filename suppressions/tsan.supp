@@ -14,16 +14,3 @@ race_top:vips_INT__VOID
 # Unsynchronized read of once->status from g_once
 # https://gitlab.gnome.org/GNOME/glib/-/issues/1672
 race:g_once_impl
-
-# TSan may produce false positives for callbacks invoked from
-# non-instrumented code. Such callbacks should be listed below.
-race:readjpeg_emit_message
-race:source_fill_input_buffer
-race:source_fill_input_buffer_mappable
-race:vips_foreign_load_heif_read
-race:vips_foreign_load_heif_wait_for_file_size
-race:vips_foreign_load_jp2k_read_source
-race:vips_foreign_load_jp2k_seek_source
-race:vips_foreign_load_jp2k_skip_source
-race:vips_foreign_load_png_stream
-race:vips_png_read_source
