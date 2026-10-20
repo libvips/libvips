@@ -251,7 +251,7 @@ elif [ "$SANITIZER" = "thread" ]; then
   # instrumented and non-instrumented code. To avoid this, built GLib with
   # TSan instrumentation as well.
   # https://github.com/google/sanitizers/wiki/threadsanitizercppmanual#non-instrumented-code
-  TSAN_ARGS="--force-fallback-for=glib -Dglib:glib_debug=disabled -Dglib:nls=disabled -Dglib:sysprof=disabled -Dglib:tests=false"
+  TSAN_ARGS="--force-fallback-for=glib -Dglib:glib_debug=disabled -Dglib:nls=disabled -Dglib:dtrace=disabled -Dglib:sysprof=disabled -Dglib:tests=false"
 fi
 
 # libvips
