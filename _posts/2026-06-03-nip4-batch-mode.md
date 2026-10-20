@@ -6,7 +6,7 @@ nip4 has a new and much nicer batch mode (compared to nip2). This post tries
 to explain how it works with some examples.
 
 The post about [multiple definitions in 
-nip4](2025/11/22/nip4-multiple-definitions.html)
+nip4](/2025/11/22/nip4-multiple-definitions.html)
 from a few months ago has a very brief introduction to nip4's programming
 language,
 
