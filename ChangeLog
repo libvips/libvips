@@ -14,7 +14,7 @@ tdb 8.18.8
 - tiffload: limit total height [JiHeun]
 - sink_screen: move render_free() inside the global render lock [octopus-kkk]
 - icc_transform: copy blob, not raw pointer [chehov]
-- pdfload: improve height handling
+- heifload, pdfload: check total height in multipage images
 
 20/9/26 8.18.7
 
