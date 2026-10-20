@@ -268,7 +268,6 @@ static int n_metadata = VIPS_NUMBER(vips_foreign_load_pdf_metadata);
 static int
 vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 {
-	int i;
 	double res;
 
 #ifdef DEBUG
@@ -280,7 +279,7 @@ vips_foreign_load_pdf_set_image(VipsForeignLoadPdf *pdf, VipsImage *out)
 	vips_image_set_int(out, "pdf-n_pages", pdf->n_pages);
 	vips_image_set_int(out, VIPS_META_N_PAGES, pdf->n_pages);
 
-	for (i = 0; i < n_metadata; i++) {
+	for (int i = 0; i < n_metadata; i++) {
 		VipsForeignLoadPdfMetadata *metadata =
 			&vips_foreign_load_pdf_metadata[i];
 
@@ -373,24 +372,27 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 			return -1;
 		}
 
-		if (pdf->pages[i].width > pdf->image.width)
-			pdf->image.width = pdf->pages[i].width;
-		pdf->image.height += pdf->pages[i].height;
+		pdf->image.width = VIPS_MAX(pdf->image.width, pdf->pages[i].width);
+
+		gint64 new_height = pdf->image.height + pdf->pages[i].height;
+		if (new_height > VIPS_MAX_COORD) {
+			vips_error(class->nickname, "%s", _("page size out of range"));
+			return -1;
+		}
+		pdf->image.height = new_height;
 
 		top += pdf->pages[i].height;
 	}
 
-	/* If all pages are the same height, we can tag this as a toilet roll
-	 * image.
+	/* If all pages are the same height (and there's more than 1), we can tag
+	 * this as a toilet roll image.
 	 */
-	for (int i = 1; i < pdf->n; i++)
+	int i;
+	for (i = 1; i < pdf->n; i++)
 		if (pdf->pages[i].height != pdf->pages[0].height)
 			break;
-
-	/* Only set page-height if we have more than one page, or this could
-	 * accidentally turn into an animated image later.
-	 */
-	if (pdf->n > 1)
+	if (pdf->n == i &&
+		pdf->n > 1)
 		vips_image_set_int(load->out,
 			VIPS_META_PAGE_HEIGHT, pdf->pages[0].height);
 
@@ -426,9 +428,8 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 	VipsForeignLoadPdf *pdf = VIPS_FOREIGN_LOAD_PDF(a);
 	VipsRect *r = &out_region->valid;
 
-	int top;
 	int i;
-	int y;
+	int top;
 
 	/*
 	printf("vips_foreign_load_pdf_generate: "
@@ -484,7 +485,7 @@ vips_foreign_load_pdf_generate(VipsRegion *out_region,
 
 	/* Cairo makes pre-multipled BRGA, we must byteswap and unpremultiply.
 	 */
-	for (y = 0; y < r->height; y++) {
+	for (int y = 0; y < r->height; y++) {
 		guint32 *scanline =
 			(guint32 *) VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
@@ -686,8 +687,7 @@ vips_foreign_load_pdf_file_build(VipsObject *object)
 }
 
 static void
-vips_foreign_load_pdf_file_class_init(
-	VipsForeignLoadPdfFileClass *class)
+vips_foreign_load_pdf_file_class_init(VipsForeignLoadPdfFileClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -751,8 +751,7 @@ vips_foreign_load_pdf_buffer_build(VipsObject *object)
 }
 
 static void
-vips_foreign_load_pdf_buffer_class_init(
-	VipsForeignLoadPdfBufferClass *class)
+vips_foreign_load_pdf_buffer_class_init(VipsForeignLoadPdfBufferClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -808,8 +807,7 @@ vips_foreign_load_pdf_source_build(VipsObject *object)
 }
 
 static void
-vips_foreign_load_pdf_source_class_init(
-	VipsForeignLoadPdfSourceClass *class)
+vips_foreign_load_pdf_source_class_init(VipsForeignLoadPdfSourceClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;

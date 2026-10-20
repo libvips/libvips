@@ -272,10 +272,8 @@ vips__heif_image_print(struct heif_image *img)
 		"heif_channel_interleaved"
 	};
 
-	int i;
-
 	printf("vips__heif_image_print:\n");
-	for (i = 0; i < VIPS_NUMBER(channel); i++) {
+	for (int i = 0; i < VIPS_NUMBER(channel); i++) {
 		if (!heif_image_has_channel(img, channel[i]))
 			continue;
 
@@ -413,15 +411,13 @@ vips_foreign_load_heif_is_a(const char *buf, int len)
 			VIPS_LSHIFT_INT(p[2], 8) |
 			VIPS_LSHIFT_INT(p[3], 0);
 
-		int i;
-
 		/* chunk_len can be pretty big for eg. animated AVIF.
 		 */
 		if (chunk_len > 2048 ||
 			chunk_len % 4 != 0)
 			return 0;
 
-		for (i = 0; i < VIPS_NUMBER(heif_magic); i++)
+		for (int i = 0; i < VIPS_NUMBER(heif_magic); i++)
 			if (strncmp(buf + 4, heif_magic[i], 8) == 0)
 				return 1;
 	}
@@ -563,7 +559,6 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	VipsForeignLoad *load = (VipsForeignLoad *) heif;
 
 	int bands;
-	int i;
 	/* Surely, 16 metadata items will be enough for anyone.
 	 */
 	heif_item_id id[16];
@@ -580,14 +575,6 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	if (vips_foreign_load_heif_set_page(heif, heif->page, FALSE))
 		return -1;
 
-	/* Verify dimensions
-	 */
-	if (heif->page_width < 1 ||
-		heif->page_height < 1) {
-		vips_error("heifload", "%s", _("bad dimensions"));
-		return -1;
-	}
-
 	heif->has_alpha = heif_image_handle_has_alpha_channel(heif->handle);
 #ifdef DEBUG
 	printf("heif_image_handle_has_alpha_channel() = %d\n", heif->has_alpha);
@@ -603,7 +590,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	 */
 	n_metadata = heif_image_handle_get_list_of_metadata_block_IDs(
 		heif->handle, NULL, id, VIPS_NUMBER(id));
-	for (i = 0; i < n_metadata; i++) {
+	for (int i = 0; i < n_metadata; i++) {
 		size_t length =
 			heif_image_handle_get_metadata_size(heif->handle, id[i]);
 		const char *type =
@@ -727,9 +714,8 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 		vips_image_set_blob(out, VIPS_META_ICC_NAME,
 			(VipsCallbackFn) vips_area_free_cb, data, length);
 	}
-	else if (profile_type == heif_color_profile_type_nclx) {
+	else if (profile_type == heif_color_profile_type_nclx)
 		g_info("heifload: ignoring nclx profile");
-	}
 
 	vips_image_set_int(out, "heif-primary", heif->primary_page);
 	vips_image_set_int(out, VIPS_META_N_PAGES, heif->n_top);
@@ -753,8 +739,7 @@ vips_foreign_load_heif_set_header(VipsForeignLoadHeif *heif, VipsImage *out)
 	}
 
 	vips_image_set_string(out, "heif-compression",
-		vips_enum_nick(VIPS_TYPE_FOREIGN_HEIF_COMPRESSION,
-			compression));
+		vips_enum_nick(VIPS_TYPE_FOREIGN_HEIF_COMPRESSION, compression));
 
 	vips_image_set_int(out, VIPS_META_BITS_PER_SAMPLE, heif->bits_per_pixel);
 
@@ -795,7 +780,6 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 
 	struct heif_error error;
 	heif_item_id primary_id;
-	int i;
 
 #ifdef DEBUG
 	printf("vips_foreign_load_heif_header:\n");
@@ -813,7 +797,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 		vips__heif_error(&error);
 		return -1;
 	}
-	for (i = 0; i < heif->n_top; i++)
+	for (int i = 0; i < heif->n_top; i++)
 		if (heif->id[i] == primary_id)
 			heif->primary_page = i;
 
@@ -834,11 +818,10 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 	}
 
 #ifdef DEBUG
-	for (i = heif->page; i < heif->page + heif->n; i++) {
+	for (int i = heif->page; i < heif->page + heif->n; i++) {
 		heif_item_id thumb_ids[1];
 		int n_items;
 		int n_thumbs;
-		int j;
 
 		if (vips_foreign_load_heif_set_page(heif, i, FALSE))
 			return -1;
@@ -851,7 +834,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 		printf("n_thumbs = %d\n", n_thumbs);
 		printf("n_items = %d\n", n_items);
 
-		for (j = 0; j < n_items; j++) {
+		for (int j = 0; j < n_items; j++) {
 			struct heif_image_handle *thumb_handle;
 
 			error = heif_image_handle_get_thumbnail(heif->handle,
@@ -885,7 +868,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 		return -1;
 	}
 
-	for (i = heif->page + 1; i < heif->page + heif->n; i++) {
+	for (int i = heif->page + 1; i < heif->page + heif->n; i++) {
 		if (vips_foreign_load_heif_set_page(heif, i, heif->thumbnail))
 			return -1;
 		if (heif_image_handle_get_width(heif->handle) != heif->page_width ||
@@ -898,13 +881,30 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 		}
 	}
 
+	/* Verify dimensions
+	 */
+	if (heif->page_width <= 0 ||
+		heif->page_width > VIPS_MAX_COORD ||
+		heif->page_height <= 0 ||
+		heif->page_width > VIPS_MAX_COORD) {
+		vips_error("heifload", "%s", _("bad dimensions"));
+		return -1;
+	}
+
+	gint64 final_height = (gint64) heif->page_height * heif->n;
+    if (final_height <= 0 ||
+		final_height >= VIPS_MAX_COORD) {
+        vips_error(class->nickname, "%s", _("image too large"));
+        return -1;
+    }
+
 #ifdef DEBUG
 	printf("page_width = %d\n", heif->page_width);
 	printf("page_height = %d\n", heif->page_height);
 	printf("bits_per_pixel = %d\n", heif->bits_per_pixel);
 
 	printf("n_top = %d\n", heif->n_top);
-	for (i = 0; i < heif->n_top; i++) {
+	for (int i = 0; i < heif->n_top; i++) {
 		printf("  id[%d] = %d\n", i, heif->id[i]);
 		if (vips_foreign_load_heif_set_page(heif, i, FALSE))
 			return -1;
@@ -996,8 +996,7 @@ vips_foreign_load_heif_generate(VipsRegion *out_region,
 
 		if (!(heif->data = heif_image_get_plane_readonly(heif->img,
 				  heif_channel_interleaved, &heif->stride))) {
-			vips_error(class->nickname,
-				"%s", _("unable to get image data"));
+			vips_error(class->nickname, "%s", _("unable to get image data"));
 			return -1;
 		}
 	}
@@ -1012,11 +1011,10 @@ vips_foreign_load_heif_generate(VipsRegion *out_region,
 		int shift = 16 - heif->bits_per_pixel;
 		int ne = VIPS_REGION_N_ELEMENTS(out_region);
 
-		int i;
 		VipsPel *p;
 
 		p = VIPS_REGION_ADDR(out_region, 0, r->top);
-		for (i = 0; i < ne; i++) {
+		for (int i = 0; i < ne; i++) {
 			/* We've asked for big endian, we must write native.
 			 */
 			guint16 v = ((p[0] << 8) | p[1]) << shift;
