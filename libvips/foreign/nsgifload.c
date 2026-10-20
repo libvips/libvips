@@ -234,7 +234,6 @@ print_frame(const nsgif_frame_info_t *frame_info)
 static void
 print_animation(nsgif_t *anim, const nsgif_info_t *info)
 {
-	int i;
 	const uint8_t *bg = (uint8_t *) &info->background;
 
 	printf("animation:\n");
@@ -243,10 +242,9 @@ print_animation(nsgif_t *anim, const nsgif_info_t *info)
 	printf("  frame_count = %d\n", info->frame_count);
 	printf("  global_palette = %d\n", info->global_palette);
 	printf("  loop_max = %d\n", info->loop_max);
-	printf("  background = %d %d %d %d\n",
-		bg[0], bg[1], bg[2], bg[3]);
+	printf("  background = %d %d %d %d\n", bg[0], bg[1], bg[2], bg[3]);
 
-	for (i = 0; i < info->frame_count; i++) {
+	for (int i = 0; i < info->frame_count; i++) {
 		printf("%d ", i);
 		print_frame(nsgif_get_frame_info(anim, i));
 	}
@@ -320,8 +318,6 @@ vips_foreign_load_nsgif_set_header(VipsForeignLoadNsgif *gif,
 		colours = entries;
 	}
 	else {
-		int i;
-
 		colours = 0;
 
 		if (gif->info->global_palette) {
@@ -329,20 +325,17 @@ vips_foreign_load_nsgif_set_header(VipsForeignLoadNsgif *gif,
 			colours = entries;
 		}
 
-		for (i = 0; i < gif->info->frame_count; i++) {
-			if (nsgif_local_palette(gif->anim, i, table,
-					&entries))
+		for (int i = 0; i < gif->info->frame_count; i++) {
+			if (nsgif_local_palette(gif->anim, i, table, &entries))
 				colours = VIPS_MAX(colours, entries);
 		}
 	}
 
-	vips_image_set_int(image, VIPS_META_BITS_PER_SAMPLE,
-		ceil(log2(colours)));
+	vips_image_set_int(image, VIPS_META_BITS_PER_SAMPLE, ceil(log2(colours)));
 
 	/* Deprecated "palette-bit-depth" use "bits-per-sample" instead.
 	 */
-	vips_image_set_int(image, "palette-bit-depth",
-		ceil(log2(colours)));
+	vips_image_set_int(image, "palette-bit-depth", ceil(log2(colours)));
 
 	vips_image_set_int(image, VIPS_META_PALETTE, 1);
 
@@ -369,7 +362,6 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 	const void *data;
 	size_t size;
 	nsgif_error result;
-	int i;
 
 	VIPS_DEBUG_MSG("vips_foreign_load_nsgif_header:\n");
 
@@ -424,7 +416,7 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 	/* Update our global struct based on the information in the
 	 * individual frames.
 	 */
-	for (i = 0; i < gif->info->frame_count; i++) {
+	for (int i = 0; i < gif->info->frame_count; i++) {
 		const nsgif_frame_info_t *frame_info;
 
 		if ((frame_info = nsgif_get_frame_info(gif->anim, i))) {
@@ -449,13 +441,27 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 		return -1;
 	}
 
+	if (gif->info->width <= 0 ||
+		gif->info->width > VIPS_MAX_COORD ||
+		gif->info->height <= 0 ||
+		gif->info->height > VIPS_MAX_COORD) {
+		vips_error(class->nickname, "%s", _("width/height out of range"));
+		return -1;
+	}
+
+	gint64 final_height = (gint64) gif->info->height * gif->gif_n;
+    if (final_height <= 0 ||
+		final_height >= VIPS_MAX_COORD) {
+        vips_error(class->nickname, "%s", _("image too large"));
+        return -1;
+    }
+
 	/* In ms, frame_delay in cs.
 	 */
 	VIPS_FREE(gif->delay);
-	if (!(gif->delay = VIPS_ARRAY(NULL,
-			  gif->info->frame_count, int)))
+	if (!(gif->delay = VIPS_ARRAY(NULL, gif->info->frame_count, int)))
 		return -1;
-	for (i = 0; i < gif->info->frame_count; i++) {
+	for (int i = 0; i < gif->info->frame_count; i++) {
 		const nsgif_frame_info_t *frame_info;
 
 		frame_info = nsgif_get_frame_info(gif->anim, i);
@@ -468,7 +474,8 @@ vips_foreign_load_nsgif_header(VipsForeignLoad *load)
 
 	gif->gif_delay = gif->delay[0] / 10;
 
-	vips_foreign_load_nsgif_set_header(gif, load->out);
+	if (vips_foreign_load_nsgif_set_header(gif, load->out))
+		return -1;
 
 	return 0;
 }
@@ -480,15 +487,12 @@ vips_foreign_load_nsgif_generate(VipsRegion *out_region,
 	VipsRect *r = &out_region->valid;
 	VipsForeignLoadNsgif *gif = (VipsForeignLoadNsgif *) a;
 
-	int y;
-
 #ifdef VERBOSE
 	VIPS_DEBUG_MSG("vips_foreign_load_nsgif_generate: "
-				   "top = %d, height = %d\n",
-		r->top, r->height);
+				   "top = %d, height = %d\n", r->top, r->height);
 #endif /*VERBOSE*/
 
-	for (y = 0; y < r->height; y++) {
+	for (int y = 0; y < r->height; y++) {
 		/* The page for this output line, and the line number in page.
 		 */
 		int page = (r->top + y) / gif->info->height + gif->page;
@@ -501,10 +505,8 @@ vips_foreign_load_nsgif_generate(VipsRegion *out_region,
 		g_assert(page >= 0 && page < gif->info->frame_count);
 
 		if (gif->frame_number != page) {
-			result = nsgif_frame_decode(gif->anim,
-				page, &gif->bitmap);
-			VIPS_DEBUG_MSG("  nsgif_frame_decode(%d) = %d\n",
-				page, result);
+			result = nsgif_frame_decode(gif->anim, page, &gif->bitmap);
+			VIPS_DEBUG_MSG("  nsgif_frame_decode(%d) = %d\n", page, result);
 			if (result != NSGIF_OK) {
 				vips_foreign_load_nsgif_error(gif, result);
 				return -1;
@@ -517,14 +519,13 @@ vips_foreign_load_nsgif_generate(VipsRegion *out_region,
 			gif->frame_number = page;
 		}
 
-		p = (VipsPel *) gif->bitmap + (size_t) line * gif->info->width * sizeof(int);
+		p = (VipsPel *) gif->bitmap +
+			(size_t) line * gif->info->width * sizeof(int);
 		q = VIPS_REGION_ADDR(out_region, 0, r->top + y);
 		if (gif->has_transparency)
 			memcpy(q, p, VIPS_REGION_SIZEOF_LINE(out_region));
-		else {
-			int i;
-
-			for (i = 0; i < r->width; i++) {
+		else
+			for (int i = 0; i < r->width; i++) {
 				q[0] = p[0];
 				q[1] = p[1];
 				q[2] = p[2];
@@ -532,7 +533,6 @@ vips_foreign_load_nsgif_generate(VipsRegion *out_region,
 				q += 3;
 				p += 4;
 			}
-		}
 	}
 
 	return 0;
@@ -543,8 +543,6 @@ vips_foreign_load_nsgif_tile_height(VipsForeignLoadNsgif *gif)
 {
 	int height = gif->info->height;
 
-	int i;
-
 	/* First, check the perfect size.
 	 */
 	if (height % 16 == 0)
@@ -552,7 +550,7 @@ vips_foreign_load_nsgif_tile_height(VipsForeignLoadNsgif *gif)
 
 	/* Next, check larger and smaller sizes.
 	 */
-	for (i = 1; i < 16; i++) {
+	for (int i = 1; i < 16; i++) {
 		if (height % (16 + i) == 0)
 			return 16 + i;
 		if (height % (16 - i) == 0)
@@ -644,8 +642,7 @@ vips_foreign_load_nsgif_bitmap_create(int width, int height)
 		height <= 0 ||
 		height > 65535 ||
 		(guint64) width * height > INT_MAX / 4) {
-		vips_error("gifload",
-			"%s", _("bad image dimensions"));
+		vips_error("gifload", "%s", _("bad image dimensions"));
 		return NULL;
 	}
 
@@ -683,8 +680,7 @@ vips_foreign_load_nsgif_init(VipsForeignLoadNsgif *gif)
 	if (result != NSGIF_OK) {
 		VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(gif);
 
-		vips_error(class->nickname, "%s",
-			nsgif_strerror(result));
+		vips_error(class->nickname, "%s", nsgif_strerror(result));
 		return;
 	}
 
