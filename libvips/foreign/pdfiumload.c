@@ -541,7 +541,8 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 
 		/* Attempt to apply selected page box using the page coordinate
 		 * system (bottom left) before calculating render dimensions
-		 * using the client coordinate system (top left). */
+		 * using the client coordinate system (top left).
+		 */
 		vips_foreign_load_pdf_apply_page_box(pdf->page, pdf->page_box);
 
 		/* We do round to nearest, in the same way that vips_resize()
@@ -559,29 +560,31 @@ vips_foreign_load_pdf_header(VipsForeignLoad *load)
 			pdf->pages[i].height < 1 ||
 			pdf->pages[i].width > VIPS_MAX_COORD ||
 			pdf->pages[i].height > VIPS_MAX_COORD) {
-			vips_error(class->nickname,
-				"%s", _("page size out of range"));
+			vips_error(class->nickname, "%s", _("page size out of range"));
 			return -1;
 		}
 
-		if (pdf->pages[i].width > pdf->image.width)
-			pdf->image.width = pdf->pages[i].width;
-		pdf->image.height += pdf->pages[i].height;
+		pdf->image.width = VIPS_MAX(pdf->image.width, pdf->pages[i].width);
+
+		gint64 new_height = pdf->image.height + pdf->pages[i].height;
+		if (new_height > VIPS_MAX_COORD) {
+			vips_error(class->nickname, "%s", _("page size out of range"));
+			return -1;
+		}
+		pdf->image.height = new_height;
 
 		top += pdf->pages[i].height;
 	}
 
-	/* If all pages are the same height, we can tag this as a toilet roll
-	 * image.
+	/* If all pages are the same height (and there's more than 1), we can tag
+	 * this as a toilet roll image.
 	 */
-	for (int i = 1; i < pdf->n; i++)
+	int i;
+	for (i = 1; i < pdf->n; i++)
 		if (pdf->pages[i].height != pdf->pages[0].height)
 			break;
-
-	/* Only set page-height if we have more than one page, or this could
-	 * accidentally turn into an animated image later.
-	 */
-	if (pdf->n > 1)
+	if (pdf->n == i &&
+		pdf->n > 1)
 		vips_image_set_int(load->out,
 			VIPS_META_PAGE_HEIGHT, pdf->pages[0].height);
 
