@@ -399,7 +399,6 @@ vips_CICP2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 static int
 vips_CICP2scRGB_build(VipsObject *object)
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsColour *colour = VIPS_COLOUR(object);
 	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) object;
 	int colour_primaries;
@@ -490,7 +489,8 @@ vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
 	colour->bands = 3;
 }
 
-/* Read a complete CICP record. A partial or invalid record is ignored. */
+/* Read a complete CICP record. A partial or invalid record is ignored. 
+ */
 gboolean
 vips__image_get_cicp(VipsImage *image, int *colour_primaries,
 	int *transfer_characteristics, int *matrix_coefficients,
@@ -518,7 +518,8 @@ vips__image_get_cicp(VipsImage *image, int *colour_primaries,
 		(*full_range_flag == 0 || *full_range_flag == 1);
 }
 
-/* Check for a decodable CICP record. */
+/* Check for a decodable CICP record. 
+ */
 gboolean
 vips__image_is_cicp(VipsImage *image, int *colour_primaries,
 	int *transfer_characteristics, int *matrix_coefficients,
@@ -537,7 +538,8 @@ vips__image_is_cicp(VipsImage *image, int *colour_primaries,
 		*transfer_characteristics != VIPS_CICP_TRANSFER_UNSPECIFIED;
 }
 
-/* Check for a decodable CICP record with an HDR transfer function. */
+/* Check for a decodable CICP record with an HDR transfer function. 
+ */
 gboolean
 vips__image_is_cicp_hdr(VipsImage *image)
 {
