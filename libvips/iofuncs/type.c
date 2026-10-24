@@ -407,7 +407,7 @@ transform_area_g_string(const GValue *src_value, GValue *dest_value)
 	char buf[256];
 
 	area = g_value_get_boxed(src_value);
-	g_snprintf(buf, 256, "VIPS_TYPE_AREA, count = %d, data = %p",
+	g_snprintf(buf, 256, "VipsArea, count = %d, data = %p",
 		area->count, area->data);
 	g_value_set_string(dest_value, buf);
 }
@@ -734,8 +734,7 @@ transform_blob_g_string(const GValue *src_value, GValue *dest_value)
 	char buf[256];
 
 	blob = vips_value_get_blob(src_value, &length);
-	g_snprintf(buf, 256, "VIPS_TYPE_BLOB, data = %p, length = %zd",
-		blob, length);
+	g_snprintf(buf, 256, "VipsBlob, data = %p, length = %zd", blob, length);
 	g_value_set_string(dest_value, buf);
 }
 
