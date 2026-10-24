@@ -221,14 +221,8 @@ vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
 	int full_range_flag;
 	int i;
 
-	if (!vips_image_get_typeof(image, "cicp-colour-primaries") ||
-		vips_image_get_int(image, "cicp-colour-primaries",
-			&colour_primaries) ||
-		vips_image_get_int(image, "cicp-transfer-characteristics",
-			&transfer_characteristics) ||
-		vips_image_get_int(image, "cicp-matrix-coefficients",
-			&matrix_coefficients) ||
-		vips_image_get_int(image, "cicp-full-range-flag",
+	if (!vips__image_get_cicp(image, &colour_primaries,
+			&transfer_characteristics, &matrix_coefficients,
 			&full_range_flag))
 		return FALSE;
 
