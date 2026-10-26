@@ -16,6 +16,7 @@
 #ifndef NSNSGIF_H
 #define NSNSGIF_H
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
