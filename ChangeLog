@@ -60,6 +60,7 @@ date-tbd 8.19.0
 - thumbnail: pass missing `fail_on` arg to loaders [kleisauke]
 - pngsave: write iTXt chunks for text data (utf-8) [tonymarklove]
 - tiffload: remove unreachable code due to bits_per_sample limit of 32 [lovell]
+- thumbnail: respect output profile and linear mode for cicp images [mertalev]
 
 tdb 8.18.8
 
