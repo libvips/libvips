@@ -15,6 +15,7 @@ tdb 8.18.8
 - sink_screen: move render_free() inside the global render lock [octopus-kkk]
 - icc_transform: copy blob, not raw pointer [chehov]
 - heifload, pdfload, webpload, gifload: check total height in multipage images
+- libnsgif: update from upstream
 
 20/9/26 8.18.7
 

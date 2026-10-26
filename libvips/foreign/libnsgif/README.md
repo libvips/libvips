@@ -1,14 +1,13 @@
 # libnsgif
 
 This is [libnsgif](https://www.netsurf-browser.org/projects/libnsgif/),
-but within the libvips build system. 
+but within the libvips build system.
 
 # To update
 
-Run `./update.sh` to update this copy of libnsgif from the upstream repo. It
-will also patch libnsgif.c to prevent it modifying the input.
+Run `./update.sh` to update this copy of libnsgif from the upstream repo.
 
-Last updated 22 Jan 2023.
+Last updated 26 Oct 2026
 
 # To do
 
