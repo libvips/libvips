@@ -1,18 +1,62 @@
 Title: Using > Processing CICP images
 
 [CICP is a relatively new](https://en.wikipedia.org/wiki/Coding-independent_code_points)
-way of tagging an image with infomration about how colour values in the image
-should be displayed. It serves roughly the same purpose an an ICC profile,
-but is very small, simple, and is designed for HDR.  Image formats like AVIF
-and HEIC are built around it, and it ie being adopted by other formats, like
-JXL and even PNG.
+way of tagging an image with information about how colour values should be
+displayed. It serves roughly the same purpose as an ICC profile, but is very
+small, simple, and is designed for HDR.  Image formats like AVIF and HEIC
+are built around it, and it is being adopted by other formats, like JXL and
+even PNG.
 
 libvips supports loading and saving images with CICP tags from AVIF, JXL,
 and PNG images, it supports loading and saving these images to UltraHDR
-formats like JPG with automatic conversion of tags, and it supports
-save to ICC-only formats with automatic profile generation. libvips also
-supports generating and mofifying CICP tags programmatically, including
-support for computing some image properties, such as target illumination.
+formats like JPG with automatic conversion of tags, and it supports save to
+ICC-only formats with automatic profile generation. libvips also supports
+generating and mofifying CICP tags programmatically, including support for
+computing some image properties, such as target illumination.
+
+As with other colour tagging systems, like ICC and UtrahDR, there are two main
+ways of handling images like this. You can leave them in the format left by
+the loader, in which case colour processing is fast and largely automatic,
+or you can convert to scRGB and handle colour processing yourself.
+
+## Native numeric format with CICP tagging
+
+CICP images are either 8 or 16 bit unsigned integer formats, with extra
+metadata for colour interpretation. For example:
+
+```
+$ vipsheader -a cicp-car.png
+cicp-car.png: 3840x2160 ushort, 3 bands, rgb16, pngload
+width: 3840
+height: 2160
+bands: 3
+format: ushort
+coding: none
+interpretation: rgb16
+xoffset: 0
+yoffset: 0
+xres: 2.834
+yres: 2.834
+filename: cicp-car.png
+vips-loader: pngload
+icc-profile-data: 4344 bytes of binary data
+cicp-colour-primaries: 9
+cicp-transfer-characteristics: 16
+cicp-matrix-coefficients: 0
+cicp-full-range-flag: 1
+clli-max-content-light-level: 769
+clli-max-frame-average-light-level: 75
+png-comment-0-Software: HDRFrame
+xmp-data: 563 bytes of binary data
+png-comment-2-HDRFrame.CaptureMode: window
+png-comment-3-HDRFrame.SourceBackend: wgc
+png-comment-4-HDRFrame.SourceHDR: true
+bits-per-sample: 16
+```
+
+Here, a PNG image has both an ICC profile and CICP metadata. If both are
+attached, then libvips will use CICP.
+
 
 
 
