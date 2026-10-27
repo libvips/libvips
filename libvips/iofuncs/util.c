@@ -1605,6 +1605,8 @@ vips__temp_dir(void)
 #ifdef G_OS_WIN32
 		static char *tmp_dir = NULL;
 
+		// No need for `g_once_init_enter_pointer()`, this is always called
+		// serially.
 		if (tmp_dir == NULL) {
 			char *dir = NULL;
 			wchar_t wdir[MAX_PATH];
@@ -1640,6 +1642,14 @@ vips__temp_name(const char *format)
 	char file[FILENAME_MAX];
 	char file2[FILENAME_MAX];
 	char *name;
+
+	if (!format)
+		return NULL;
+
+	const char *percent = strchr(format, '%');
+	if (percent &&
+		(percent[1] != 's' || strchr(percent + 2, '%')))
+		return NULL;
 
 	int serial = g_atomic_int_add(&global_serial, 1);
 

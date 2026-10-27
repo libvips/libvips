@@ -239,7 +239,7 @@ tile_free(Tile *tile, void *a, void *b)
 	return NULL;
 }
 
-static int
+static void
 render_free(Render *render)
 {
 	VIPS_DEBUG_MSG_AMBER("render_free: %p\n", render);
@@ -250,7 +250,6 @@ render_free(Render *render)
 	g_assert(render->ref_count == 0);
 #endif
 
-	g_mutex_lock(&render_dirty_lock);
 	if (g_slist_find(render_dirty_all, render)) {
 		render_dirty_all = g_slist_remove(render_dirty_all, render);
 
@@ -259,7 +258,6 @@ render_free(Render *render)
 		 * render_dirty_all is NULL.
 		 */
 	}
-	g_mutex_unlock(&render_dirty_lock);
 
 #if !GLIB_CHECK_VERSION(2, 58, 0)
 	g_mutex_clear(&render->ref_count_lock);
@@ -283,8 +281,6 @@ render_free(Render *render)
 	render_num_renders -= 1;
 	printf("%d active renders\n", render_num_renders);
 #endif /*VIPS_DEBUG_AMBER*/
-
-	return 0;
 }
 
 /* Ref and unref a Render ... free on last unref.
@@ -305,10 +301,15 @@ render_ref(Render *render)
 	return 0;
 }
 
-static int
+static void
 render_unref(Render *render)
 {
 	gboolean kill;
+
+	/* We modify render_dirty_all in free(), so everything must be inside the
+	 * global lock.
+	 */
+	g_mutex_lock(&render_dirty_lock);
 
 #if GLIB_CHECK_VERSION(2, 58, 0)
 	g_assert(!g_atomic_ref_count_compare(&render->ref_count, 0));
@@ -324,7 +325,7 @@ render_unref(Render *render)
 	if (kill)
 		render_free(render);
 
-	return 0;
+	g_mutex_unlock(&render_dirty_lock);
 }
 
 /* Get the next tile to paint off the dirty list.
@@ -416,7 +417,7 @@ render_allocate(VipsThreadState *state, void *a, gboolean *stop)
 	if (render_reschedule ||
 		!(tile = render_tile_dirty_get(render))) {
 		VIPS_DEBUG_MSG_GREEN("render_allocate: stopping\n");
-		*stop = TRUE;
+		g_atomic_int_set(stop, TRUE);
 		rstate->tile = NULL;
 	}
 	else
@@ -1091,7 +1092,7 @@ render_allocate_private(VipsThreadState *state, void *a, gboolean *stop)
 	/* The mask or image is closing, we must exit.
 	 */
 	if (render->shutdown) {
-		*stop = TRUE;
+		g_atomic_int_set(stop, TRUE);
 		rstate->tile = NULL;
 		return 0;
 	}

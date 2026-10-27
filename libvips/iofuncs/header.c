@@ -1572,6 +1572,7 @@ static const char *vips_image_header_deprecated[] = {
 	"gif-delay",
 	"gif-loop",
 	"palette-bit-depth",
+	"raw-thumbnail-data",
 	"heif-bitdepth"
 };
 

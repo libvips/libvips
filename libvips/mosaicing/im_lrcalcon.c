@@ -304,7 +304,7 @@ vips__lrcalcon(VipsImage *ref, TiePoints *points)
 
 	/* Loop over areas, finding points.
 	 */
-	for (i = 0; area.top < ref->Ysize; area.top += aheight, i++)
+	for (i = 0; area.top < ref->Ysize && i < AREAS; area.top += aheight, i++)
 		if (vips__find_best_contrast(ref,
 				area.left, area.top, area.width, area.height,
 				points->x_reference + i * len,

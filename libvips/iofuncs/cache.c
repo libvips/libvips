@@ -594,11 +594,6 @@ vips_object_unref_arg(VipsObject *object,
 		g_object_get(G_OBJECT(object),
 			g_param_spec_get_name(pspec), &value, NULL);
 
-		/* This operation is probably going, so we must wipe the cache
-		 * entry pointer on the object.
-		 */
-		g_object_set_data(value, "libvips-cache-entry", NULL);
-
 		/* Drop the ref we just got, then drop the ref we make when we
 		 * added to the cache.
 		 */
@@ -607,6 +602,42 @@ vips_object_unref_arg(VipsObject *object,
 	}
 
 	return NULL;
+}
+
+static void *
+vips_object_clear_cache_entry_arg(VipsObject *object,
+	GParamSpec *pspec,
+	VipsArgumentClass *argument_class,
+	VipsArgumentInstance *argument_instance,
+	void *a, void *b)
+{
+	VipsOperationCacheEntry *entry = a;
+
+	if ((argument_class->flags & VIPS_ARGUMENT_CONSTRUCT) &&
+		(argument_class->flags & VIPS_ARGUMENT_OUTPUT) &&
+		argument_instance->assigned &&
+		G_IS_PARAM_SPEC_OBJECT(pspec)) {
+		GObject *value;
+
+		g_object_get(G_OBJECT(object),
+			g_param_spec_get_name(pspec), &value, NULL);
+
+		/* Clear cache entry pointer.
+		 */
+		if (g_object_get_data(value, "libvips-cache-entry") == entry)
+			g_object_set_data(value, "libvips-cache-entry", NULL);
+
+		g_object_unref(value);
+	}
+
+	return NULL;
+}
+
+static void
+vips_cache_clear_entry(VipsOperationCacheEntry *entry)
+{
+	(void) vips_argument_map(VIPS_OBJECT(entry->operation),
+		vips_object_clear_cache_entry_arg, entry, NULL);
 }
 
 static void
@@ -881,6 +912,8 @@ vips_cache_drop_all(void)
 
 		GList *entries = g_hash_table_get_values(vips_cache_table);
 		g_hash_table_steal_all(vips_cache_table);
+		for (GList *item = entries; item; item = item->next)
+			vips_cache_clear_entry(item->data);
 
 		GHashTable *table_ref = vips_cache_table;
 		vips_cache_table = NULL;
@@ -945,6 +978,7 @@ vips_cache_trim(void)
 
 		VipsOperationCacheEntry *entry = vips_cache_steal(operation);
 		if (entry) {
+			vips_cache_clear_entry(entry);
 			g_mutex_unlock(&vips_cache_lock);
 			vips_cache_free(entry);
 			g_mutex_lock(&vips_cache_lock);
@@ -1051,6 +1085,8 @@ vips_cache_operation_buildp(VipsOperation **operation)
 			(flags & VIPS_OPERATION_BLOCKED) ||
 			(flags & VIPS_OPERATION_REVALIDATE)) {
 			hit_invalid = vips_cache_steal(hit->operation);
+			if (hit_invalid)
+				vips_cache_clear_entry(hit_invalid);
 			hit = NULL;
 		}
 	}

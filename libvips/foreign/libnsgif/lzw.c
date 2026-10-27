@@ -177,7 +177,7 @@ static inline lzw_result lzw__read_code(
 		ctx->sb_bit += code_size;
 	} else {
 		/* Slow path: code spans sub-blocks */
-		uint8_t byte_advance = (current_bit + code_size) >> 3;
+		uint8_t byte_advance = (current_bit + code_size - 1) >> 3;
 		uint8_t byte = 0;
 		uint8_t bits_remaining_0 = (code_size < (8u - current_bit)) ?
 				code_size : (8u - current_bit);

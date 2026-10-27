@@ -43,6 +43,8 @@
  *	- make icc profile transforms always write 8 bits
  * 22/8/25 kleisauke
  *	- remove seq line cache from thumbnail_image, use hint instead
+ * 6/10/26
+ *	- add dcrawload preview and thumbnail handling
  */
 
 /*
@@ -217,6 +219,49 @@ get_int(VipsImage *image, const char *field, int default_value)
 	return default_value;
 }
 
+/* Open the level of a dcrawload image, where 0 is original (slow), 1 is
+ * preview (large blob) and 2 is thumbnail (small blob).
+ *
+ * NULL return means level is missing and is not an error.
+ */
+static VipsImage *
+vips_thumbnail_get_blob(VipsThumbnail *thumbnail, VipsImage *image, int level)
+{
+	const void *data;
+	size_t size;
+	const char *field;
+
+	switch (level) {
+	case 0:
+		g_object_ref(image);
+		return image;
+
+	case 1:
+		field = "jpeg-preview-data";
+		break;
+
+	case 2:
+		field = "jpeg-thumbnail-data";
+		break;
+
+	default:
+		g_assert_not_reached();
+	}
+
+	if (!vips_image_get_typeof(image, field))
+		return NULL;
+	if (vips_image_get_blob(image, field, &data, &size))
+		return NULL;
+	VipsImage *blob;
+	if (!(blob = vips_image_new_from_buffer(data, size, "",
+		"access", VIPS_ACCESS_SEQUENTIAL,
+		"fail_on", thumbnail->fail_on,
+		NULL)))
+		return NULL;
+
+	return blob;
+}
+
 static void
 vips_thumbnail_read_header(VipsThumbnail *thumbnail, VipsImage *image)
 {
@@ -241,14 +286,12 @@ vips_thumbnail_read_header(VipsThumbnail *thumbnail, VipsImage *image)
 	/* For openslide, read out the level structure too.
 	 */
 	if (vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
-		int level_count;
-		int level;
+		int level_count = VIPS_CLIP(1,
+			get_int(image, "openslide.level-count", 1), MAX_LEVELS);
 
-		level_count = get_int(image, "openslide.level-count", 1);
-		level_count = VIPS_CLIP(1, level_count, MAX_LEVELS);
 		thumbnail->level_count = level_count;
 
-		for (level = 0; level < level_count; level++) {
+		for (int level = 0; level < level_count; level++) {
 			char name[256];
 
 			g_snprintf(name, 256, "openslide.level[%d].width", level);
@@ -256,6 +299,21 @@ vips_thumbnail_read_header(VipsThumbnail *thumbnail, VipsImage *image)
 			g_snprintf(name, 256, "openslide.level[%d].height", level);
 			thumbnail->level_height[level] = get_int(image, name, 0);
 		}
+	}
+
+	if (vips_isprefix("VipsForeignLoadDcRaw", thumbnail->loader)) {
+		for (int i = 0; i < 3; i++) {
+			VipsImage *blob;
+
+			if ((blob = vips_thumbnail_get_blob(thumbnail, image, i))) {
+				thumbnail->level_width[i] = blob->Xsize;
+				thumbnail->level_height[i] = blob->Ysize;
+
+				VIPS_UNREF(blob);
+			}
+		}
+
+		thumbnail->level_count = 3;
 	}
 }
 
@@ -267,7 +325,6 @@ static void
 vips_thumbnail_get_pyramid_page(VipsThumbnail *thumbnail)
 {
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS(thumbnail);
-	int i;
 
 #ifdef DEBUG
 	printf("vips_thumbnail_get_pyramid_page:\n");
@@ -280,7 +337,7 @@ vips_thumbnail_get_pyramid_page(VipsThumbnail *thumbnail)
 		thumbnail->n_pages > 29)
 		return;
 
-	for (i = 0; i < thumbnail->n_pages; i++) {
+	for (int i = 0; i < thumbnail->n_pages; i++) {
 		VipsImage *page;
 		int level_width;
 		int level_height;
@@ -312,8 +369,8 @@ vips_thumbnail_get_pyramid_page(VipsThumbnail *thumbnail)
 	/* Now set level_count. This signals that we've found a pyramid.
 	 */
 #ifdef DEBUG
-	printf("vips_thumbnail_get_pyramid_page: %d layer pyramid detected\n",
-		thumbnail->n_pages);
+	printf("vips_thumbnail_get_pyramid_page: "
+		"%d layer pyramid detected\n", thumbnail->n_pages);
 	for (int i = 0; i < thumbnail->n_pages; i++)
 		printf("  %d - %d x %d\n",
 			i, thumbnail->level_width[i], thumbnail->level_height[i]);
@@ -329,7 +386,6 @@ static void
 vips_thumbnail_get_tiff_pyramid_subifd(VipsThumbnail *thumbnail)
 {
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS(thumbnail);
-	int i;
 
 #ifdef DEBUG
 	printf("vips_thumbnail_get_tiff_pyramid_subifd:\n");
@@ -341,7 +397,7 @@ vips_thumbnail_get_tiff_pyramid_subifd(VipsThumbnail *thumbnail)
 		thumbnail->n_subifds > 28)
 		return;
 
-	for (i = 0; i < thumbnail->n_subifds; i++) {
+	for (int i = 0; i < thumbnail->n_subifds; i++) {
 		VipsImage *page;
 		int level_width;
 		int level_height;
@@ -376,8 +432,7 @@ vips_thumbnail_get_tiff_pyramid_subifd(VipsThumbnail *thumbnail)
 	 */
 #ifdef DEBUG
 	printf("vips_thumbnail_get_tiff_pyramid_subifd: "
-		   "%d layer pyramid detected\n",
-		thumbnail->n_subifds);
+		   "%d layer pyramid detected\n", thumbnail->n_subifds);
 #endif /*DEBUG*/
 	thumbnail->level_count = thumbnail->n_subifds;
 }
@@ -474,24 +529,19 @@ vips_thumbnail_calculate_common_shrink(VipsThumbnail *thumbnail,
 {
 	double hshrink;
 	double vshrink;
-	double shrink;
-
 	vips_thumbnail_calculate_shrink(thumbnail, width, height,
 		&hshrink, &vshrink);
 
-	shrink = VIPS_MIN(hshrink, vshrink);
-
-	return shrink;
+	return VIPS_MIN(hshrink, vshrink);
 }
 
 /* Find the best jpeg preload shrink.
  */
 static int
-vips_thumbnail_find_jpegshrink(VipsThumbnail *thumbnail,
-	int width, int height)
+vips_thumbnail_find_jpegshrink(VipsThumbnail *thumbnail, int width, int height)
 {
-	double shrink = vips_thumbnail_calculate_common_shrink(thumbnail,
-		width, height);
+	double shrink =
+		vips_thumbnail_calculate_common_shrink(thumbnail, width, height);
 
 	/* We can't use pre-shrunk images in linear mode. libjpeg shrinks in Y
 	 * (of YCbCR), not linear space.
@@ -517,17 +567,23 @@ vips_thumbnail_find_jpegshrink(VipsThumbnail *thumbnail,
 }
 
 /* Find the best pyramid (openslide, tiff, etc.) level.
+ *
+ * We assume that levels are high-quality shrinks and we do not need to take a
+ * level below, as we must for JPEG.
+ *
+ * Levels can be empty (width | height zero).
  */
 static int
-vips_thumbnail_find_pyrlevel(VipsThumbnail *thumbnail,
-	int width, int height)
+vips_thumbnail_find_pyrlevel(VipsThumbnail *thumbnail, int width, int height)
 {
-	int level;
-
 	g_assert(thumbnail->level_count > 0);
 	g_assert(thumbnail->level_count <= MAX_LEVELS);
 
-	for (level = thumbnail->level_count - 1; level >= 0; level--) {
+	for (int level = thumbnail->level_count - 1; level >= 0; level--) {
+		if (!thumbnail->level_width[level] ||
+			!thumbnail->level_height[level])
+			continue;
+
 		double shrink = vips_thumbnail_calculate_common_shrink(thumbnail,
 				thumbnail->level_width[level],
 				thumbnail->level_height[level]);
@@ -540,13 +596,13 @@ vips_thumbnail_find_pyrlevel(VipsThumbnail *thumbnail,
 	return 0;
 }
 
-/* Open the image, returning the best version for thumbnailing.
+/* Open the image, returning the best version for this thumbnail size.
  *
  * For example, libjpeg supports fast shrink-on-read, so if we have a JPEG,
  * we can ask VIPS to load a lower resolution version.
  */
 static VipsImage *
-vips_thumbnail_open(VipsThumbnail *thumbnail)
+vips_thumbnail_get_level(VipsThumbnail *thumbnail)
 {
 	VipsThumbnailClass *class = VIPS_THUMBNAIL_GET_CLASS(thumbnail);
 
@@ -600,7 +656,7 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader))
 		vips_thumbnail_get_heif_thumb_info(thumbnail);
 
-	/* We read the openslide level structure in
+	/* We read the openslide level structure and the dcrawload metadata in
 	 * vips_thumbnail_read_header().
 	 */
 
@@ -614,7 +670,8 @@ vips_thumbnail_open(VipsThumbnail *thumbnail)
 	}
 	else if (vips_isprefix("VipsForeignLoadTiff", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadJp2k", thumbnail->loader) ||
-		vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
+		vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader) ||
+		vips_isprefix("VipsForeignLoadDcRaw", thumbnail->loader)) {
 		if (thumbnail->level_count > 0) {
 			factor = vips_thumbnail_find_pyrlevel(thumbnail,
 				thumbnail->input_width,
@@ -757,7 +814,7 @@ vips_thumbnail_build(VipsObject *object)
 
 	/* Open and do any pre-shrinking.
 	 */
-	if (!(t[0] = vips_thumbnail_open(thumbnail)))
+	if (!(t[0] = vips_thumbnail_get_level(thumbnail)))
 		return -1;
 	in = t[0];
 
@@ -765,17 +822,21 @@ vips_thumbnail_build(VipsObject *object)
 	 */
 	preshrunk_page_height = vips_image_get_page_height(in);
 
-	needs_icc_transform = thumbnail->output_profile &&
+	int cicp_primaries;
+	int cicp_transfer;
+	int cicp_matrix;
+	int cicp_range;
+	gboolean is_cicp = vips__image_is_cicp(in, &cicp_primaries,
+		&cicp_transfer, &cicp_matrix, &cicp_range);
+	int source_depth = in->BandFmt == VIPS_FORMAT_USHORT ? 16 : 8;
+
+	gboolean cicp_convert = is_cicp &&
+		(thumbnail->output_profile || thumbnail->linear);
+
+	needs_icc_transform = !is_cicp &&
+		thumbnail->output_profile &&
 		(thumbnail->input_profile ||
 			vips_image_get_typeof(in, VIPS_META_ICC_NAME));
-
-	/* CICP-tagged images should not have their
-	 * colourspace converted - the pixel values are in a specific
-	 * signal encoding that would be destroyed. Resize in the
-	 * original encoding and let the saver preserve the metadata.
-	 */
-	gboolean has_cicp =
-		vips_image_get_typeof(in, "cicp-transfer-characteristics") != 0;
 
 	/* RAD needs special unpacking.
 	 */
@@ -793,10 +854,11 @@ vips_thumbnail_build(VipsObject *object)
 	 * vips_resize().
 	 */
 	have_imported = FALSE;
-	if (has_cicp) {
-		/* Skip colourspace conversion for CICP images.
-		 */
-		g_info("CICP image, skipping colourspace conversion");
+	if (cicp_convert) {
+		g_info("linearising CICP to scRGB");
+		if (vips_CICP2scRGB(in, &t[2], NULL))
+			return -1;
+		in = t[2];
 	}
 	else if (thumbnail->linear) {
 		/* If we are doing colour management (there's an input
@@ -839,9 +901,10 @@ vips_thumbnail_build(VipsObject *object)
 			in = t[2];
 		}
 	}
-	else if (!needs_icc_transform) {
+	else if (!needs_icc_transform && !is_cicp) {
 		/* In non-linear mode, use sRGB or B_W as the processing space
 		 * but only when not transforming with a pair of ICC profiles.
+		 * Converting via interpretation is incorrect for CICP images.
 		 */
 		VipsInterpretation interpretation;
 
@@ -955,11 +1018,16 @@ vips_thumbnail_build(VipsObject *object)
 	 *
 	 * We always export as depth 8, to match the no profile case which
 	 * uses vips_colourspace(sRGB|B_W).
-	 *
-	 * Skip for CICP images - their pixel encoding must be preserved.
 	 */
-	if (has_cicp) {
-		g_info("CICP image, skipping colour management");
+	if (cicp_convert && !thumbnail->output_profile) {
+		g_info("re-encoding to CICP");
+		if (vips_scRGB2CICP(in, &t[9],
+				"colour_primaries", cicp_primaries,
+				"transfer_characteristics", cicp_transfer,
+				"depth", source_depth,
+				NULL))
+			return -1;
+		in = t[9];
 	}
 	else if (have_imported) {
 		/* We are in PCS. Export with the output profile, if any (this
@@ -1019,6 +1087,17 @@ vips_thumbnail_build(VipsObject *object)
 		if (vips_colourspace(in, &t[9], interpretation, NULL))
 			return -1;
 		in = t[9];
+	}
+
+	/* The CICP/CLLI metadata is stale after transforming to the output profile.
+	 */
+	if (thumbnail->output_profile) {
+		if (vips_copy(in, &t[4], NULL))
+			return -1;
+		in = t[4];
+
+		vips__image_remove_cicp(in);
+		vips__image_remove_clli(in);
 	}
 
 	if (thumbnail->auto_rotate &&
@@ -1401,6 +1480,24 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 			"thumbnail", (int) factor,
 			NULL);
 	}
+	else if (vips_isprefix("VipsForeignLoadDcRaw", thumbnail->loader)) {
+		VipsImage *image;
+
+		if (!(image	= vips_image_new_from_file(file->filename,
+			"access", VIPS_ACCESS_SEQUENTIAL,
+			"fail_on", thumbnail->fail_on,
+			NULL)))
+			return NULL;
+
+		VipsImage *blob;
+		if (!(blob = vips_thumbnail_get_blob(thumbnail, image, factor))) {
+			VIPS_UNREF(image);
+			return NULL;
+		}
+		VIPS_UNREF(image);
+
+		return blob;
+	}
 	else {
 		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
@@ -1491,7 +1588,11 @@ vips_thumbnail_file_init(VipsThumbnailFile *file)
  * will be transformed to the target colourspace before writing to the
  * output. You can also give an @input_profile which will be used if the
  * input image has no ICC profile, or if the profile embedded in the
- * input image is broken.
+ * input image is broken, or if the input has a valid CICP record.
+ *
+ * A CICP record describes the encoding, so it is what @linear linearises
+ * through. Such images are returned in the encoding and bit depth they arrived
+ * in, unless @output_profile asks for something else.
  *
  * Use @intent to set the rendering intent for any ICC transform. The default
  * is [enum@Vips.Intent.RELATIVE].

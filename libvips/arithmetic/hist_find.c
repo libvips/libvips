@@ -342,7 +342,7 @@ vips_hist_find_stop(VipsStatistic *statistic, void *seq)
 
 static int
 vips_hist_find_scan(VipsStatistic *statistic, void *seq,
-	int x, int y, void *in, int n)
+	int x, int y, void *in, int n, gboolean *stop)
 {
 	VipsHistFind *hist_find = (VipsHistFind *) statistic;
 	Histogram *hist = (Histogram *) seq;
