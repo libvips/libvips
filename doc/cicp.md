@@ -121,14 +121,14 @@ the CICP data is preferred.
 
 ### High-level libvips operations
 
-The `thumbnail` operation knows about CICP tags and will use them
+The [method@Image.thumbnail] operation knows about CICP tags and will use them
 automatically for colour processing with the `linear` and `output-profile`
 options.
 
 ### À la carte processing
 
 You can also take over colour processing yourself by converting a native CICP
-image to scRGB.
+image to scRGB using [method@Image.CICP2scRGB].
 
 For example:
 
@@ -145,10 +145,16 @@ interpretation: scrgb
 xoffset: 0
 yoffset: 0
 xres: 2.83398
-yres: 2.83398
+yres: 2.83398G
 filename: x.v
 vips-loader: pngload
 icc-profile-data: 4344 bytes of binary data
+cicp-colour-primaries: 9
+cicp-transfer-characteristics: 16
+cicp-matrix-coefficients: 0
+cicp-full-range-flag: 1
+clli-max-content-light-level: 769
+clli-max-frame-average-light-level: 75
 png-comment-0-Software: HDRFrame
 xmp-data: 563 bytes of binary data
 png-comment-2-HDRFrame.CaptureMode: window
@@ -176,142 +182,16 @@ $ vips min x.v
 0.000194
 ```
 
-So the image has been converted to linear float, with the range 0-1 for black
-to paper white. Values above 1.0 (the maximum for this image is 9.77)
-represent HDR pixels.
+So the image has been converted to linear float, with the range 0-1 for
+black to paper white. Values above 1.0 (the maximum for this image is 9.77,
+for example) represent HDR pixels.
 
-The ICC profile and the CICP metadata are untouched. If you want to modify the
-image and change the HDR presetation, you will probably need to update these.
+The ICC profile and the CICP metadata are untouched. If you modify the image
+and want to change the HDR presetation, you will need to update these using
+[method@Image.get_double] and friends.
 
+You can use [method@Image.percent_lum] to compute `clli-max-content-light-level`
+and `clli-max-frame-average-light-level` efficiently.
 
-
-
-This gainmap metadata is copied unmodified through any processing operations.
-If you save an image with gainmap metadata to a JPEG file, libvips will do the
-write with the [method@Image.uhdrsave] operation, embedding the gainmap and the
-associated metadata in the output image.
-
-Intermediate operations which change the image geometry will also need to
-update the `"gainmap-data"` metadata item, the mechanisms for doing this are
-described below. The other gainmap fields should probably not be changed
-unless the intention is to alter the image appearance.
-
-### High-level libvips operations
-
-Two high-level libvips operations will automatically update the gainmap for
-you during processing: [method@Image.dzsave] and [ctor@Image.thumbnail].
-
-[method@Image.dzsave] always strips all metadata by default, so you'll need to
-set `keep="gainmap"` to write the gainmap to the tiles. For example:
-
-```
-$ vips dzsave ultra-hdr.jpg x --keep gainmap
-```
-
-### À la carte processing
-
-Other operations will NOT automatically update the gainmap for you. If you
-call something like [method@Image.crop], an operation which changes the
-image geometry, the gainmap and the image will no longer match. When
-you save the cropped image, the gainmap is likely to be incorrect.
-
-A helper function, [method@Image.get_gainmap], makes updating the gainmap
-relatively easy: it returns a [class@Image] for the gainmap, and attaches
-the image pointer as the metadata item `"gainmap"`. Once you have updated
-the gainmap, you can overwrite this value.
-
-For example, in C you could write
-
-```C
-VipsImage *image = ...;
-VipsImage *out;
-int left, top, width, height;
-if (vips_crop(image, &out, left, top, width, height, NULL))
-    return -1;
-
-// also crop the gainmap, if there is one
-VipsImage *gainmap;
-if ((gainmap = vips_image_get_gainmap(out))) {
-    // the gainmap can be smaller than the image, we must scale the
-    // crop area
-    double hscale = (double) gainmap->Xsize / image->Xsize;
-    double vscale = (double) gainmap->Ysize / image->Ysize;
-
-    VipsImage *new_gainmap;
-    if (vips_crop(gainmap, &new_gainmap, left * hscale, top * vscale,
-        width * hscale, height * vscale, NULL))
-        return -1;
-	g_object_unref(gainmap);
-
-    // vips_image_set_image() modifies the image, so we need to make a
-    // unique copy ... you can skip this step if you know your image is
-    // already unique
-    VipsImage *new_out;
-    if (vips_copy(out, &new_out, NULL)) {
-	    g_object_unref(new_gainmap);
-        return -1;
-    }
-    g_object_unref(out);
-    out = new_out;
-
-    // update the gainmap
-    vips_image_set_image(out, "gainmap", new_gainmap);
-
-    g_object_unref(new_gainmap);
-}
-```
-
-Or with ruby-vips:
-
-```ruby
-def crop_image_and_gainmap(image, left, top, width, height)
-  image = image.crop left, top, width, height
-  gainmap = image.get_gainmap
-  unless gainmap.nil?
-    hscale = gainmap.width / image.width
-    vscale = gainmap.height / image.height
-    new_gainmap = gainmap.crop left * hscale, top * vscale, width * hscale, height * vscale
-    image = image.mutate do |mutable|
-      mutable.set_type! Vips::IMAGE_TYPE, "gainmap", new_gainmap
-    end
-  end
-
-  image
-end
-```
-
-### Performance and quality considerations
-
-Doing gainmap processing explicitly like this has two big advantages:
-first, you have exact control over this processing, so you can make sure
-only the gainmap transformations that are strictly necessary take place.
-Secondly, since you supply the gainmap to the UltraHDR save, you can also
-be certain any user tone mapping is preserved.
-
-The disadvantage is the extra development work necessary. The second UltraHDR
-path in libvips avoids this problem.
-
-## Full HDR processing
-
-You can transform an UltraHDR SDR plus gainmap image to full HDR with
-[method@Image.uhdr2scRGB]. This will compute an scRGB image: a three-band
-float with sRGB primaries, black to white as linear 0-1, and out of range
-values used to represent HDR.
-
-For example:
-
-```
-$ vips uhdr2scRGB ultra-hdr.jpg x.v
-$ vipsheader x.v
-x.v: 3840x2160 float, 3 bands, scrgb, uhdrload
-$ vips max x.v
-15.210938
-```
-
-If you save an scRGB image as JPEG, it will be automatically written as
-UltraJPEG. Any associated gainmap is thrown away and basic tonemapping
-performed to make a new gainmap for SDR display.
-
-Full HDR processing with scRGB is simple, but potentially slower than the
-separate gainmap path, and will not preserve any user tone map.
+You can convert in the other direction with [method@Image.scRGB2CICP].
 
