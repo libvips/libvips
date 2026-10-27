@@ -2,10 +2,8 @@ Title: Using > Processing CICP images
 
 [CICP is a relatively new](https://en.wikipedia.org/wiki/Coding-independent_code_points)
 way of tagging an image with information about how colour values should be
-displayed. It serves roughly the same purpose as an ICC profile, but is very
-small, simple, and is designed for HDR.  Image formats like AVIF and HEIC
-are built around it, and it is being adopted by other formats, like JXL and
-even PNG.
+displayed. It serves roughly the same purpose as an ICC profile, but is
+very small, simple, and is designed for HDR.
 
 libvips supports loading and saving images with CICP tags from AVIF, JXL,
 and PNG images, it supports loading and saving these images to UltraHDR
@@ -15,14 +13,21 @@ generating and mofifying CICP tags programmatically, including support for
 computing some image properties, such as target illumination.
 
 As with other colour tagging systems, like ICC and UtrahDR, there are two main
-ways of handling images like this. You can leave them in the format left by
-the loader, in which case colour processing is fast and largely automatic,
-or you can convert to scRGB and handle colour processing yourself.
+paths for CICP images. You can leave them as 16-bit insigned integer with
+CICP tags and rely on automatic conversion by savers, or you can convert
+them to full HDR images in scRGB space and do you own colour handling.
+Doing your own handling will usually be slower, but give more control.
 
 ## Native numeric format with CICP tagging
 
-CICP images are either 8 or 16 bit unsigned integer formats, with extra
-metadata for colour interpretation. For example:
+CICP images are 16-bit unsigned integers, with extra metadata for colour
+interpretation.
+
+### Load
+
+Images are left in native CICP format by loaders.
+
+For example:
 
 ```
 $ vipsheader -a cicp-car.png
@@ -54,49 +59,21 @@ png-comment-4-HDRFrame.SourceHDR: true
 bits-per-sample: 16
 ```
 
-Here, a PNG image has both an ICC profile and CICP metadata. If both are
-attached, then libvips will use CICP.
+As well as the four pieces of CICP metadata, two extra tags give the peak and
+average luminance for the image. These help displays map general image
+pixel values to values appropriate for this specific display.
 
+### Save
 
-
-
-
-
-
-
-libvips can process HDR images encoded with
-[UltraHDR](https://en.wikipedia.org/wiki/Ultra_HDR). These are ordinary
-SDR images, but with a gainmap embedded within them -- SDR displays will
-just show the regular SDR image, but for an HDR display, the extra gainmap
-can be used as an exponent to recover the full HDR range. This ability to show
-the same file in good quality on both SDR and HDR displays makes the format
-very useful.
-
-libvips uses Google's [libultrahdr](https://github.com/google/libultrahdr)
-for UltraHDR load and save. The current version of this library only
-supports UltraHDR JPEG images; the next version is expected to add support
-for a wider range of image formats.
-
-There are two main paths for UltraHDR images in libvips: as an SDR image with a
-separate gainmap, and as a full HDR image. The separate gainmap path is
-relatively fast but you will sometimes need to update the gainmap during
-processing. The full HDR path does not require gainmap updates, but can be
-slower, and will usually lose the original image's tone mapping.
-
-## UltraHDR as SDR with a separate gainmap
-
-libvips will detect JPEG images with an embedded gainmap and automatically
-invoke the [ctor@Image.uhdrload] operation to load them. This operation
-attaches the gainmap (a small JPEG-compressed image) as the `"gainmap-data"`
-metadata item, plus some other gainmap tags.
-
-### Load and save
+When you save an image like this in another format, the saver will attempt to
+generate the best image it can automatically.
 
 For example:
 
 ```
-$ vipsheader -a ultra-hdr.jpg
-ultra-hdr.jpg: 3840x2160 uchar, 3 bands, srgb, uhdrload
+$ vips copy cicp-car.png x.jpg
+$ vipsheader -a x.jpg
+x.jpg: 3840x2160 uchar, 3 bands, srgb, uhdrload
 width: 3840
 height: 2160
 bands: 3
@@ -105,21 +82,109 @@ coding: none
 interpretation: srgb
 xoffset: 0
 yoffset: 0
-xres: 1
-yres: 1
-filename: ultra-hdr.jpg
+xres: 2.83398
+yres: 2.83398
+filename: x.jpg
 vips-loader: uhdrload
-icc-profile-data: 588 bytes of binary data
-gainmap-data: 31738 bytes of binary data
-gainmap-max-content-boost: 100 100 100
+exif-data: 186 bytes of binary data
+resolution-unit: in
+exif-ifd0-Orientation: 1 (Top-left, Short, 1 components, 2 bytes)
+exif-ifd0-XResolution: 71983/1000 (71.983, Rational, 1 components, 8 bytes)
+exif-ifd0-YResolution: 71983/1000 (71.983, Rational, 1 components, 8 bytes)
+exif-ifd0-ResolutionUnit: 2 (Inch, Short, 1 components, 2 bytes)
+exif-ifd0-YCbCrPositioning: 1 (Centred, Short, 1 components, 2 bytes)
+exif-ifd2-ExifVersion: Exif Version 2.1 (Exif Version 2.1, Undefined, 4 components, 4 bytes)
+exif-ifd2-ComponentsConfiguration: Y Cb Cr - (Y Cb Cr -, Undefined, 4 components, 4 bytes)
+exif-ifd2-FlashpixVersion: FlashPix Version 1.0 (FlashPix Version 1.0, Undefined, 4 components, 4 bytes)
+exif-ifd2-ColorSpace: 65535 (Uncalibrated, Short, 1 components, 2 bytes)
+exif-ifd2-PixelXDimension: 3840 (3840, Long, 1 components, 4 bytes)
+exif-ifd2-PixelYDimension: 2160 (2160, Long, 1 components, 4 bytes)
+orientation: 1
+icc-profile-data: 600 bytes of binary data
+gainmap-data: 42867 bytes of binary data
+gainmap-max-content-boost: 49.2611 49.2611 49.2611
 gainmap-min-content-boost: 1 1 1
 gainmap-gamma: 1 1 1
 gainmap-offset-sdr: 0 0 0
 gainmap-offset-hdr: 0 0 0
 gainmap-hdr-capacity-min: 1
-gainmap-hdr-capacity-max: 100
+gainmap-hdr-capacity-max: 49.2611
 gainmap-use-base-cg: 1
+gainmap-scale-factor: 2
 ```
+
+The JPEG saver has seen the CICP tags and generated an UltraHDR image
+automatically using libultrahdr, including the gainmap and the ICC profile.
+The profile is derived from the CICP tags and does not use the profile on
+the source PNG, since if an ICC profile and CICP metadata are both present,
+the CICP data is preferred.
+
+### High-level libvips operations
+
+The `thumbnail` operation knows about CICP tags and will use them
+automatically for colour processing with the `linear` and `output-profile`
+options.
+
+### À la carte processing
+
+You can also take over colour processing yourself by converting a native CICP
+image to scRGB.
+
+For example:
+
+```
+$ vips CICP2scRGB cicp-car.png x.v
+$ vipsheader -a x.v
+x.v: 3840x2160 float, 3 bands, scrgb, pngload
+width: 3840
+height: 2160
+bands: 3
+format: float
+coding: none
+interpretation: scrgb
+xoffset: 0
+yoffset: 0
+xres: 2.83398
+yres: 2.83398
+filename: x.v
+vips-loader: pngload
+icc-profile-data: 4344 bytes of binary data
+png-comment-0-Software: HDRFrame
+xmp-data: 563 bytes of binary data
+png-comment-2-HDRFrame.CaptureMode: window
+png-comment-3-HDRFrame.SourceBackend: wgc
+png-comment-4-HDRFrame.SourceHDR: true
+bits-per-sample: 16
+vips-sequential: 1
+exif-data: 186 bytes of binary data
+resolution-unit: in
+exif-ifd0-Orientation: 1 (Top-left, Short, 1 components, 2 bytes)
+exif-ifd0-XResolution: 71983/1000 (71.983, Rational, 1 components, 8 bytes)
+exif-ifd0-YResolution: 71983/1000 (71.983, Rational, 1 components, 8 bytes)
+exif-ifd0-ResolutionUnit: 2 (Inch, Short, 1 components, 2 bytes)
+exif-ifd0-YCbCrPositioning: 1 (Centred, Short, 1 components, 2 bytes)
+exif-ifd2-ExifVersion: Exif Version 2.1 (Exif Version 2.1, Undefined, 4 components, 4 bytes)
+exif-ifd2-ComponentsConfiguration: Y Cb Cr - (Y Cb Cr -, Undefined, 4 components, 4 bytes)
+exif-ifd2-FlashpixVersion: FlashPix Version 1.0 (FlashPix Version 1.0, Undefined, 4 components, 4 bytes)
+exif-ifd2-ColorSpace: 65535 (Uncalibrated, Short, 1 components, 2 bytes)
+exif-ifd2-PixelXDimension: 3840 (3840, Long, 1 components, 4 bytes)
+exif-ifd2-PixelYDimension: 2160 (2160, Long, 1 components, 4 bytes)
+orientation: 1
+$ vips max x.v
+9.773916
+$ vips min x.v
+0.000194
+```
+
+So the image has been converted to linear float, with the range 0-1 for black
+to paper white. Values above 1.0 (the maximum for this image is 9.77)
+represent HDR pixels.
+
+The ICC profile and the CICP metadata are untouched. If you want to modify the
+image and change the HDR presetation, you will probably need to update these.
+
+
+
 
 This gainmap metadata is copied unmodified through any processing operations.
 If you save an image with gainmap metadata to a JPEG file, libvips will do the
