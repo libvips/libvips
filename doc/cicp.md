@@ -9,11 +9,11 @@ libvips supports loading and saving images with CICP tags from AVIF, JXL,
 and PNG images, it supports loading and saving these images to UltraHDR
 formats like JPG with automatic conversion of tags, and it supports save to
 ICC-only formats with automatic profile generation. libvips also supports
-generating and mofifying CICP tags programmatically, including support for
+generating and modifying CICP tags programmatically, including support for
 computing some image properties, such as target illumination.
 
-As with other colour tagging systems, like ICC and UtrahDR, there are two main
-paths for CICP images. You can leave them as 16-bit insigned integer with
+As with other colour tagging systems, like ICC and UtraHDR, there are two main
+paths for CICP images. You can leave them as 16-bit unsigned integer with
 CICP tags and rely on automatic conversion by savers, or you can convert
 them to full HDR images in scRGB space and do you own colour handling.
 Doing your own handling will usually be slower, but give more control.
@@ -187,7 +187,7 @@ black to paper white. Values above 1.0 (the maximum for this image is 9.77,
 for example) represent HDR pixels.
 
 The ICC profile and the CICP metadata are untouched. If you modify the image
-and want to change the HDR presetation, you will need to update these using
+and want to change the HDR presentation, you will need to update these using
 [method@Image.get_double] and friends.
 
 You can use [method@Image.percent_lum] to compute `clli-max-content-light-level`
