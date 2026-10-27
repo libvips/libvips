@@ -318,6 +318,13 @@ read_new(VipsSource *source, VipsImage *out,
 			PNG_CRC_QUIET_USE, PNG_CRC_QUIET_USE);
 	}
 
+#ifdef PNG_MAXIMUM_INFLATE_WINDOW
+	/* Handle images containing invalid Compression Method Flags (CMF)
+	 * generated with libpng versions 1.6.0 to 1.6.2 inclusive.
+	 */
+	png_set_option(read->pPng, PNG_MAXIMUM_INFLATE_WINDOW, PNG_OPTION_ON);
+#endif /* PNG_MAXIMUM_INFLATE_WINDOW */
+
 	/* libpng has a default soft limit of 1m pixels per axis.
 	 */
 	png_set_user_limits(read->pPng, VIPS_MAX_COORD, VIPS_MAX_COORD);
