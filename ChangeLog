@@ -16,6 +16,7 @@ tdb 8.18.8
 - icc_transform: copy blob, not raw pointer [chehov]
 - heifload, pdfload, webpload, gifload: check total height in multipage images
 - libnsgif: update from upstream
+- pngload: allow PNG images containing invalid CMF [lovell]
 
 20/9/26 8.18.7
 
