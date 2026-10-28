@@ -27,12 +27,13 @@ interpretation.
 
 Images are left in native CICP format by loaders.
 
-For example:
+For example, here's a CICP HDR PNG image:
 
 ![CICP PNG image](cicp-car-small.png)
 
-This image is HDR, but will probably not display correctly in your browser
-since HDR PNG images are not very common!
+This will probably not display correctly in your browser since HDR PNG
+images are not very common! Most browsers will just display it as a regular
+16-bit PNG and it'll look extremely dark.
 
 You can check the tags to see how it works:
 
@@ -145,13 +146,20 @@ This might now display as HDR, depending on your screen and browser:
 You can also convert to AVIF, of course. Since AVIF supports CICP, this is
 much simpler.
 
+```
+$ vips copy cicp-car-small.png cicp-car-small.avif
+```
+
 ![CICP AVIF image](cicp-car-small.avif)
 
-Again, the appearance will depend on your browser and display.
+Again, the appearance will depend on your browser and display. On SDR
+displays, these two versions of the original probably won't match well,
+since the UltraHDR image has been tonemapped, whereas the AVIF will display
+the SDR component of the CICP data.
 
 ### High-level libvips operations
 
-The [method@Image.thumbnail] operation knows about CICP tags and will use them
+The [ctor@Image.thumbnail] operation knows about CICP tags and will use them
 automatically for colour processing with the `linear` and `output-profile`
 options.
 
