@@ -179,9 +179,7 @@ vips_LCh2CMC_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 	float *p = (float *) in[0];
 	float *q = (float *) out;
 
-	int x;
-
-	for (x = 0; x < width; x++) {
+	for (int x = 0; x < width; x++) {
 		float L = p[0];
 		float C = p[1];
 		float h = p[2];

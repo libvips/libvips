@@ -19,6 +19,8 @@
  * 	- fix a race in the table build
  * 19/9/12
  * 	- redone as a class
+ * 28/10/26
+ *	- use cbrt() for out of range values
  */
 
 /*
@@ -91,9 +93,7 @@ static GOnce table_init_once = G_ONCE_INIT;
 static void *
 table_init(void *client)
 {
-	int i;
-
-	for (i = 0; i < QUANT_ELEMENTS; i++) {
+	for (int i = 0; i < QUANT_ELEMENTS; i++) {
 		float Y = (double) i / QUANT_ELEMENTS;
 
 		if (Y < 0.008856)
@@ -105,32 +105,39 @@ table_init(void *client)
 	return NULL;
 }
 
+// cbrt, with a LUT for 0-1 and a linear section
+static inline float
+vips_col_cbrt(float n)
+{
+	float cb;
+
+	/* Out of range values fall back to cbrt().
+	 */
+	if (n > 1 || n < 0)
+		cb = cbrtf(n);
+	else {
+		/* CLIP is much faster than FCLIP, and we want an int result.
+		 */
+		float v = n * QUANT_ELEMENTS;
+		int i = VIPS_CLIP(0, (int) v, QUANT_ELEMENTS - 2);
+		float f = v - i;
+		cb = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
+	}
+
+	return cb;
+}
+
 static void
 vips_col_XYZ2Lab_helper(VipsXYZ2Lab *XYZ2Lab,
 	float X, float Y, float Z, float *L, float *a, float *b)
 {
-	float nX, nY, nZ;
-	int i;
-	float f;
-	float cbx, cby, cbz;
+	float nX = X / XYZ2Lab->X0;
+	float nY = Y / XYZ2Lab->Y0;
+	float nZ = Z / XYZ2Lab->Z0;
 
-	nX = QUANT_ELEMENTS * X / XYZ2Lab->X0;
-	nY = QUANT_ELEMENTS * Y / XYZ2Lab->Y0;
-	nZ = QUANT_ELEMENTS * Z / XYZ2Lab->Z0;
-
-	/* CLIP is much faster than FCLIP, and we want an int result.
-	 */
-	i = VIPS_CLIP(0, (int) nX, QUANT_ELEMENTS - 2);
-	f = nX - i;
-	cbx = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
-
-	i = VIPS_CLIP(0, (int) nY, QUANT_ELEMENTS - 2);
-	f = nY - i;
-	cby = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
-
-	i = VIPS_CLIP(0, (int) nZ, QUANT_ELEMENTS - 2);
-	f = nZ - i;
-	cbz = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
+	float cbx = vips_col_cbrt(nX);
+	float cby = vips_col_cbrt(nY);
+	float cbz = vips_col_cbrt(nZ);
 
 	*L = 116.0F * cby - 16.0F;
 	*a = 500.0F * (cbx - cby);

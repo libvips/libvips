@@ -68,17 +68,15 @@ G_DEFINE_TYPE(VipsCMC2LCh, vips_CMC2LCh, VIPS_TYPE_COLOUR_TRANSFORM);
 static void
 make_LI(void)
 {
-	int i;
 	float Ll[1001];
 
-	for (i = 0; i < 1001; i++)
+	for (int i = 0; i < 1001; i++)
 		Ll[i] = vips_col_L2Lcmc(i / 10.0);
 
-	for (i = 0; i < 1001; i++) {
-		int j;
-
+	for (int i = 0; i < 1001; i++) {
 		/* Must be 1000, since j will be +1 on exit.
 		 */
+		int j;
 		for (j = 0; j < 1000 && Ll[j] <= i / 10.0; j++)
 			;
 
@@ -92,17 +90,15 @@ make_LI(void)
 static void
 make_CI(void)
 {
-	int i;
 	float Cl[3001];
 
-	for (i = 0; i < 3001; i++)
+	for (int i = 0; i < 3001; i++)
 		Cl[i] = vips_col_C2Ccmc(i / 10.0);
 
-	for (i = 0; i < 3001; i++) {
-		int j;
-
+	for (int i = 0; i < 3001; i++) {
 		/* Must be 3000, since j will be +1 on exit.
 		 */
+		int j;
 		for (j = 0; j < 3000 && Cl[j] <= i / 10.0; j++)
 			;
 
@@ -116,23 +112,19 @@ make_CI(void)
 static void
 make_hI(void)
 {
-	int i, j;
 	float hl[101][361];
 
-	for (i = 0; i < 361; i++)
-		for (j = 0; j < 101; j++)
+	for (int i = 0; i < 361; i++)
+		for (int j = 0; j < 101; j++)
 			hl[j][i] = vips_col_Ch2hcmc(j * 2.0, i);
 
-	for (j = 0; j < 101; j++) {
-		for (i = 0; i < 361; i++) {
+	for (int j = 0; j < 101; j++) {
+		for (int i = 0; i < 361; i++) {
 			int k;
-
 			for (k = 1; k < 360 && hl[j][k] <= i; k++)
 				;
 
-			hI[j][i] = k - 1 +
-				(i - hl[j][k - 1]) /
-					(hl[j][k] - hl[j][k - 1]);
+			hI[j][i] = k - 1 + (i - hl[j][k - 1]) / (hl[j][k] - hl[j][k - 1]);
 		}
 	}
 }
@@ -154,8 +146,7 @@ vips_col_Lcmc2L(float Lcmc)
 	known = floor(Lcmc * 10.0);
 	known = VIPS_CLIP(0, known, 999);
 
-	return LI[known] +
-		(LI[known + 1] - LI[known]) * (Lcmc * 10.0F - known);
+	return LI[known] + (LI[known + 1] - LI[known]) * (Lcmc * 10.0F - known);
 }
 
 /**
@@ -240,9 +231,7 @@ vips_CMC2LCh_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 	float *p = (float *) in[0];
 	float *q = (float *) out;
 
-	int x;
-
-	for (x = 0; x < width; x++) {
+	for (int x = 0; x < width; x++) {
 		float Lcmc = p[0];
 		float Ccmc = p[1];
 		float hcmc = p[2];
@@ -291,6 +280,9 @@ vips_CMC2LCh_init(VipsCMC2LCh *CMC2LCh)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * Turn LCh to CMC.
+ *
+ * This operation will clip out of range values and should not be used
+ * for HDR images.
  *
  * ::: seealso
  *     [method@Image.LCh2CMC].
