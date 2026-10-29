@@ -90,12 +90,12 @@ vips_uhdr2scRGB_mono(VipsUhdr2scRGB *uhdr,
 		p2 += 1;
 
 		if (uhdr->gamma[1] != 1.0f)
-			gg = pow(gg, 1.0f / uhdr->gamma[1]);
+			gg = powf(gg, 1.0f / uhdr->gamma[1]);
 
-		float boostg = log2(uhdr->min_content_boost[1]) * (1.0f - gg) +
-			log2(uhdr->max_content_boost[1]) * gg;
+		float boostg = log2f(uhdr->min_content_boost[1]) * (1.0f - gg) +
+			log2f(uhdr->max_content_boost[1]) * gg;
 
-		float gaing = exp2(boostg);
+		float gaing = exp2f(boostg);
 
 		q[0] = VIPS_UHDR_TO_SCRGB *
 			(((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
@@ -128,22 +128,22 @@ vips_uhdr2scRGB_rgb(VipsUhdr2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		p2 += 3;
 
 		if (uhdr->gamma[0] != 1.0f)
-			gr = pow(gr, 1.0f / uhdr->gamma[0]);
+			gr = powf(gr, 1.0f / uhdr->gamma[0]);
 		if (uhdr->gamma[1] != 1.0f)
-			gg = pow(gg, 1.0f / uhdr->gamma[1]);
+			gg = powf(gg, 1.0f / uhdr->gamma[1]);
 		if (uhdr->gamma[2] != 1.0f)
-			gb = pow(gb, 1.0f / uhdr->gamma[2]);
+			gb = powf(gb, 1.0f / uhdr->gamma[2]);
 
-		float boostr = log2(uhdr->min_content_boost[0]) * (1.0f - gr) +
-			log2(uhdr->max_content_boost[0]) * gr;
-		float boostg = log2(uhdr->min_content_boost[1]) * (1.0f - gg) +
-			log2(uhdr->max_content_boost[1]) * gg;
-		float boostb = log2(uhdr->min_content_boost[2]) * (1.0f - gb) +
-			log2(uhdr->max_content_boost[2]) * gb;
+		float boostr = log2f(uhdr->min_content_boost[0]) * (1.0f - gr) +
+			log2f(uhdr->max_content_boost[0]) * gr;
+		float boostg = log2f(uhdr->min_content_boost[1]) * (1.0f - gg) +
+			log2f(uhdr->max_content_boost[1]) * gg;
+		float boostb = log2f(uhdr->min_content_boost[2]) * (1.0f - gb) +
+			log2f(uhdr->max_content_boost[2]) * gb;
 
-		float gainr = exp2(boostr);
-		float gaing = exp2(boostg);
-		float gainb = exp2(boostb);
+		float gainr = exp2f(boostr);
+		float gaing = exp2f(boostg);
+		float gainb = exp2f(boostb);
 
 		q[0] = VIPS_UHDR_TO_SCRGB *
 			(((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0]);
