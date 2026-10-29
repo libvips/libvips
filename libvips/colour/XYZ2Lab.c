@@ -105,6 +105,28 @@ table_init(void *client)
 	return NULL;
 }
 
+// cbrt, with a LUT for 0-1 and a linear section
+static inline float
+vips_col_cbrt(float n)
+{
+	float cb;
+
+	/* Out of range values fall back to cbrt().
+	 */
+	if (n > 1 || n < 0)
+		cb = cbrtf(n);
+	else {
+		/* CLIP is much faster than FCLIP, and we want an int result.
+		 */
+		float v = n * QUANT_ELEMENTS;
+		int i = VIPS_CLIP(0, (int) v, QUANT_ELEMENTS - 2);
+		float f = v - i;
+		cb = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
+	}
+
+	return cb;
+}
+
 static void
 vips_col_XYZ2Lab_helper(VipsXYZ2Lab *XYZ2Lab,
 	float X, float Y, float Z, float *L, float *a, float *b)
@@ -113,38 +135,9 @@ vips_col_XYZ2Lab_helper(VipsXYZ2Lab *XYZ2Lab,
 	float nY = Y / XYZ2Lab->Y0;
 	float nZ = Z / XYZ2Lab->Z0;
 
-	float cbx, cby, cbz;
-
-	/* Out of range values fall back to cbrt().
-	 */
-	if (nX > 1 || nX < 0)
-		cbx = cbrt(nX);
-	else {
-		/* CLIP is much faster than FCLIP, and we want an int result.
-		 */
-		float v = nX * QUANT_ELEMENTS;
-		int i = VIPS_CLIP(0, (int) v, QUANT_ELEMENTS - 2);
-		float f = v - i;
-		cbx = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
-	}
-
-	if (nY > 1 || nY < 0)
-		cby = cbrt(nY);
-	else {
-		float v = nY * QUANT_ELEMENTS;
-		int i = VIPS_CLIP(0, (int) v, QUANT_ELEMENTS - 2);
-		float f = v - i;
-		cby = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
-	}
-
-	if (nZ > 1 || nZ < 0)
-		cbz = cbrt(nZ);
-	else {
-		float v = nZ * QUANT_ELEMENTS;
-		int i = VIPS_CLIP(0, (int) v, QUANT_ELEMENTS - 2);
-		float f = v - i;
-		cbz = cbrt_table[i] + f * (cbrt_table[i + 1] - cbrt_table[i]);
-	}
+	float cbx = vips_col_cbrt(nX);
+	float cby = vips_col_cbrt(nY);
+	float cbz = vips_col_cbrt(nZ);
 
 	*L = 116.0F * cby - 16.0F;
 	*a = 500.0F * (cbx - cby);
