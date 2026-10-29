@@ -107,12 +107,11 @@ vips_Lab2LCh_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 		float L = p[0];
 		float a = p[1];
 		float b = p[2];
-		float C, h;
 
 		p += 3;
 
-		C = sqrtf(a * a + b * b);
-		h = vips_col_ab2h(a, b);
+		float C = hypotf(a, b);
+		float h = vips_col_ab2h(a, b);
 
 		q[0] = L;
 		q[1] = C;

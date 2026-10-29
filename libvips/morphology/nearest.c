@@ -116,6 +116,9 @@ vips_fill_nearest_pixel(Circle *circle, int x, int y, int octant)
 	p = (float *) VIPS_IMAGE_ADDR(circle->nearest->distance, x, y);
 	dx = x - circle->seed->x;
 	dy = y - circle->seed->y;
+
+	/* Faster than hypotf() for int args.
+	 */
 	radius = sqrtf(dx * dx + dy * dy);
 
 	if (p[0] == 0 ||

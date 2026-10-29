@@ -166,7 +166,7 @@ vips__clinear(TiePoints *points)
 		dy[i] = ysec[i] -
 			((angle * xref[i]) + (scale * yref[i]) + ydelta);
 
-		value = sqrt(dx[i] * dx[i] + dy[i] * dy[i]);
+		value = hypot(dx[i], dy[i]);
 		dev[i] = value;
 	}
 

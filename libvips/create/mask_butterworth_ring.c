@@ -80,10 +80,9 @@ vips_mask_butterworth_ring_point(VipsMask *mask,
 	double df = ringwidth / 2.0;
 	double cnst = (1.0 / ac) - 1.0;
 	double df2 = df * df;
-	double dist = sqrt(dx * dx + dy * dy);
+	double dist = hypot(dx, dy);
 
-	return 1.0 /
-		(1.0 + cnst * pow((dist - fc) * (dist - fc) / df2, order));
+	return 1.0 / (1.0 + cnst * pow((dist - fc) * (dist - fc) / df2, order));
 }
 
 static void

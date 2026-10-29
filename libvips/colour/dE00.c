@@ -106,8 +106,8 @@ vips_col_dE00(float L1, float a1, float b1,
 
 	/* Chroma and mean chroma (C bar)
 	 */
-	double C1 = sqrt(a1 * a1 + b1 * b1);
-	double C2 = sqrt(a2 * a2 + b2 * b2);
+	double C1 = hypot(a1, b1);
+	double C2 = hypot(a2, b2);
 	double Cb = (C1 + C2) / 2;
 
 	/* G
@@ -120,13 +120,13 @@ vips_col_dE00(float L1, float a1, float b1,
 	double L1d = L1;
 	double a1d = (1 + G) * a1;
 	double b1d = b1;
-	double C1d = sqrt(a1d * a1d + b1d * b1d);
+	double C1d = hypot(a1d, b1d);
 	double h1d = vips_col_ab2h(a1d, b1d);
 
 	double L2d = L2;
 	double a2d = (1 + G) * a2;
 	double b2d = b2;
-	double C2d = sqrt(a2d * a2d + b2d * b2d);
+	double C2d = hypot(a2d, b2d);
 	double h2d = vips_col_ab2h(a2d, b2d);
 
 	/* L' bar, C' bar, h' bar

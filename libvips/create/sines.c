@@ -96,11 +96,8 @@ vips_sines_build(VipsObject *object)
 	if (VIPS_OBJECT_CLASS(vips_sines_parent_class)->build(object))
 		return -1;
 
-	theta = sines->hfreq == 0.0
-		? VIPS_PI / 2.0
-		: atan(sines->vfreq / sines->hfreq);
-	factor = sqrt(sines->hfreq * sines->hfreq +
-		sines->vfreq * sines->vfreq);
+	theta = atan2(sines->vfreq, sines->hfreq);
+	factor = hypot(sines->hfreq, sines->vfreq);
 	sines->costheta = cos(theta);
 	sines->sintheta = sin(theta);
 	sines->c = factor * VIPS_PI * 2.0 / point->width;

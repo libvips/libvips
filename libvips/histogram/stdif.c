@@ -206,8 +206,7 @@ vips_stdif_generate(VipsRegion *out_region,
 				/* Find stats.
 				 */
 				double mean = (double) seq->sum[b] / npel;
-				double var = (double) seq->sum2[b] / npel -
-					(mean * mean);
+				double var = (double) seq->sum2[b] / npel - (mean * mean);
 				double sig = sqrt(var);
 
 				/* Transform.

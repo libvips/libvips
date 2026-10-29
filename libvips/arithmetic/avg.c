@@ -138,7 +138,7 @@ vips_avg_stop(VipsStatistic *statistic, void *seq)
 	{ \
 		TYPE *p = (TYPE *) in; \
 \
-		for (i = 0; i < sz; i++) \
+		for (int i = 0; i < sz; i++) \
 			m += p[i]; \
 	}
 
@@ -146,10 +146,8 @@ vips_avg_stop(VipsStatistic *statistic, void *seq)
 	{ \
 		TYPE *p = (TYPE *) in; \
 \
-		for (i = 0; i < sz; i++) { \
-			double mod = sqrt(p[0] * p[0] + p[1] * p[1]); \
-\
-			m += mod; \
+		for (int i = 0; i < sz; i++) { \
+			m += hypot(p[0], p[1]); \
 			p += 2; \
 		} \
 	}
@@ -164,7 +162,6 @@ vips_avg_scan(VipsStatistic *statistic, void *seq,
 
 	double *sum = (double *) seq;
 
-	int i;
 	double m;
 
 	m = *sum;
@@ -254,7 +251,8 @@ vips_avg_init(VipsAvg *avg)
  * average for each band. For complex images, return the average modulus.
  *
  * ::: seealso
- *     [method@Image.stats], [method@Image.bandmean], [method@Image.deviate], [method@Image.rank]
+ *     [method@Image.stats], [method@Image.bandmean], [method@Image.deviate],
+ *     [method@Image.rank]
  *
  * Returns: 0 on success, -1 on error
  */
