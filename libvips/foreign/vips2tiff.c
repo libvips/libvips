@@ -1528,6 +1528,16 @@ wtiff_new(VipsImage *input, VipsTarget *target,
 		wtiff->miniswhite = FALSE;
 	}
 
+	/* LABQ JPEG images can only be written in strip mode.
+	 */
+	if (wtiff->tile &&
+		wtiff->compression == COMPRESSION_JPEG &&
+		wtiff->ready->Coding == VIPS_CODING_LABQ) {
+		g_warning("can only save LABQ JPEG images "
+				  "in strip mode -- disabling tiling");
+		wtiff->tile = FALSE;
+	}
+
 	/* Sizeof a line of bytes in the TIFF tile.
 	 */
 	if (wtiff->ready->Coding == VIPS_CODING_LABQ)

@@ -8,6 +8,7 @@ docs_dir = get_option('prefix') / get_option('datadir') / 'doc'
 
 vips_content_files = files(
   'binding.md',
+  'cicp.md',
   'cite.md',
   'developer-checklist.md',
   'examples.md',

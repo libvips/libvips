@@ -58,10 +58,12 @@ date-tbd 8.19.0
 - qoiload: ensure a custom source retains existing flags [Tan-JunWei]
 - magickload: scale and round Quantum values on unpack [kleisauke]
 - thumbnail: pass missing `fail_on` arg to loaders [kleisauke]
+- CICP: add chapter to docs
 - pngsave: write iTXt chunks for text data (utf-8) [tonymarklove]
 - tiffload: remove unreachable code due to bits_per_sample limit of 32 [lovell]
 - thumbnail: respect output profile and linear mode for cicp images [mertalev]
 - XYZ2Lab: better handling of HDR values
+- tiffsave: disable tiling for LABQ JPEG images
 
 tdb 8.18.8
 

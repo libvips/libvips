@@ -43,6 +43,7 @@ content_files = [
   "making-image-pyramids.md",
   "multipage-and-animated-images.md",
   "uhdr.md",
+  "cicp.md",
   "using-vipsthumbnail.md",
   "using-threads.md",
   "developer-checklist.md",
@@ -86,6 +87,9 @@ content_images = [
   "images/Sink.png",
   "images/tn_owl.jpg",
   "images/Vips-smp.png",
+  "images/cicp-car-small.avif",
+  "images/cicp-car-small.png",
+  "images/uhdr-car-small.jpg",
 ]
 content_base_url = "https://github.com/libvips/libvips/blob/master/doc/"
 urlmap_file = "urlmap.js"
