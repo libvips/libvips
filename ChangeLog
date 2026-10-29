@@ -62,6 +62,7 @@ date-tbd 8.19.0
 - pngsave: write iTXt chunks for text data (utf-8) [tonymarklove]
 - tiffload: remove unreachable code due to bits_per_sample limit of 32 [lovell]
 - thumbnail: respect output profile and linear mode for cicp images [mertalev]
+- tiffsave: disable tiling for LABQ JPEG images
 
 tdb 8.18.8
 
