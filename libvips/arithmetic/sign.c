@@ -66,7 +66,7 @@ G_DEFINE_TYPE(VipsSign, vips_sign, VIPS_TYPE_UNARY);
 		for (x = 0; x < sz; x++) { \
 			TYPE re = p[0]; \
 			TYPE im = p[1]; \
-			double fac = sqrt(re * re + im * im); \
+			double fac = hypot(re, im); \
 \
 			p += 2; \
 \

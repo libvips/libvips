@@ -89,7 +89,7 @@ vips__initialize(TiePoints *points)
 		for (i = 0; i < npt; i++) {
 			a1 = dx[i];
 			a2 = dy[i];
-			points->deviation[i] = sqrt(a1 * a1 + a2 * a2);
+			points->deviation[i] = hypot(a1, a2);
 		}
 
 		points->l_scale = 1.0;

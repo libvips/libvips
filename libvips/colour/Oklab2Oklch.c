@@ -61,7 +61,7 @@ vips_Oklab2Oklch_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 		p += 3;
 
 		q[0] = L;
-		q[1] = sqrtf(a * a + b * b);
+		q[1] = hypotf(a, b);
 		q[2] = vips_col_ab2h(a, b);
 		q += 3;
 	}

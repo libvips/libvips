@@ -77,7 +77,7 @@ vips_mask_gaussian_ring_point(VipsMask *mask, double dx, double dy)
 	double df = ringwidth / 2.0;
 	double df2 = df * df;
 	double cnst = log(ac);
-	double dist = sqrt(dx * dx + dy * dy);
+	double dist = hypot(dx, dy);
 
 	return exp(cnst * (dist - fc) * (dist - fc) / df2);
 }
