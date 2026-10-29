@@ -61,10 +61,9 @@ G_DEFINE_TYPE(VipsProfileLoad, vips_profile_load, VIPS_TYPE_OPERATION);
 static const void *
 vips_profile_fallback_get(const char *name, size_t *length)
 {
-	int i;
 	VipsProfileFallback *fallback;
 
-	for (i = 0; (fallback = vips__profile_fallback_table[i]); i++)
+	for (int i = 0; (fallback = vips__profile_fallback_table[i]); i++)
 		if (g_ascii_strcasecmp(fallback->name, name) == 0) {
 			void *data;
 			GConverter *converter;
@@ -115,7 +114,7 @@ vips_profile_load_build(VipsObject *object)
 		profile = vips_blob_new(
 			(VipsCallbackFn) vips_area_free_cb, data, length);
 	else if ((data = vips__file_read_name(load->name,
-				  vips__icc_dir(), &length)))
+			vips__icc_dir(), &length)))
 		profile = vips_blob_new(
 			(VipsCallbackFn) vips_area_free_cb, data, length);
 	else {
