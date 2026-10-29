@@ -202,7 +202,7 @@ vips_col_Chcmc2h(float C, float hcmc)
 	r = (int) ((C + 1.0) / 2.0);
 	r = VIPS_CLIP(0, r, 99);
 
-	known = floor(hcmc);
+	known = floorf(hcmc);
 	known = VIPS_CLIP(0, known, 359);
 
 	return hI[r][known] +

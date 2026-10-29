@@ -423,7 +423,7 @@ vips_foreign_load_ppm_set_image_metadata(VipsForeignLoadPpm *ppm,
 
 	if (ppm->index == 6 ||
 		ppm->index == 7)
-		vips_image_set_double(image, "pfm-scale", fabs(ppm->scale));
+		vips_image_set_double(image, "pfm-scale", fabsf(ppm->scale));
 	else
 		vips_image_set_double(image, "ppm-max-value", abs(ppm->max_value));
 
