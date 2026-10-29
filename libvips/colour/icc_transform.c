@@ -248,9 +248,7 @@ static VipsIccInfo vips_icc_info_table[] = {
 static VipsIccInfo *
 vips_icc_info(int signature)
 {
-	int i;
-
-	for (i = 0; i < VIPS_NUMBER(vips_icc_info_table); i++)
+	for (int i = 0; i < VIPS_NUMBER(vips_icc_info_table); i++)
 		if (vips_icc_info_table[i].signature == signature)
 			return &vips_icc_info_table[i];
 
@@ -501,20 +499,18 @@ vips_icc_print_profile(const char *name, cmsHPROFILE profile)
 		"copyright"
 	};
 
-	int i;
 	cmsUInt32Number n_bytes;
 	cmsUInt32Number n_intents;
 	cmsUInt32Number *intent_codes;
 	char **intent_descriptions;
 
 	printf("icc profile %s: %p\n", name, profile);
-	for (i = 0; i < VIPS_NUMBER(info_types); i++) {
+	for (int i = 0; i < VIPS_NUMBER(info_types); i++) {
 		if ((n_bytes = cmsGetProfileInfoASCII(profile,
 				 info_types[i], "en", "US",
 				 NULL, 0))) {
-			char *buffer;
+			char *buffer = VIPS_ARRAY(NULL, n_bytes, char);
 
-			buffer = VIPS_ARRAY(NULL, n_bytes, char);
 			(void) cmsGetProfileInfoASCII(profile,
 				info_types[i], "en", "US",
 				buffer, n_bytes);
@@ -545,7 +541,7 @@ vips_icc_print_profile(const char *name, cmsHPROFILE profile)
 	intent_descriptions = VIPS_ARRAY(NULL, n_intents, char *);
 	(void) cmsGetSupportedIntents(n_intents,
 		intent_codes, intent_descriptions);
-	for (i = 0; i < n_intents; i++) {
+	for (int i = 0; i < n_intents; i++) {
 		printf("  %#x: %s, in CLUT = %d, out CLUT = %d\n",
 			intent_codes[i], intent_descriptions[i],
 			cmsIsCLUT(profile,
@@ -854,9 +850,7 @@ vips_icc_import_build(VipsObject *object)
 static void
 decode_lab(guint16 *fixed, float *lab, int n)
 {
-	int i;
-
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		/* cmsLabEncoded2Float inlined.
 		 */
 		lab[0] = (double) fixed[0] / 655.35;
@@ -876,9 +870,7 @@ decode_lab(guint16 *fixed, float *lab, int n)
 static void
 decode_xyz(guint16 *fixed, float *xyz, int n)
 {
-	int i;
-
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		/* cmsXYZEncoded2Float inlined.
 		 */
 		float X = fixed[0] / 32768.0;
@@ -893,15 +885,9 @@ decode_xyz(guint16 *fixed, float *xyz, int n)
 		 * Bradford transformation. See:
 		 * https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
 		 */
-		xyz[0] = 0.955513F * X +
-			-0.023073F * Y +
-			0.063309F * Z;
-		xyz[1] = -0.028325F * X +
-			1.009942F * Y +
-			0.021055F * Z;
-		xyz[2] = 0.012329F * X +
-			-0.020536F * Y +
-			1.330714F * Z;
+		xyz[0] =  0.955513F * X + -0.023073F * Y + 0.063309F * Z;
+		xyz[1] = -0.028325F * X +  1.009942F * Y + 0.021055F * Z;
+		xyz[2] =  0.012329F * X + -0.020536F * Y + 1.330714F * Z;
 
 		xyz += 3;
 		fixed += 3;
@@ -917,7 +903,6 @@ vips_icc_import_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 
 	VipsPel *p;
 	float *q;
-	int i;
 
 	/* Transform to PCS pixels here.
 	 */
@@ -925,7 +910,7 @@ vips_icc_import_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 
 	p = (VipsPel *) in[0];
 	q = (float *) out;
-	for (i = 0; i < width; i += PIXEL_BUFFER_SIZE) {
+	for (int i = 0; i < width; i += PIXEL_BUFFER_SIZE) {
 		const int chunk = VIPS_MIN(width - i, PIXEL_BUFFER_SIZE);
 
 		cmsDoTransform(icc->trans, p, encoded, chunk);
@@ -1045,9 +1030,7 @@ vips_icc_export_build(VipsObject *object)
 static void
 encode_xyz(float *in, float *out, int n)
 {
-	int i;
-
-	for (i = 0; i < n; i++) {
+	for (int i = 0; i < n; i++) {
 		float X = in[0] / SCALE;
 		float Y = in[1] / SCALE;
 		float Z = in[2] / SCALE;
@@ -1056,15 +1039,9 @@ encode_xyz(float *in, float *out, int n)
 		 * Bradford transformation. See:
 		 * https://fujiwaratko.sakura.ne.jp/infosci/colorspace/bradford_e.html
 		 */
-		out[0] = 1.047886F * X +
-			0.022919F * Y +
-			-0.050216F * Z;
-		out[1] = 0.029582F * X +
-			0.990484F * Y +
-			-0.017079F * Z;
-		out[2] = -0.009252F * X +
-			0.015073F * Y +
-			0.751678F * Z;
+		out[0] =  1.047886F * X + 0.022919F * Y + -0.050216F * Z;
+		out[1] =  0.029582F * X + 0.990484F * Y + -0.017079F * Z;
+		out[2] = -0.009252F * X + 0.015073F * Y +  0.751678F * Z;
 
 		in += 3;
 		out += 3;
@@ -1079,7 +1056,6 @@ vips_icc_export_line_xyz(VipsColour *colour,
 
 	float *p;
 	VipsPel *q;
-	int x;
 
 	/* Buffer of PCS pixels we transform to device space.
 	 */
@@ -1087,7 +1063,7 @@ vips_icc_export_line_xyz(VipsColour *colour,
 
 	p = (float *) in[0];
 	q = (VipsPel *) out;
-	for (x = 0; x < width; x += PIXEL_BUFFER_SIZE) {
+	for (int x = 0; x < width; x += PIXEL_BUFFER_SIZE) {
 		const int chunk = VIPS_MIN(width - x, PIXEL_BUFFER_SIZE);
 
 		encode_xyz(p, encoded, chunk);
@@ -1293,7 +1269,6 @@ vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 	double X, Y, Z;
 	double *add;
 	double *mul;
-	int i;
 
 #ifdef G_OS_WIN32
 	if (!(profile = cmsOpenProfileFromFile(profile_filename, "r")))
@@ -1331,14 +1306,14 @@ vips_icc_ac2rc(VipsImage *in, VipsImage **out, const char *profile_filename)
 
 	/* There might be extra bands off to the right somewhere.
 	 */
-	for (i = 0; i < in->Bands; i++)
+	for (int i = 0; i < in->Bands; i++)
 		add[i] = 0.0;
 
 	mul[0] = VIPS_D50_X0 / (X * 100.0);
 	mul[1] = VIPS_D50_Y0 / (Y * 100.0);
 	mul[2] = VIPS_D50_Z0 / (Z * 100.0);
 
-	for (i = 3; i < in->Bands; i++)
+	for (int i = 3; i < in->Bands; i++)
 		mul[i] = 1.0;
 
 	if (vips_linear(in, &t, add, mul, in->Bands, NULL)) {
