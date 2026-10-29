@@ -129,9 +129,7 @@ vips_col_sRGB2scRGB(int range, float *lut,
 static void
 calcul_tables(int range, int *Y2v, float *v2Y)
 {
-	int i;
-
-	for (i = 0; i < range; i++) {
+	for (int i = 0; i < range; i++) {
 		float f = (float) i / (range - 1);
 		float v;
 
@@ -148,7 +146,7 @@ calcul_tables(int range, int *Y2v, float *v2Y)
 	 */
 	Y2v[range] = Y2v[range - 1];
 
-	for (i = 0; i < range; i++) {
+	for (int i = 0; i < range; i++) {
 		float f = (float) i / (range - 1);
 
 		if (f <= 0.04045)
@@ -232,15 +230,9 @@ vips_col_scRGB2XYZ(float R, float G, float B, float *X, float *Y, float *Z)
 	G *= SCALE;
 	B *= SCALE;
 
-	*X = 0.4124F * R +
-		0.3576F * G +
-		0.1805F * B;
-	*Y = 0.2126F * R +
-		0.7152F * G +
-		0.0722F * B;
-	*Z = 0.0193F * R +
-		0.1192F * G +
-		0.9505F * B;
+	*X = 0.4124F * R + 0.3576F * G + 0.1805F * B;
+	*Y = 0.2126F * R + 0.7152F * G + 0.0722F * B;
+	*Z = 0.0193F * R + 0.1192F * G + 0.9505F * B;
 
 	return 0;
 }
@@ -268,15 +260,9 @@ vips_col_XYZ2scRGB(float X, float Y, float Z, float *R, float *G, float *B)
 
 	/* Use 6 decimal places of precision for the inverse matrix.
 	 */
-	*R = 3.240625F * X +
-		-1.537208F * Y +
-		-0.498629F * Z;
-	*G = -0.968931F * X +
-		1.875756F * Y +
-		0.041518F * Z;
-	*B = 0.055710F * X +
-		-0.204021F * Y +
-		1.056996F * Z;
+	*R =  3.240625F * X + -1.537208F * Y + -0.498629F * Z;
+	*G = -0.968931F * X +  1.875756F * Y +  0.041518F * Z;
+	*B =  0.055710F * X + -0.204021F * Y +  1.056996F * Z;
 
 	return 0;
 }
@@ -449,26 +435,25 @@ vips_col_scRGB2BW_8(float R, float G, float B, int *g, int *og)
 static void *
 build_tables(void *client)
 {
-	int l, a, b;
-	int t;
-
-	for (l = 0; l < 64; l++) {
-		for (a = 0; a < 64; a++) {
-			for (b = 0; b < 64; b++) {
+	for (int l = 0; l < 64; l++) {
+		for (int a = 0; a < 64; a++) {
+			for (int b = 0; b < 64; b++) {
 				/* Scale to lab space.
 				 */
 				float L = (l << 2) * (100.0F / 256.0F);
 				float A = (signed char) (a << 2);
 				float B = (signed char) (b << 2);
-				float X, Y, Z;
-				float Rf, Gf, Bf;
-				int rb, gb, bb;
 
+				float X, Y, Z;
 				vips_col_Lab2XYZ(L, A, B, &X, &Y, &Z);
+
+				float Rf, Gf, Bf;
 				vips_col_XYZ2scRGB(X, Y, Z, &Rf, &Gf, &Bf);
+
+				int rb, gb, bb;
 				vips_col_scRGB2sRGB_8(Rf, Gf, Bf, &rb, &gb, &bb, NULL);
 
-				t = INDEX(l, a, b);
+				int t = INDEX(l, a, b);
 				vips_red[t] = rb;
 				vips_green[t] = gb;
 				vips_blue[t] = bb;
@@ -494,8 +479,6 @@ vips_LabQ2sRGB_line(VipsColour *colour, VipsPel *q, VipsPel **in, int width)
 {
 	unsigned char *p = (unsigned char *) in[0];
 
-	int i, t;
-
 	/* Current error.
 	 */
 	int le = 0;
@@ -504,7 +487,7 @@ vips_LabQ2sRGB_line(VipsColour *colour, VipsPel *q, VipsPel **in, int width)
 
 	vips_col_make_tables_LabQ2sRGB();
 
-	for (i = 0; i < width; i++) {
+	for (int i = 0; i < width; i++) {
 		/* Get colour, add in error from previous pixel.
 		 */
 		int L = p[0] + le;
@@ -533,7 +516,7 @@ vips_LabQ2sRGB_line(VipsColour *colour, VipsPel *q, VipsPel **in, int width)
 
 		/* Convert to RGB.
 		 */
-		t = INDEX(L, A, B);
+		int t = INDEX(L, A, B);
 		q[0] = vips_red[t];
 		q[1] = vips_green[t];
 		q[2] = vips_blue[t];
@@ -577,7 +560,8 @@ vips_LabQ2sRGB_init(VipsLabQ2sRGB *LabQ2sRGB)
  * Unpack a LabQ ([enum@Vips.Coding.LABQ]) image to a three-band short image.
  *
  * ::: seealso
- *     [method@Image.LabS2LabQ], [method@Image.LabQ2sRGB], [method@Image.rad2float].
+ *     [method@Image.LabS2LabQ], [method@Image.LabQ2sRGB],
+ *     [method@Image.rad2float].
  *
  * Returns: 0 on success, -1 on error.
  */
