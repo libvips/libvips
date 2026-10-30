@@ -1137,7 +1137,8 @@ class TestForeign:
         b = self \
                 .rgba \
                 .premultiply() \
-                .rint().cast("uchar") \
+                .rint() \
+                .cast("uchar") \
                 .unpremultiply() \
                 .rint() \
                 .cast("uchar")
