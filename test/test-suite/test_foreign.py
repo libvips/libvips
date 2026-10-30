@@ -1134,7 +1134,13 @@ class TestForeign:
         filename = temp_filename(self.tempdir, '.tif')
         self.rgba.write_to_file(filename, premultiply=True)
         a = pyvips.Image.new_from_file(filename)
-        b = self.rgba.premultiply().cast("uchar").unpremultiply().cast("uchar")
+        b = self \
+                .rgba \
+                .premultiply() \
+                .rint().cast("uchar") \
+                .unpremultiply() \
+                .rint() \
+                .cast("uchar")
         assert (a == b).min() == 255
 
         a = pyvips.Image.new_from_buffer(buf, "", page=2)

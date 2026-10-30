@@ -2572,17 +2572,30 @@ static int
 rtiff_unpremultiply(Rtiff *rtiff, VipsImage *in, VipsImage **out)
 {
 	if (rtiff->header.alpha_band != -1) {
+		VipsBandFormat start_format = in->BandFmt;
+
 		VipsImage *x;
 
-		if (
-			vips_unpremultiply(in, &x,
-				"alpha_band", rtiff->header.alpha_band,
-				NULL) ||
-			vips_cast(x, out, in->BandFmt, NULL)) {
-			g_object_unref(x);
+		if (vips_unpremultiply(in, &x,
+			"alpha_band", rtiff->header.alpha_band,
+			NULL))
+			return -1;
+		in = x;
+
+		if (vips_band_format_isint(start_format)) {
+			if (vips_rint(in, &x, NULL)) {
+				VIPS_UNREF(in);
+				return -1;
+			}
+			VIPS_UNREF(in);
+			in = x;
+		}
+
+		if (vips_cast(in, out, start_format, NULL)) {
+			VIPS_UNREF(in);
 			return -1;
 		}
-		g_object_unref(x);
+		VIPS_UNREF(in);
 	}
 	else {
 		*out = in;
@@ -3335,14 +3348,12 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 		&extra_samples_count, &extra_samples_types);
 
 	header->alpha_band = -1;
-	if (extra_samples_count > 0) {
+	if (extra_samples_count > 0)
 		/* There must be exactly one band which is
 		 * EXTRASAMPLE_ASSOCALPHA. Note which one it is so we can
 		 * unpremultiply with the right channel.
 		 */
-		int i;
-
-		for (i = 0; i < extra_samples_count; i++)
+		for (int i = 0; i < extra_samples_count; i++)
 			if (extra_samples_types[i] == EXTRASAMPLE_ASSOCALPHA) {
 				if (header->alpha_band != -1)
 					g_warning("more than one alpha -- ignoring");
@@ -3350,7 +3361,6 @@ rtiff_header_read(Rtiff *rtiff, RtiffHeader *header)
 				header->alpha_band = header->samples_per_pixel -
 					extra_samples_count + i;
 			}
-	}
 
 	return 0;
 }
