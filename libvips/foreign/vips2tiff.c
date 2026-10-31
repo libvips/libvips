@@ -1320,6 +1320,15 @@ ready_to_write(Wtiff *wtiff)
 
 		/* Premultiply always makes a float -- cast back again.
 		 */
+		if (vips_band_format_isint(start_format)) {
+			if (vips_rint(input, &x, NULL)) {
+				VIPS_UNREF(input);
+				return -1;
+			}
+			VIPS_UNREF(input);
+			input = x;
+		}
+
 		if (vips_cast(input, &x, start_format, NULL)) {
 			VIPS_UNREF(input);
 			return -1;
