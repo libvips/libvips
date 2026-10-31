@@ -2165,6 +2165,52 @@ vips_image_new_from_memory_copy(const void *data, size_t size,
 }
 
 /**
+ * vips_image_new_from_blob: (constructor)
+ * @blob: (transfer none): image data
+ * @option_string: set of extra options as a string
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Loads an image from the memory in @blob using the loader recommended by
+ * [func@Foreign.find_load_buffer]. To load an unformatted area of memory, use
+ * [ctor@Image.new_from_memory].
+ *
+ * The loader will take a reference to the blob, if necessary.
+ *
+ * Load options may be given in @option_string as `[name=value,...]` or given as
+ * a `NULL`-terminated list of name-value pairs at the end of the arguments.
+ * Options given in the function call override options given in the filename.
+ *
+ * ::: seealso
+ *     [method@Image.write_to_buffer].
+ *
+ * Returns: (transfer full): the new [class@Image], or `NULL` on error.
+ */
+VipsImage *
+vips_image_new_from_blob(VipsBlob *blob, const char *option_string, ...)
+{
+	vips_check_init();
+
+	size_t len;
+	const void *buf = vips_blob_get(blob, &len);
+
+	const char *operation_name;
+	if (!(operation_name = vips_foreign_find_load_buffer(buf, len)))
+		return NULL;
+
+	va_list ap;
+	va_start(ap, option_string);
+	VipsImage *out;
+	int result = vips_call_split_option_string(operation_name,
+		option_string, ap, blob, &out);
+	va_end(ap);
+
+	if (result)
+		return NULL;
+
+	return out;
+}
+
+/**
  * vips_image_new_from_buffer: (constructor)
  * @buf: (array length=len) (element-type guint8) (transfer none): image data
  * @len: (type gsize): length of memory buffer
@@ -2179,13 +2225,14 @@ vips_image_new_from_memory_copy(const void *data, size_t size,
  * VIPS does not take
  * responsibility for the area of memory, it's up to you to make sure it's
  * freed when the image is closed. See for example [signal@Object::close].
+ * Use [ctor@Image.new_from_blob] for a reference counted memory area.
  *
  * Load options may be given in @option_string as `[name=value,...]` or given as
  * a `NULL`-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
  *
  * ::: seealso
- *     [method@Image.write_to_buffer].
+ *     [ctor@Image.new_from_blob], [method@Image.write_to_buffer].
  *
  * Returns: (transfer full): the new [class@Image], or `NULL` on error.
  */
@@ -2277,15 +2324,12 @@ vips_image_new_from_source(VipsSource *source,
 		/* Try with the old buffer-based loaders.
 		 */
 		VipsBlob *blob;
-		const void *buf;
-		size_t len;
-
 		if (!(blob = vips_source_map_blob(source)))
 			return NULL;
 
-		buf = vips_blob_get(blob, &len);
-		if (!(operation_name =
-					vips_foreign_find_load_buffer(buf, len))) {
+		size_t len;
+		const void *buf = vips_blob_get(blob, &len);
+		if (!(operation_name = vips_foreign_find_load_buffer(buf, len))) {
 			vips_area_unref(VIPS_AREA(blob));
 			return NULL;
 		}

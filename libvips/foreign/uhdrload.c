@@ -421,12 +421,13 @@ vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 		// if the shrink is not 1, load and attach the gainmap with the same
 		// shrink
 		if (uhdr->shrink != 1) {
-			VipsImage *gainmap;
+			VipsBlob *blob;
+			(void) vips_image_get_blob_value(out, "gainmap-data", &blob);
 
-			if (vips_jpegload_buffer(mem_block->data, mem_block->data_sz,
-					&gainmap,
+			VipsImage *gainmap;
+			if (!(gainmap = vips_image_new_from_blob(blob, "",
 					"shrink", uhdr->shrink,
-					NULL))
+					NULL)))
 				return -1;
 			vips_image_set_image(out, "gainmap", gainmap);
 			VIPS_UNREF(gainmap);

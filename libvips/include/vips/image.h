@@ -489,6 +489,10 @@ VipsImage *vips_image_new_from_buffer(const void *buf, size_t len,
 	const char *option_string, ...)
 	G_GNUC_NULL_TERMINATED;
 VIPS_API
+VipsImage *vips_image_new_from_blob(VipsBlob *blob,
+	const char *option_string, ...)
+	G_GNUC_NULL_TERMINATED;
+VIPS_API
 VipsImage *vips_image_new_from_source(VipsSource *source,
 	const char *option_string, ...) G_GNUC_NULL_TERMINATED;
 VIPS_API

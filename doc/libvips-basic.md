@@ -60,6 +60,7 @@ definitions used by libvips.
 * [func@value_get_ref_string]
 * [func@value_set_ref_string]
 * [func@value_get_blob]
+* [func@value_get_blob_value]
 * [func@value_set_blob]
 * [func@value_set_blob_free]
 * [func@value_set_array]

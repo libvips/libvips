@@ -64,6 +64,7 @@ date-tbd 8.19.0
 - thumbnail: respect output profile and linear mode for cicp images [mertalev]
 - XYZ2Lab: better handling of HDR values
 - tiffsave: disable tiling for LABQ JPEG images
+- add vips_image_get_blob_value(), vips_image_new_from_blob()
 
 tdb 8.18.8
 

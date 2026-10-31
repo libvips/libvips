@@ -1117,11 +1117,10 @@ vips_image_get_gainmap(VipsImage *image)
 			return NULL;
 	}
 	else if (vips_image_get_typeof(image, "gainmap-data")) {
-		const void *data;
-		size_t length;
+		VipsBlob *blob;
 
-		if (vips_image_get_blob(image, "gainmap-data", &data, &length) ||
-			vips_jpegload_buffer((void *) data, length, &gainmap, NULL))
+		if (vips_image_get_blob_value(image, "gainmap-data", &blob) ||
+			!(gainmap = vips_image_new_from_blob(blob, "", NULL)))
 			return NULL;
 	}
 
@@ -1846,13 +1845,45 @@ vips_image_get_blob(const VipsImage *image, const char *name,
 {
 	GValue value_copy = G_VALUE_INIT;
 
-	if (!meta_get_value(image, name, VIPS_TYPE_BLOB, &value_copy)) {
-		*data = vips_value_get_blob(&value_copy, length);
-		g_value_unset(&value_copy);
-		return 0;
-	}
+	if (meta_get_value(image, name, VIPS_TYPE_BLOB, &value_copy))
+		return -1;
 
-	return -1;
+	*data = vips_value_get_blob(&value_copy, length);
+
+	g_value_unset(&value_copy);
+
+	return 0;
+}
+
+/**
+ * vips_image_get_blob_value:
+ * @image: image to get the metadata from
+ * @name: metadata name
+ * @blob: (out) (transfer none): return field value
+ *
+ * Gets @blob from @image under the name @name.
+ * Use [method@Image.get_typeof] to test for the existence
+ * of a piece of metadata.
+ *
+ * ::: seealso
+ *     [method@Image.get], [method@Image.get_typeof].
+ *
+ * Returns: 0 on success, -1 otherwise.
+ */
+int
+vips_image_get_blob_value(const VipsImage *image,
+	const char *name, VipsBlob **blob)
+{
+	GValue value_copy = G_VALUE_INIT;
+
+	if (meta_get_value(image, name, VIPS_TYPE_BLOB, &value_copy))
+		return -1;
+
+	*blob = (VipsBlob *) g_value_get_boxed(&value_copy);
+
+	g_value_unset(&value_copy);
+
+	return 0;
 }
 
 /**
