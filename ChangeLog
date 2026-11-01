@@ -65,6 +65,7 @@ date-tbd 8.19.0
 - XYZ2Lab: better handling of HDR values
 - tiffsave: disable tiling for LABQ JPEG images
 - add vips_image_get_blob_value()
+- dzsave: reject imagename containing path separator [lovell]
 
 tdb 8.18.8
 

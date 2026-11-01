@@ -2290,6 +2290,12 @@ vips_foreign_save_dz_build(VipsObject *object)
 		}
 	}
 
+	if (strchr(dz->imagename, '/') || strchr(dz->imagename, '\\')) {
+		vips_error("dzsave", "%s",
+			_("imagename contains a path separator"));
+		return -1;
+	}
+
 	/* If we're writing thing.zip or thing.szi, default to zip
 	 * container.
 	 */
@@ -2848,7 +2854,7 @@ vips_foreign_save_dz_buffer_init(VipsForeignSaveDzBuffer *buffer)
  * Use @layout [enum@Vips.ForeignDzLayout.IIIF3] for IIIF v3 layout.
  *
  * ::: tip "Optional arguments"
- *     * @basename: `gchararray`, base part of name
+ *     * @imagename: `gchararray`, base part of name
  *     * @layout: [enum@ForeignDzLayout], directory layout convention
  *     * @suffix: `gchararray`, suffix for tiles
  *     * @overlap: `gint`, set tile overlap
@@ -2892,7 +2898,7 @@ vips_dzsave(VipsImage *in, const char *name, ...)
  *
  * As [method@Image.dzsave], but save to a memory buffer.
  *
- * Output is always in a zip container. Use @basename to set the name of the
+ * Output is always in a zip container. Use @imagename to set the name of the
  * directory that the zip will create when unzipped.
  *
  * The address of the buffer is returned in @buf, the length of the buffer in
@@ -2900,7 +2906,7 @@ vips_dzsave(VipsImage *in, const char *name, ...)
  * are done with it.
  *
  * ::: tip "Optional arguments"
- *     * @basename: `gchararray`, base part of name
+ *     * @imagename: `gchararray`, base part of name
  *     * @layout: [enum@ForeignDzLayout], directory layout convention
  *     * @suffix: `gchararray`, suffix for tiles
  *     * @overlap: `gint`, set tile overlap
@@ -2959,7 +2965,7 @@ vips_dzsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * As [method@Image.dzsave], but save to a target.
  *
  * ::: tip "Optional arguments"
- *     * @basename: `gchararray`, base part of name
+ *     * @imagename: `gchararray`, base part of name
  *     * @layout: [enum@ForeignDzLayout], directory layout convention
  *     * @suffix: `gchararray`, suffix for tiles
  *     * @overlap: `gint`, set tile overlap
