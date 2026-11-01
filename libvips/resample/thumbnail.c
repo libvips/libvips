@@ -1489,7 +1489,7 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 	else if (vips_isprefix("VipsForeignLoadDcRaw", thumbnail->loader)) {
 		VipsImage *image;
 
-		if (!(image	= vips_image_new_from_file(file->filename,
+		if (!(image = vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			NULL)))
@@ -1504,12 +1504,11 @@ vips_thumbnail_file_open(VipsThumbnail *thumbnail, double factor)
 
 		return blob;
 	}
-	else {
+	else
 		return vips_image_new_from_file(file->filename,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			NULL);
-	}
 }
 
 static void
@@ -1715,14 +1714,6 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 			"shrink", (int) factor,
 			NULL);
 	}
-	else if (vips_isprefix("VipsForeignLoadOpenslide",
-				 thumbnail->loader)) {
-		return vips_image_new_from_source(buffer->source, buffer->option_string,
-			"access", VIPS_ACCESS_SEQUENTIAL,
-			"fail_on", thumbnail->fail_on,
-			"level", (int) factor,
-			NULL);
-	}
 	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
@@ -1924,18 +1915,14 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 
 	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
-		return vips_image_new_from_source(
-			source->source,
-			source->option_string,
+		return vips_image_new_from_source(source->source, source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"shrink", (int) factor,
 			NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadOpenslide", thumbnail->loader)) {
-		return vips_image_new_from_source(
-			source->source,
-			source->option_string,
+		return vips_image_new_from_source(source->source, source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"level", (int) factor,
@@ -1944,9 +1931,7 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
-		return vips_image_new_from_source(
-			source->source,
-			source->option_string,
+		return vips_image_new_from_source(source->source, source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
@@ -1956,16 +1941,14 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 		/* Optional page-based pyramids.
 		 */
 		if (thumbnail->page_pyramid)
-			return vips_image_new_from_source(
-				source->source,
+			return vips_image_new_from_source(source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
-			return vips_image_new_from_source(
-				source->source,
+			return vips_image_new_from_source(source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
@@ -1976,46 +1959,38 @@ vips_thumbnail_source_open(VipsThumbnail *thumbnail, double factor)
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
 		 */
 		if (thumbnail->subifd_pyramid)
-			return vips_image_new_from_source(
-				source->source,
+			return vips_image_new_from_source(source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				"subifd", (int) factor,
 				NULL);
 		else if (thumbnail->page_pyramid)
-			return vips_image_new_from_source(
-				source->source,
+			return vips_image_new_from_source(source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
-			return vips_image_new_from_source(
-				source->source,
+			return vips_image_new_from_source(source->source,
 				source->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
-		return vips_image_new_from_source(
-			source->source,
-			source->option_string,
+		return vips_image_new_from_source(source->source, source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"thumbnail", (int) factor,
 			NULL);
 	}
-	else {
-		return vips_image_new_from_source(
-			source->source,
-			source->option_string,
+	else
+		return vips_image_new_from_source(source->source, source->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			NULL);
-	}
 }
 
 static void
