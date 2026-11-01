@@ -90,6 +90,7 @@ copied between images efficiently.
 * [method@Image.set_blob]
 * [method@Image.set_blob_copy]
 * [method@Image.get_blob]
+* [method@Image.get_blob_value]
 * [method@Image.get_int]
 * [method@Image.set_int]
 * [method@Image.get_double]
