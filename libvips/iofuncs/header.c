@@ -1118,10 +1118,14 @@ vips_image_get_gainmap(VipsImage *image)
 	}
 	else if (vips_image_get_typeof(image, "gainmap-data")) {
 		VipsBlob *blob;
-
-		if (vips_image_get_blob_value(image, "gainmap-data", &blob) ||
-			!(gainmap = vips_image_new_from_blob(blob, "", NULL)))
+		if (vips_image_get_blob_value(image, "gainmap-data", &blob))
 			return NULL;
+		VipsSource *source = vips_source_new_from_blob(blob);
+		if (!(gainmap = vips_image_new_from_source(source, "", NULL))) {
+			VIPS_UNREF(source);
+			return NULL;
+		}
+		VIPS_UNREF(source);
 	}
 
 	return gainmap;

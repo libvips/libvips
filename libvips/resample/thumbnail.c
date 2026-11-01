@@ -250,12 +250,17 @@ vips_thumbnail_get_blob(VipsThumbnail *thumbnail, VipsImage *image, int level)
 		vips_image_get_blob_value(image, field, &blob))
 		return NULL;
 
+	VipsSource *source = vips_source_new_from_blob(blob);
+
 	VipsImage *out;
-	if (!(out = vips_image_new_from_blob(blob, "",
+	if (!(out = vips_image_new_from_source(source, "",
 		"access", VIPS_ACCESS_SEQUENTIAL,
 		"fail_on", thumbnail->fail_on,
-		NULL)))
+		NULL))) {
+		VIPS_UNREF(source);
 		return NULL;
+	}
+	VIPS_UNREF(source);
 
 	return out;
 }
@@ -1634,7 +1639,8 @@ vips_thumbnail(const char *filename, VipsImage **out, int width, ...)
 typedef struct _VipsThumbnailBuffer {
 	VipsThumbnail parent_object;
 
-	VipsBlob *blob;
+	VipsBlob *blob;			// buffer as a blob
+	VipsSource *source;		// ... and blob as a source
 	char *option_string;
 } VipsThumbnailBuffer;
 
@@ -1642,6 +1648,30 @@ typedef VipsThumbnailClass VipsThumbnailBufferClass;
 
 G_DEFINE_TYPE(VipsThumbnailBuffer, vips_thumbnail_buffer,
 	vips_thumbnail_get_type());
+
+static void
+vips_thumbnail_buffer_dispose(GObject *gobject)
+{
+	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) gobject;
+
+	VIPS_UNREF(buffer->source);
+
+	G_OBJECT_CLASS(vips_thumbnail_buffer_parent_class)->dispose(gobject);
+}
+
+static int
+vips_thumbnail_buffer_build(VipsObject *object)
+{
+	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) object;
+
+	if (buffer->blob)
+		buffer->source = vips_source_new_from_blob(buffer->blob);
+
+	if (VIPS_OBJECT_CLASS(vips_thumbnail_buffer_parent_class)->build(object))
+		return -1;
+
+	return 0;
+}
 
 /* Get the info from a buffer.
  */
@@ -1657,7 +1687,7 @@ vips_thumbnail_buffer_get_info(VipsThumbnail *thumbnail)
 	g_info("thumbnailing %zd bytes of data", length);
 
 	if (!(thumbnail->loader = vips_foreign_find_load_buffer(data, length)) ||
-		!(image = vips_image_new_from_blob(buffer->blob,
+		!(image = vips_image_new_from_source(buffer->source,
 			  buffer->option_string, NULL)))
 		return -1;
 
@@ -1677,7 +1707,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 
 	if (vips_isprefix("VipsForeignLoadJpeg", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadUhdr", thumbnail->loader)) {
-		return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+		return vips_image_new_from_source(buffer->source, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"shrink", (int) factor,
@@ -1685,7 +1715,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 	}
 	else if (vips_isprefix("VipsForeignLoadOpenslide",
 				 thumbnail->loader)) {
-		return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+		return vips_image_new_from_source(buffer->source, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"level", (int) factor,
@@ -1694,7 +1724,7 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 	else if (vips_isprefix("VipsForeignLoadPdf", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadSvg", thumbnail->loader) ||
 		vips_isprefix("VipsForeignLoadWebp", thumbnail->loader)) {
-		return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+		return vips_image_new_from_source(buffer->source, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"scale", 1.0 / factor,
@@ -1704,13 +1734,15 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 		/* Optional page-based pyramids.
 		 */
 		if (thumbnail->page_pyramid)
-			return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+			return vips_image_new_from_source(buffer->source,
+				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
-			return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+			return vips_image_new_from_source(buffer->source,
+				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				NULL);
@@ -1720,32 +1752,35 @@ vips_thumbnail_buffer_open(VipsThumbnail *thumbnail, double factor)
 		 * pyramids, and simple multi-page TIFFs (no pyramid).
 		 */
 		if (thumbnail->subifd_pyramid)
-			return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+			return vips_image_new_from_source(buffer->source,
+				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				"subifd", (int) factor,
 				NULL);
 		else if (thumbnail->page_pyramid)
-			return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+			return vips_image_new_from_source(buffer->source,
+				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				"page", (int) factor,
 				NULL);
 		else
-			return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+			return vips_image_new_from_source(buffer->source,
+				buffer->option_string,
 				"access", VIPS_ACCESS_SEQUENTIAL,
 				"fail_on", thumbnail->fail_on,
 				NULL);
 	}
 	else if (vips_isprefix("VipsForeignLoadHeif", thumbnail->loader)) {
-		return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+		return vips_image_new_from_source(buffer->source, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			"thumbnail", (int) factor,
 			NULL);
 	}
 	else
-		return vips_image_new_from_blob(buffer->blob, buffer->option_string,
+		return vips_image_new_from_source(buffer->source, buffer->option_string,
 			"access", VIPS_ACCESS_SEQUENTIAL,
 			"fail_on", thumbnail->fail_on,
 			NULL);
@@ -1758,11 +1793,13 @@ vips_thumbnail_buffer_class_init(VipsThumbnailClass *class)
 	VipsObjectClass *vobject_class = VIPS_OBJECT_CLASS(class);
 	VipsThumbnailClass *thumbnail_class = VIPS_THUMBNAIL_CLASS(class);
 
+	gobject_class->dispose = vips_thumbnail_buffer_dispose;
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
 	vobject_class->nickname = "thumbnail_buffer";
 	vobject_class->description = _("generate thumbnail from buffer");
+	vobject_class->build = vips_thumbnail_buffer_build;
 
 	thumbnail_class->get_info = vips_thumbnail_buffer_get_info;
 	thumbnail_class->open = vips_thumbnail_buffer_open;

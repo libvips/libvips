@@ -424,11 +424,16 @@ vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 			VipsBlob *blob;
 			(void) vips_image_get_blob_value(out, "gainmap-data", &blob);
 
+			VipsSource *source = vips_source_new_from_blob(blob);
 			VipsImage *gainmap;
-			if (!(gainmap = vips_image_new_from_blob(blob, "",
+			if (!(gainmap = vips_image_new_from_source(source, "",
 					"shrink", uhdr->shrink,
-					NULL)))
+					NULL))) {
+				VIPS_UNREF(source);
 				return -1;
+			}
+			VIPS_UNREF(source);
+
 			vips_image_set_image(out, "gainmap", gainmap);
 			VIPS_UNREF(gainmap);
 		}
