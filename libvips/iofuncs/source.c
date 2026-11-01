@@ -541,9 +541,10 @@ vips_source_new_from_target(VipsTarget *target)
 		source = vips_source_new_from_descriptor(connection->descriptor);
 	else if (target->memory) {
 		VipsBlob *blob;
-
 		g_object_get(target, "blob", &blob, NULL);
+
 		source = vips_source_new_from_blob(blob);
+
 		vips_area_unref(VIPS_AREA(blob));
 	}
 	else {

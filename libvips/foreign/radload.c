@@ -306,9 +306,7 @@ vips_foreign_load_rad_buffer_build(VipsObject *object)
 	VipsForeignLoadRadBuffer *buffer = (VipsForeignLoadRadBuffer *) object;
 
 	if (buffer->blob &&
-		!(rad->source = vips_source_new_from_memory(
-			  VIPS_AREA(buffer->blob)->data,
-			  VIPS_AREA(buffer->blob)->length)))
+		!(rad->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_rad_buffer_parent_class)

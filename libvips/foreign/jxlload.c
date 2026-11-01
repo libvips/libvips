@@ -1372,7 +1372,7 @@ typedef struct _VipsForeignLoadJxlBuffer {
 
 	/* Load from a buffer.
 	 */
-	VipsArea *buf;
+	VipsBlob *blob;
 
 } VipsForeignLoadJxlBuffer;
 
@@ -1388,11 +1388,9 @@ vips_foreign_load_jxl_buffer_build(VipsObject *object)
 	VipsForeignLoadJxlBuffer *buffer =
 		(VipsForeignLoadJxlBuffer *) object;
 
-	if (buffer->buf)
-		if (!(jxl->source = vips_source_new_from_memory(
-				  VIPS_AREA(buffer->buf)->data,
-				  VIPS_AREA(buffer->buf)->length)))
-			return -1;
+	if (buffer->blob &&
+		!(jxl->source = vips_source_new_from_blob(buffer->blob)))
+		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_jxl_buffer_parent_class)
 		->build(object);
@@ -1431,7 +1429,7 @@ vips_foreign_load_jxl_buffer_class_init(VipsForeignLoadJxlBufferClass *class)
 		_("Buffer"),
 		_("Buffer to load from"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadJxlBuffer, buf),
+		G_STRUCT_OFFSET(VipsForeignLoadJxlBuffer, blob),
 		VIPS_TYPE_BLOB);
 }
 

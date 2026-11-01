@@ -250,7 +250,9 @@ vips_thumbnail_get_blob(VipsThumbnail *thumbnail, VipsImage *image, int level)
 		vips_image_get_blob_value(image, field, &blob))
 		return NULL;
 
-	VipsSource *source = vips_source_new_from_blob(blob);
+	VipsSource *source;
+	if (!(source = vips_source_new_from_blob(blob)))
+		return NULL;
 
 	VipsImage *out;
 	if (!(out = vips_image_new_from_source(source, "",
@@ -260,6 +262,7 @@ vips_thumbnail_get_blob(VipsThumbnail *thumbnail, VipsImage *image, int level)
 		VIPS_UNREF(source);
 		return NULL;
 	}
+
 	VIPS_UNREF(source);
 
 	return out;
@@ -1664,13 +1667,12 @@ vips_thumbnail_buffer_build(VipsObject *object)
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) object;
 
-	if (buffer->blob)
-		buffer->source = vips_source_new_from_blob(buffer->blob);
-
-	if (VIPS_OBJECT_CLASS(vips_thumbnail_buffer_parent_class)->build(object))
+	if (buffer->blob &&
+		!(buffer->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_thumbnail_buffer_parent_class)->
+		build(object);
 }
 
 /* Get the info from a buffer.

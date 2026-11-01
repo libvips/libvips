@@ -775,7 +775,7 @@ typedef struct _VipsForeignLoadNsgifBuffer {
 
 	/* Load from a buffer.
 	 */
-	VipsArea *blob;
+	VipsBlob *blob;
 
 } VipsForeignLoadNsgifBuffer;
 
@@ -792,9 +792,7 @@ vips_foreign_load_nsgif_buffer_build(VipsObject *object)
 		(VipsForeignLoadNsgifBuffer *) object;
 
 	if (buffer->blob &&
-		!(gif->source = vips_source_new_from_memory(
-			  buffer->blob->data,
-			  buffer->blob->length)))
+		!(gif->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_nsgif_buffer_parent_class)

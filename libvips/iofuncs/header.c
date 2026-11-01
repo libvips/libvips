@@ -1120,11 +1120,16 @@ vips_image_get_gainmap(VipsImage *image)
 		VipsBlob *blob;
 		if (vips_image_get_blob_value(image, "gainmap-data", &blob))
 			return NULL;
-		VipsSource *source = vips_source_new_from_blob(blob);
+
+		VipsSource *source;
+		if (!(source = vips_source_new_from_blob(blob)))
+			return NULL;
+
 		if (!(gainmap = vips_image_new_from_source(source, "", NULL))) {
 			VIPS_UNREF(source);
 			return NULL;
 		}
+
 		VIPS_UNREF(source);
 	}
 
