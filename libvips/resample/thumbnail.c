@@ -1664,13 +1664,12 @@ vips_thumbnail_buffer_build(VipsObject *object)
 {
 	VipsThumbnailBuffer *buffer = (VipsThumbnailBuffer *) object;
 
-	if (buffer->blob)
-		buffer->source = vips_source_new_from_blob(buffer->blob);
-
-	if (VIPS_OBJECT_CLASS(vips_thumbnail_buffer_parent_class)->build(object))
+	if (buffer->blob &&
+		!(buffer->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
-	return 0;
+	return VIPS_OBJECT_CLASS(vips_thumbnail_buffer_parent_class)
+		->build(object);
 }
 
 /* Get the info from a buffer.
