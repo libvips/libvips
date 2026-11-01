@@ -313,6 +313,9 @@ void vips_image_set_blob_copy(VipsImage *image,
 VIPS_API
 int vips_image_get_blob(const VipsImage *image,
 	const char *name, const void **data, size_t *length);
+VIPS_API
+int vips_image_get_blob_value(const VipsImage *image,
+	const char *name, VipsBlob **blob);
 
 VIPS_API
 int vips_image_get_int(const VipsImage *image, const char *name, int *out);

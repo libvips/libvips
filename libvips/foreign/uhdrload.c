@@ -421,14 +421,25 @@ vips_foreign_load_uhdr_set_metadata(VipsForeignLoadUhdr *uhdr, VipsImage *out)
 		// if the shrink is not 1, load and attach the gainmap with the same
 		// shrink
 		if (uhdr->shrink != 1) {
-			VipsImage *gainmap;
+			VipsBlob *blob;
+			(void) vips_image_get_blob_value(out, "gainmap-data", &blob);
 
-			if (vips_jpegload_buffer(mem_block->data, mem_block->data_sz,
-					&gainmap,
-					"shrink", uhdr->shrink,
-					NULL))
+			VipsSource *source;
+			if (!(source = vips_source_new_from_blob(blob)))
 				return -1;
+
+			VipsImage *gainmap;
+			if (!(gainmap = vips_image_new_from_source(source, "",
+					"shrink", uhdr->shrink,
+					NULL))) {
+				VIPS_UNREF(source);
+				return -1;
+			}
+
+			VIPS_UNREF(source);
+
 			vips_image_set_image(out, "gainmap", gainmap);
+
 			VIPS_UNREF(gainmap);
 		}
 	}
@@ -699,7 +710,7 @@ typedef struct _VipsForeignLoadUhdrBuffer {
 
 	/* Load from a buffer.
 	 */
-	VipsArea *buf;
+	VipsBlob *blob;
 
 } VipsForeignLoadUhdrBuffer;
 
@@ -715,10 +726,8 @@ vips_foreign_load_uhdr_buffer_build(VipsObject *object)
 	VipsForeignLoadUhdrBuffer *buffer =
 		(VipsForeignLoadUhdrBuffer *) object;
 
-	if (buffer->buf &&
-		!(uhdr->source = vips_source_new_from_memory(
-			VIPS_AREA(buffer->buf)->data,
-			VIPS_AREA(buffer->buf)->length)))
+	if (buffer->blob &&
+		!(uhdr->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_uhdr_buffer_parent_class)
@@ -758,7 +767,7 @@ vips_foreign_load_uhdr_buffer_class_init(
 		_("Buffer"),
 		_("Buffer to load from"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadUhdrBuffer, buf),
+		G_STRUCT_OFFSET(VipsForeignLoadUhdrBuffer, blob),
 		VIPS_TYPE_BLOB);
 }
 

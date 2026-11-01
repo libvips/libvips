@@ -851,9 +851,7 @@ vips_foreign_load_ppm_buffer_build(VipsObject *object)
 	VipsForeignLoadPpmBuffer *buffer = (VipsForeignLoadPpmBuffer *) object;
 
 	if (buffer->blob &&
-		!(ppm->source = vips_source_new_from_memory(
-			  VIPS_AREA(buffer->blob)->data,
-			  VIPS_AREA(buffer->blob)->length)))
+		!(ppm->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_ppm_buffer_parent_class)

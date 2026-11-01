@@ -894,7 +894,7 @@ typedef struct _VipsForeignLoadPdfBuffer {
 
 	/* Load from a buffer.
 	 */
-	VipsArea *buf;
+	VipsBlob *blob;
 
 } VipsForeignLoadPdfBuffer;
 
@@ -909,10 +909,8 @@ vips_foreign_load_pdf_buffer_build(VipsObject *object)
 	VipsForeignLoadPdf *pdf = (VipsForeignLoadPdf *) object;
 	VipsForeignLoadPdfBuffer *buffer = (VipsForeignLoadPdfBuffer *) pdf;
 
-	if (buffer->buf &&
-		!(pdf->source = vips_source_new_from_memory(
-			  VIPS_AREA(buffer->buf)->data,
-			  VIPS_AREA(buffer->buf)->length)))
+	if (buffer->blob &&
+		!(pdf->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_pdf_buffer_parent_class)
@@ -940,7 +938,7 @@ vips_foreign_load_pdf_buffer_class_init(
 		_("Buffer"),
 		_("Buffer to load from"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadPdfBuffer, buf),
+		G_STRUCT_OFFSET(VipsForeignLoadPdfBuffer, blob),
 		VIPS_TYPE_BLOB);
 }
 

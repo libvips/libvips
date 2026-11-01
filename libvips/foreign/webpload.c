@@ -368,9 +368,7 @@ vips_foreign_load_webp_buffer_build(VipsObject *object)
 		(VipsForeignLoadWebpBuffer *) object;
 
 	if (buffer->blob &&
-		!(webp->source = vips_source_new_from_memory(
-			  VIPS_AREA(buffer->blob)->data,
-			  VIPS_AREA(buffer->blob)->length)))
+		!(webp->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_webp_buffer_parent_class)

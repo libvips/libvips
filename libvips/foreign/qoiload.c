@@ -317,9 +317,7 @@ vips_foreign_load_qoi_buffer_build(VipsObject *object)
 	VipsForeignLoadQoiBuffer *buffer = (VipsForeignLoadQoiBuffer *) object;
 
 	if (buffer->blob &&
-		!(qoi->source = vips_source_new_from_memory(
-			  VIPS_AREA(buffer->blob)->data,
-			  VIPS_AREA(buffer->blob)->length)))
+		!(qoi->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_qoi_buffer_parent_class)

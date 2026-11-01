@@ -371,9 +371,7 @@ vips_foreign_load_png_buffer_build(VipsObject *object)
 	VipsForeignLoadPngBuffer *buffer = (VipsForeignLoadPngBuffer *) object;
 
 	if (buffer->blob &&
-		!(png->source = vips_source_new_from_memory(
-			  VIPS_AREA(buffer->blob)->data,
-			  VIPS_AREA(buffer->blob)->length)))
+		!(png->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_png_buffer_parent_class)

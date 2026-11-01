@@ -1369,7 +1369,7 @@ typedef struct _VipsForeignLoadJp2kBuffer {
 
 	/* Load from a buffer.
 	 */
-	VipsArea *buf;
+	VipsBlob *blob;
 
 } VipsForeignLoadJp2kBuffer;
 
@@ -1384,11 +1384,9 @@ vips_foreign_load_jp2k_buffer_build(VipsObject *object)
 	VipsForeignLoadJp2k *jp2k = (VipsForeignLoadJp2k *) object;
 	VipsForeignLoadJp2kBuffer *buffer = (VipsForeignLoadJp2kBuffer *) object;
 
-	if (buffer->buf)
-		if (!(jp2k->source = vips_source_new_from_memory(
-				  VIPS_AREA(buffer->buf)->data,
-				  VIPS_AREA(buffer->buf)->length)))
-			return -1;
+	if (buffer->blob &&
+		!(jp2k->source = vips_source_new_from_blob(buffer->blob)))
+		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_jp2k_buffer_parent_class)
 		->build(object);
@@ -1428,7 +1426,7 @@ vips_foreign_load_jp2k_buffer_class_init(
 		_("Buffer"),
 		_("Buffer to load from"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadJp2kBuffer, buf),
+		G_STRUCT_OFFSET(VipsForeignLoadJp2kBuffer, blob),
 		VIPS_TYPE_BLOB);
 }
 

@@ -2180,6 +2180,8 @@ vips_image_new_from_memory_copy(const void *data, size_t size,
  * responsibility for the area of memory, it's up to you to make sure it's
  * freed when the image is closed. See for example [signal@Object::close].
  *
+ * Use [ctor@Image.new_from_source] for a reference counted memory area.
+ *
  * Load options may be given in @option_string as `[name=value,...]` or given as
  * a `NULL`-terminated list of name-value pairs at the end of the arguments.
  * Options given in the function call override options given in the filename.
@@ -2277,15 +2279,12 @@ vips_image_new_from_source(VipsSource *source,
 		/* Try with the old buffer-based loaders.
 		 */
 		VipsBlob *blob;
-		const void *buf;
-		size_t len;
-
 		if (!(blob = vips_source_map_blob(source)))
 			return NULL;
 
-		buf = vips_blob_get(blob, &len);
-		if (!(operation_name =
-					vips_foreign_find_load_buffer(buf, len))) {
+		size_t len;
+		const void *buf = vips_blob_get(blob, &len);
+		if (!(operation_name = vips_foreign_find_load_buffer(buf, len))) {
 			vips_area_unref(VIPS_AREA(blob));
 			return NULL;
 		}

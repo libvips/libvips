@@ -1374,7 +1374,7 @@ typedef struct _VipsForeignLoadHeifBuffer {
 
 	/* Load from a buffer.
 	 */
-	VipsArea *buf;
+	VipsBlob *blob;
 
 } VipsForeignLoadHeifBuffer;
 
@@ -1387,13 +1387,10 @@ static int
 vips_foreign_load_heif_buffer_build(VipsObject *object)
 {
 	VipsForeignLoadHeif *heif = (VipsForeignLoadHeif *) object;
-	VipsForeignLoadHeifBuffer *buffer =
-		(VipsForeignLoadHeifBuffer *) object;
+	VipsForeignLoadHeifBuffer *buffer = (VipsForeignLoadHeifBuffer *) object;
 
-	if (buffer->buf &&
-		!(heif->source = vips_source_new_from_memory(
-			VIPS_AREA(buffer->buf)->data,
-			VIPS_AREA(buffer->buf)->length)))
+	if (buffer->blob &&
+		!(heif->source = vips_source_new_from_blob(buffer->blob)))
 		return -1;
 
 	return VIPS_OBJECT_CLASS(vips_foreign_load_heif_buffer_parent_class)
@@ -1426,7 +1423,7 @@ vips_foreign_load_heif_buffer_class_init(
 		_("Buffer"),
 		_("Buffer to load from"),
 		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadHeifBuffer, buf),
+		G_STRUCT_OFFSET(VipsForeignLoadHeifBuffer, blob),
 		VIPS_TYPE_BLOB);
 }
 
