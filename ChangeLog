@@ -17,6 +17,7 @@ tdb 8.18.8
 - heifload, pdfload, webpload, gifload: check total height in multipage images
 - libnsgif: update from upstream
 - pngload: allow PNG images containing invalid CMF [lovell]
+- heifload: raise security limits on references, again
 
 20/9/26 8.18.7
 
