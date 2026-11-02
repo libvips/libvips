@@ -6,102 +6,88 @@ Here's a summary of what's new in libvips 8.19. Check the
 [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
 if you need more details.
 
-The headline features are support for CICP HDR images, the QOI image format, 
+The headline features are better HDR support, the [QOI image
+format](https://en.wikipedia.org/wiki/QOI_(image_format)), and
+animated PNGs. Plus the usual improvements to file format handling, libvips
+operations, and the libvips core.
 
-## CICP support
+## Better HDR support
 
-- add vips_CICP2scRGB [Starbix] [mertalev]
-- jxlload, heifload, pngload: read CICP metadata [Starbix] [mertalev]
-- jxlsave, heifsave, pngsave: write CICP metadata and pixel data
-  [Starbix] [mertalev]
-- jpegsave, uhdrsave: convert CICP image with HDR transfer to scRGB for HDR
-  [Starbix] [mertalev]
-- add percent_lum: find threshold for percent of pixels by BT.709 luminance [mertalev]
-- add vips_scRGB2CICP [mertalev]
-- add VIPS_UHDR_TO_SCRGB
-- CICP: add chapter to docs
-- colour: do not strip cicp or clli signaling [mertalev]
-- XYZ2Lab: better handling of HDR values
+Thanks to great work by starbix and mertalev, libvips 8.19 and later now
+loading and saving images with CICP tags from AVIF, JXL,
+and PNG images, it supports loading and saving these images to UltraHDR
+formats like JPG with automatic conversion of tags, and it supports save to
+ICC-only formats with automatic profile generation. libvips also supports
+generating and modifying CICP tags programmatically, including support for
+computing some image properties, such as target illumination.
+
+As an example, here's an HDR PNG image. It'll probably look very dark on your
+screen, since almost no one supports this strange HDR image format:
+
+![CICP PNG image](/assets/images/cicp-car-small.png)
+
+You can convert this terrible file to something more reasonable like this:
+
+```console
+$ vips copy cicp-car-small.png x.jpg
+```
+
+This will make a JPEG image. But the JPEG saver will automatically spot the
+CICP tags on this image and generate a UltraHDR image with a synthetic ICC
+profile based on the tag values.
+
+This might now display as HDR, depending on your screen and browser:
+
+![UltraHDR JPEG image](/assets/images/uhdr-car-small.jpg)
+
+You can also convert to AVIF, of course. Since AVIF supports CICP, this is
+much simpler.
+
+![CICP AVIF image](/assets/images/cicp-car-small.avif)
+
+Again, the appearance will depend on your browser and display. On SDR
+screens, these two versions of the original probably won't match well,
+since the UltraHDR image has been tonemapped, whereas the AVIF will display
+the SDR component of the CICP data.
+
+These automatic conversions should work everywhere and in all libvips
+bindings. You can also take charge of the HDR pipeline yourself if you
+need more control, the [new chapter in the documentation for
+CICP](https://www.libvips.org/API/8.19/cicp.html) has the details.
+
+## Improvements to file format support
+
+The other file format operations have seen some improvements:
+
+- there are new `qoiload` and `qoisave` operations
+- the PNG load and save operations support animated PNG
+- `jxlsave` has a new `interlace` option
+- `uhdrsave` has new parameters for the peak-brightness and max-content-boost 
+  parameters
+- `dcrawload` has better preview support and a half-size option
 
 ## Improvements to libvips operations
 
-- thumbnail: introduce cropping by a specific point of interest [pszemus]
+There have been some useful improvements to some basic libvips operations.
 
-- conversion: non-separable blending modes added [kstanikviacbs]
-- reducev: auto-vectorise the vertical reduce for all band formats, up to ~3x faster [dloebl]
-- add uchar options to premultiply and unpremultiply [jcupitt]
-- project: add combine option [jcupitt]
-- icc: fix black output when transforming float images [lancylot2004]
-- thumbnail: add dcrawload thumbnail and preview support
-- invert: prevent integer overflow for 32-bit signed TIFF input [lovell]
-- affine: verify coordinates before adjusting margin [lovell]
-- draw_line: add draw-point optional parameter [jcupitt]
-- convi: sum using 128 bit integer, where available, before clipping [lovell]
-
-- vipsthumbnail: add '@' modifier for size to pixel count
-- thumbnail: pass missing `fail_on` arg to loaders [kleisauke]
-- thumbnail: respect output profile and linear mode for cicp images [mertalev]
-
-## Better file format support
-
-As well as the RAW support above, the other file format operations have
-seen some improvements:
-
-- [`vips_pdfload()`](/API/current/ctor.Image.pdfload.html) has a new `"page-box"`
-  argument which lets you control which of the various media boxes you'd like
-  to load.
-
-- pngload: support for EXIF data in zTXt chunks [pszemus]
-- pngsave: add APNG support [felixbuenemann]
-- pngload: add APNG support [felixbuenemann]
-- pngload, pngsave: read and write cLLI metadata [gregbenz]
-- pngsave: write iTXt chunks for text data (utf-8) [tonymarklove]
-
-- jxlsave: add `interlace` option [mertalev]
-
-- uhdrsave: add existing JPEG options for base image [lovell]
-- uhdrsave: expose peak-brightness and max-content-boost parameters [dshatz]
-
-- csvload: add maximum limit on column count [lovell]
-
-- pdfload_buffer: only search the first few bytes in is_a [violetviolinist]
-
-- heifload: allow mif2 and mif3 "brand" images eg. mini box [lovell]
-- heifload, heifsave: preserve CLLI signaling [gregbenz]
-
-- dcrawload: attach preview jpeg as metadata
-- dcrawload: add half-size option
-
-- add qoiload, qoisave [Snafuh]
-- qoiload: ensure a custom source retains existing flags [Tan-JunWei]
-
-- svgload: dpi= only scales DPI, scale= only scales dimensions [Czoczaj]
-
-- magickload: scale and round Quantum values on unpack [kleisauke]
-
-- tiffload: remove unreachable code due to bits_per_sample limit of 32 [lovell]
-- tiffsave: disable tiling for LABQ JPEG images
-
-- dzsave: reject imagename containing path separator [lovell]
+- `thumbnail` now has support for cropping by a specific point of interest,
+  supports `dcrawload` thumbnails, and supports CICP HDR images
+- the `vipsthumbnail` utility supports the `@` modifier for sizing to a pixel
+  count
+- `composite` now supports the non-separable blending modes 
+- `project` lets you set the combining mode
+- `premultiply` has a new fast 8 bit path
 
 ## Improvements to the libvips core
 
-The libvips core has seen some useful improvements:
+The libvips core has seen some useful improvements.
 
-- meson: options for building `man`, `po`, `tests`, `tools`; disable building
-  `fuzz` by default [pszemus]
-- meson: disable building `deprecated` by default [kleisauke]
-- update toolchain requirement to C11 [kleisauke]
-
-- add VIPS_UNLIMITED, --vips-unlimited, vips_unlimited_get()/_set() to
+- libvips is now C11
+- the old vips7 API is no longer built by default
+- new meson options let you disable features like man pages and CLI tools if
+  you wish
+- `VIPS_UNLIMITED`, `--vips-unlimited`, `vips_unlimited_get()/_set()` let you
   disable DoS checks
-- add VIPS_MEMCPY() [kleisauke]
-- VipsRect: add g_autoptr cleanup
-- cpp: add support for pointer args [kleisauke]
-- cache: ensure entry invalidation uses mutex [Albert Ebb]
-- foreign: trim excess bands to the largest size the saver supports [Socialpranker]
+- a new `VIPS_MEMCPY()` macro gives a good speedup to small memory copies
 
-- add vips_image_get_blob_value()
-- add vips_check_draw(), vips_image_copy_draw() [jcupitt]
-- add vips_image_get_loop() [jcupitt]
-- add vips_region_blend_over() [jcupitt]
+And the usual range of smaller improvements.
