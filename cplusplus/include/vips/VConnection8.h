@@ -93,7 +93,7 @@ public:
 	}
 };
 
-typedef gint64 (*VConnectionRead)(void *buf, size_t gint64, void *client);
+typedef gint64 (*VConnectionRead)(void *buf, gint64 count, void *client);
 typedef gint64 (*VConnectionSeek)(gint64 offset, int whence, void *client);
 
 /**
@@ -109,7 +109,7 @@ public:
 	{
 	}
 
-	void on_read(VConnectionRead read, void *client);
+	virtual void on_read(VConnectionRead read, void *client);
 	void on_seek(VConnectionSeek seek, void *client);
 };
 
