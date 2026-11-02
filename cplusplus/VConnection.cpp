@@ -109,6 +109,20 @@ VSource::new_from_options(const char *options)
 	return out;
 }
 
+void
+VSourceCustom::on_read(VConnectionRead read, void *client)
+{
+	g_signal_connect((VipsObject*) get_source(),
+		"read", G_CALLBACK(read), client);
+}
+
+void
+VSourceCustom::on_seek(VConnectionSeek seek, void *client)
+{
+	g_signal_connect((VipsObject*) get_source(),
+		"seek", G_CALLBACK(seek), client);
+}
+
 VTarget
 VTarget::new_to_descriptor(int descriptor)
 {

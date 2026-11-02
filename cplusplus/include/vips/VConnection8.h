@@ -93,6 +93,26 @@ public:
 	}
 };
 
+typedef gint64 (*VConnectionRead)(void *buf, size_t gint64, void *client);
+typedef gint64 (*VConnectionSeek)(gint64 offset, int whence, void *client);
+
+/**
+ * A custom source. Set handlers for read and optionally for seek, then use
+ * VImage::new_from_source() to load an image from this object.
+ *
+ * If you don't set a seek handler, then libvips will automatically buffer
+ * the input for you, if necessary.
+ */
+class VSourceCustom : public VSource {
+public:
+	VSourceCustom() : VSource((VipsSource *) vips_source_custom_new())
+	{
+	}
+
+	void on_read(VConnectionRead read, void *client);
+	void on_seek(VConnectionSeek seek, void *client);
+};
+
 /**
  * A generic target object. Savers can use these to write a stream of bytes
  * somewhere, see VImage::write_to_target().
