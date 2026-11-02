@@ -3,23 +3,23 @@ title: What's new in libvips 8.19
 ---
 
 Here's a summary of what's new in libvips 8.19. Check the
-[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog)
-if you need more details.
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog) if
+you need more details.
 
 The headline features are better HDR support, the [QOI image
-format](https://en.wikipedia.org/wiki/QOI_(image_format)), and
-animated PNGs. Plus the usual improvements to file format handling, libvips
-operations, and the libvips core.
+format](https://en.wikipedia.org/wiki/QOI_(image_format)), and animated
+PNGs. Plus the usual improvements to file format handling, libvips operations,
+and the libvips core.
 
 ## Better HDR support
 
 Thanks to great work by starbix and mertalev, libvips 8.19 and later now
-loading and saving images with CICP tags from AVIF, JXL,
-and PNG images, it supports loading and saving these images to UltraHDR
-formats like JPG with automatic conversion of tags, and it supports save to
-ICC-only formats with automatic profile generation. libvips also supports
-generating and modifying CICP tags programmatically, including support for
-computing some image properties, such as target illumination.
+loading and saving images with CICP tags from AVIF, JXL, and PNG images,
+it supports loading and saving these images to UltraHDR formats like JPG
+with automatic conversion of tags, and it supports save to ICC-only formats
+with automatic profile generation. libvips also supports generating and
+modifying CICP tags programmatically, including support for computing some
+image properties, such as target illumination.
 
 As an example, here's an HDR PNG image. It'll probably look very dark on your
 screen, since almost no one supports this strange HDR image format:
