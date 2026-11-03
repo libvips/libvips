@@ -907,6 +907,8 @@ vips_foreign_save_uhdr_target_init(VipsForeignSaveUhdrTarget *target)
  * ::: tip "Optional arguments"
  *     * @Q: `gint`, quality factor
  *     * @gainmap_scale_factor: `gint`, scale factor of base image to gainmap
+ *     * @peak_brightness: `gdouble`, target display peak brightness in nits
+ *     * @max_content_boost: `gdouble`, maximum content boost for the gainmap
  *     * @optimize_coding: `gboolean`, compute optimal Huffman coding tables
  *     * @interlace: `gboolean`, generate an interlaced (progressive) jpeg
  *     * @subsample_mode: `VipsForeignSubsample`, select chroma subsample mode
@@ -946,6 +948,8 @@ vips_uhdrsave(VipsImage *in, const char *filename, ...)
  * ::: tip "Optional arguments"
  *     * @Q: `gint`, quality factor
  *     * @gainmap_scale_factor: `gint`, scale factor of base image to gainmap
+ *     * @peak_brightness: `gdouble`, target display peak brightness in nits
+ *     * @max_content_boost: `gdouble`, maximum content boost for the gainmap
  *     * @optimize_coding: `gboolean`, compute optimal Huffman coding tables
  *     * @interlace: `gboolean`, generate an interlaced (progressive) jpeg
  *     * @subsample_mode: `VipsForeignSubsample`, select chroma subsample mode
@@ -999,6 +1003,8 @@ vips_uhdrsave_buffer(VipsImage *in, void **buf, size_t *len, ...)
  * ::: tip "Optional arguments"
  *     * @Q: `gint`, quality factor
  *     * @gainmap_scale_factor: `gint`, scale factor of base image to gainmap
+ *     * @peak_brightness: `gdouble`, target display peak brightness in nits
+ *     * @max_content_boost: `gdouble`, maximum content boost for the gainmap
  *     * @optimize_coding: `gboolean`, compute optimal Huffman coding tables
  *     * @interlace: `gboolean`, generate an interlaced (progressive) jpeg
  *     * @subsample_mode: `VipsForeignSubsample`, select chroma subsample mode
