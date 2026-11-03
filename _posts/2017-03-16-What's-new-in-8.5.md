@@ -7,13 +7,13 @@ ChangeLog if you need more details.
 
 ## New operators
 
-Almost all of the logic from the `vipsthumbnail` program is now in
-a pair of new operators, [`vips_thumbnail()`](
-/API/current/ctor.Image.thumbnail.html)
-and [`vips_thumbnail_buffer()`](
-/API/current/ctor.Image.thumbnail_buffer.html).  These are
-very handy for the various scripting languages with vips bindings: you can
-now make a high-quality, high-speed thumbnail in PHP (for example) with just:
+Almost all of the logic from the [`vipsthumbnail`](
+/API/current/using-vipsthumbnail.html) program is now in a pair of
+new operators, [`thumbnail`](/API/current/ctor.Image.thumbnail.html)
+and [`thumbnail_buffer`](/API/current/ctor.Image.thumbnail_buffer.html).
+These are very handy for the various scripting languages with vips bindings:
+you can now make a high-quality, high-speed thumbnail in PHP (for example)
+with just:
 
 ```php?start_inline=1
 $filename = "image.jpg";
@@ -23,10 +23,10 @@ $image->writeToFile("my-thumbnail.jpg");
 
 The new thumbnail operator has also picked up some useful features:
 
-* **Smart crop** A new cropping mode called `attention` searches the image for
-  edges, skin tones and areas of saturated colour, and
-  attempts to position the crop box over the most significant
-  feature. There's a [`vips_smartcrop()`](
+* **Smart crop** A new cropping mode called [`attention`](
+  /API/current/enum.Interesting.html#attention) searches the image for edges,
+  skin tones and areas of saturated colour, and attempts to position the crop
+  box over the most significant feature. There's a [`smartcrop`](
   /API/current/method.Image.smartcrop.html) operator as well.
 
 * **Crop constraints** Thanks to tomasc, libvips has crop constraints. You 
@@ -34,17 +34,16 @@ The new thumbnail operator has also picked up some useful features:
   (the `<` and `>` modifiers in imagemagick), and to crop to a width or height. 
 
 * **Buffer sources** 
-  [`vips_thumbnail_buffer()`](
-  /API/current/ctor.Image.thumbnail_buffer.html) will thumbnail
-  an image held as a formatted block of data in memory. This is useful for
-  cloud services, where the filesystem is often rather slow.
+  [`thumbnail_buffer`](/API/current/ctor.Image.thumbnail_buffer.html) will
+  thumbnail an image held as a formatted block of data in memory. This is
+  useful for cloud services, where the filesystem is often rather slow.
 
 CLAHE, or Contrast-Limited Adaptive Histogram Equalisation, is a simple way to
 make local histogram equalisation more useful. 
 
 Plain local equalization removes
 all global brightness variation and can make images
-hard to understand.  [`vips_hist_local()`](
+hard to understand.  [`hist_local`](
 /API/current/method.Image.hist_local.html) now has a `max-slope`
 parameter you can use to limit how much equalisation can alter your image. A
 value of 3 generally works well.
@@ -110,9 +109,9 @@ how long each sheet of toilet paper is.
 There are clearly some restrictions with this style of multi-page document 
 handling: all pages must have identical width, height and colour depth; and image
 processing operators have no idea they are dealing with a multi-page document,
-so if you do something like `resize`, you'll need to update `page-height`. 
-You'll also need to be careful about edge effects if you're using spatial 
-filters.
+so if you do something like [`resize`](/API/current/method.Image.resize.html),
+you'll need to update `page-height`. You'll also need to be careful about edge
+effects if you're using spatial filters.
 
 ## Computation reordering
 
@@ -192,11 +191,13 @@ As usual, there are a range of improvements to file format read and write.
 
 * Thanks to a push from Felix Bünemann, TIFF now supports load and save to and
   from memory buffers. 
-* `dzsave` can write to memory (as a zip file) as well.
+* [`dzsave`](/API/current/method.Image.dzsave.html) can write to memory
+  (as a zip file) as well.
 * Again, thanks to pushing from Felix, libvips now supports ICC, XMP and IPCT
   metadata for WebP images. 
 * FITS images support `bzero` and `bscale`.
-* `tiffload` memory use is now much lower for images with large strips.
+* [`tiffload`](/API/current/ctor.Image.tiffload.html) memory use is now much
+  lower for images with large strips.
 
 ## Other
 

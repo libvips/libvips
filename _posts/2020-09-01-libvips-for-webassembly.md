@@ -159,8 +159,8 @@ const thumbnail = vips.Image.thumbnail('owl.jpg', 128, {
 ```
 
 Which shrinks an image to fit within a 128×128 box. Excess pixels are trimmed
-away using the `attention` strategy that positioned the crop box over the
-most significant feature:
+away using the [`attention`](/API/current/enum.Interesting.html#attention)
+strategy that positioned the crop box over the most significant feature:
 
 [![Attention strategy](/API/current/tn_owl.jpg)](/API/current/tn_owl.jpg)
 

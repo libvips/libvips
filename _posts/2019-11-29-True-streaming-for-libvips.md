@@ -12,9 +12,9 @@ explains what this feature is and why it could be useful.
 Previously, libvips let you use files and areas of memory as the source and
 destination of image processing pipelines. 
 
-The new `VipsConnection` classes let you connect image processing pipelines
-efficiently to *any* kind of data object, for example, pipes. You can now
-do this:
+The new [`VipsConnection`](/API/current/class.Connection.html) classes let
+you connect image processing pipelines efficiently to *any* kind of data
+object, for example, pipes. You can now do this:
 
 ```
 cat k2.jpg | \
@@ -23,7 +23,8 @@ cat k2.jpg | \
 ```
 
 The magic filename `"stdin"` opens a stream attached to file descriptor 0
-(`stdin`), does `vips_image_new_from_source()`, and passes that image into
+(`stdin`), does [`new_from_source`](
+/API/current/ctor.Image.new_from_source.html), and passes that image into
 the operation. Writing to a filename with nothing before the suffix will
 open a stream to `stdout` and write in that format.
 
@@ -102,13 +103,17 @@ image (header, pixels) they are working on.
 libvips ships with streams that can attach to files, areas of memory, and file
 descriptors (eg. pipes). 
 
-You can add your own connection types by subclassing `VipsSource` and
-`VipsTarget` and implementing `read` and `write` methods, but this can be
-awkward for languages other than C or C++.
+You can add your own connection types by subclassing [`VipsSource`](
+/API/current/class.Source.html) and [`VipsTarget`](
+/API/current/class.Target.html) and implementing [`read`](
+/API/current/vfunc.Source.read.html) and [`write`](
+/API/current/vfunc.Target.write.html) methods,
+but this can be awkward for languages other than C or C++.
 
 To make custom streams easy in languages like Python, there are classes called
-`VipsSourceCustom` and `VipsTargetCustom`. You can make your own stream
-objects like this:
+[`VipsSourceCustom`](/API/current/class.SourceCustom.html) and 
+[`VipsTargetCustom`](/API/current/class.TargetCustom.html). You can make your
+own stream objects like this:
 
 ```python
 file = open(sys.argv[1], "rb")
@@ -121,8 +126,8 @@ source.on_read(read_handler)
 ```
 
 This makes a very simple source which just reads from a file.  Without a
-seek handler, `Source` will treat this as a pipe and do automatic header
-buffering.
+seek handler, [`Source`](/API/current/class.Source.html) will treat this
+as a pipe and do automatic header buffering.
 
 Like any source, you can use it to make an image:
 

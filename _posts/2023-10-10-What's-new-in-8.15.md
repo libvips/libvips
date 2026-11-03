@@ -7,8 +7,9 @@ libvips 8.15 is now done, so here's a summary of what's new. Check the
 if you need more details.
 
 The headline features are SIMD optimisations with Highway, some useful
-speedups to `dzsave` and TIFF save, metadata improvements, and the usual
-small improvements to image format support. Details below!
+speedups to [`dzsave`](/API/current/method.Image.dzsave.html) and TIFF
+save, metadata improvements, and the usual small improvements to image
+format support. Details below!
 
 We need to thank lovell, kleisauke, miltoncandelero, MathemanFlo,
 donghuikugou, jcupitt, DarthSim, shado23, a3mar, and others for their great
@@ -50,8 +51,9 @@ There are two improvements to all loaders and savers. First, you can pass a
 and refetch the image from the source. This is useful if you are loading a file
 where the contents might change.
 
-Secondly, we've deprecated the `strip` option to savers and added a new `keep`
-option which you can use to select what classes of metadata item you'd like to
+Secondly, we've deprecated the `strip` option to savers and added a new
+[`keep`](/API/current/flags.ForeignKeep.html) option which you can use to
+select what classes of metadata item you'd like to
 *not* remove. For example:
 
 ```
@@ -102,9 +104,10 @@ the compatibility of 32-bit float TIFFs.
 
 ## Better `dzsave`
 
-libvips used to save each tile in `dzsave` by building and executing a complete
-libvips pipeline. With small tiles, the setup and teardown cost
-was often a significant part of the runtime, and this limited speed.
+libvips used to save each tile in [`dzsave`](
+/API/current/method.Image.dzsave.html) by building and executing a complete
+libvips pipeline. With small tiles, the setup and teardown cost was often a
+significant part of the runtime, and this limited speed.
 
 With libvips 8.15 we've added a direct path for JPEG tiles (the default case)
 which avoids this overhead.
@@ -130,20 +133,20 @@ sys	0m21.581s
 Nearly 3x faster. There's a new `--Q` flag to set the Q factor for direct JPEG
 tile save.
 
-We've made another improvement to `dzsave`: it now uses a better ZIP write
+We've made another improvement to [`dzsave`](
+/API/current/method.Image.dzsave.html): it now uses a better ZIP write
 library, `libarchive`, which should improve portability.
 
 # General improvements
 
 * PDF loading with PDFium now includes support for PDF forms, making it
   capable of rendering user-provided input in checkboxes and text fields.
-* We've added two new edge detectors,
-  [`vips_scharr()`](/API/current/method.Image.scharr.html) and
-  [`vips_prewitt()`](/API/current/method.Image.prewitt.html),
-  and improved the accuracy of
-  [`vips_sobel()`](/API/current/method.Image.sobel.html).  
-* [`vips_find_trim()`](/API/current/method.Image.find_trim.html)
-  features a `line_art` option.
+* We've added two new edge detectors, [`scharr`](
+  /API/current/method.Image.scharr.html) and [`prewitt`](
+  /API/current/method.Image.prewitt.html), and improved the
+  accuracy of [`sobel`](/API/current/method.Image.sobel.html).
+* [`find_trim`](/API/current/method.Image.find_trim.html) features a
+  `line_art` option.
 * GIF load now sets `interlaced=1` for interlaced GIF images.  
 * Improved C++ binding, taking advantage of C++11 features.  
 * The built-in ICC profiles have been replaced with smaller and more accurate 

@@ -29,10 +29,11 @@ import pyvips
 image = pyvips.Image.new_from_array(a)
 ```
 
-pyvips will even guess a sensible interpretation for you (sRGB in this case),
-or you can specify with the optional `interpretation=` argument. This works
-by sharing a memory buffer between the two libraries, so no data is copied
-or duplicated, just a pointer.
+pyvips will even guess a sensible interpretation for you ([sRGB](
+/API/current/enum.Interpretation.html#srgb) in this case), or you can specify
+with the optional `interpretation=` argument. This works by sharing a memory
+buffer between the two libraries, so no data is copied or duplicated, just a
+pointer.
 
 Going the other way, you can make a numpy array from a pyvips image using
 [`Image.numpy()`](https://libvips.github.io/pyvips/vimage.html#pyvips.Image.numpy):

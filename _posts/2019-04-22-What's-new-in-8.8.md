@@ -14,10 +14,11 @@ on this release.
 
 # Support for HEIC images
 
-libvips now has `heifload` and `heifsave` --- load and save for HEIC
-images.  This is the new image compression standard being used by Apple
-and others. HEIC files are typically half the size of JPEG files at similar 
-quality.
+libvips now has [`heifload`](/API/current/ctor.Image.heifload.html) and
+[`heifsave`](/API/current/method.Image.heifsave.html) --- load and save for
+HEIC images.  This is the new image compression standard being used by
+Apple and others. HEIC files are typically half the size of JPEG files
+at similar quality.
 
 It uses the very nice [libheif](https://github.com/strukturag/libheif)
 library and, as well as supporting HEIC, should support a range of formats
@@ -70,7 +71,8 @@ them anywhere, and they are used automatically when necessary. These profiles
 are compiled directly into the libvips shared library so there are no extra
 files to ship or to get lost.
 
-For example, you can use `colourspace` like this:
+For example, you can use [`colourspace`](
+/API/current/method.Image.colourspace.html) like this:
 
 ```
 $ vips colourspace cmyk-no-profile.jpg x.png srgb
@@ -92,8 +94,9 @@ Will convert a JPEG to a CMYK TIFF.
 # Faster thumbnailing of complex image types
 
 Shrink-on-load support has been added to TIFF (for pyramidal images) and
-OpenSlide, and `thumbnail` can exploit it. This means you can generate
-high-quality thumbnails of huge images very quickly.
+OpenSlide, and [`thumbnail`](/API/current/ctor.Image.thumbnail.html) can
+exploit it. This means you can generate high-quality thumbnails of huge
+images very quickly.
 
 For example:
 
@@ -108,42 +111,47 @@ sys	0m0.082s
 
 So it can thumbnail a 4GB slide image in 300ms on this laptop.
 
-`thumbnail` also knows about HEIC images and can thumbnail them quickly.
+[`thumbnail`](/API/current/ctor.Image.thumbnail.html) also knows about
+HEIC images and can thumbnail them quickly.
 
 # Other image format improvements
 
 There are a range of other useful improvements to image file handling. PNG
 load/save now supports XMP, WebP compression is better, loading GIF 
 uses much less memory, magick load and save now supports all metadata,
-and finally `dzsave` has better SZI support and a flag that lets you skip
-blank tiles.
+and finally [`dzsave`](/API/current/method.Image.dzsave.html) has better SZI
+support and a flag that lets you skip blank tiles.
 
 # Improvements to libvips operators
 
 There are no new operators in this release, but there are quite a few
 improvements to the existing ones.
 
-Lovell Fuller has revised `smartcrop` again. It's now much, much faster, and
-should produce better results on a wider range of images. As well as `centre`,
-you can also now crop low and high.
+Lovell Fuller has revised [`smartcrop`](
+/API/current/method.Image.smartcrop.html) again. It's now much, much faster,
+and should produce better results on a wider range of images. As well as
+`centre`, you can also now crop low and high.
 
-`composite` has been revised again to improve performance when compositing a
-small image on to a large image. Previously, the small image was expanded to the
-size of the large image and then joined at every pixel. We've now added a
-culling system, so each output area only computes the input images that touch
-it. This can give a huge speed up if you join many small images on to one large
+[`composite`](/API/current/type_func.Image.composite.html) has been revised
+again to improve performance when compositing a small image on to a large
+image. Previously, the small image was expanded to the size of the large
+image and then joined at every pixel. We've now added a culling system, so
+each output area only computes the input images that touch it. This can
+give a huge speed up if you join many small images on to one large
 image.
 
-The `text` operator now supports justification.
+The [`text`](/API/current/ctor.Image.text.html) operator now supports
+justification.
 
 # Breaking changes
 
 The old Python and C++ interfaces were deprecated in 8.7, and they've now
 been removed completely. You no longer need `swig` to build from git. Hooray!
 
-`thumbnail` will now always use EXIF orientation to spin images upright,
-and the old `auto_rotate` flags does nothing. There's a new `no_rotate`
-option you can set to prevent this behaviour, if you wish.
+[`thumbnail`](/API/current/ctor.Image.thumbnail.html) will now always use
+EXIF orientation to spin images upright, and the old `auto_rotate` flags
+does nothing. There's a new `no_rotate` option you can set to prevent this
+behaviour, if you wish.
 
 # Other
 

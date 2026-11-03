@@ -32,7 +32,8 @@ This new binding is:
   no issues with the overrides directory.
 
 * Faster, since we can implement Buffer and save copying large memory areas
-  during `new_from_buffer` and `new_from_memory`.
+  during [`new_from_buffer`](/API/current/ctor.Image.new_from_buffer.html)
+  and [`new_from_memory`](/API/current/ctor.Image.new_from_memory.html).
 
 * Faster, since it is lighter. For example, the Python binding in libvips 
   runs the test suite in 84s on my laptop, this new binding runs a larger test

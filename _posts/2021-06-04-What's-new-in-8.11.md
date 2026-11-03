@@ -50,8 +50,10 @@ user 0m1.273s
 sys 0m0.048s 
 ```
 
-The `-all` version of the Windows binaries include `jxlload` and `jxlsave`, but
-remember the API is likely to change in 8.12.
+The `-all` version of the Windows binaries include [`jxlload`](
+/API/current/ctor.Image.jxlload.html) and [`jxlsave`](
+/API/current/method.Image.jxlsave.html), but remember the API is likely to
+change in 8.12.
 
 # Thread recycling
 
@@ -85,12 +87,14 @@ passing `--disable-modules` while configuring libvips.
 
 # Full-colour text rendering
 
-The libvips `text` operator was designed a while ago, when fonts were still
-black and white. It outputs a one-band mask image which you then process with
-the other libvips operations to do things like rendering text on an image.
+The libvips [`text`](/API/current/ctor.Image.text.html) operator was designed
+a while ago, when fonts were still black and white. It outputs a one-band mask
+image which you then process with the other libvips operations to do things
+like rendering text on an image.
 
 Many fonts, especially emoji fonts, now have full-colour SVG characters.
-There's a new `rgba` flag to `text` to enable colour rendering. For example:
+There's a new `rgba` flag to [`text`](/API/current/ctor.Image.text.html) to
+enable colour rendering. For example:
 
 ```
 $ vips text x.png "😀<span foreground='red'>red</span><span background='cyan'>blue</span>" --dpi 300 --rgba
@@ -100,16 +104,17 @@ Makes this:
 
 ![coloured text](/assets/images/text.png)
 
-You can then use `composite` to render these text RGBA images on to another
-image.
+You can then use [`composite`](/API/current/type_func.Image.composite.html) to
+render these text RGBA images on to another image.
 
 # JPEG2000 support
 
 Thanks to generous sponsorship from Lunaphore, we've added support for the
 (now rather elderly) JPEG2000 format.
 
-The `jp2kload` and `jp2ksave` operations support all the file format
-features: shrink-on-load, 8-, 16- and 32-bit data, any number of
+The [`jp2kload`](/API/current/ctor.Image.jp2kload.html) and [`jp2ksave`](
+/API/current/method.Image.jp2ksave.html) operations support all the file
+format features: shrink-on-load, 8-, 16- and 32-bit data, any number of
 image bands, tiled images, YCC colourspace, lossless compression, and
 optional chroma subsampling. The lossy compression profile (controlled
 by a `Q` parameter) is derived from the [British Museum's JPEG2000
@@ -135,16 +140,20 @@ automatically, and we've written a set of API comments. Hopefully the [new
 documentation](/API/current/cpp) should be a big improvement.
 
 There are a couple of functional improvements too. There's support for
-`VipsInterpolate`, `guint64` and a new constructor,
-`VImage::new_from_memory_steal`, which can save a copy operation.
+[`VipsInterpolate`](/API/current/class.Interpolate.html), `guint64` and
+a new constructor, `VImage::new_from_memory_steal`, which can save a copy
+operation.
 
 # Minor improvements
 
-- The `perlin`, `worley` and `gaussnoise` operators have a new `seed`
+- The [`perlin`](/API/current/ctor.Image.perlin.html), [`worley`](
+  /API/current/ctor.Image.worley.html) and [`gaussnoise`](
+  /API/current/ctor.Image.gaussnoise.html) operators have a new `seed`
   parameter to set the seed for their random number generator.
 
-- The `rank` operator has a new path for large windows on 8-bit images. It can
-  be up to 20 times faster in some cases.
+- The [`rank`](/API/current/method.Image.rank.html) operator has a new
+  path for large windows on 8-bit images. It can be up to 20 times faster
+  in some cases.
 
 - Image histograms on large images now use `double` values. Previously,
   we were limited to images with under 2^32 pixels.
@@ -156,7 +165,8 @@ There are a couple of functional improvements too. There's support for
 - The loaders and savers for PDFium, OpenSlide, vips, NIfTI, and FITS have
   been moved to the new libvips IO framework.
 
-- `vipsthumbnail` can now load and save to and from stdin and stdout.
+- [`vipsthumbnail`](/API/current/using-vipsthumbnail.html) can now load and
+  save to and from stdin and stdout.
 
 - PNG save selects between 8- and 16-bit output more intelligently, and
   supports background colour as metadata.
@@ -164,7 +174,8 @@ There are a couple of functional improvements too. There's support for
 - We've switched GIF load to the excellent libnsgif library, and libvips
   embeds the library code.
 
-- `tiffsave` can write premultiplied alpha.
+- [`tiffsave`](/API/current/method.Image.tiffsave.html) can write premultiplied
+  alpha.
 
 - PDFium support has been revised. It should now build very simply, and ought
   to be much faster in threaded applications.

@@ -7,7 +7,7 @@ Here's a summary of what's new in libvips 8.18. Check the
 if you need more details.
 
 The headline features are support for UltraHDR, camera RAW images,
-and Oklab colourspace.
+and [Oklab colourspace](/API/current/enum.Interpretation.html#oklab).
 
 ## UltraHDR support
 
@@ -30,7 +30,8 @@ slower, and will usually lose the original image's tone mapping.
 
 [A new chapter in the libvips documentation](/API/current/uhdr.html) introduces
 this feature and explains how to use it. As an example, you can use
-`vipsthumbnail` to resize UltraHDR images. This command:
+[`vipsthumbnail`](/API/current/using-vipsthumbnail.html) to resize UltraHDR
+images. This command:
 
 ```
 $ vipsthumbnail ultra-hdr.jpg --size 1024
@@ -51,7 +52,7 @@ feature](https://nlnet.nl/project/libvips/).
 
 Thanks to @lxsameer, libvips 8.18 now uses [libraw](https://www.libraw.org)
 to add support for most camera RAW formats. The new
-[`vips_dcrawload()`](/API/current/ctor.Image.dcrawload.html) operator will
+[`dcrawload`](/API/current/ctor.Image.dcrawload.html) operator will
 be used to automatically import images, for example:
 
 ```
@@ -141,7 +142,7 @@ interactive use:
   VMEM. For 64-bit machines this is now much larger, improving random access
   speeds for many file formats.
 
-- [`vips_system()`](/API/current/ctor.Image.system.html) has a new `"cache"`
+- [`system`](/API/current/ctor.Image.system.html) has a new `"cache"`
   argument which adds the command to the libvips operation cache. This makes
   nip4 much, much faster at issuing ImageMagick commands.
 
@@ -161,18 +162,17 @@ interactive use:
 As well as the RAW support above, the other file format operations have
 seen some improvements:
 
-- [`vips_pdfload()`](/API/current/ctor.Image.pdfload.html) has a new `"page-box"`
+- [`pdfload`](/API/current/ctor.Image.pdfload.html) has a new `"page-box"`
   argument which lets you control which of the various media boxes you'd like
   to load.
 
-- [`vips_jxlload()`](/API/current/ctor.Image.jxlload.html) has a new `"bitdepth"`
+- [`jxlload`](/API/current/ctor.Image.jxlload.html) has a new `"bitdepth"`
   argument which sets the depth at which the image should be loaded.
 
-- [`vips_webpsave()`](/API/current/method.Image.webpsave.html) has a new
-  `"exact"` argument which forces the RGB in RGBA to always be saved, even if
-  the pixel is transparent. This can be important if you are using WebP to
-  store data.
+- [`webpsave`](/API/current/method.Image.webpsave.html) has a new `"exact"`
+  argument which forces the RGB in RGBA to always be saved, even if the pixel
+  is transparent. This can be important if you are using WebP to store data.
 
-- [`vips_heifsave()`](/API/current/method.Image.heifsave.html) has a new
-  `"tune"` parameter that lets you pass detailed options to the encoder. Handy
-  for tuning output.
+- [`heifsave`](/API/current/method.Image.heifsave.html) has a new `"tune"`
+  parameter that lets you pass detailed options to the encoder. Handy for
+  tuning output.

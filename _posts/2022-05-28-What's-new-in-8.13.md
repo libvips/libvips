@@ -42,10 +42,11 @@ pyvips.operation_block_set("VipsForeignLoad", True)
 pyvips.operation_block_set("VipsForeignLoadJpeg", False)
 ```
 
-Now all operations derived from `VipsForeignLoad` (so all loaders) are
-blocked, but we've marked all loaders derived from `VipsForeignLoadJpeg`
-(so all the libjpeg loaders) as runnable. After these calls, libvips will
-only load JPEG files.
+Now all operations derived from [`VipsForeignLoad`](
+/API/current/class.ForeignLoad.html) (so all loaders) are blocked, but
+we've marked all loaders derived from `VipsForeignLoadJpeg` (so all the
+libjpeg loaders) as runnable. After these calls, libvips will only load
+JPEG files.
 
 See [`vips_block_untrusted_set()`](
 /API/current/func.block_untrusted_set.html) and
@@ -54,8 +55,9 @@ See [`vips_block_untrusted_set()`](
 
 # Much better GIF save
 
-GIF handling has been reworked again, and `gifsave` should now produce
-smaller files (sometimes much smaller) with lower CPU and memory load.
+GIF handling has been reworked again, and [`gifsave`](
+/API/current/method.Image.gifsave.html) should now produce smaller files
+(sometimes much smaller) with lower CPU and memory load.
 
 Here's a benchmark with a short video clip:
 
@@ -88,7 +90,7 @@ quality output.
 
 The new GIF saver now has quite a few options to control
 compression, take [a look at the docs](
-/API/current/VipsForeignSave.html#vips-gifsave).
+/API/current/method.Image.gifsave.html).
 
 # Image resize quality improvements
 
@@ -144,11 +146,15 @@ JXL now supports ICC profiles, and has better support for HDR images.
 
 ### Other loader improvements
 
-- add `password` option to `pdfload`, fix byte ordering of `background`
-- add `mixed` to `webpsave` [dloebl]
-- add `bitdepth` to `magicksave` [dloebl]
-- `jp2kload` load left-justifies bitdepth
-- add `fail-on` to `thumbnail`
+- add `password` option to [`pdfload`](/API/current/ctor.Image.pdfload.html),
+  fix byte ordering of `background`
+- add `mixed` to [`webpsave`](
+  /API/current/method.Image.webpsave.html) [dloebl]
+- add `bitdepth` to [`magicksave`](
+  /API/current/method.Image.magicksave.html) [dloebl]
+- [`jp2kload`](/API/current/ctor.Image.jp2kload.html) load left-justifies
+  bitdepth
+- add `fail-on` to [`thumbnail`](/API/current/ctor.Image.thumbnail.html)
 
 # New [meson](https://mesonbuild.com) build system
 
@@ -184,7 +190,7 @@ has some more notes.
 
 # General minor improvements
 
-- add `extend`, `background` and `premultiplied` to [`vips_mapim()`](
+- add `extend`, `background` and `premultiplied` to [`mapim`](
   /API/current/method.Image.mapim.html) to fix edge antialiasing
   [GavinJoyce]
 - improve the pixel RNG for the noise operators

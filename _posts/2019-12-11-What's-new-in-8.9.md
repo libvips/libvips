@@ -102,15 +102,13 @@ curious.
 
 libvips has a pair of new operations which speed up many-way if-then-else.
 
-[`vips_switch()`](
-/API/current/type_func.Image.switch.html) takes an array of N condition
-images and for each pixel finds the index of the first non-zero pixel. If no
-pixels are non-zero, it sets the output to N + 1.
+[`switch`](/API/current/type_func.Image.switch.html) takes an array of
+N condition images and for each pixel finds the index of the first non-zero
+pixel. If no pixels are non-zero, it sets the output to N + 1.
 
-[`vips_case()`](
-/API/current/method.Image.case.html)
-takes an index image plus an array of N + 1 result images and for each
-pixel copies the pixel selected by the index to the output. 
+[`case`](/API/current/method.Image.case.html) takes an index image plus an
+array of N + 1 result images and for each pixel copies the pixel selected
+by the index to the output. 
 
 Put these two together and you can make a quick many-way if-then-else. For
 example, in Python you could write:
@@ -155,12 +153,12 @@ There's one serious and breaking change: libvips now blocks metadata
 modification in shared images, that is, images with a reference count
 greater than one.
 
-You were always supposed to use `copy` to get a unique image before altering
-metadata, but this is now enforced. If you attempt it, the change won't happen
-and a warning will be issued.
+You were always supposed to use [`copy`](/API/current/method.Image.copy.html)
+to get a unique image before altering metadata, but this is now enforced. If
+you attempt it, the change won't happen and a warning will be issued.
 
-There should be no performance implication, since all `copy` does is
-duplicate a few pointers.
+There should be no performance implication, since all [`copy`](
+/API/current/method.Image.copy.html) does is duplicate a few pointers.
 
 This change prevents a range of serious race conditions and possible crashes 
 in highly threaded programs.
@@ -175,11 +173,14 @@ frame. Additionally, the meaning of the `loop` parameter is now consistent
 between webp and gif.
 
 Solid WebP images will be automatically written without their alpha band.
-`heifsave` has a new `compression` option and (thanks to work by meyermarcel)
-supports alpha correctly. `tiffsave` supports `webp` and `zstd` compression
-and has more flexible alpha support. `dzsave` has a new `no-strip` option
-and supports IIIF layout. `svgload` has a new `unlimited` option. PPM load and
-save has been rewritten and is now faster and uses less memory.
+[`heifsave`](/API/current/method.Image.heifsave.html) has a new `compression`
+option and (thanks to work by meyermarcel) supports alpha correctly. 
+[`tiffsave`](/API/current/method.Image.tiffsave.html) supports `webp` and
+`zstd` compression and has more flexible alpha support. [`dzsave`](
+/API/current/method.Image.dzsave.html) has a new `no-strip` option and
+supports IIIF layout. [`svgload`](/API/current/ctor.Image.svgload.html) has
+a new `unlimited` option. PPM load and save has been rewritten and is now
+faster and uses less memory.
 
 # Other
 

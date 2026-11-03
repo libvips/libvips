@@ -109,10 +109,10 @@ public Image HoughCircle(int? scale = null, int? minRadius = null, int? maxRadiu
 ```
 
 When `HoughCircle` is called it jumps into libvips and searches for an operation 
-called `hough_circle` (the non PascalCase variant). It then examines the
-operation and discovers what arguments it needs, what type they are, and what
-options the operation supports (no required args, but quite a few options,
-in this example).
+called [`hough_circle`](/API/current/method.Image.hough_circle.html) (the non
+PascalCase variant). It then examines the operation and discovers what arguments
+it needs, what type they are, and what options the operation supports (no required
+args, but quite a few options, in this example).
 
 It then walks the arguments that were supplied, setting what it can, and 
 invokes the operation. On return, it extracts the results and repackages them 
