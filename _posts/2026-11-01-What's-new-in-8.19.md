@@ -24,7 +24,7 @@ image properties, such as target illumination.
 As an example, here's an HDR PNG image. It'll probably look very dark on your
 screen, since almost no one supports this strange HDR image format:
 
-![CICP PNG image](/assets/images/cicp-car-small.png)
+![CICP PNG image](/API/8.19/cicp-car-small.png)
 
 You can convert this terrible file to something more reasonable like this:
 
@@ -38,12 +38,12 @@ profile based on the tag values.
 
 This might now display as HDR, depending on your screen and browser:
 
-![UltraHDR JPEG image](/assets/images/uhdr-car-small.jpg)
+![UltraHDR JPEG image](/API/8.19/uhdr-car-small.jpg)
 
 You can also convert to AVIF, of course. Since AVIF supports CICP, this is
 much simpler.
 
-![CICP AVIF image](/assets/images/cicp-car-small.avif)
+![CICP AVIF image](/API/8.19/cicp-car-small.avif)
 
 Again, the appearance will depend on your browser and display. On SDR
 screens, these two versions of the original probably won't match well,
