@@ -18,6 +18,7 @@ tdb 8.18.8
 - libnsgif: update from upstream
 - pngload: allow PNG images containing invalid CMF [lovell]
 - heifload: raise security limits on references, again
+- tiffload: missing free on error path [AploSec]
 
 20/9/26 8.18.7
 

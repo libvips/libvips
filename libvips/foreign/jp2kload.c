@@ -1603,8 +1603,10 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 		return -1;
 	}
 
-	if (vips_foreign_load_jp2k_check_supported(decompress.image))
+	if (vips_foreign_load_jp2k_check_supported(decompress.image)) {
+		vips__foreign_load_jp2k_decompress_free(&decompress);
 		return -1;
+	}
 
 	if (width <= 0 || height <= 0 ||
 		decompress.image->x1 < decompress.image->x0 ||
@@ -1642,7 +1644,8 @@ vips__foreign_load_jp2k_decompress(VipsImage *out,
 			decompress.image, out, q, 0, y, image_width);
 
 		if (ycc_to_rgb)
-			vips_foreign_load_jp2k_ycc_to_rgb(decompress.image, out, q, image_width);
+			vips_foreign_load_jp2k_ycc_to_rgb(decompress.image,
+				out, q, image_width);
 
 		vips_foreign_load_jp2k_ljust(decompress.image, out, q, image_width);
 	}
