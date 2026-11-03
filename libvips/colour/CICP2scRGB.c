@@ -489,9 +489,9 @@ vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
 	colour->bands = 3;
 }
 
-/* Read a complete CICP record. A partial or invalid record is ignored. 
+/* Read a complete CICP record. A partial or invalid record is ignored.
  */
-gboolean
+int
 vips__image_get_cicp(VipsImage *image, int *colour_primaries,
 	int *transfer_characteristics, int *matrix_coefficients,
 	int *full_range_flag)
@@ -500,7 +500,7 @@ vips__image_get_cicp(VipsImage *image, int *colour_primaries,
 		!vips_image_get_typeof(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS) ||
 		!vips_image_get_typeof(image, VIPS_META_CICP_MATRIX_COEFFICIENTS) ||
 		!vips_image_get_typeof(image, VIPS_META_CICP_FULL_RANGE_FLAG))
-		return FALSE;
+		return -1;
 
 	if (vips_image_get_int(image,
 			VIPS_META_CICP_COLOUR_PRIMARIES, colour_primaries) ||
@@ -510,15 +510,22 @@ vips__image_get_cicp(VipsImage *image, int *colour_primaries,
 			VIPS_META_CICP_MATRIX_COEFFICIENTS, matrix_coefficients) ||
 		vips_image_get_int(image,
 			VIPS_META_CICP_FULL_RANGE_FLAG, full_range_flag))
-		return FALSE;
+		return -1;
 
-	return *colour_primaries >= 0 && *colour_primaries <= 255 &&
-		*transfer_characteristics >= 0 && *transfer_characteristics <= 255 &&
-		*matrix_coefficients >= 0 && *matrix_coefficients <= 255 &&
-		(*full_range_flag == 0 || *full_range_flag == 1);
+	if (*colour_primaries < 0 ||
+		*colour_primaries > 255 ||
+		*transfer_characteristics < 0 ||
+		*transfer_characteristics > 255 ||
+		*matrix_coefficients < 0 ||
+		*matrix_coefficients > 255 ||
+		*full_range_flag < 0 ||
+		*full_range_flag > 1)
+		return -1;
+
+	return 0;
 }
 
-/* Check for a decodable CICP record. 
+/* Check for a decodable CICP record.
  */
 gboolean
 vips__image_is_cicp(VipsImage *image, int *colour_primaries,
@@ -529,16 +536,15 @@ vips__image_is_cicp(VipsImage *image, int *colour_primaries,
 		image->BandFmt != VIPS_FORMAT_USHORT)
 		return FALSE;
 
-	if (!vips__image_get_cicp(image, colour_primaries,
-			transfer_characteristics, matrix_coefficients,
-			full_range_flag))
+	if (vips__image_get_cicp(image, colour_primaries,
+		transfer_characteristics, matrix_coefficients, full_range_flag))
 		return FALSE;
 
 	return *colour_primaries != VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED &&
 		*transfer_characteristics != VIPS_CICP_TRANSFER_UNSPECIFIED;
 }
 
-/* Check for a decodable CICP record with an HDR transfer function. 
+/* Check for a decodable CICP record with an HDR transfer function.
  */
 gboolean
 vips__image_is_cicp_hdr(VipsImage *image)
@@ -564,6 +570,31 @@ vips__image_remove_cicp(VipsImage *image)
 	vips_image_remove(image, VIPS_META_CICP_FULL_RANGE_FLAG);
 }
 
+int
+vips__image_get_clli(VipsImage *image,
+	int *max_content_light_level, int *max_frame_average_light_level)
+{
+	if (!vips_image_get_typeof(image,
+			VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL) ||
+        !vips_image_get_typeof(image,
+			VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL))
+        return -1;
+
+	if (vips_image_get_int(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
+			max_content_light_level) ||
+		vips_image_get_int(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
+			max_frame_average_light_level))
+		return -1;
+
+	if (*max_content_light_level < 0 ||
+		*max_content_light_level > 65535 ||
+		*max_frame_average_light_level < 0 ||
+		*max_frame_average_light_level > 65535)
+	return -1;
+
+	return 0;
+}
+
 void
 vips__image_remove_clli(VipsImage *image)
 {
@@ -585,7 +616,7 @@ vips__image_remove_clli(VipsImage *image)
  * - [const@META_CICP_TRANSFER_CHARACTERISTICS]
  * - [const@META_CICP_MATRIX_COEFFICIENTS]
  * - [const@META_CICP_FULL_RANGE_FLAG]
- * 
+ *
  * ::: seealso
  *     [method@Image.scRGB2CICP].
  *

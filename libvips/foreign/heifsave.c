@@ -274,25 +274,11 @@ vips_foreign_save_heif_get_clli(VipsImage *image,
 {
 	int max_content_light_level;
 	int max_frame_average_light_level;
-
-	if (!vips_image_get_typeof(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL) ||
-		!vips_image_get_typeof(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL))
+	if (vips__image_get_clli(image,
+		&max_content_light_level, &max_frame_average_light_level))
 		return FALSE;
 
-	if (vips_image_get_int(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
-			&max_content_light_level) ||
-		vips_image_get_int(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
-			&max_frame_average_light_level))
-		return FALSE;
-
-	if (max_content_light_level < 0 ||
-		max_content_light_level > 65535 ||
-		max_frame_average_light_level < 0 ||
-		max_frame_average_light_level > 65535)
-		return FALSE;
-
-	content_light_level->max_content_light_level =
-		max_content_light_level;
+	content_light_level->max_content_light_level = max_content_light_level;
 	content_light_level->max_pic_average_light_level =
 		max_frame_average_light_level;
 
@@ -331,11 +317,8 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	int transfer_characteristics;
 	int matrix_coefficients;
 	int full_range_flag;
-
-	if (vips__image_get_cicp(save->ready, &colour_primaries,
-		&transfer_characteristics, &matrix_coefficients,
-		&full_range_flag)) {
-
+	if (!vips__image_get_cicp(save->ready, &colour_primaries,
+		&transfer_characteristics, &matrix_coefficients, &full_range_flag)) {
 		if (!(nclx = heif_nclx_color_profile_alloc())) {
 			heif_encoding_options_free(options);
 			return -1;
