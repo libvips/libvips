@@ -28,6 +28,8 @@
  * 	- oop, allow index == 0, thanks Rob
  * 12/1/21
  * 	- add hist path for large windows on uchar images
+ * 3/11/26
+ * 	- add hist path for large windows on ushort and short images
  */
 
 /*
@@ -100,7 +102,7 @@ typedef struct {
 	 */
 	VipsPel *sort;
 
-	/* For large uchar images, the sort histogram.
+	/* For large uchar, ushort and short images, the sort histogram.
 	 */
 	unsigned int **hist;
 } VipsRankSequence;
@@ -145,16 +147,27 @@ vips_rank_start(VipsImage *out, void *a, void *b)
 	}
 
 	if (rank->hist_path) {
+		/* 16-bit images have 65536 fine bins followed by 256 coarse bins.
+		 * The fine bins must start at zero.
+		 */
+		const int n_bins = in->BandFmt == VIPS_FORMAT_UCHAR
+			? 256
+			: 65536 + 256;
+
 		if (!(seq->hist = VIPS_ARRAY(NULL, in->Bands, unsigned int *))) {
 			vips_rank_stop(seq, in, rank);
 			return NULL;
 		}
-
 		for (int i = 0; i < in->Bands; i++)
-			if (!(seq->hist[i] = VIPS_ARRAY(NULL, 256, unsigned int))) {
+			seq->hist[i] = NULL;
+
+		for (int i = 0; i < in->Bands; i++) {
+			if (!(seq->hist[i] = VIPS_ARRAY(NULL, n_bins, unsigned int))) {
 				vips_rank_stop(seq, in, rank);
 				return NULL;
 			}
+			memset(seq->hist[i], 0, n_bins * sizeof(unsigned int));
+		}
 	}
 
 	return (void *) seq;
@@ -228,6 +241,126 @@ vips_rank_generate_uchar(VipsRegion *out_region,
 
 		p += bands;
 		q += bands;
+	}
+}
+
+/* Histogram path for large ushort and short ranks. Each band has a two-level
+ * histogram: 65536 fine bins, plus 256 coarse bins counting the high byte,
+ * so finding the rank takes at most 256 + 256 steps.
+ */
+static void
+vips_rank_generate_ushort(VipsRegion *out_region,
+	VipsRankSequence *seq, VipsRank *rank, int y)
+{
+	VipsImage *in = seq->ir->im;
+	VipsRect *r = &out_region->valid;
+	const int bands = in->Bands;
+	const int ls = VIPS_REGION_LSKIP(seq->ir) / sizeof(unsigned short);
+	const int next = bands * rank->width;
+
+	/* Flipping the sign bit maps short to ushort with the same order.
+	 */
+	const unsigned short bias = in->BandFmt == VIPS_FORMAT_SHORT
+		? 0x8000
+		: 0;
+
+	/* Get input and output pointers for this line.
+	 */
+	unsigned short *restrict p = (unsigned short *)
+		VIPS_REGION_ADDR(seq->ir, r->left, r->top + y);
+	unsigned short *restrict q = (unsigned short *)
+		VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+
+	for (int b = 0; b < bands; b++) {
+		unsigned int *restrict fine = seq->hist[b];
+		unsigned int *restrict coarse = fine + 65536;
+
+		unsigned short *restrict p1;
+
+		/* Find histogram for the first output pixel. The fine bins are
+		 * all zero on entry.
+		 */
+		memset(coarse, 0, 256 * sizeof(unsigned int));
+		p1 = p + b;
+		for (int j = 0; j < rank->height; j++) {
+			for (int i = 0; i < next; i += bands) {
+				const unsigned short v = p1[i] ^ bias;
+
+				fine[v] += 1;
+				coarse[v >> 8] += 1;
+			}
+
+			p1 += ls;
+		}
+
+		/* Loop for output pels.
+		 */
+		for (int x = 0; x < r->width; x++) {
+			/* Find the coarse bin, then the fine bin, at which we pass
+			 * the rank. Search from the nearer end of the histogram.
+			 */
+			int sum;
+			int c;
+			int value;
+
+			sum = 0;
+			if (rank->index < rank->n / 2) {
+				for (c = 0; c < 255; c++) {
+					if (sum + (int) coarse[c] > rank->index)
+						break;
+					sum += coarse[c];
+				}
+				for (value = c << 8; value < 65535; value++) {
+					sum += fine[value];
+					if (sum > rank->index)
+						break;
+				}
+			}
+			else {
+				const int target = rank->n - 1 - rank->index;
+
+				for (c = 255; c > 0; c--) {
+					if (sum + (int) coarse[c] > target)
+						break;
+					sum += coarse[c];
+				}
+				for (value = (c << 8) + 255; value > 0; value--) {
+					sum += fine[value];
+					if (sum > target)
+						break;
+				}
+			}
+			q[x * bands + b] = value ^ bias;
+
+			/* Adapt histogram -- remove the pels from the left hand column,
+			 * add in pels for a new right-hand column.
+			 */
+			p1 = p + x * bands + b;
+			for (int j = 0; j < rank->height; j++) {
+				unsigned short v;
+
+				v = p1[0] ^ bias;
+				fine[v] -= 1;
+				coarse[v >> 8] -= 1;
+
+				v = p1[next] ^ bias;
+				fine[v] += 1;
+				coarse[v >> 8] += 1;
+
+				p1 += ls;
+			}
+		}
+
+		/* Remove the final window, so the fine bins are zero again for the
+		 * next line.
+		 */
+		p1 = p + r->width * bands + b;
+		for (int j = 0; j < rank->height; j++) {
+			for (int i = 0; i < next; i += bands)
+				fine[p1[i] ^ bias] -= 1;
+
+			p1 += ls;
+		}
 	}
 }
 
@@ -442,8 +575,11 @@ vips_rank_generate(VipsRegion *out_region,
 	ls = VIPS_REGION_LSKIP(ir) / VIPS_IMAGE_SIZEOF_ELEMENT(in);
 
 	for (int y = 0; y < r->height; y++) {
-		if (rank->hist_path)
+		if (rank->hist_path &&
+			in->BandFmt == VIPS_FORMAT_UCHAR)
 			vips_rank_generate_uchar(out_region, seq, rank, y);
+		else if (rank->hist_path)
+			vips_rank_generate_ushort(out_region, seq, rank, y);
 		else if (rank->index == 0)
 			SWITCH(LOOP_MIN)
 		else if (rank->index == rank->n - 1)
@@ -497,6 +633,18 @@ vips_rank_build(VipsObject *object)
 		if (rank->n > 90)
 			rank->hist_path = TRUE;
 		else if (rank->n > 10 &&
+			rank->index != 0 &&
+			rank->index != rank->n - 1)
+			rank->hist_path = TRUE;
+	}
+	else if (in->BandFmt == VIPS_FORMAT_USHORT ||
+		in->BandFmt == VIPS_FORMAT_SHORT) {
+		/* The 16-bit hist path is faster for windows larger than about
+		 * 11x11, and faster for >12 pixels on the non-max/min case.
+		 */
+		if (rank->n > 120)
+			rank->hist_path = TRUE;
+		else if (rank->n > 12 &&
 			rank->index != 0 &&
 			rank->index != rank->n - 1)
 			rank->hist_path = TRUE;
