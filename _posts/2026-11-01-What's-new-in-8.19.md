@@ -97,7 +97,7 @@ The other file format operations have seen some improvements:
   to control peak brightness and maximum content boost.
 
 - [`dcrawload`](/API/8.19/ctor.Image.dcrawload.html) has better preview
-  support and a `half-size` option
+  support and a `half-size` option.
 
 ## Improvements to libvips operations
 
