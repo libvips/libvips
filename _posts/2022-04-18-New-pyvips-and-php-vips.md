@@ -29,7 +29,7 @@ import pyvips
 image = pyvips.Image.new_from_array(a)
 ```
 
-pyvips will even guess a sensible interpretaion for you (sRGB in this case),
+pyvips will even guess a sensible interpretation for you (sRGB in this case),
 or you can specify with the optional `interpretation=` argument. This works
 by sharing a memory buffer between the two libraries, so no data is copied
 or duplicated, just a pointer.

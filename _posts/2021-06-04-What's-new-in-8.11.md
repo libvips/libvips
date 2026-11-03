@@ -126,7 +126,7 @@ $ vips copy k2.jpg x.tif[compression=jp2k,Q=90,tile]
 $ vips copy k2.jpg x.tif[compression=jp2k,lossless,tile]
 ```
 
-# C++ API improments
+# C++ API improvements
 
 We've spent some time improving the C++ API. 
 
@@ -164,7 +164,7 @@ There are a couple of functional improvements too. There's support for
 - We've switched GIF load to the excellent libnsgif library, and libvips
   embeds the library code.
 
-- `tiffsave` can write premultipled alpha.
+- `tiffsave` can write premultiplied alpha.
 
 - PDFium support has been revised. It should now build very simply, and ought
   to be much faster in threaded applications.

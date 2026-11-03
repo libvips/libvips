@@ -88,7 +88,7 @@ detail. pyvips, C and C++ also support this new feature.
 
 Thanks to work by Oscar Mira (@omira-sch), libvips is now part of [OSS
 Fuzz](https://github.com/google/oss-fuzz). This is a Google project to
-continously test open-source projects for vulnerabilities -- whenever one of
+continuously test open-source projects for vulnerabilities -- whenever one of
 their clusters is idle, it starts analyzing our code.
 
 It's been working away since August and only found two serious bugs, so that's

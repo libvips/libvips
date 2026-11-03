@@ -20,13 +20,13 @@ and others. HEIC files are typically half the size of JPEG files at similar
 quality.
 
 It uses the very nice [libheif](https://github.com/strukturag/libheif)
-library and, as well as suporting HEIC, should support a range of formats
+library and, as well as supporting HEIC, should support a range of formats
 on the way which are expected to use the heif container.
 
 # Better support for animated images
 
 libvips now supports load and save of animated WebP images, and has better
-suport for animated GIFs.
+support for animated GIFs.
 
 For example:
 
@@ -130,7 +130,7 @@ you can also now crop low and high.
 `composite` has been revised again to improve performance when compositing a
 small image on to a large image. Previously, the small image was expanded to the
 size of the large image and then joined at every pixel. We've now added a
-culling system, so each output area only computes the input images that thouch
+culling system, so each output area only computes the input images that touch
 it. This can give a huge speed up if you join many small images on to one large
 image.
 

@@ -104,7 +104,7 @@ system and added several very useful new features:
    also be a bit quicker.
 
 2. You can also set hints for the amount of parallelism you expect in a
-   pipeline. Again, this helps prevent overcomitting of thread resources.
+   pipeline. Again, this helps prevent overcommitting of thread resources.
 
 3. Finally, there's a new thread recycling system. Some platforms have very
    slow or tricky thread start and stop, so rather than killing and recreating
@@ -112,7 +112,7 @@ system and added several very useful new features:
    them between threadpools.
 
    We had a thread recycling system before, but this new one should be
-   noticably simpler and faster.
+   noticeably simpler and faster.
 
 ## Faster `dzsave` and `arrayjoin`
 
@@ -132,7 +132,7 @@ $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs x
 704360:19.50
 ```
 
-Almost twice as fast, and noticably lower memory use. This all comes from the
+Almost twice as fast, and noticeably lower memory use. This all comes from the
 new threading system.
 
 This new release has another feature which can improve slide read

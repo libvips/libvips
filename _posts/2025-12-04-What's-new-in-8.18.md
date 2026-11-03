@@ -145,7 +145,7 @@ interactive use:
   argument which adds the command to the libvips operation cache. This makes
   nip4 much, much faster at issuing ImageMagick commands.
 
-- A new system for forcing the exit of worker threads makes threadpoool
+- A new system for forcing the exit of worker threads makes threadpool
   shutdown dramatically faster, greatly improving interactive performance.
 
 - Tiled image formats now set metadata to hint their cache size to downstream

@@ -14,7 +14,7 @@ large objects. We're hoping to add some more features in the next version.
 
 Use View > Paintbox to open the paintbox bar.
 
-The first box has buttons for paintbox undo and rebo. You can also use ctrl-Z
+The first box has buttons for paintbox undo and redo. You can also use ctrl-Z
 and ctrl-Y as shortcuts.
 
 The next box has a set of radio buttons which set the current tool. From the 
