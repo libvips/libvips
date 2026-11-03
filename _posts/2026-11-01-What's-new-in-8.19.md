@@ -59,39 +59,40 @@ CICP](https://www.libvips.org/API/8.19/cicp.html) has the details.
 
 The other file format operations have seen some improvements:
 
-- There are new [`vips_qoiload()`](/API/8.19/ctor.Image.qoiload.html)
-  and [`vips_qoisave()`](/API/8.19/method.Image.qoisave.html) operations.
+- There are new [`qoiload`](/API/8.19/ctor.Image.qoiload.html) and
+  [`qoisave`](/API/8.19/method.Image.qoisave.html) operations.
 
 - The PNG load and save operations support animated PNG.
 
-- [`vips_jxlsave()`](/API/8.19/method.Image.jxlsave.html) has a new
-  `interlace` option.
+- [`jxlsave`](/API/8.19/method.Image.jxlsave.html) has a new `interlace`
+  option.
 
-- [`vips_uhdrsave()`](/API/8.19/method.Image.uhdrsave.html) has new
-  parameters to control peak brightness and maximum content boost.
+- [`uhdrsave`](/API/8.19/method.Image.uhdrsave.html) has new parameters
+  to control peak brightness and maximum content boost.
 
-- [`vips_dcrawload()`](/API/8.19/ctor.Image.dcrawload.html) has better
-  preview support and a `half_size` option
+- [`dcrawload`](/API/8.19/ctor.Image.dcrawload.html) has better preview
+  support and a `half-size` option
 
 ## Improvements to libvips operations
 
 There have been some useful improvements to some basic libvips operations.
 
-- [`vips_thumbnail()`](/API/8.19/ctor.Image.thumbnail.html) now has support
-  for cropping by a specific point of interest, supports [`vips_dcrawload()`](
-  /API/8.19/ctor.Image.dcrawload.html) thumbnails, and supports CICP HDR images.
+- [`thumbnail`](/API/8.19/ctor.Image.thumbnail.html) now has support for
+  cropping by a specific point of interest, supports [`dcrawload`](
+  /API/8.19/ctor.Image.dcrawload.html) thumbnails, and supports CICP HDR
+  images.
 
 - The [`vipsthumbnail`](/API/8.19/using-vipsthumbnail.html) utility supports
   the `@` modifier for sizing to a pixel count.
 
-- [`vips_composite()`](/API/8.19/type_func.Image.composite.html) now supports
-  the non-separable blending modes.
+- [`composite`](/API/8.19/type_func.Image.composite.html) now supports the
+  non-separable blending modes.
 
-- [`vips_project()`](/API/8.19/method.Image.project.html) lets you set the
-  combining mode.
+- [`project`](/API/8.19/method.Image.project.html) lets you set the combining
+  mode.
 
-- [`vips_premultiply()`](/API/8.19/method.Image.premultiply.html) and
-  [`vips_unpremultiply()`](/API/8.19/method.Image.unpremultiply.html) now
+- [`premultiply`](/API/8.19/method.Image.premultiply.html) and
+  [`unpremultiply`](/API/8.19/method.Image.unpremultiply.html) now
   includes a fast 8-bit path.
 
 ## Improvements to the libvips core
