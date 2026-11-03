@@ -67,7 +67,7 @@ The other file format operations have seen some improvements:
 - [`jxlsave`](/API/8.19/method.Image.jxlsave.html) has a new `interlace`
   option.
 
-- [`uhdrsave`](/API/8.19/method.Image.uhdrsave.html) has new parameters
+- [`uhdrsave`](/API/8.19/method.Image.uhdrsave.html) has new options
   to control peak brightness and maximum content boost.
 
 - [`dcrawload`](/API/8.19/ctor.Image.dcrawload.html) has better preview
