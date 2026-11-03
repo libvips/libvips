@@ -6,10 +6,10 @@ Here's a summary of what's new in libvips 8.19. Check the
 [ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog) if
 you need more details.
 
-The headline features are better HDR support, the [QOI image
-format](https://en.wikipedia.org/wiki/QOI_(image_format)), and animated
-PNGs. Plus the usual improvements to file format handling, libvips operations,
-and the libvips core.
+The headline features are better HDR support, animated PNGs, and the [QOI
+image format](https://en.wikipedia.org/wiki/QOI_(image_format)).  Plus the
+usual improvements to file format handling, libvips operations, and the
+libvips core.
 
 ## Better HDR support
 
@@ -55,14 +55,40 @@ bindings. You can also take charge of the HDR pipeline yourself if you
 need more control, the [new chapter in the documentation for
 CICP](https://www.libvips.org/API/8.19/cicp.html) has the details.
 
+## Animated PNG
+
+Thanks to support from the EU, libvips now supports animated PNG with the
+upcoming libpng 2.0. For now, you'll need to [build against libpng
+1.8](https://github.com/pnggroup/libpng/tree/libpng18), the
+development version.
+
+Animated PNG images are a bit larger than GIFs, but they support full alpha
+transparency and full colour with no need for dithering. For example, this
+animated PNG has numbers moving over a transparent background:
+
+![Animated PNG](/assets/images/numbers.png)
+
+Unlike a GIF, the edges of the characters should look nicely antialiased 
+whatever background you use. 
+
+You can convert them like any animated image, for example:
+
+```console
+$ vips copy numbers.png[n=-1] numbers.gif
+```
+
+To make:
+
+![Animated GIF](/assets/images/numbers.gif)
+
 ## Improvements to file format support
 
 The other file format operations have seen some improvements:
 
-- There are new [`qoiload`](/API/8.19/ctor.Image.qoiload.html) and
+- Thanks to work by Snafuh, libvips now has full support for the
+  [QOI image format](https://en.wikipedia.org/wiki/QOI_(image_format)).
+  There are new [`qoiload`](/API/8.19/ctor.Image.qoiload.html) and
   [`qoisave`](/API/8.19/method.Image.qoisave.html) operations.
-
-- The PNG load and save operations support animated PNG.
 
 - [`jxlsave`](/API/8.19/method.Image.jxlsave.html) has a new `interlace`
   option.
@@ -97,20 +123,20 @@ There have been some useful improvements to some basic libvips operations.
 
 ## Improvements to the libvips core
 
-The libvips core has seen some useful improvements.
+The libvips core has also seen some improvements.
 
 - libvips is now C11.
 
-- The old vips7 API is no longer built by default.
+- The old and long-deprecated vips7 API is no longer built by default.
 
 - New meson options let you disable features like man pages and CLI tools if
   you wish.
 
 - `VIPS_UNLIMITED`, `--vips-unlimited`, [`vips_unlimited_get()`](
   /API/8.19/func.unlimited_get.html), [`vips_unlimited_set()`](
-  /API/8.19/func.unlimited_set.html) let you disable DoS checks.
+  /API/8.19/func.unlimited_set.html) let you disable all DoS checks.
 
 - A new [`VIPS_MEMCPY()`](/API/8.19/func.MEMCPY.html) macro gives a good
-  speedup to small memory copies.
+  speedup for small memory copies.
 
-And the usual range of smaller improvements.
+And the usual range of smaller improvements, see the ChangeLog for details.
