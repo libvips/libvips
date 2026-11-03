@@ -767,8 +767,8 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * Set @half_size to decode at half-size. This can be much faster, though of
  * course the image is smaller.
  *
- * Set @bit_depth to control the number of bits to decode to. Either 8 or 16,
- * default 8,
+ * Set @bitdepth to control the number of bits to decode to. Either 8 or 16,
+ * default 8.
  *
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
