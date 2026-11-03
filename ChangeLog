@@ -66,6 +66,7 @@ date-tbd 8.19.0
 - tiffsave: disable tiling for LABQ JPEG images
 - add vips_image_get_blob_value()
 - dzsave: reject imagename containing path separator [lovell]
+- heifsave: force identity matrix for lossless cicp [mertalev]
 
 tdb 8.18.8
 
