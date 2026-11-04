@@ -228,6 +228,10 @@ The ICC profile and the CICP metadata are untouched. If you convert back the
 other way with [method@Image.scRGB2CICP], this metadata is used to generate the
 inverse transform.
 
+Note that since there CICP metadata is still attached to the scRGB image, this
+can cause double-conversion on save. You should remove the CICP tags once they
+are no longer needed.
+
 You can use the libvips metadata API ([method@Image.get_double] and friends)
 to get and set the various HDR fields and change the presentation.
 
