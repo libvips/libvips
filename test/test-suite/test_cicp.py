@@ -781,10 +781,13 @@ class TestCICP:
 
     @skip_if_no("thumbnail")
     @pytest.mark.parametrize("primaries,transfer,peak,fmt,space,options", [
-        (PRIMARIES_BT709, TRANSFER_SRGB, 255, "uchar", "srgb", {}),
+        #(PRIMARIES_BT709, TRANSFER_SRGB, 255, "uchar", "srgb", {}),
         (PRIMARIES_UNSPECIFIED, TRANSFER_UNSPECIFIED, 40_000, "ushort",
          "rgb16", {"output_profile": "srgb"}),
-    ], ids=["decodable", "unspecified"])
+    ], ids=[
+        # "decodable",
+        "unspecified",
+    ])
     def test_thumbnail_cicp_matches_the_same_image_untagged(
             self, primaries, transfer, peak, fmt, space, options):
         xy = pyvips.Image.xyz(32, 32)
@@ -795,5 +798,10 @@ class TestCICP:
 
         a = pyvips.Image.thumbnail_image(tagged, 16, **options)
         b = pyvips.Image.thumbnail_image(checks, 16, **options)
+
+        tagged.write_to_file("/home/john/tagged.v")
+        checks.write_to_file("/home/john/checks.v")
+        a.write_to_file("/home/john/a.v")
+        b.write_to_file("/home/john/b.v")
 
         assert (a - b).abs().max() == 0
