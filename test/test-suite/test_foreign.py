@@ -1988,10 +1988,9 @@ class TestForeign:
         buf2 = self.colour.dzsave_buffer(basename=root)
         assert len(buf1) == len(buf2)
 
-        with pytest.raises(pyvips.error.Error, match="imagename contains a path separator"):
-            self.colour.dzsave_buffer(imagename="../root")
-        with pytest.raises(pyvips.error.Error, match="imagename contains a path separator"):
-            self.colour.dzsave_buffer(imagename="..\\root")
+        for imagename in ("../root", "..\\root", "..", ".zip", "..zip"):
+            with pytest.raises(pyvips.error.Error, match="imagename contains a path separator"):
+                self.colour.dzsave_buffer(imagename=imagename)
 
         # we can't test the bytes are exactly equal -- the timestamp in
         # vips-properties.xml will be different

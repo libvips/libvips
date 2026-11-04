@@ -2290,7 +2290,8 @@ vips_foreign_save_dz_build(VipsObject *object)
 		}
 	}
 
-	if (strchr(dz->imagename, '/') || strchr(dz->imagename, '\\')) {
+	if (strchr(dz->imagename, '/') || strchr(dz->imagename, '\\') ||
+		(strlen(dz->imagename) > 0 && dz->imagename[0] == '.')) {
 		vips_error("dzsave", "%s",
 			_("imagename contains a path separator"));
 		return -1;
