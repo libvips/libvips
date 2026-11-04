@@ -828,12 +828,7 @@ vips_thumbnail_build(VipsObject *object)
 	 */
 	preshrunk_page_height = vips_image_get_page_height(in);
 
-	int cicp_primaries;
-	int cicp_transfer;
-	int cicp_matrix;
-	int cicp_range;
-	gboolean is_cicp = vips__image_is_cicp(in, &cicp_primaries,
-		&cicp_transfer, &cicp_matrix, &cicp_range);
+	gboolean is_cicp = vips__image_is_cicp(in);
 	int source_depth = in->BandFmt == VIPS_FORMAT_USHORT ? 16 : 8;
 
 	gboolean cicp_convert = is_cicp &&
@@ -1027,7 +1022,14 @@ vips_thumbnail_build(VipsObject *object)
 	 */
 	if (cicp_convert && !thumbnail->output_profile) {
 		g_info("re-encoding to CICP");
-		if (vips_scRGB2CICP(in, &t[9],
+
+		int cicp_primaries;
+		int cicp_transfer;
+		int cicp_matrix;
+		int cicp_range;
+		if (vips__image_get_cicp(in,
+				&cicp_primaries, &cicp_transfer, &cicp_matrix, &cicp_range) ||
+			vips_scRGB2CICP(in, &t[9],
 				"colour_primaries", cicp_primaries,
 				"transfer_characteristics", cicp_transfer,
 				"depth", source_depth,

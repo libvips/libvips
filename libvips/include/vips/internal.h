@@ -438,16 +438,16 @@ char *vips__get_iso8601(void);
 int vips__image_is_cicp(VipsImage *image);
 gboolean vips__image_is_cicp_hdr(VipsImage *image);
 VIPS_API
-int vips__image_get_cicp(VipsImage *image, int *colour_primaries,
-	int *transfer_characteristics, int *matrix_coefficients,
-	int *full_range_flag);
+int vips__image_get_cicp(VipsImage *image,
+	int *cicp_primaries, int *cicp_transfer, int *cicp_matrix, int *cicp_range);
 void vips__image_remove_cicp(VipsImage *image);
 
 /* TODO(kleisauke): VIPS_API is required by the heif and jxl modules.
  */
 VIPS_API
-int vips__image_get_clli(VipsImage *image,
-	int *max_content_light_level, int *max_frame_average_light_level);
+gboolean vips__image_is_clli(VipsImage *image);
+VIPS_API
+int vips__image_get_clli(VipsImage *image, int *cicp_max, int *cicp_average);
 void vips__image_remove_clli(VipsImage *image);
 
 #ifdef __cplusplus
