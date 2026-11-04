@@ -492,7 +492,7 @@ vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
 /* Image has CICP tags.
  */
 gboolean
-vips__image_is_cicp(VipsImage *image)
+vips__image_has_cicp(VipsImage *image)
 {
 	return
 		vips_image_get_typeof(image, VIPS_META_CICP_COLOUR_PRIMARIES) &&
@@ -536,9 +536,9 @@ vips__image_get_cicp(VipsImage *image, int *colour_primaries,
 /* Check for a decodable CICP record with an HDR transfer function.
  */
 gboolean
-vips__image_is_cicp_hdr(VipsImage *image)
+vips__image_has_cicp_hdr(VipsImage *image)
 {
-	if (vips__image_is_cicp(image)) {
+	if (vips__image_has_cicp(image)) {
 		int colour_primaries;
 		int transfer_characteristics;
 		int matrix_coefficients;
@@ -564,16 +564,20 @@ vips__image_remove_cicp(VipsImage *image)
 	vips_image_remove(image, VIPS_META_CICP_FULL_RANGE_FLAG);
 }
 
+gboolean
+vips__image_has_clli(VipsImage *image)
+{
+	return
+		vips_image_get_typeof(image,
+			VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL) &&
+		vips_image_get_typeof(image,
+			VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL);
+}
+
 int
 vips__image_get_clli(VipsImage *image,
 	int *max_content_light_level, int *max_frame_average_light_level)
 {
-	if (!vips_image_get_typeof(image,
-			VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL) ||
-        !vips_image_get_typeof(image,
-			VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL))
-        return -1;
-
 	if (vips_image_get_int(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
 			max_content_light_level) ||
 		vips_image_get_int(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
@@ -583,8 +587,10 @@ vips__image_get_clli(VipsImage *image,
 	if (*max_content_light_level < 0 ||
 		*max_content_light_level > 65535 ||
 		*max_frame_average_light_level < 0 ||
-		*max_frame_average_light_level > 65535)
+		*max_frame_average_light_level > 65535) {
+		vips_error("CLLI", "%s", _("values of of range"));
 		return -1;
+	}
 
 	return 0;
 }
