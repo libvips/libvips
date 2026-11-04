@@ -45,12 +45,13 @@ libvips has supported minimisation signals for a while now. At the end of
 a save operation, for example, savers will emit a `minimise` signal,
 and operations along the pipeline will do things like dropping caches and
 closing file descriptors.  In 8.12, we've expanded the use of this system
-to help improve the performance of things like `arrayjoin`.
+to help improve the performance of things like [`arrayjoin`](
+/API/current/type_func.Image.arrayjoin.html).
 
 ## The problem
 
-For example, here's how you might use `arrayjoin` to untile a Google Maps
-pyramid:
+For example, here's how you might use [`arrayjoin`](
+/API/current/type_func.Image.arrayjoin.html) to untile a Google Maps pyramid:
 
 ```python
 #!/usr/bin/python3
@@ -144,11 +145,11 @@ want to be able to run things like this.
 
 ## Minimise during processing
 
-In libvips 8.12, `arrayjoin` will emit `minimise` signals during
-processing. It detects that it is operating in a sequential context and
-will signal minimise on an input when the point of processing moves beyond
-that tile. This means that input image resources are created and discarded
-during computation, not just at the end.
+In libvips 8.12, [`arrayjoin`](/API/current/type_func.Image.arrayjoin.html)
+will emit `minimise` signals during processing. It detects that it is
+operating in a sequential context and will signal minimise on an input when
+the point of processing moves beyond that tile. This means that input image
+resources are created and discarded during computation, not just at the end.
 
 With libvips 8.12, I see:
 
@@ -166,8 +167,10 @@ times fewer. That's low enough to be well inside the limit on most machines,
 so you'll no longer need to reconfigure your server to do operations
 like this.
 
-This is quite a general system, and operations like `insert`, `join` and
-`merge` all benefit.
+This is quite a general system, and operations like [`insert`](
+/API/current/method.Image.insert.html), [`join`](
+/API/current/method.Image.join.html) and [`merge`](
+/API/current/method.Image.merge.html) all benefit.
 
 # Other improvements to loaders and savers
 
@@ -175,7 +178,7 @@ As usual, there have been many small improvements to file format support.
 
 - The TIFF writer has better progress feedback for many-page images.
 - The JPEG writer has a new option to set the restart interval.
-- `dzsave` now supports IIIF3.
+- [`dzsave`](/API/current/method.Image.dzsave.html) now supports IIIF3.
 - The PPM writer has an option to set the exact save format, and is better at
   picking the correct format for you automatically.
 - The JPEG 2000 loader needs much less memory with very large, untiled images.
@@ -187,8 +190,9 @@ As usual, there have been many small improvements to file format support.
 
 # More trigonometric functions
 
-Thanks to work by indus and hroskes, libvips now supports `atan2` and has
-a full set of hyperbolic trig functions.
+Thanks to work by indus and hroskes, libvips now supports [`atan2`](
+/API/current/method.Image.atan2.html) and has a full set of hyperbolic
+trig functions.
 
 # Minor improvements
 

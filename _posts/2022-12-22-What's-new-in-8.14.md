@@ -7,9 +7,10 @@ libvips 8.14 is now done, so here's a summary of what's new. Check the
 if you need more details.
 
 The headline features are the final switch to meson build system, a new
-thread pool and thread recycling system, some useful speedups to `dzsave`,
-`arrayjoin` and TIFF load, and the usual small improvements to image format
-support. Details below!
+thread pool and thread recycling system, some useful speedups to [`dzsave`](
+/API/current/method.Image.dzsave.html), [`arrayjoin`](
+/API/current/type_func.Image.arrayjoin.html) and TIFF load,
+and the usual small improvements to image format support. Details below!
 
 We need to thank aksdb, dloebl, ewelot, tlsa, remicollet, DarthSim,
 ejoebstl, lovell, shado23, kleisauke, and others for their great work on
@@ -42,8 +43,9 @@ conversion to and from CMYK images for a long time.
 
 In 8.14 we've added support for N-colour profiles. These profiles add extra
 colours, usually the complements of CMY, to expand the colour gamut available
-and reduce dithering effects. The `icc_transform` set of operators now 
-support rendering to and from N-colour device images in the obvious way.
+and reduce dithering effects. The [`icc_transform`](
+/API/current/method.Image.icc_transform.html) set of operators now support
+rendering to and from N-colour device images in the obvious way.
 
 The TIFF saver also knows how to read and write these CMYRGK (for example)
 files, and hopefully does it in a way that's compatible with PhotoShop.
@@ -78,9 +80,11 @@ TIFF Directory at offset 0x8b89008 (146313224)
 ```
 
 We've also added support for character as well as word wrapping
-to `vips_text()` with the `wrap` parameter, added an `rgb` mode to
-`vips_openslideload()`, and `vips_smartcrop()` now optionally returns the
-location of interest in attention-based cropping.
+to [`text`](/API/current/ctor.Image.text.html) with the [`wrap`](
+/API/current/enum.TextWrap.html) parameter, added an `rgb` mode to
+[`openslideload`](/API/current/ctor.Image.openslideload.html), and
+[`smartcrop`](/API/current/method.Image.smartcrop.html) now optionally
+returns the location of interest in attention-based cropping.
 
 # Improvements to the libvips core
 
@@ -104,7 +108,7 @@ system and added several very useful new features:
    also be a bit quicker.
 
 2. You can also set hints for the amount of parallelism you expect in a
-   pipeline. Again, this helps prevent overcomitting of thread resources.
+   pipeline. Again, this helps prevent overcommitting of thread resources.
 
 3. Finally, there's a new thread recycling system. Some platforms have very
    slow or tricky thread start and stop, so rather than killing and recreating
@@ -112,13 +116,14 @@ system and added several very useful new features:
    them between threadpools.
 
    We had a thread recycling system before, but this new one should be
-   noticably simpler and faster.
+   noticeably simpler and faster.
 
 ## Faster `dzsave` and `arrayjoin`
 
-We've used this new threading system to revise `dzsave`, and it's now quite a
-bit quicker. Here's the previous release, libvips 8.13, running on a
-46,000 x 32,914 pixel slide image:
+We've used this new threading system to revise [`dzsave`](
+/API/current/method.Image.dzsave.html), and it's now quite a bit quicker.
+Here's the previous release, libvips 8.13, running on a 46,000 x 32,914
+pixel slide image:
 
 ```
 $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs x
@@ -132,7 +137,7 @@ $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs x
 704360:19.50
 ```
 
-Almost twice as fast, and noticably lower memory use. This all comes from the
+Almost twice as fast, and noticeably lower memory use. This all comes from the
 new threading system.
 
 This new release has another feature which can improve slide read
@@ -146,8 +151,9 @@ $ /usr/bin/time -f %M:%e vips dzsave CMU-1.svs[rgb] x
 
 Now it's three times faster than 8.13 and runs in about half the memory.
 
-The matching `arrayjoin` operator has been reworked and is now faster
-for large sets of images. Here's libvips 8.13 reassembling 10,000 tiles:
+The matching [`arrayjoin`](/API/current/type_func.Image.arrayjoin.html)
+operator has been reworked and is now faster for large sets of images.
+Here's libvips 8.13 reassembling 10,000 tiles:
 
 ```
 $ vips dzsave CMU-1.svs x --depth one --tile-width 400 --tile-height 400 --overlap 0 --suffix .jpg

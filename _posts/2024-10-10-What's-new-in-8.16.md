@@ -8,11 +8,10 @@ if you need more details.
 
 ## Signed Distance Fields
 
-libvips has a new
-[`vips_sdf()`](/API/current/ctor.Image.sdf.html)
-operator. This can efficiently generate a range of basic shapes as Signed
-Distance Fields -- these are images where each pixel contains a signed value
-giving the distance to the closest edge. For example:
+libvips has a new [`sdf`](/API/current/ctor.Image.sdf.html) operator.
+This can efficiently generate a range of basic shapes as Signed Distance
+Fields -- these are images where each pixel contains a signed value giving
+the distance to the closest edge. For example:
 
 ```
 $ vips sdf x.v 512 512 circle --r=200 --a="256 256"
@@ -61,11 +60,11 @@ To make:
 ![SDF boat](/assets/images/sdf-boat.png)
 
 Hmmm, possibly a person rowing a boat. This uses three
-other new operators: [`vips_minpair()`](
-/API/current/method.Image.minpair.html) and [`vips_maxpair()`](
+other new operators: [`minpair`](
+/API/current/method.Image.minpair.html) and [`maxpair`](
 /API/current/method.Image.maxpair.html),
 which given a pair of images find the
-pixel-wise max and min, and [`vips_clamp()`](
+pixel-wise max and min, and [`clamp`](
 /API/current/method.Image.clamp.html), which constrains pixels
 to a range.
 
@@ -83,23 +82,25 @@ File format support has been improved (again). Highlights this time are:
 
 * JXL load and save now supports exif, xmp, and animation.
 
-* `webpsave` now has `target_size` parameter to set desired size in bytes and a
-  `passes` parameter to set number of passes to achieve desired target size,
-  plus a `smart_deblock` option for better edge rendering.
+* [`webpsave`](/API/current/method.Image.webpsave.html) now has
+  `target_size` parameter to set desired size in bytes and a `passes`
+  parameter to set number of passes to achieve desired target size, plus
+  a `smart_deblock` option for better edge rendering.
 
-* `tiffload` supports old-style JPEG compression.
+* [`tiffload`](/API/current/ctor.Image.tiffload.html) supports old-style
+  JPEG compression.
 
-* `tiffsave` now lets you change the deflate compression level.
+* [`tiffsave`](/API/current/method.Image.tiffsave.html) now lets you change
+  the deflate compression level.
 
 * All paletteised images now have a `palette` metadata item.
 
-* PFM load and save now uses scRGB colourspace (ie. linear 0-1).
+* PFM load and save now uses [scRGB colourspace](
+  /API/current/enum.Interpretation.html#scrgb) (ie. linear 0-1).
 
-* `rawsave` gets  streaming support with
-  [`vips_rawsave_target()`](
-  /API/current/method.Image.rawsave_target.html) and
-  [`vips_rawsave_buffer()`](
-  /API/current/method.Image.rawsave_buffer.html).
+* [`rawsave`](/API/current/method.Image.rawsave.html) gets streaming support
+  with [`rawsave_target`](/API/current/method.Image.rawsave_target.html) and
+  [`rawsave_buffer`](/API/current/method.Image.rawsave_buffer.html).
 
 ## General improvements
 
@@ -109,10 +110,11 @@ There have been some smaller libvips additions and improvements too.
   configurable, see [`vips_max_coord_get()`](
   /API/current/func.max_coord_get.html).
 
-* There's a new (trivial) [`vips_addalpha()`](
+* There's a new (trivial) [`addalpha`](
   /API/current/method.Image.addalpha.html) operation.
 
-* `vips_getpoint()` has a new `unpack_complex` option.
+* [`getpoint`](/API/current/method.Image.getpoint.html) has a new
+  `unpack_complex` option.
 
 * `vipsheader` supports multiple `-f field` arguments.
 

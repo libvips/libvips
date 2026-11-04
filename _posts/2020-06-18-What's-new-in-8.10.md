@@ -27,8 +27,9 @@ We've also revised kernel computation and it should be more accurate than
 before. A problem with upsizing images containing transparent elements has
 also been fixed.
 
-`smartcrop` now has an `all` mode, so you can disable cropping, and libvips now
-handles all the EXIF image orientations for all formats.
+[`smartcrop`](/API/current/method.Image.smartcrop.html) now has an [`all`](
+/API/current/enum.Interesting.html#all) mode, so you can disable cropping, 
+and libvips now handles all the EXIF image orientations for all formats.
 
 # libspng
 
@@ -105,8 +106,10 @@ The libvips thumbnailer knows about subifd pyramids and will exploit them
 to speed up image shrinking.
 
 The libvips DeepZoom writer has seen some improvements too: IIIF output is now
-more conformant, you can set the IIIF id property, and there are new `min` and
-`max` modes for downsize, handy for label images.
+more conformant, you can set the IIIF id property, and there are new [`min`](
+/API/current/enum.RegionShrink.html#min) and [`max`](
+/API/current/enum.RegionShrink.html#max) modes for downsize, handy for label
+images.
 
 # TIFF load and save
 
@@ -130,8 +133,9 @@ and write to any kind of source and destination. We've now reworked almost all
 the load and save operations for this new system.
 
 gifload can now load a wider range of GIF images. PNG save with a bad profile
-now just gives a warning rather than failing. A new `subsample-mode` option to
-JPG save lets you control chroma subsampling.
+now just gives a warning rather than failing. A new [`subsample-mode`](
+/API/current/enum.ForeignSubsample.html) option to JPG save lets you control
+chroma subsampling.
 
 # Other
 

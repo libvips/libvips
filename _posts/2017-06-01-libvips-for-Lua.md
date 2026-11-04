@@ -77,7 +77,8 @@ image = image:hough_circle()
 ```
 
 Which does a Hough transform. Lua knows that the image object belongs to
-`lua-vips` from the metatable. It won't find anything called `hough_circle`
+`lua-vips` from the metatable. It won't find anything called
+[`hough_circle`](/API/current/method.Image.hough_circle.html)
 there, so it passes control to the `__index` metamethod on the
 object. 
 
