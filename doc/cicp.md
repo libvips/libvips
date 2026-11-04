@@ -215,14 +215,14 @@ exif-ifd2-PixelXDimension: 640 (640, Long, 1 components, 4 bytes)
 exif-ifd2-PixelYDimension: 360 (360, Long, 1 components, 4 bytes)
 orientation: 1
 $ vips max x.v
-9.637010
+3.797757
 $ vips min x.v
-0.000118
+0.000046
 ```
 
 So the image has been converted to linear float, with the range 0-1 for
-black to paper white. Values above 1.0 (the maximum for this image is 9.77,
-for example) represent HDR pixels.
+black to reference white, which is 203 nits for HDR. Values above 1.0 (the
+maximum for this image is 3.80, for example) represent HDR pixels.
 
 The ICC profile and the CICP metadata are untouched. If you convert back the
 other way with [method@Image.scRGB2CICP], this metadata is used to generate the

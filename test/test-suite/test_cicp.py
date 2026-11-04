@@ -110,13 +110,13 @@ TRANSFER_CASES = [
         (128, 0.215861), (255, 1.0),
     ], 0.001),
     (TRANSFER_PQ, "PQ", [
-        (0, 0.0), (64, 0.065321), (128, 1.175932),
-        (192, 12.628401), (255, 125.0),
-    ], 0.01),
+        (0, 0.0), (64, 0.025742), (128, 0.463424),
+        (192, 4.976661), (255, 49.261086),
+    ], 0.004),
     (TRANSFER_HLG, "HLG", [
-        (0, 0.0), (64, 0.121199), (127, 0.627765),
-        (128, 0.639715), (192, 2.585478), (255, 12.5),
-    ], 0.01),
+        (0, 0.0), (64, 0.047763), (127, 0.247395),
+        (128, 0.252104), (192, 1.018908), (255, 4.926109),
+    ], 0.004),
     (TRANSFER_SMPTE240, "SMPTE 240M", [
         (0, 0.0), (10, 0.009804), (23, 0.022549),
         (128, 0.266928), (255, 1.0),
@@ -143,7 +143,7 @@ TRANSFER_CASES = [
         (0, 0.0), (10, 0.008715), (128, 0.261482), (255, 1.0),
     ], 0.001),
     (TRANSFER_SMPTE428, "SMPTE 428", [
-        (0, 0.0), (64, 0.017991), (128, 0.109077), (255, 0.654625),
+        (0, 0.0), (64, 0.029985), (128, 0.181795), (255, 1.091042),
     ], 0.001),
 ]
 
@@ -182,10 +182,10 @@ class TestCICP:
                 f"{name} at {val}/255: got {actual}, expected {expected}"
 
     def test_pq_peak(self):
-        # PQ signal 1.0 must map to exactly 10000/80 = 125.0
+        # PQ signal 1.0 is 10000 nits, with reference white (203 nits) at 1.0
         im = make_cicp_image(255, 255, 255, transfer=TRANSFER_PQ)
         pixel = im.CICP2scRGB()(0, 0)
-        assert abs(pixel[0] - 125.0) < 0.5
+        assert abs(pixel[0] - 10000 / 203) < 0.2
 
     def test_hlg_boundary(self):
         # HLG transition at E' = 0.5 (signal 127.5/255) must be continuous.
@@ -193,15 +193,15 @@ class TestCICP:
         im_hi = make_cicp_image(128, 128, 128, transfer=TRANSFER_HLG)
         lo = im_lo.CICP2scRGB()(0, 0)[0]
         hi = im_hi.CICP2scRGB()(0, 0)[0]
-        assert abs(hi - lo) < 0.02
-        assert abs(lo - 0.627765) < 0.01
-        assert abs(hi - 0.639715) < 0.01
+        assert abs(hi - lo) < 0.008
+        assert abs(lo - 0.247395) < 0.004
+        assert abs(hi - 0.252104) < 0.004
 
     def test_hlg_peak(self):
-        # HLG signal 1.0 must map to 1000/80 = 12.5 (1000-nit peak)
+        # HLG signal 1.0 is the 1000-nit peak, with reference white at 1.0
         im = make_cicp_image(255, 255, 255, transfer=TRANSFER_HLG)
         pixel = im.CICP2scRGB()(0, 0)
-        assert abs(pixel[0] - 12.5) < 0.1
+        assert abs(pixel[0] - 1000 / 203) < 0.05
 
     # -- Primaries conversion tests --
 

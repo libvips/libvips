@@ -219,7 +219,9 @@ typedef int (*VipsColourTransformFn)(VipsImage *in, VipsImage **out, ...);
 int vips__colourspace_process_n(const char *domain,
 	VipsImage *in, VipsImage **out, int n, VipsColourTransformFn fn);
 
-#define SDR_WHITE 80.0f
+/* PQ and HLG reference white in nits (BT.2408), which is scRGB 1.0.
+ */
+#define HDR_REFERENCE_WHITE 203.0f
 
 /* Identity matrix (BT.709 -> BT.709). */
 static const float BT709_to_BT709[9] = {
