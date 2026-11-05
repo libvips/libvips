@@ -307,10 +307,10 @@ vips_pq_eotf(float E)
 
 	float linear = powf(numerator / denominator, 1.0f / m1);
 
-	/* linear is in [0, 1] representing [0, 10000] nits.
-	 * scRGB: 1.0 = 80 nits, so multiply by 10000/80.
+	/* linear is in [0, 1] representing [0, 10000] nits, and scRGB 1.0 is
+	 * reference white.
 	 */
-	return linear * (10000.0f / SDR_WHITE);
+	return linear * (10000.0f / HDR_REFERENCE_WHITE);
 }
 
 static inline float
@@ -342,12 +342,12 @@ vips_hlg_inverse_oetf(float E)
  *   gamma = 1.2 (for L_W = 1000 nits)
  *   Y_s = luminance using source primaries' coefficients
  *
- * Output scaled by 1/SDR_WHITE so that 1.0 = 80 nits.
+ * Output scaled by 1/HDR_REFERENCE_WHITE so that 1.0 is reference white.
  */
 static inline void
 vips_hlg_ootf(float *r, float *g, float *b, const float *luminance)
 {
-	const float alpha = 1000.0f / SDR_WHITE;
+	const float alpha = 1000.0f / HDR_REFERENCE_WHITE;
 	const float gamma_minus_1 = 0.2f;
 
 	float Y_s = luminance[0] * *r + luminance[1] * *g + luminance[2] * *b;
@@ -468,11 +468,9 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 	case VIPS_CICP_TRANSFER_SMPTE428: {
 		/* SMPTE ST 428-1: V = (48 * Lo / 52.37)^(1/2.6)
 		 * Inverse: Lo = (52.37/48) * V^2.6
-		 * Lo is display-referred (48 cd/m² reference projector).
-		 * Scale to scRGB: 1.0 = 80 nits -> multiply by 48/80.
+		 * Lo is display-referred, with 1.0 at the 48 cd/m² reference white.
 		 */
-		float Lo = (52.37f / 48.0f) * powf(fmaxf(in, 0.0f), 2.6f);
-		return Lo * (48.0f / SDR_WHITE);
+		return (52.37f / 48.0f) * powf(fmaxf(in, 0.0f), 2.6f);
 	}
 
 	default:
@@ -635,6 +633,8 @@ vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * Transform an image with CICP signal to scRGB.
+ *
+ * PQ and HLG are scaled so that 1.0 is BT.2408 reference white (203 nits).
  *
  * This operation does not remove CICP metadata from @out. The following tags
  * should be updated or removed to reflect the conversion:

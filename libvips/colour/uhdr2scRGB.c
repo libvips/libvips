@@ -97,12 +97,9 @@ vips_uhdr2scRGB_mono(VipsUhdr2scRGB *uhdr,
 
 		float gaing = exp2f(boostg);
 
-		q[0] = VIPS_UHDR_TO_SCRGB *
-			(((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
-		q[1] = VIPS_UHDR_TO_SCRGB *
-			(((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
-		q[2] = VIPS_UHDR_TO_SCRGB *
-			(((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
+		q[0] = ((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		q[2] = ((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
 		q += 3;
 	}
 }
@@ -145,12 +142,9 @@ vips_uhdr2scRGB_rgb(VipsUhdr2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float gaing = exp2f(boostg);
 		float gainb = exp2f(boostb);
 
-		q[0] = VIPS_UHDR_TO_SCRGB *
-			(((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0]);
-		q[1] = VIPS_UHDR_TO_SCRGB *
-			(((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
-		q[2] = VIPS_UHDR_TO_SCRGB *
-			(((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2]);
+		q[0] = ((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0];
+		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		q[2] = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
 		q += 3;
 	}
 }

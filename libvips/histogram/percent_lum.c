@@ -186,14 +186,14 @@ vips_percent_lum_class_init(VipsPercentLumClass *class)
 		_("Histogram upper bound in input unit; values above clamp to the top bin"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsPercentLum, max),
-		1e-9, 1e9, 125.0);
+		1e-9, 1e9, 10000.0 / 203.0);
 }
 
 static void
 vips_percent_lum_init(VipsPercentLum *pl)
 {
 	pl->percent = 99.0;
-	pl->max = 125.0;
+	pl->max = 10000.0 / 203.0;
 }
 
 /**
@@ -205,13 +205,13 @@ vips_percent_lum_init(VipsPercentLum *pl)
  *
  * Optional arguments:
  *
- * * @max: histogram upper bound in input unit (default 125.0)
+ * * @max: histogram upper bound in input unit (default 49.26, the PQ peak)
  *
  * Computes BT.709 luminance over @in, builds a luminance histogram,
  * and returns the value at the requested percentile in @threshold.
  *
  * The histogram is in the same unit as the input and covers `[0, max]`.
- * For example, multiply by 80 to get nits for an scRGB (1.0 = 80 nits) input.
+ * For example, multiply by 203 to get nits for an scRGB HDR input.
  *
  * The input must be a 3-band (or more) float image. Extra bands beyond
  * the first three are ignored.
