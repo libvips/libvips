@@ -832,16 +832,16 @@ vips_thumbnail_build(VipsObject *object)
 	 */
 	gboolean can_cicp = vips__image_is_cicp(in);
 
-	/* We have an input profile and can ICC import.
+	/* We have an input profile.
 	 */
 	gboolean can_icc_import = vips_image_get_typeof(in, VIPS_META_ICC_NAME) ||
 		thumbnail->input_profile;
 
-	/* If we have a pair of profiles and can do an ICC transform.
+	/* We have an output profile.
 	 */
 	gboolean can_icc_export = !!thumbnail->output_profile;
 
-	/* If we have a pair of profiles and can do an ICC transform.
+	/* If we have a pair of profiles.
 	 */
 	gboolean can_icc_transform = can_icc_import && can_icc_export;
 
