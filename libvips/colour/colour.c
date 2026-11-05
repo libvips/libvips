@@ -225,8 +225,7 @@ vips_colour_build(VipsObject *object)
 	}
 
 	out = vips_image_new();
-	if (vips_image_pipeline_array(out,
-			VIPS_DEMAND_STYLE_THINSTRIP, in)) {
+	if (vips_image_pipeline_array(out, VIPS_DEMAND_STYLE_THINSTRIP, in)) {
 		g_object_unref(out);
 		return -1;
 	}

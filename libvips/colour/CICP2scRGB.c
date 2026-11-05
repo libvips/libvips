@@ -44,10 +44,118 @@
 
 #include "pcolour.h"
 
-typedef struct _VipsCICP2scRGB {
-	VipsColour parent;
+gboolean
+vips__image_is_cicp(VipsImage *image)
+{
+	return
+		vips_image_get_typeof(image, VIPS_META_CICP_COLOUR_PRIMARIES) &&
+		vips_image_get_typeof(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS) &&
+		vips_image_get_typeof(image, VIPS_META_CICP_MATRIX_COEFFICIENTS) &&
+		vips_image_get_typeof(image, VIPS_META_CICP_FULL_RANGE_FLAG);
+}
 
-	VipsImage *in;
+/* Read a complete CICP record. Error for missing or invalid tags.
+ */
+int
+vips__image_get_cicp(VipsImage *image,
+	int *cicp_primaries, int *cicp_transfer, int *cicp_matrix, int *cicp_range)
+{
+	if (vips_image_get_int(image,
+			VIPS_META_CICP_COLOUR_PRIMARIES, cicp_primaries) ||
+		vips_image_get_int(image,
+			VIPS_META_CICP_TRANSFER_CHARACTERISTICS, cicp_transfer) ||
+		vips_image_get_int(image,
+			VIPS_META_CICP_MATRIX_COEFFICIENTS, cicp_matrix) ||
+		vips_image_get_int(image,
+			VIPS_META_CICP_FULL_RANGE_FLAG, cicp_range))
+		return -1;
+
+	if (*cicp_primaries < 0 ||
+		*cicp_primaries > 255 ||
+		*cicp_transfer < 0 ||
+		*cicp_transfer > 255 ||
+		*cicp_matrix < 0 ||
+		*cicp_matrix > 255 ||
+		*cicp_range < 0 ||
+		*cicp_range > 1) {
+		vips_error("CICP", "%s", _("values out of range"));
+		return -1;
+	}
+
+	return 0;
+}
+
+/* Check for a decodable CICP record with an HDR transfer function.
+ */
+gboolean
+vips__image_is_cicp_hdr(VipsImage *image)
+{
+	if (vips__image_is_cicp(image)) {
+		int cicp_primaries;
+		int cicp_transfer;
+		int cicp_matrix;
+		int cicp_range;
+		if (vips__image_get_cicp(image,
+			&cicp_primaries, &cicp_transfer, &cicp_matrix, &cicp_range))
+			return FALSE;
+
+		return cicp_transfer == VIPS_CICP_TRANSFER_PQ ||
+			cicp_transfer == VIPS_CICP_TRANSFER_HLG;
+	}
+
+	return FALSE;
+}
+
+void
+vips__image_remove_cicp(VipsImage *image)
+{
+	vips_image_remove(image, VIPS_META_CICP_COLOUR_PRIMARIES);
+	vips_image_remove(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS);
+	vips_image_remove(image, VIPS_META_CICP_MATRIX_COEFFICIENTS);
+	vips_image_remove(image, VIPS_META_CICP_FULL_RANGE_FLAG);
+}
+
+gboolean
+vips__image_is_clli(VipsImage *image)
+{
+	return
+		vips_image_get_typeof(image,
+			VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL) &&
+		vips_image_get_typeof(image,
+			VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL);
+}
+
+/* Get the CLLI tags, error for missing or invalid tags.
+ */
+int
+vips__image_get_clli(VipsImage *image, int *cicp_max, int *cicp_average)
+{
+	if (vips_image_get_int(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
+			cicp_max) ||
+		vips_image_get_int(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
+			cicp_average))
+		return -1;
+
+	if (*cicp_max < 0 ||
+		*cicp_max > 65535 ||
+		*cicp_average < 0 ||
+		*cicp_average > 65535) {
+		vips_error("CLLI", "%s", _("values out of range"));
+		return -1;
+	}
+
+	return 0;
+}
+
+void
+vips__image_remove_clli(VipsImage *image)
+{
+	vips_image_remove(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL);
+	vips_image_remove(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL);
+}
+
+typedef struct _VipsCICP2scRGB {
+	VipsColourCode parent;
 
 	VipsCICPColourPrimaries colour_primaries;
 	VipsCICPTransferCharacteristics transfer_characteristics;
@@ -55,7 +163,7 @@ typedef struct _VipsCICP2scRGB {
 	VipsCICPMatrixCoefficients matrix_coefficients; // unused
 	int full_range_flag; // unused
 
-	/* Conversion matrix from source primaries to BT.709 (scRGB)
+	/* Conversion matrix from source primaries to BT.709 (scRGB).
 	 */
 	float conversion_matrix[9];
 
@@ -76,7 +184,17 @@ typedef struct _VipsCICP2scRGB {
 
 typedef VipsColourClass VipsCICP2scRGBClass;
 
-G_DEFINE_TYPE(VipsCICP2scRGB, vips_CICP2scRGB, VIPS_TYPE_COLOUR);
+G_DEFINE_TYPE(VipsCICP2scRGB, vips_CICP2scRGB, VIPS_TYPE_COLOUR_CODE);
+
+static void
+vips_CICP2scRGB_dispose(GObject *gobject)
+{
+	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) gobject;
+
+	VIPS_FREE(cicp->transfer_lut);
+
+	G_OBJECT_CLASS(vips_CICP2scRGB_parent_class)->dispose(gobject);
+}
 
 static const float BT2020_to_BT709[9] = {
 	1.660491f, -0.58764114f, -0.07284986f,
@@ -84,7 +202,7 @@ static const float BT2020_to_BT709[9] = {
 	-0.01815076f, -0.1005789f, 1.11872966f
 };
 
-/* Bradford chromatic adaptation
+/* Bradford chromatic adaptation.
  */
 static const float DCI_P3_to_BT709[9] = {
 	1.15751641f, -0.15496238f, -0.00255403f,
@@ -98,7 +216,7 @@ static const float Display_P3_to_BT709[9] = {
 	-0.0196375546f, -0.0786360456f, 1.09827360f
 };
 
-/* Bradford chromatic adaptation (Illuminant C -> D65)
+/* Bradford chromatic adaptation (Illuminant C -> D65).
  */
 static const float BT470M_to_BT709[9] = {
 	1.48615685f, -0.40355491f, -0.08260194f,
@@ -112,7 +230,7 @@ static const float BT470BG_to_BT709[9] = {
 	0.0f, 0.01179338f, 0.98820662f
 };
 
-/* BT.601 / SMPTE 170M / SMPTE 240M share the same primaries
+/* BT.601 / SMPTE 170M / SMPTE 240M share the same primaries.
  */
 static const float BT601_to_BT709[9] = {
 	0.93954206f, 0.05018136f, 0.01027658f,
@@ -120,7 +238,7 @@ static const float BT601_to_BT709[9] = {
 	-0.00162160f, -0.00436975f, 1.00599135f
 };
 
-/* Bradford chromatic adaptation (Illuminant C -> D65)
+/* Bradford chromatic adaptation (Illuminant C -> D65).
  */
 static const float GenericFilm_to_BT709[9] = {
 	1.34617592f, -0.33919507f, -0.00698084f,
@@ -140,21 +258,29 @@ vips_CICP2scRGB_get_matrix(VipsCICPColourPrimaries primaries)
 	switch (primaries) {
 	case VIPS_CICP_COLOUR_PRIMARIES_BT2020:
 		return BT2020_to_BT709;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE431:
 		return DCI_P3_to_BT709;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE432:
 		return Display_P3_to_BT709;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_BT470M:
 		return BT470M_to_BT709;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_BT470BG:
 		return BT470BG_to_BT709;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_BT601:
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE240:
 		return BT601_to_BT709;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_GENERIC_FILM:
 		return GenericFilm_to_BT709;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_EBU3213:
 		return EBU3213_to_BT709;
+
 	default:
 		return BT709_to_BT709;
 	}
@@ -283,13 +409,16 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 	switch (transfer) {
 	case VIPS_CICP_TRANSFER_PQ:
 		return vips_pq_eotf(in);
+
 	case VIPS_CICP_TRANSFER_HLG:
 		return vips_hlg_inverse_oetf(in);
+
 	case VIPS_CICP_TRANSFER_BT709:
 	case VIPS_CICP_TRANSFER_BT601:
 	case VIPS_CICP_TRANSFER_BT2020_10BIT:
 	case VIPS_CICP_TRANSFER_BT2020_12BIT:
 		return vips_bt709_inverse_oetf(in);
+
 	case VIPS_CICP_TRANSFER_SMPTE240: {
 		const float alpha = 1.11157219592173f;
 		const float linear_beta = 0.022821585529445f;
@@ -300,24 +429,31 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 		else
 			return powf((in + (alpha - 1.0f)) / alpha, 1.0f / 0.45f);
 	}
+
 	case VIPS_CICP_TRANSFER_SRGB:
 		return vips_sRGB_inverse_oetf(in);
+
 	case VIPS_CICP_TRANSFER_BT470M:
 		return powf(fmaxf(in, 0.0f), 2.2f); /* Gamma 2.2 */
+
 	case VIPS_CICP_TRANSFER_BT470BG:
 		return powf(fmaxf(in, 0.0f), 2.8f); /* Gamma 2.8 */
+
 	case VIPS_CICP_TRANSFER_LINEAR:
 		return in;
+
 	case VIPS_CICP_TRANSFER_LOG_100:
 		/* V = 1.0 + Log10(Lc) / 2.0 for Lc >= 0.01, else 0.
 		 * Inverse: Lc = 10^(2*(V-1)) for V > 0, else 0.
 		 */
 		return in > 0.0f ? powf(10.0f, 2.0f * (in - 1.0f)) : 0.0f;
+
 	case VIPS_CICP_TRANSFER_LOG_100_SQRT10:
 		/* V = 1.0 + Log10(Lc) / 2.5 for Lc >= Sqrt(10)/1000, else 0.
 		 * Inverse: Lc = 10^(2.5*(V-1)) for V > 0, else 0.
 		 */
 		return in > 0.0f ? powf(10.0f, 2.5f * (in - 1.0f)) : 0.0f;
+
 	case VIPS_CICP_TRANSFER_IEC61966:
 	case VIPS_CICP_TRANSFER_BT1361: {
 		/* BT.709 curve extended to negative values via odd symmetry.
@@ -328,6 +464,7 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 		else
 			return -vips_bt709_inverse_oetf(-in);
 	}
+
 	case VIPS_CICP_TRANSFER_SMPTE428: {
 		/* SMPTE ST 428-1: V = (48 * Lo / 52.37)^(1/2.6)
 		 * Inverse: Lo = (52.37/48) * V^2.6
@@ -335,6 +472,7 @@ vips_CICP2scRGB_transfer(VipsCICPTransferCharacteristics transfer, float in)
 		 */
 		return (52.37f / 48.0f) * powf(fmaxf(in, 0.0f), 2.6f);
 	}
+
 	default:
 		/* Unknown transfer -- pass through unchanged.
 		 */
@@ -356,6 +494,67 @@ vips_CICP2scRGB_build_lut(VipsCICPTransferCharacteristics transfer, int n)
 		lut[i] = vips_CICP2scRGB_transfer(transfer, i * scale);
 
 	return lut;
+}
+
+static int
+vips_CICP2scRGB_build(VipsObject *object)
+{
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
+	VipsColour *colour = VIPS_COLOUR(object);
+	VipsColourCode *code = VIPS_COLOUR_CODE(object);
+	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) object;
+
+	if (code->in &&
+		!vips__image_is_cicp(code->in)) {
+		vips_error(class->nickname, "%s", _("no CICP metadata"));
+		return -1;
+	}
+
+	// input image we want
+	if (code->in &&
+		code->in->Type == VIPS_INTERPRETATION_RGB16) {
+		code->input_format = VIPS_FORMAT_USHORT;
+		code->input_interpretation = VIPS_INTERPRETATION_RGB16;
+	}
+	else {
+		code->input_format = VIPS_FORMAT_UCHAR;
+		code->input_interpretation = VIPS_INTERPRETATION_sRGB;
+	}
+
+	colour->input_bands = 3;
+
+	// output we make
+	colour->interpretation = VIPS_INTERPRETATION_scRGB;
+	colour->format = VIPS_FORMAT_FLOAT;
+
+	if (code->in) {
+		int cicp_primaries;
+		int cicp_transfer;
+		int cicp_matrix;
+		int cicp_range;
+		if (vips__image_get_cicp(code->in,
+				&cicp_primaries, &cicp_transfer, &cicp_matrix, &cicp_range))
+			return -1;
+
+		cicp->colour_primaries = cicp_primaries;
+		cicp->transfer_characteristics = cicp_transfer;
+		cicp->matrix_coefficients = cicp_matrix;
+		cicp->full_range_flag = cicp_range;
+
+		memcpy(cicp->conversion_matrix,
+			vips_CICP2scRGB_get_matrix(cicp_primaries), 9 * sizeof(float));
+		memcpy(cicp->luminance_coeffs,
+			vips_cicp_get_luminance(cicp_primaries), 3 * sizeof(float));
+
+		cicp->lut_size = code->input_format == VIPS_FORMAT_UCHAR ? 256 : 65536;
+		cicp->transfer_lut =
+			vips_CICP2scRGB_build_lut(cicp_transfer, cicp->lut_size);
+	}
+
+	if (VIPS_OBJECT_CLASS(vips_CICP2scRGB_parent_class)->build(object))
+		return -1;
+
+	return 0;
 }
 
 #define CICP2SCRGB_LOOP(TYPE) \
@@ -388,69 +587,19 @@ vips_CICP2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
 	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) colour;
 
-	if (cicp->in->BandFmt == VIPS_FORMAT_UCHAR)
-		CICP2SCRGB_LOOP(VipsPel)
-	else
-		CICP2SCRGB_LOOP(unsigned short)
-}
+	switch (colour->in[0]->BandFmt) {
+	case VIPS_FORMAT_UCHAR:
+		CICP2SCRGB_LOOP(VipsPel);
+		break;
 
-static int
-vips_CICP2scRGB_build(VipsObject *object)
-{
-	VipsColour *colour = VIPS_COLOUR(object);
-	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) object;
-	int colour_primaries;
-	int transfer_characteristics;
-	int matrix_coefficients;
+	case VIPS_FORMAT_USHORT:
+		CICP2SCRGB_LOOP(unsigned short);
+		break;
 
-	/* Don't process alpha
-	 */
-	colour->input_bands = 3;
-	colour->n = 1;
-	colour->in = (VipsImage **) vips_object_local_array(object, 1);
-
-	if (cicp->in) {
-
-		if (!vips__image_is_cicp(cicp->in,
-				&colour_primaries, &transfer_characteristics,
-				&matrix_coefficients, &cicp->full_range_flag)) {
-			return -1;
-		}
-
-		cicp->colour_primaries = colour_primaries;
-		cicp->transfer_characteristics = transfer_characteristics;
-		cicp->matrix_coefficients = matrix_coefficients;
-
-		memcpy(cicp->conversion_matrix,
-			vips_CICP2scRGB_get_matrix(cicp->colour_primaries),
-			9 * sizeof(float));
-		memcpy(cicp->luminance_coeffs,
-			vips_cicp_get_luminance(cicp->colour_primaries),
-			3 * sizeof(float));
-
-		cicp->lut_size = cicp->in->BandFmt == VIPS_FORMAT_UCHAR
-			? 256 : 65536;
-		cicp->transfer_lut = vips_CICP2scRGB_build_lut(
-			cicp->transfer_characteristics, cicp->lut_size);
-
-		colour->in[0] = cicp->in;
-		g_object_ref(cicp->in);
+	default:
+		g_assert_not_reached();
+		break;
 	}
-
-	if (VIPS_OBJECT_CLASS(vips_CICP2scRGB_parent_class)->build(object))
-		return -1;
-
-	return 0;
-}
-
-static void
-vips_CICP2scRGB_dispose(GObject *gobject)
-{
-	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) gobject;
-
-	VIPS_FREE(cicp->transfer_lut);
-
-	G_OBJECT_CLASS(vips_CICP2scRGB_parent_class)->dispose(gobject);
 }
 
 static void
@@ -470,103 +619,11 @@ vips_CICP2scRGB_class_init(VipsCICP2scRGBClass *class)
 
 	colour_class->process_line = vips_CICP2scRGB_line;
 
-	VIPS_ARG_IMAGE(class, "in", 1,
-		_("Input"),
-		_("Input image"),
-		VIPS_ARGUMENT_REQUIRED_INPUT,
-		G_STRUCT_OFFSET(VipsColourTransform, in));
 }
 
 static void
 vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
 {
-	VipsColour *colour = VIPS_COLOUR(cicp);
-
-	colour->interpretation = VIPS_INTERPRETATION_scRGB;
-	colour->format = VIPS_FORMAT_FLOAT;
-	colour->bands = 3;
-}
-
-/* Read a complete CICP record. A partial or invalid record is ignored. 
- */
-gboolean
-vips__image_get_cicp(VipsImage *image, int *colour_primaries,
-	int *transfer_characteristics, int *matrix_coefficients,
-	int *full_range_flag)
-{
-	if (!vips_image_get_typeof(image, VIPS_META_CICP_COLOUR_PRIMARIES) ||
-		!vips_image_get_typeof(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS) ||
-		!vips_image_get_typeof(image, VIPS_META_CICP_MATRIX_COEFFICIENTS) ||
-		!vips_image_get_typeof(image, VIPS_META_CICP_FULL_RANGE_FLAG))
-		return FALSE;
-
-	if (vips_image_get_int(image,
-			VIPS_META_CICP_COLOUR_PRIMARIES, colour_primaries) ||
-		vips_image_get_int(image,
-			VIPS_META_CICP_TRANSFER_CHARACTERISTICS, transfer_characteristics) ||
-		vips_image_get_int(image,
-			VIPS_META_CICP_MATRIX_COEFFICIENTS, matrix_coefficients) ||
-		vips_image_get_int(image,
-			VIPS_META_CICP_FULL_RANGE_FLAG, full_range_flag))
-		return FALSE;
-
-	return *colour_primaries >= 0 && *colour_primaries <= 255 &&
-		*transfer_characteristics >= 0 && *transfer_characteristics <= 255 &&
-		*matrix_coefficients >= 0 && *matrix_coefficients <= 255 &&
-		(*full_range_flag == 0 || *full_range_flag == 1);
-}
-
-/* Check for a decodable CICP record. 
- */
-gboolean
-vips__image_is_cicp(VipsImage *image, int *colour_primaries,
-	int *transfer_characteristics, int *matrix_coefficients,
-	int *full_range_flag)
-{
-	if (image->BandFmt != VIPS_FORMAT_UCHAR &&
-		image->BandFmt != VIPS_FORMAT_USHORT)
-		return FALSE;
-
-	if (!vips__image_get_cicp(image, colour_primaries,
-			transfer_characteristics, matrix_coefficients,
-			full_range_flag))
-		return FALSE;
-
-	return *colour_primaries != VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED &&
-		*transfer_characteristics != VIPS_CICP_TRANSFER_UNSPECIFIED;
-}
-
-/* Check for a decodable CICP record with an HDR transfer function. 
- */
-gboolean
-vips__image_is_cicp_hdr(VipsImage *image)
-{
-	int colour_primaries;
-	int transfer_characteristics;
-	int matrix_coefficients;
-	int full_range_flag;
-
-	return vips__image_is_cicp(image, &colour_primaries,
-			&transfer_characteristics, &matrix_coefficients,
-			&full_range_flag) &&
-		(transfer_characteristics == VIPS_CICP_TRANSFER_PQ ||
-			transfer_characteristics == VIPS_CICP_TRANSFER_HLG);
-}
-
-void
-vips__image_remove_cicp(VipsImage *image)
-{
-	vips_image_remove(image, VIPS_META_CICP_COLOUR_PRIMARIES);
-	vips_image_remove(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS);
-	vips_image_remove(image, VIPS_META_CICP_MATRIX_COEFFICIENTS);
-	vips_image_remove(image, VIPS_META_CICP_FULL_RANGE_FLAG);
-}
-
-void
-vips__image_remove_clli(VipsImage *image)
-{
-	vips_image_remove(image, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL);
-	vips_image_remove(image, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL);
 }
 
 /**

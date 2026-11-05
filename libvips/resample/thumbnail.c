@@ -779,23 +779,9 @@ vips_thumbnail_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 20);
 
 	VipsImage *in;
-	int preshrunk_page_height;
 	double hshrink;
 	double vshrink;
 	VipsImage *gainmap;
-
-	/* TRUE if we've done the import of an ICC transform and still need to
-	 * export.
-	 */
-	gboolean have_imported;
-
-	/* TRUE if the image needs to transformed with a pair of ICC profiles.
-	 */
-	gboolean needs_icc_transform;
-
-	/* The format we need to revert to after unpremultiply.
-	 */
-	VipsBandFormat unpremultiplied_format;
 
 #ifdef DEBUG
 	printf("vips_thumbnail_build: ");
@@ -826,23 +812,9 @@ vips_thumbnail_build(VipsObject *object)
 
 	/* After pre-shrink, but before the main shrink stage.
 	 */
-	preshrunk_page_height = vips_image_get_page_height(in);
+	int preshrunk_page_height = vips_image_get_page_height(in);
 
-	int cicp_primaries;
-	int cicp_transfer;
-	int cicp_matrix;
-	int cicp_range;
-	gboolean is_cicp = vips__image_is_cicp(in, &cicp_primaries,
-		&cicp_transfer, &cicp_matrix, &cicp_range);
 	int source_depth = in->BandFmt == VIPS_FORMAT_USHORT ? 16 : 8;
-
-	gboolean cicp_convert = is_cicp &&
-		(thumbnail->output_profile || thumbnail->linear);
-
-	needs_icc_transform = !is_cicp &&
-		thumbnail->output_profile &&
-		(thumbnail->input_profile ||
-			vips_image_get_typeof(in, VIPS_META_ICC_NAME));
 
 	/* RAD needs special unpacking.
 	 */
@@ -856,25 +828,49 @@ vips_thumbnail_build(VipsObject *object)
 		in = t[1];
 	}
 
+	/* We can transform with CICP.
+	 */
+	gboolean can_cicp = vips__image_is_cicp(in);
+
+	/* We have an input profile and can ICC import.
+	 */
+	gboolean can_icc_import = vips_image_get_typeof(in, VIPS_META_ICC_NAME) ||
+		thumbnail->input_profile;
+
+	/* If we have a pair of profiles and can do an ICC transform.
+	 */
+	gboolean can_icc_export = !!thumbnail->output_profile;
+
+	/* If we have a pair of profiles and can do an ICC transform.
+	 */
+	gboolean can_icc_transform = can_icc_import && can_icc_export;
+
+	/* TRUE if we imported to scRGB from CICP and need to reexport to device
+	 * space before write.
+	 */
+	gboolean have_cicped = FALSE;
+
+	/* TRUE if we've done the import of an ICC transform and still need to
+	 * export.
+	 */
+	gboolean have_imported = FALSE;
+
 	/* In linear mode, we need to transform to a linear space before
 	 * vips_resize().
 	 */
-	have_imported = FALSE;
-	if (cicp_convert) {
-		g_info("linearising CICP to scRGB");
-		if (vips_CICP2scRGB(in, &t[2], NULL))
-			return -1;
-		in = t[2];
-	}
-	else if (thumbnail->linear) {
-		/* If we are doing colour management (there's an input
-		 * profile), then we can use XYZ PCS as the resize space.
+	if (thumbnail->linear) {
+		/* We can linearise in three ways: cicp, uhdr, icc, and manually.
+		 * We don't linearise uhdr, it's too slow and annoying.
 		 */
-		if (in->Coding == VIPS_CODING_NONE &&
-			(in->BandFmt == VIPS_FORMAT_UCHAR ||
-				in->BandFmt == VIPS_FORMAT_USHORT) &&
-			(vips_image_get_typeof(in, VIPS_META_ICC_NAME) ||
-				thumbnail->input_profile)) {
+		if (can_cicp) {
+			g_info("linearising CICP to scRGB");
+			if (vips_CICP2scRGB(in, &t[2], NULL))
+				return -1;
+			in = t[2];
+
+			have_cicped = TRUE;
+		}
+		else if (can_icc_import) {
 			g_info("importing to XYZ PCS");
 			if (thumbnail->input_profile)
 				g_info("fallback input profile %s", thumbnail->input_profile);
@@ -907,10 +903,13 @@ vips_thumbnail_build(VipsObject *object)
 			in = t[2];
 		}
 	}
-	else if (!needs_icc_transform && !is_cicp) {
-		/* In non-linear mode, use sRGB or B_W as the processing space
-		 * but only when not transforming with a pair of ICC profiles.
-		 * Converting via interpretation is incorrect for CICP images.
+	else if (!can_icc_transform &&
+		!can_cicp) {
+		/* Non linear mode ... interpretations like eg. LAB need to go
+		 * to sRGB or B_W for shrinking.
+		 *
+		 * We mustn't convert images which are due colour management later on
+		 * with either icc or CICP functions.
 		 */
 		VipsInterpretation interpretation;
 
@@ -942,9 +941,11 @@ vips_thumbnail_build(VipsObject *object)
 		vshrink = (double) in->Ysize / target_image_height;
 	}
 
-	/* Use NOTSET to mean no pre/unmultiply.
+	/* The format we need to revert to after unpremultiply.
+	 *
+	 * Use NOTSET to mean no pre/unmultiply.
 	 */
-	unpremultiplied_format = VIPS_FORMAT_NOTSET;
+	VipsBandFormat unpremultiplied_format = VIPS_FORMAT_NOTSET;
 
 	/* If there's an alpha, we have to premultiply before shrinking. See
 	 * https://github.com/libvips/libvips/issues/291
@@ -1021,17 +1022,13 @@ vips_thumbnail_build(VipsObject *object)
 	}
 
 	/* Colour management.
-	 *
-	 * We always export as depth 8, to match the no profile case which
-	 * uses vips_colourspace(sRGB|B_W).
 	 */
-	if (cicp_convert && !thumbnail->output_profile) {
+	if (have_cicped) {
 		g_info("re-encoding to CICP");
+
 		if (vips_scRGB2CICP(in, &t[9],
-				"colour_primaries", cicp_primaries,
-				"transfer_characteristics", cicp_transfer,
-				"depth", source_depth,
-				NULL))
+			"depth", source_depth,
+			NULL))
 			return -1;
 		in = t[9];
 	}
@@ -1039,6 +1036,9 @@ vips_thumbnail_build(VipsObject *object)
 		/* We are in PCS. Export with the output profile, if any (this
 		 * will export with the embedded input profile if there's no
 		 * output profile).
+		 *
+		 * We always export as depth 8, to match the no profile case which
+		 * uses vips_colourspace(sRGB|B_W).
 		 */
 		g_info("exporting to device space with a profile");
 		if (vips_icc_export(in, &t[9],
@@ -1049,7 +1049,7 @@ vips_thumbnail_build(VipsObject *object)
 			return -1;
 		in = t[9];
 	}
-	else if (needs_icc_transform) {
+	else if (can_icc_transform) {
 		/* We can transform to the output with a pair of ICC profiles.
 		 */
 		g_info("transforming with supplied profiles");
@@ -1063,7 +1063,7 @@ vips_thumbnail_build(VipsObject *object)
 
 		in = t[9];
 	}
-	else if (thumbnail->output_profile) {
+	else if (can_icc_export) {
 		/* We are in one of the resize space (sRGB, scRGB, B_W, GREY16, etc.)
 		 * and need to go to PCS, then export.
 		 */
@@ -1095,9 +1095,9 @@ vips_thumbnail_build(VipsObject *object)
 		in = t[9];
 	}
 
-	/* The CICP/CLLI metadata is stale after transforming to the output profile.
+	/* Any CICP/CLLI metadata is stale after ICC export.
 	 */
-	if (thumbnail->output_profile) {
+	if (can_icc_export) {
 		if (vips_copy(in, &t[4], NULL))
 			return -1;
 		in = t[4];
@@ -1145,8 +1145,10 @@ vips_thumbnail_build(VipsObject *object)
 		g_info("cropping to %dx%d", crop_width, crop_height);
 
 		gboolean rotated = thumbnail->swap && thumbnail->auto_rotate;
-		int rotated_input_width = rotated ? thumbnail->input_height : thumbnail->input_width;
-		int rotated_input_height = rotated ? thumbnail->input_width : thumbnail->input_height;
+		int rotated_input_width = rotated ?
+			thumbnail->input_height : thumbnail->input_width;
+		int rotated_input_height = rotated ?
+			thumbnail->input_width : thumbnail->input_height;
 		double overall_hshrink = (double) rotated_input_width / in->Xsize;
 		double overall_vshrink = (double) rotated_input_height / in->Ysize;
 
@@ -1170,8 +1172,10 @@ vips_thumbnail_build(VipsObject *object)
 		if (vips_smartcrop(t[18], &t[19],
 				crop_width, crop_height,
 				"interesting", thumbnail->crop,
-				"interesting_x", VIPS_ROUND_UINT((double) thumbnail->interesting_x / overall_vshrink),
-				"interesting_y", VIPS_ROUND_UINT((double) thumbnail->interesting_y / overall_hshrink),
+				"interesting_x", VIPS_ROUND_UINT(
+					(double) thumbnail->interesting_x / overall_vshrink),
+				"interesting_y", VIPS_ROUND_UINT(
+					(double) thumbnail->interesting_y / overall_hshrink),
 				NULL))
 			return -1;
 
@@ -1195,8 +1199,7 @@ vips_thumbnail_build(VipsObject *object)
 			if (gm_n_pages != n_pages) {
 				g_object_unref(gainmap);
 				vips_error("thumbnail", "%s",
-					"gainmap page count does not match "
-					"image page count");
+					"gainmap page count does not match image page count");
 				return -1;
 			}
 
