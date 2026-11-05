@@ -264,7 +264,6 @@ class TestCICP:
         assert result.get("cicp-transfer-characteristics") == TRANSFER_PQ
         assert result.get("clli-max-content-light-level") == 1624
 
-    @skip_if_no("scRGB2CICP")
     @pytest.mark.parametrize("transfer,name,cases,tolerance", TRANSFER_CASES,
                              ids=[c[1] for c in TRANSFER_CASES])
     def test_transfer_roundtrip(self, transfer, name, cases, tolerance):
@@ -278,7 +277,6 @@ class TestCICP:
             assert abs(pixel[0] - val) <= 1, \
                 f"{name} at {val}: got {pixel[0]}, expected {val}"
 
-    @skip_if_no("scRGB2CICP")
     @pytest.mark.parametrize("transfer,name", [
         (TRANSFER_PQ, "PQ"),
         (TRANSFER_HLG, "HLG"),
@@ -295,7 +293,6 @@ class TestCICP:
             assert abs(got - val) <= 1, \
                 f"{name} shadow at {val}/65535: got {got}, expected {val}"
 
-    @skip_if_no("scRGB2CICP")
     @pytest.mark.parametrize("primaries,name,_expected,_tolerance",
                              PRIMARIES_MATRIX_CASES,
                              ids=[c[1] for c in PRIMARIES_MATRIX_CASES])
@@ -313,7 +310,6 @@ class TestCICP:
         assert abs(pixel[2] - 50) <= 1, \
             f"{name} B: got {pixel[2]}, expected 50"
 
-    @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_output_format_8bit(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
              + [0.5, 0.5, 0.5]
@@ -321,7 +317,6 @@ class TestCICP:
         assert result.format == "uchar"
         assert result.bands == 3
 
-    @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_output_format_16bit(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
              + [0.5, 0.5, 0.5]
@@ -329,7 +324,6 @@ class TestCICP:
         assert result.format == "ushort"
         assert result.bands == 3
 
-    @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_metadata_set(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
              + [0.5, 0.5, 0.5]
@@ -340,7 +334,6 @@ class TestCICP:
         assert result.get("cicp-matrix-coefficients") == 0
         assert result.get("cicp-full-range-flag") == 1
 
-    @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_keeps_clli_metadata(self):
         im = pyvips.Image.black(1, 1, bands=3).copy(interpretation="scrgb") \
              + [0.5, 0.5, 0.5]
@@ -352,7 +345,6 @@ class TestCICP:
         assert result.get("clli-max-content-light-level") == 1624
         assert result.get("clli-max-frame-average-light-level") == 182
 
-    @skip_if_no("scRGB2CICP")
     def test_scRGB2CICP_ushort_roundtrip(self):
         ushort_val = round(128 / 255.0 * 65535)
         im = make_cicp_image(ushort_val, ushort_val, ushort_val,
@@ -362,7 +354,6 @@ class TestCICP:
         pixel = result(0, 0)
         assert abs(pixel[0] - ushort_val) <= 1
 
-    @skip_if_no("scRGB2CICP")
     def test_bt2020_pq_roundtrip(self):
         im = make_cicp_image(128, 100, 80,
                              primaries=PRIMARIES_BT2020,
@@ -375,7 +366,6 @@ class TestCICP:
         assert abs(pixel[1] - 100) <= 1
         assert abs(pixel[2] - 80) <= 1
 
-    @skip_if_no("scRGB2CICP")
     def test_display_p3_hlg_roundtrip(self):
         im = make_cicp_image(180, 120, 60,
                              primaries=PRIMARIES_DISPLAY_P3,
@@ -715,7 +705,6 @@ class TestCICP:
         assert out.get("clli-max-content-light-level") == 1624
         assert out.get("clli-max-frame-average-light-level") == 182
 
-    @skip_if_no("thumbnail")
     def test_thumbnail_returns_cicp_to_its_own_encoding(self):
         im = make_cicp_image(
             37_888, 22_272, 12_544,
@@ -730,7 +719,6 @@ class TestCICP:
         assert out.get("cicp-colour-primaries") == PRIMARIES_BT2020
         assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
 
-    @skip_if_no("thumbnail")
     def test_thumbnail_leaves_cicp_alone_without_linear(self):
         im = make_cicp_image(
             37_888, 22_272, 12_544,
@@ -746,7 +734,6 @@ class TestCICP:
         assert (out - im).abs().max() == 0
         assert out.get("cicp-transfer-characteristics") == TRANSFER_PQ
 
-    @skip_if_no("thumbnail")
     def test_thumbnail_honours_output_profile_for_cicp(self):
         im = make_cicp_image(
             37_888, 22_272, 12_544,
@@ -761,7 +748,6 @@ class TestCICP:
         assert out.get_typeof("cicp-colour-primaries") == 0
         assert out.get_typeof("cicp-transfer-characteristics") == 0
 
-    @skip_if_no("thumbnail")
     def test_thumbnail_averages_cicp_in_linear_light(self):
         xy = pyvips.Image.xyz(32, 32)
         cell = ((xy[0] + xy[1]) % 2) * 30_000
@@ -779,15 +765,11 @@ class TestCICP:
                                 depth=16))
         assert out(0, 0) == expected(0, 0)
 
-    @skip_if_no("thumbnail")
     @pytest.mark.parametrize("primaries,transfer,peak,fmt,space,options", [
-        #(PRIMARIES_BT709, TRANSFER_SRGB, 255, "uchar", "srgb", {}),
+        (PRIMARIES_BT709, TRANSFER_SRGB, 255, "uchar", "srgb", {}),
         (PRIMARIES_UNSPECIFIED, TRANSFER_UNSPECIFIED, 40_000, "ushort",
          "rgb16", {"output_profile": "srgb"}),
-    ], ids=[
-        # "decodable",
-        "unspecified",
-    ])
+    ], ids=["decodable", "unspecified",])
     def test_thumbnail_cicp_matches_the_same_image_untagged(
             self, primaries, transfer, peak, fmt, space, options):
         xy = pyvips.Image.xyz(32, 32)
@@ -799,9 +781,5 @@ class TestCICP:
         a = pyvips.Image.thumbnail_image(tagged, 16, **options)
         b = pyvips.Image.thumbnail_image(checks, 16, **options)
 
-        tagged.write_to_file("/home/john/tagged.v")
-        checks.write_to_file("/home/john/checks.v")
-        a.write_to_file("/home/john/a.v")
-        b.write_to_file("/home/john/b.v")
-
-        assert (a - b).abs().max() == 0
+        # we can get tiny rounding errors at the corners
+        assert (a - b).abs().max() < 2
