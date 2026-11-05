@@ -196,7 +196,7 @@ vips_sRGB_oetf(float L)
 
 /* PQ inverse EOTF (H.273 Table 3, value 16).
  * V = ((c1 + c2 * Lo^n) / (1 + c3 * Lo^n))^m
- * Lo = L * SDR_WHITE / 10000 (normalize scRGB to [0, 1] display luminance)
+ * Lo = L * HDR_REFERENCE_WHITE / 10000 (scRGB to [0, 1] display luminance)
  */
 static inline float
 vips_pq_oetf(float L)
@@ -207,7 +207,7 @@ vips_pq_oetf(float L)
 	const float c2 = 2413.0f / 4096.0f * 32.0f;
 	const float c3 = 2392.0f / 4096.0f * 32.0f;
 
-	float Lo = fmaxf(L * (SDR_WHITE / 10000.0f), 0.0f);
+	float Lo = fmaxf(L * (HDR_REFERENCE_WHITE / 10000.0f), 0.0f);
 
 	float Lo_m1 = powf(Lo, m1);
 	float numerator = c1 + c2 * Lo_m1;
@@ -249,7 +249,7 @@ static inline void
 vips_hlg_inverse_ootf(float *r, float *g, float *b,
 	const float *luminance)
 {
-	const float alpha = 1000.0f / SDR_WHITE;
+	const float alpha = 1000.0f / HDR_REFERENCE_WHITE;
 	const float inv_gamma = 1.0f / 1.2f;
 
 	float Y_d = luminance[0] * *r + luminance[1] * *g + luminance[2] * *b;
@@ -322,12 +322,10 @@ vips_scRGB2CICP_transfer(VipsCICPTransferCharacteristics transfer, float L)
 		else
 			return -vips_bt709_oetf(-L);
 	case VIPS_CICP_TRANSFER_SMPTE428:
-		/* V = (48 * Lo / 52.37)^(1/2.6)
-		 * Lo = L * SDR_WHITE / 48 (scRGB to 48 cd/m² reference)
-		 * Simplifies to V = (L * SDR_WHITE / 52.37)^(1/2.6)
+		/* V = (48 * Lo / 52.37)^(1/2.6), with Lo = L since scRGB 1.0 is the
+		 * 48 cd/m² reference white.
 		 */
-		return powf(fmaxf(L, 0.0f) * (SDR_WHITE / 52.37f),
-			1.0f / 2.6f);
+		return powf(fmaxf(L, 0.0f) * (48.0f / 52.37f), 1.0f / 2.6f);
 	default:
 		return L;
 	}
@@ -508,6 +506,8 @@ vips_scRGB2CICP_init(VipsscRGB2CICP *cicp)
  *
  * Transform an scRGB image to CICP signal. The target colour encoding
  * is specified via the optional CICP arguments.
+ *
+ * PQ and HLG take 1.0 as BT.2408 reference white (203 nits).
  *
  * Currently only @matrix_coefficients %VIPS_CICP_MATRIX_RGB and
  * full-range output is supported.
