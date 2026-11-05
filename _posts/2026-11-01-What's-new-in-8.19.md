@@ -16,8 +16,7 @@ libvips core.
 Thanks to great work by starbix and mertalev, libvips 8.19 and later now
 loading and saving images with CICP tags from AVIF, JXL, and PNG images,
 it supports loading and saving these images to UltraHDR formats like JPG
-with automatic conversion of tags, and it supports save to ICC-only formats
-with automatic profile generation. libvips also supports generating and
+with automatic conversion of tags.  libvips also supports generating and
 modifying CICP tags programmatically, including support for computing some
 image properties, such as target illumination.
 
@@ -32,9 +31,8 @@ You can convert this terrible file to something more reasonable like this:
 $ vips copy cicp-car-small.png x.jpg
 ```
 
-This will make a JPEG image. But the JPEG saver will automatically spot the
-CICP tags on this image and generate a UltraHDR image with a synthetic ICC
-profile based on the tag values.
+This will make a JPEG image, but the JPEG saver will automatically spot the
+CICP tags on this image and generate a UltraHDR image.
 
 This might now display as HDR, depending on your screen and browser:
 
