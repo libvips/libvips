@@ -40,6 +40,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcolour.h"
 
@@ -131,21 +132,29 @@ vips_scRGB2CICP_get_matrix(VipsCICPColourPrimaries primaries)
 	switch (primaries) {
 	case VIPS_CICP_COLOUR_PRIMARIES_BT2020:
 		return BT709_to_BT2020;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE431:
 		return BT709_to_DCI_P3;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE432:
 		return BT709_to_Display_P3;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_BT470M:
 		return BT709_to_BT470M;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_BT470BG:
 		return BT709_to_BT470BG;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_BT601:
 	case VIPS_CICP_COLOUR_PRIMARIES_SMPTE240:
 		return BT709_to_BT601;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_GENERIC_FILM:
 		return BT709_to_GenericFilm;
+
 	case VIPS_CICP_COLOUR_PRIMARIES_EBU3213:
 		return BT709_to_EBU3213;
+
 	default:
 		return BT709_to_BT709;
 	}
@@ -278,13 +287,16 @@ vips_scRGB2CICP_transfer(VipsCICPTransferCharacteristics transfer, float L)
 	switch (transfer) {
 	case VIPS_CICP_TRANSFER_PQ:
 		return vips_pq_oetf(L);
+
 	case VIPS_CICP_TRANSFER_HLG:
 		return vips_hlg_oetf(L);
+
 	case VIPS_CICP_TRANSFER_BT709:
 	case VIPS_CICP_TRANSFER_BT601:
 	case VIPS_CICP_TRANSFER_BT2020_10BIT:
 	case VIPS_CICP_TRANSFER_BT2020_12BIT:
 		return vips_bt709_oetf(L);
+
 	case VIPS_CICP_TRANSFER_SMPTE240: {
 		const float alpha = 1.11157219592173f;
 		const float beta = 0.022821585529445f;
@@ -295,24 +307,31 @@ vips_scRGB2CICP_transfer(VipsCICPTransferCharacteristics transfer, float L)
 			return 4.0f * L;
 		return alpha * powf(L, 0.45f) - (alpha - 1.0f);
 	}
+
 	case VIPS_CICP_TRANSFER_SRGB:
 		return vips_sRGB_oetf(L);
+
 	case VIPS_CICP_TRANSFER_BT470M:
 		return powf(fmaxf(L, 0.0f), 1.0f / 2.2f);
+
 	case VIPS_CICP_TRANSFER_BT470BG:
 		return powf(fmaxf(L, 0.0f), 1.0f / 2.8f);
+
 	case VIPS_CICP_TRANSFER_LINEAR:
 		return L;
+
 	case VIPS_CICP_TRANSFER_LOG_100:
 		/* V = 1.0 + Log10(Lc) / 2 for Lc >= 0.01, else 0.
 		 */
 		return L >= 0.01f ? 1.0f + log10f(L) / 2.0f : 0.0f;
+
 	case VIPS_CICP_TRANSFER_LOG_100_SQRT10:
 		/* V = 1.0 + Log10(Lc) / 2.5 for Lc >= Sqrt(10)/1000, else 0.
 		 */
 		return L >= 3.16227766e-3f
 			? 1.0f + log10f(L) / 2.5f
 			: 0.0f;
+
 	case VIPS_CICP_TRANSFER_IEC61966:
 	case VIPS_CICP_TRANSFER_BT1361:
 		/* BT.709 curve extended to negative values via odd symmetry.
@@ -321,11 +340,13 @@ vips_scRGB2CICP_transfer(VipsCICPTransferCharacteristics transfer, float L)
 			return vips_bt709_oetf(L);
 		else
 			return -vips_bt709_oetf(-L);
+
 	case VIPS_CICP_TRANSFER_SMPTE428:
 		/* V = (48 * Lo / 52.37)^(1/2.6), with Lo = L since scRGB 1.0 is the
 		 * 48 cd/m² reference white.
 		 */
 		return powf(fmaxf(L, 0.0f) * (48.0f / 52.37f), 1.0f / 2.6f);
+
 	default:
 		return L;
 	}
@@ -388,6 +409,26 @@ vips_scRGB2CICP_build(VipsObject *object)
 	VipsColour *colour = (VipsColour *) object;
 	VipsColourCode *code = (VipsColourCode *) object;
 
+	/* Set defaults from input.
+	 */
+	if (code->in &&
+		vips__image_is_cicp(code->in)) {
+		int cicp_primaries;
+		int cicp_transfer;
+		int cicp_matrix;
+		int cicp_range;
+		if (vips__image_get_cicp(code->in,
+			&cicp_primaries, &cicp_transfer, &cicp_matrix, &cicp_range))
+			return -1;
+
+		if (!vips_object_argument_isset(object, "colour_primaries"))
+			cicp->colour_primaries = cicp_primaries;
+		if (!vips_object_argument_isset(object, "transfer_characteristics"))
+			cicp->transfer_characteristics = cicp_transfer;
+		if (!vips_object_argument_isset(object, "matrix_coefficients"))
+			cicp->matrix_coefficients = cicp_matrix;
+	}
+
 	code->input_format = VIPS_FORMAT_FLOAT;
 	colour->input_bands = 3;
 
@@ -433,7 +474,8 @@ vips_scRGB2CICP_build(VipsObject *object)
 	vips_image_set_int(colour->out,
 		VIPS_META_CICP_COLOUR_PRIMARIES, cicp->colour_primaries);
 	vips_image_set_int(colour->out,
-		VIPS_META_CICP_TRANSFER_CHARACTERISTICS, cicp->transfer_characteristics);
+		VIPS_META_CICP_TRANSFER_CHARACTERISTICS,
+			cicp->transfer_characteristics);
 	vips_image_set_int(colour->out,
 		VIPS_META_CICP_MATRIX_COEFFICIENTS, cicp->matrix_coefficients);
 	vips_image_set_int(colour->out, VIPS_META_CICP_FULL_RANGE_FLAG, 1);
@@ -504,7 +546,8 @@ vips_scRGB2CICP_init(VipsscRGB2CICP *cicp)
  * @out: (out): output image
  * @...: `NULL`-terminated list of optional named arguments
  *
- * Transform an scRGB image to CICP signal. The target colour encoding
+ * Transform an scRGB image to CICP signal. If present, the target colour
+ * encoding is set by the CICP tags on @in. These can be overridden with the
  * is specified via the optional CICP arguments.
  *
  * PQ and HLG take 1.0 as BT.2408 reference white (203 nits).
