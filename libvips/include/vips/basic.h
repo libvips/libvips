@@ -78,6 +78,14 @@
 #define VIPS_DEPRECATED_ENUMERATOR_FOR(f)
 #endif
 
+/* glib-mkenums only recognizes versioned enumerator annotations, so use
+ * the <NAMESPACE>_DEPRECATED_ENUMERATOR_IN_<version>_FOR form it expects.
+ *
+ * See: https://gitlab.gnome.org/GNOME/glib/-/merge_requests/1984.
+ */
+#define VIPS_DEPRECATED_ENUMERATOR_IN_8_18_FOR(f) \
+	VIPS_DEPRECATED_ENUMERATOR_FOR(f)
+
 #ifdef __cplusplus
 extern "C" {
 #endif /*__cplusplus*/

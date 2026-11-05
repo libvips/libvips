@@ -651,6 +651,24 @@ class TestCICP:
         assert out.get_typeof("clli-max-content-light-level") == 0
         assert out.get_typeof("clli-max-frame-average-light-level") == 0
 
+    @skip_if_no("heifsave")
+    @pytest.mark.parametrize("mc,full_range", [(6, 1), (9, 1), (1, 0)],
+                             ids=["bt601", "bt2020", "limited"])
+    def test_heif_lossless_ignores_the_record_matrix_and_range(
+            self, mc, full_range):
+        xy = pyvips.Image.xyz(16, 16)
+        im = (xy[0] * 16).bandjoin([xy[1] * 16, (xy[0] + xy[1]) * 8]) \
+            .cast("uchar").copy(interpretation="srgb")
+        tagged = set_cicp(im.copy(), PRIMARIES_BT709, TRANSFER_SRGB,
+                          mc=mc, full_range=full_range)
+
+        buf = tagged.heifsave_buffer(compression="av1", lossless=True)
+        out = pyvips.Image.new_from_buffer(buf, "")
+
+        assert (out - im).abs().max() == 0
+        assert out.get("cicp-matrix-coefficients") == 0
+        assert out.get("cicp-full-range-flag") == 1
+
     # -- PNG regression tests --
 
     @skip_if_no("pngsave")

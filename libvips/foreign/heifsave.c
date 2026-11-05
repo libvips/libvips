@@ -343,17 +343,21 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 			options->save_two_colr_boxes_when_ICC_and_nclx_available = 1;
 #endif
 	}
-	/* Matrix coefficients have to be identity (CICP x/y/0) in lossless
-	 * mode.
-	 */
 	else if (heif->lossless) {
 		if (!(nclx = heif_nclx_color_profile_alloc())) {
 			heif_encoding_options_free(options);
 			return -1;
 		}
 
-		nclx->matrix_coefficients = heif_matrix_coefficients_RGB_GBR;
 		options->output_nclx_profile = nclx;
+	}
+
+	/* Matrix coefficients have to be identity (CICP x/y/0) and range has to be
+	 * full in lossless mode, since limited range can't hold every sample.
+	 */
+	if (heif->lossless) {
+		nclx->matrix_coefficients = heif_matrix_coefficients_RGB_GBR;
+		nclx->full_range_flag = 1;
 
 		/* Ensure nclx profile is actually written with libheif < v1.17.2.
 		 */
