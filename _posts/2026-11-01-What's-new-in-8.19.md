@@ -62,7 +62,7 @@ development version.
 
 Animated PNG images are a bit larger than GIFs, but they support full alpha
 transparency and full colour with no need for dithering. For example, this
-animated PNG has numbers moving over a transparent background:
+animated PNG has numbers moving over a textured background:
 
 ![Animated PNG](/assets/images/numbers.png)
 
