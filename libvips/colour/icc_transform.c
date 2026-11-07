@@ -267,7 +267,8 @@ vips_icc_make_lcms_format(VipsIccInfo *info, int bytes)
 /* Pick the vips format and lcms encoding for a device-space input.
  */
 static void
-vips_icc_pick_input_format(VipsColourCode *code, VipsIcc *icc, VipsIccInfo *info)
+vips_icc_pick_input_format(VipsColourCode *code,
+	VipsIcc *icc, VipsIccInfo *info)
 {
 	switch (code->in->BandFmt) {
 	case VIPS_FORMAT_FLOAT:
@@ -313,8 +314,7 @@ vips_icc_build(VipsObject *object)
 		signature = cmsGetColorSpace(icc->in_profile);
 		if (!(info = vips_icc_info(signature))) {
 			vips_error(class->nickname,
-				_("unimplemented input color space 0x%x"),
-				signature);
+				_("unimplemented input color space 0x%x"), signature);
 			return -1;
 		}
 
@@ -441,8 +441,7 @@ vips_icc_build(VipsObject *object)
 		icc->out_profile &&
 		is_pcs(icc->in_profile) &&
 		is_pcs(icc->out_profile)) {
-		vips_error(class->nickname,
-			"%s", _("no device profile"));
+		vips_error(class->nickname, "%s", _("no device profile"));
 		return -1;
 	}
 

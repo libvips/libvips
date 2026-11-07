@@ -473,7 +473,9 @@ read_hex_pair(const char *p, uint8_t *value)
  * - A line with the profile type (e.g., "exif")
  * - A line with the byte count in decimal
  * - Hex-encoded binary data (may contain whitespace)
- * source: https://clanmills.com/exiv2/book/ -> "PNG and the Zlib compression library"
+ *
+ * source: https://clanmills.com/exiv2/book/ ->
+ *		"PNG and the Zlib compression library"
  */
 static uint8_t *
 vips__parse_raw_profile(const char *text, size_t *data_size)
@@ -861,9 +863,6 @@ png2vips_header(Read *read, VipsImage *out, gboolean header_only)
 
 	/* Fetch the ICC profile. @name is useless, something like "icc" or
 	 * "ICC Profile" etc. Ignore it.
-	 *
-	 * @profile was png_charpp in libpngs < 1.5, png_bytepp is the
-	 * modern one. Ignore the warning, if any.
 	 */
 	if (png_get_iCCP(read->pPng, read->pInfo,
 			&name, &compression_type, &profile, &proflen)) {
@@ -1748,25 +1747,12 @@ vips_png_get_clli(VipsImage *in,
 {
 	int max_content_light_level;
 	int max_frame_average_light_level;
-	guint64 scaled_max_cll;
-	guint64 scaled_max_fall;
-
-	if (!vips_image_get_typeof(in, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL) ||
-		!vips_image_get_typeof(in, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL))
+	if (vips__image_get_clli(in,
+		&max_content_light_level, &max_frame_average_light_level))
 		return FALSE;
 
-	if (vips_image_get_int(in, VIPS_META_CLLI_MAX_CONTENT_LIGHT_LEVEL,
-			&max_content_light_level) ||
-		vips_image_get_int(in, VIPS_META_CLLI_MAX_FRAME_AVERAGE_LIGHT_LEVEL,
-			&max_frame_average_light_level))
-		return FALSE;
-
-	if (max_content_light_level < 0 ||
-		max_frame_average_light_level < 0)
-		return FALSE;
-
-	scaled_max_cll = (guint64) max_content_light_level * 10000;
-	scaled_max_fall = (guint64) max_frame_average_light_level * 10000;
+	guint64 scaled_max_cll = (guint64) max_content_light_level * 10000;
+	guint64 scaled_max_fall = (guint64) max_frame_average_light_level * 10000;
 	if (scaled_max_cll > PNG_UINT_31_MAX ||
 		scaled_max_fall > PNG_UINT_31_MAX)
 		return FALSE;
@@ -1987,7 +1973,7 @@ write_vips(Write *write,
 	int matrix_coefficients;
 	int full_range_flag;
 
-	if (vips__image_get_cicp(in, &colour_primaries, &transfer_characteristics,
+	if (!vips__image_get_cicp(in, &colour_primaries, &transfer_characteristics,
 			&matrix_coefficients, &full_range_flag)) {
 		png_set_cICP(write->pPng, write->pInfo,
 			(png_byte) colour_primaries,
