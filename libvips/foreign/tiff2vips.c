@@ -436,8 +436,10 @@ half_2_float(gushort h)
 	switch (exp) {
 	case 16:
 		return INFINITY * sign;
+
 	case -15:
 		return sign / (float) (1 << 14) * (prec / 1024.0F);
+
 	default:
 		return exp > 0
 			? sign * (float) (1 << exp) * (1.0F + prec / 1024.0F)

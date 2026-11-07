@@ -837,14 +837,6 @@ vips_thumbnail_build(VipsObject *object)
 	gboolean can_icc_import = vips_image_get_typeof(in, VIPS_META_ICC_NAME) ||
 		thumbnail->input_profile;
 
-	/* We have an output profile.
-	 */
-	gboolean can_icc_export = !!thumbnail->output_profile;
-
-	/* If we have a pair of profiles.
-	 */
-	gboolean can_icc_transform = can_icc_import && can_icc_export;
-
 	/* TRUE if we imported to scRGB from CICP and need to reexport to device
 	 * space before write.
 	 */
@@ -903,13 +895,14 @@ vips_thumbnail_build(VipsObject *object)
 			in = t[2];
 		}
 	}
-	else if (!can_icc_transform &&
+	else if (!thumbnail->output_profile &&
 		!can_cicp) {
 		/* Non linear mode ... interpretations like eg. LAB need to go
 		 * to sRGB or B_W for shrinking.
 		 *
 		 * We mustn't convert images which are due colour management later on
-		 * with either icc or CICP functions.
+		 * by either exporting to a specififed output profile, or which have
+		 * CICP metadata (they will be transformed by the saver).
 		 */
 		VipsInterpretation interpretation;
 
@@ -992,7 +985,7 @@ vips_thumbnail_build(VipsObject *object)
 		g_info("unpremultiplying alpha");
 
 		if (unpremultiplied_format == VIPS_FORMAT_UCHAR) {
-			/* Fast path: unpremultiply in UCHAR directly.
+			/* Fast path: unpremultiply to UCHAR directly.
 			 */
 			if (vips_unpremultiply(in, &t[6], "uchar", TRUE, NULL))
 				return -1;
@@ -1021,97 +1014,100 @@ vips_thumbnail_build(VipsObject *object)
 		vips_image_set_int(in, VIPS_META_PAGE_HEIGHT, output_page_height);
 	}
 
-	/* Colour management.
-	 */
-	if (have_cicped) {
-		g_info("re-encoding to CICP");
-
-		int cicp_primaries;
-		int cicp_transfer;
-		int cicp_matrix;
-		int cicp_range;
-		if (vips__image_get_cicp(in,
-				&cicp_primaries, &cicp_transfer, &cicp_matrix, &cicp_range) ||
-			vips_scRGB2CICP(in, &t[9],
-				"colour_primaries", cicp_primaries,
-				"transfer_characteristics", cicp_transfer,
-				"depth", source_depth,
-				NULL))
-			return -1;
-		in = t[9];
-	}
-	else if (have_imported) {
-		/* We are in PCS. Export with the output profile, if any (this
-		 * will export with the embedded input profile if there's no
-		 * output profile).
+	if (thumbnail->output_profile) {
+		/* Colour management.
 		 *
-		 * We always export as depth 8, to match the no profile case which
-		 * uses vips_colourspace(sRGB|B_W).
+		 * If we linearised with icc_import, we can just export.
 		 */
-		g_info("exporting to device space with a profile");
-		if (vips_icc_export(in, &t[9],
-				"output_profile", thumbnail->output_profile,
-				"intent", thumbnail->intent,
-				"depth", 8,
-				NULL))
-			return -1;
-		in = t[9];
-	}
-	else if (can_icc_transform) {
-		/* We can transform to the output with a pair of ICC profiles.
+		if (have_imported) {
+			/* We are in PCS. Export with the output profile, if any (this
+			 * will export with the embedded input profile if there's no
+			 * output profile).
+			 *
+			 * We always export as depth 8, to match the no profile case which
+			 * uses vips_colourspace(sRGB|B_W).
+			 */
+			g_info("exporting to device space with a profile");
+			if (vips_icc_export(in, &t[9],
+					"output_profile", thumbnail->output_profile,
+					"intent", thumbnail->intent,
+					"depth", 8,
+					NULL))
+				return -1;
+			in = t[9];
+		}
+		else {
+			/* We are in processing space, so b-w, srgb, scrgb. We can
+			 * transform. thumbnail->input_profile, can be null.
+			 */
+			g_info("transforming with supplied profiles");
+			if (vips_icc_transform(in, &t[9], thumbnail->output_profile,
+					"input_profile", thumbnail->input_profile,
+					"intent", thumbnail->intent,
+					"embedded", TRUE,
+					"depth", 8,
+					NULL))
+				return -1;
+			in = t[9];
+		}
+
+		/* Any CICP/CLLI metadata is stale after ICC export.
 		 */
-		g_info("transforming with supplied profiles");
-		if (vips_icc_transform(in, &t[9], thumbnail->output_profile,
-				"input_profile", thumbnail->input_profile,
-				"intent", thumbnail->intent,
-				"embedded", TRUE,
-				"depth", 8,
-				NULL))
-			return -1;
-
-		in = t[9];
-	}
-	else if (can_icc_export) {
-		/* We are in one of the resize space (sRGB, scRGB, B_W, GREY16, etc.)
-		 * and need to go to PCS, then export.
-		 */
-		g_info("exporting with %s", thumbnail->output_profile);
-		if (vips_colourspace(in, &t[9], VIPS_INTERPRETATION_XYZ, NULL) ||
-			vips_icc_export(t[9], &t[10],
-				"output_profile", thumbnail->output_profile,
-				"intent", thumbnail->intent,
-				"depth", 8,
-				NULL))
-			return -1;
-		in = t[10];
-	}
-	else if (thumbnail->linear) {
-		/* We are in one of the scRGB or GREY16 spaces and there's
-		 * no output profile. Output to sRGB or B_W.
-		 */
-		VipsInterpretation interpretation;
-
-		if (in->Bands < 3)
-			interpretation = VIPS_INTERPRETATION_B_W;
-		else
-			interpretation = VIPS_INTERPRETATION_sRGB;
-
-		g_info("converting to output space %s",
-			vips_enum_nick(VIPS_TYPE_INTERPRETATION, interpretation));
-		if (vips_colourspace(in, &t[9], interpretation, NULL))
-			return -1;
-		in = t[9];
-	}
-
-	/* Any CICP/CLLI metadata is stale after ICC export.
-	 */
-	if (can_icc_export) {
 		if (vips_copy(in, &t[4], NULL))
 			return -1;
 		in = t[4];
 
 		vips__image_remove_cicp(in);
 		vips__image_remove_clli(in);
+	}
+	else {
+		/* No colour management.
+		 *
+		 * Just undo any linearisation we applied.
+		 */
+		if (have_cicped) {
+			g_info("re-encoding to CICP");
+
+			int cicp_primaries;
+			int cicp_transfer;
+			int cicp_matrix;
+			int cicp_range;
+			if (vips__image_get_cicp(in,
+					&cicp_primaries, &cicp_transfer,
+					&cicp_matrix, &cicp_range) ||
+				vips_scRGB2CICP(in, &t[9],
+					"colour_primaries", cicp_primaries,
+					"transfer_characteristics", cicp_transfer,
+					"depth", source_depth,
+					NULL))
+				return -1;
+			in = t[9];
+		}
+		else if (have_imported) {
+			g_info("unlinearising with a profile");
+			if (vips_icc_export(in, &t[9],
+					"intent", thumbnail->intent,
+					"depth", 8,
+					NULL))
+				return -1;
+			in = t[9];
+		}
+		else if (thumbnail->linear) {
+			/* We did a generic conversion to linear space. Just reverse that.
+			 */
+			VipsInterpretation interpretation;
+
+			if (in->Bands < 3)
+				interpretation = VIPS_INTERPRETATION_B_W;
+			else
+				interpretation = VIPS_INTERPRETATION_sRGB;
+
+			g_info("converting to output space %s",
+				vips_enum_nick(VIPS_TYPE_INTERPRETATION, interpretation));
+			if (vips_colourspace(in, &t[9], interpretation, NULL))
+				return -1;
+			in = t[9];
+		}
 	}
 
 	if (thumbnail->auto_rotate &&
