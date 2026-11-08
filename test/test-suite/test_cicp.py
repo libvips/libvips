@@ -786,7 +786,7 @@ class TestCICP:
     @pytest.mark.parametrize("primaries,transfer,peak,fmt,space,options", [
         (PRIMARIES_BT709, TRANSFER_SRGB, 255, "uchar", "srgb", {}),
         (PRIMARIES_UNSPECIFIED, TRANSFER_UNSPECIFIED, 40_000, "ushort",
-         "rgb16", {"output_profile": "srgb"}),
+         "rgb16", {}),
     ], ids=["decodable", "unspecified",])
     def test_thumbnail_cicp_matches_the_same_image_untagged(
             self, primaries, transfer, peak, fmt, space, options):
@@ -800,4 +800,4 @@ class TestCICP:
         b = pyvips.Image.thumbnail_image(checks, 16, **options)
 
         # we can get tiny rounding errors at the corners
-        assert (a - b).abs().max() < 2
+        assert (a.colourspace("srgb") - b.colourspace("srgb")).abs().max() < 2
