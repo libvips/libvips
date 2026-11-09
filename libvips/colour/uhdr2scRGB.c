@@ -256,6 +256,7 @@ vips_uhdr2scRGB_class_init(VipsUhdr2scRGBClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
 	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
 
 	gobject_class->set_property = vips_object_set_property;
@@ -264,6 +265,8 @@ vips_uhdr2scRGB_class_init(VipsUhdr2scRGBClass *class)
 	object_class->nickname = "uhdr2scRGB";
 	object_class->description = _("transform uhdr to scRGB");
 	object_class->build = vips_uhdr2scRGB_build;
+
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
 
 	colour_class->process_line = vips_uhdr2scRGB_line;
 
@@ -290,8 +293,7 @@ vips_uhdr2scRGB_init(VipsUhdr2scRGB *uhdr)
  * @out: (out): output image
  * @...: `NULL`-terminated list of optional named arguments
  *
- * Transform a uhdr image (three band sRGB with an attached gainmap) to
- * scRGB.
+ * Deprecated, please use [method@Image.UHDR2scRGB].
  *
  * Returns: 0 on success, -1 on error
  */

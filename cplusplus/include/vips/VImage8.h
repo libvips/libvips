@@ -6460,6 +6460,9 @@ public:
 	 * @param options Set of options.
 	 * @return Output image.
 	 */
+	VImage UHDR2scRGB(VOption *options = nullptr) const;
+
+	// deprecated ABI compat
 	VImage uhdr2scRGB(VOption *options = nullptr) const;
 
 	/**
