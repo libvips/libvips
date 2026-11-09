@@ -219,9 +219,8 @@ vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
 	int transfer_characteristics;
 	int matrix_coefficients;
 	int full_range_flag;
-	int i;
 
-	if (!vips__image_get_cicp(image, &colour_primaries,
+	if (vips__image_get_cicp(image, &colour_primaries,
 			&transfer_characteristics, &matrix_coefficients,
 			&full_range_flag))
 		return FALSE;
@@ -240,7 +239,7 @@ vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
 	/* Map H.273 colour primaries to JXL primaries + white point.
 	 */
 	const CICPPrimariesEntry *pe = NULL;
-	for (i = 0; i < G_N_ELEMENTS(cicp_primaries_table); i++)
+	for (int i = 0; i < G_N_ELEMENTS(cicp_primaries_table); i++)
 		if (cicp_primaries_table[i].cicp_code == colour_primaries) {
 			pe = &cicp_primaries_table[i];
 			break;
@@ -261,7 +260,7 @@ vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
 	/* Map H.273 transfer characteristics to JXL transfer function.
 	 */
 	const CICPTransferEntry *te = NULL;
-	for (i = 0; i < G_N_ELEMENTS(cicp_transfer_table); i++)
+	for (int i = 0; i < G_N_ELEMENTS(cicp_transfer_table); i++)
 		if (cicp_transfer_table[i].cicp_code == transfer_characteristics) {
 			te = &cicp_transfer_table[i];
 			break;
