@@ -7,8 +7,7 @@ very small, simple, and is designed for HDR.
 
 libvips supports loading and saving images with CICP tags from AVIF, JXL,
 and PNG images, it supports loading and saving these images to UltraHDR
-formats like JPG with automatic conversion of tags, and it supports save to
-ICC-only formats with automatic profile generation. libvips also supports
+formats like JPG with automatic conversion of tags.  libvips also supports
 generating and modifying CICP tags programmatically, including support for
 computing some image properties, such as target illumination.
 
@@ -136,8 +135,7 @@ gainmap-scale-factor: 2
 ```
 
 The JPEG saver has seen the CICP tags and generated an UltraHDR image
-automatically using libultrahdr. Additionally, it has used the CICP tags to
-make a synthetic ICC profile which should preserve CICP colour information.
+automatically using libultrahdr.
 
 This might now display as HDR, depending on your screen and browser:
 

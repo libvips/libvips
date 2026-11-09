@@ -24,6 +24,9 @@ $ vips -l matload
 
 Please do not submit reports for untrusted loaders.
 
+The `vips_system` operation, which can be used to spawn other command line tools,
+is inherently insecure and outside the scope of this security policy.
+
 ## Reporting a Vulnerability
 
 If you think you've identified a security issue in a project under the
