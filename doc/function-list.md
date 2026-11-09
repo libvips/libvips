@@ -58,6 +58,7 @@ API docs each function links to for more details.
 | `Oklab2Oklch` | Transform oklab to oklch | [method@Image.Oklab2Oklch] |
 | `Oklab2XYZ` | Transform oklab to xyz | [method@Image.Oklab2XYZ] |
 | `Oklch2Oklab` | Transform oklch to oklab | [method@Image.Oklch2Oklab] |
+| `UHDR2scRGB` | Transform uhdr to scrgb | [method@Image.UHDR2scRGB] |
 | `XYZ2CMYK` | Transform xyz to cmyk | [method@Image.XYZ2CMYK] |
 | `XYZ2Lab` | Transform xyz to lab | [method@Image.XYZ2Lab] |
 | `XYZ2Oklab` | Transform xyz to oklab | [method@Image.XYZ2Oklab] |
@@ -358,7 +359,6 @@ API docs each function links to for more details.
 | `tilecache` | Cache an image as a set of tiles | [method@Image.tilecache] |
 | `tonelut` | Build a look-up table | [ctor@Image.tonelut] |
 | `transpose3d` | Transpose3d an image | [method@Image.transpose3d] |
-| `UHDR2scRGB` | Transform uhdr to scrgb | [method@Image.UHDR2scRGB] |
 | `uhdrload` | Load a uhdr image | [ctor@Image.uhdrload] |
 | `uhdrload_buffer` | Load a uhdr image | [ctor@Image.uhdrload_buffer] |
 | `uhdrload_source` | Load a uhdr image | [ctor@Image.uhdrload_source] |
