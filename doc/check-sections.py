@@ -63,6 +63,9 @@ def check_sections(args):
         if 'moved-to' in node.attrib:
             continue
 
+        if 'shadowed-by' in node.attrib:
+            continue
+
         child = node.find('goi:doc', namespace)
         if child is None:
             continue
