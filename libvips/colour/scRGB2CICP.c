@@ -454,12 +454,9 @@ vips_scRGB2CICP_build(VipsObject *object)
 	 * quantization. For now, only identity matrix (0) with
 	 * full range is supported.
 	 */
-	if (cicp->matrix_coefficients != VIPS_CICP_MATRIX_RGB) {
-		vips_error(class->nickname, "%s",
-			_("only matrix-coefficients 0 (identity/RGB) "
-			  "is currently supported"));
-		return -1;
-	}
+	if (cicp->matrix_coefficients != VIPS_CICP_MATRIX_RGB)
+		g_warning("scRGB2CICP: only matrix-coefficients 0 (identity/RGB) "
+			  "currently supported");
 
 	memcpy(cicp->conversion_matrix,
 		vips_scRGB2CICP_get_matrix(cicp->colour_primaries),
