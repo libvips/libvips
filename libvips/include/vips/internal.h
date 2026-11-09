@@ -435,7 +435,9 @@ char *vips__get_iso8601(void);
 
 /* TODO(kleisauke): VIPS_API is required by the heif and jxl modules.
  */
+VIPS_API
 int vips__image_is_cicp(VipsImage *image);
+VIPS_API
 gboolean vips__image_is_cicp_hdr(VipsImage *image);
 VIPS_API
 int vips__image_get_cicp(VipsImage *image,
