@@ -1394,6 +1394,8 @@ vips_foreign_save_new_from_string(const char *string)
 /* Apply a set of saveable flags.
  *
  *  - unpack rad and labq
+ *  - if the saver supports CICP and we have an scRGB-looking image,
+ *		transform to CICP
  *	- if the saver supports mono and we have a mono-looking image, we are done
  *	- if the saver supports CMYK and we have a CMYK-looking image, we are done
  *	- if this is a CMYK-looking image, import to XYZ
@@ -1448,6 +1450,38 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
+	/* If this saver supports CICP and this looks like a UHDR image,
+	 * transform to scRGB.
+	 */
+	if ((saveable & VIPS_FOREIGN_SAVEABLE_CICP) &&
+		vips__image_is_uhdr(in) &&
+		in->Type == VIPS_INTERPRETATION_sRGB) {
+
+		if (vips_uhdr2scRGB(in, &out, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+	}
+
+	/* If this saver supports CICP and this is an scRGB image, transform to
+	 * CICP.
+	 */
+	if ((saveable & VIPS_FOREIGN_SAVEABLE_CICP) &&
+		in->Type == VIPS_INTERPRETATION_scRGB) {
+
+		if (vips_scRGB2CICP(in, &out,
+			"transfer-characteristics", VIPS_CICP_TRANSFER_PQ,
+			"depth", 16,
+			NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+	}
+
 	/* If this is a mono-ish looking image and our saver supports mono, we
 	 * are done. We are not too strict about what a mono image is! We need to
 	 * work for things like "extract_band 1" on an RGB image.
@@ -1481,11 +1515,11 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If the saver supports RGB, go to RGB, or RGB16 if this is a ushort
+	/* If the saver supports RGB, go to RGB, or RGB16 if this is a RGB16
 	 * source.
 	 */
 	if (saveable & VIPS_FOREIGN_SAVEABLE_RGB) {
-		interpretation = sixteenbit ?
+		interpretation = in->Type == VIPS_INTERPRETATION_RGB16 ?
 			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
 
 		if (vips_colourspace(in, &out, interpretation, NULL)) {

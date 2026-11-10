@@ -842,7 +842,9 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 	object_class->build = vips_foreign_save_heif_build;
 
 	save_class->saveable =
-		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA;
+		VIPS_FOREIGN_SAVEABLE_RGB |
+		VIPS_FOREIGN_SAVEABLE_ALPHA |
+		VIPS_FOREIGN_SAVEABLE_CICP;
 	save_class->format_table = vips_heif_bandfmt;
 
 	VIPS_ARG_INT(class, "Q", 10,
