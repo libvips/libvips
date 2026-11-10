@@ -1968,13 +1968,17 @@ write_vips(Write *write,
 	}
 
 #ifdef PNG_cICP_SUPPORTED
-	int colour_primaries;
-	int transfer_characteristics;
-	int matrix_coefficients;
-	int full_range_flag;
+	if (vips__image_is_cicp(in)) {
+		int colour_primaries;
+		int transfer_characteristics;
+		int matrix_coefficients;
+		int full_range_flag;
 
-	if (!vips__image_get_cicp(in, &colour_primaries, &transfer_characteristics,
-			&matrix_coefficients, &full_range_flag)) {
+		if (vips__image_get_cicp(in,
+			&colour_primaries, &transfer_characteristics,
+			&matrix_coefficients, &full_range_flag))
+			return -1;
+
 		png_set_cICP(write->pPng, write->pInfo,
 			(png_byte) colour_primaries,
 			(png_byte) transfer_characteristics,
@@ -1989,12 +1993,14 @@ write_vips(Write *write,
 
 #if defined(PNG_cLLI_SUPPORTED) && \
 	defined(PNG_FIXED_POINT_SUPPORTED)
-	png_uint_32 max_cll;
-	png_uint_32 max_fall;
+	if (vips__image_is_clli(in)) {
+		png_uint_32 max_cll;
+		png_uint_32 max_fall;
+		if (vips_png_get_clli(in, &max_cll, &max_fall))
+			return -1;
 
-	if (vips_png_get_clli(in, &max_cll, &max_fall))
-		png_set_cLLI_fixed(write->pPng, write->pInfo,
-			max_cll, max_fall);
+		png_set_cLLI_fixed(write->pPng, write->pInfo, max_cll, max_fall);
+	}
 #endif /*PNG_cLLI_SUPPORTED*/
 
 #ifdef HAVE_QUANTIZATION

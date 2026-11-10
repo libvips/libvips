@@ -215,14 +215,16 @@ static gboolean
 vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
 	JxlColorEncoding *enc)
 {
+	if (!vips__image_is_cicp(image))
+		return FALSE;
+
 	int colour_primaries;
 	int transfer_characteristics;
 	int matrix_coefficients;
 	int full_range_flag;
-
-	if (vips__image_get_cicp(image, &colour_primaries,
-			&transfer_characteristics, &matrix_coefficients,
-			&full_range_flag))
+	if (vips__image_get_cicp(image,
+		&colour_primaries, &transfer_characteristics,
+		&matrix_coefficients, &full_range_flag))
 		return FALSE;
 
 	/* JXL pixel data is always RGB, so we only need identity matrix
