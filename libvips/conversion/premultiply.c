@@ -153,6 +153,22 @@ vips_premultiply_gen(VipsRegion *out_region,
 			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		if (premultiply->uchar &&
+			im->BandFmt == VIPS_FORMAT_UCHAR &&
+			bands == 4 &&
+			max_alpha == 255.0)
+			for (int x = 0; x < width; x++) {
+				int alpha = in[3];
+				int scale = alpha + ((alpha + 1) >> 8);
+
+				out[0] = (in[0] * scale + 128) >> 8;
+				out[1] = (in[1] * scale + 128) >> 8;
+				out[2] = (in[2] * scale + 128) >> 8;
+				out[3] = alpha;
+
+				in += 4;
+				out += 4;
+			}
+		else if (premultiply->uchar &&
 			im->BandFmt == VIPS_FORMAT_UCHAR)
 			// fast uchar -> uchar path
 			for (int x = 0; x < width; x++) {
