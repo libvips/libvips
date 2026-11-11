@@ -434,10 +434,15 @@ vips_text_build(VipsObject *object)
 #ifdef HAVE_FONTCONFIG
 	if (text->fontfile &&
 		!g_hash_table_contains(vips_text_fontfiles, text->fontfile)) {
+		FcConfig *config = NULL;
+		if (PANGO_IS_FC_FONT_MAP(vips_text_fontmap))
+			config = pango_fc_font_map_get_config(
+				PANGO_FC_FONT_MAP(vips_text_fontmap));
+
 		/* This can fail if you eg. add the same font from two
 		 * different files. Just warn.
 		 */
-		if (!FcConfigAppFontAddFile(NULL,
+		if (!FcConfigAppFontAddFile(config,
 				(const FcChar8 *) text->fontfile))
 			g_warning("unable to load fontfile \"%s\"",
 				text->fontfile);
