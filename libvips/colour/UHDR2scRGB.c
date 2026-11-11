@@ -285,7 +285,7 @@ vips_UHDR2scRGB_init(VipsUHDR2scRGB *uhdr)
 }
 
 /**
- * vips_UHDR2scRGB: (method) (rename-to vips_uhdr2scRGB)
+ * vips_UHDR2scRGB: (method)
  * @in: input image
  * @out: (out): output image
  * @...: `NULL`-terminated list of optional named arguments
@@ -352,7 +352,7 @@ vips_uhdr2scRGB_init(VipsUhdr2scRGB *uhdr)
 }
 
 /**
- * vips_uhdr2scRGB: (method)
+ * vips_uhdr2scRGB: (skip)
  * @in: input image
  * @out: (out): output image
  * @...: `NULL`-terminated list of optional named arguments
