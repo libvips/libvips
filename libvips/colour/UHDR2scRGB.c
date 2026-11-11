@@ -308,7 +308,7 @@ vips_UHDR2scRGB(VipsImage *in, VipsImage **out, ...)
 	return result;
 }
 
-/* Kept for compat. Use vips_UHDR2scRGB() now.
+/* Kept for compat. Use vips_UHDR2scRGB() instead.
  */
 typedef VipsUHDR2scRGB VipsUhdr2scRGB;
 typedef VipsColourClass VipsUhdr2scRGBClass;
