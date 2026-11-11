@@ -307,3 +307,69 @@ vips_UHDR2scRGB(VipsImage *in, VipsImage **out, ...)
 
 	return result;
 }
+
+/* Kept for compat. Use vips_UHDR2scRGB() now.
+ */
+typedef VipsUHDR2scRGB VipsUhdr2scRGB;
+typedef VipsColourClass VipsUhdr2scRGBClass;
+
+G_DEFINE_TYPE(VipsUhdr2scRGB, vips_uhdr2scRGB, VIPS_TYPE_COLOUR);
+
+static void
+vips_uhdr2scRGB_class_init(VipsUhdr2scRGBClass *class)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
+	object_class->nickname = "uhdr2scRGB";
+	object_class->description = _("transform uhdr to scRGB");
+	object_class->build = vips_UHDR2scRGB_build;
+
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
+
+	colour_class->process_line = vips_UHDR2scRGB_line;
+
+	VIPS_ARG_IMAGE(class, "in", 1,
+		_("Input"),
+		_("Input image"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsColourTransform, in));
+}
+
+static void
+vips_uhdr2scRGB_init(VipsUhdr2scRGB *uhdr)
+{
+	VipsColour *colour = VIPS_COLOUR(uhdr);
+
+	colour->interpretation = VIPS_INTERPRETATION_scRGB;
+	colour->format = VIPS_FORMAT_FLOAT;
+	colour->bands = 3;
+}
+
+/**
+ * vips_uhdr2scRGB: (method)
+ * @in: input image
+ * @out: (out): output image
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Deprecated, please use [method@Image.UHDR2scRGB].
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_uhdr2scRGB(VipsImage *in, VipsImage **out, ...)
+{
+	va_list ap;
+	int result;
+
+	va_start(ap, out);
+	result = vips_call_split("uhdr2scRGB", ap, in, out);
+	va_end(ap);
+
+	return result;
+}
