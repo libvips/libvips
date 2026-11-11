@@ -166,7 +166,6 @@ PRIMARIES_GREY_CASES = [
 ]
 
 
-@skip_if_no("CICP2scRGB")
 class TestCICP:
     """Test CICP to scRGB conversion accuracy and colourspace routing."""
 
@@ -801,3 +800,99 @@ class TestCICP:
 
         # we can get tiny rounding errors at the corners
         assert (a.colourspace("srgb") - b.colourspace("srgb")).abs().max() < 2
+
+    @skip_if_no("heifsave")
+    def test_thumnail_uhdr_to_avif(self):
+        thumb = pyvips.Image.thumbnail(UHDR_FILE, 100)
+        buffer = thumb.write_to_buffer(".avif")
+        thumb2 = pyvips.Image.new_from_buffer(buffer, "")
+
+        # should come back as ushort CICP
+        assert thumb2.format == "ushort"
+        assert thumb2.get("cicp-transfer-characteristics") == 16
+
+        # peak lum should be close
+        max1 = thumb.uhdr2scRGB().max()
+        max2 = thumb2.CICP2scRGB().max()
+        assert abs(max1 - max2) < 1
+
+    @skip_if_no("pngsave")
+    def test_thumnail_uhdr_to_png(self):
+        thumb = pyvips.Image.thumbnail(UHDR_FILE, 100)
+        buffer = thumb.write_to_buffer(".png")
+        thumb2 = pyvips.Image.new_from_buffer(buffer, "")
+
+        # should come back as 16-bit cicp
+        assert thumb2.format == "ushort"
+        assert thumb2.get("cicp-transfer-characteristics") == 16
+
+        # peak lum should be close
+        max1 = thumb.uhdr2scRGB().max()
+        max2 = thumb2.CICP2scRGB().max()
+        assert abs(max1 - max2) < 1
+
+    def test_thumnail_uhdr_to_uhdr(self):
+        thumb = pyvips.Image.thumbnail(UHDR_FILE, 100)
+        buffer = thumb.write_to_buffer(".jpg")
+        thumb2 = pyvips.Image.new_from_buffer(buffer, "")
+
+        # should come back as UHDR
+        assert thumb2.format == "uchar"
+        assert thumb2.get("gainmap-hdr-capacity-min") == 1
+
+        # peak lum should be close
+        max1 = thumb.uhdr2scRGB().max()
+        max2 = thumb2.uhdr2scRGB().max()
+        assert abs(max1 - max2) < 2
+
+    def test_thumnail_avif_to_avif(self):
+        image = pyvips.Image.thumbnail(UHDR_FILE, 300)
+        avif = image.write_to_buffer(".avif")
+
+        thumb = pyvips.Image.thumbnail_buffer(avif, 100)
+        buffer = thumb.write_to_buffer(".avif")
+        thumb2 = pyvips.Image.new_from_buffer(buffer, "")
+
+        # should come back as 16-bit cicp
+        assert thumb2.format == "ushort"
+        assert thumb2.get("cicp-transfer-characteristics") == 16
+
+        # peak lum should be close
+        max1 = thumb.CICP2scRGB().max()
+        max2 = thumb2.CICP2scRGB().max()
+        assert abs(max1 - max2) < 2
+
+    def test_thumnail_avif_to_png(self):
+        image = pyvips.Image.thumbnail(UHDR_FILE, 300)
+        avif = image.write_to_buffer(".avif")
+
+        thumb = pyvips.Image.thumbnail_buffer(avif, 100)
+        buffer = thumb.write_to_buffer(".png")
+        thumb2 = pyvips.Image.new_from_buffer(buffer, "")
+
+        # should come back as 16-bit cicp
+        assert thumb2.format == "ushort"
+        assert thumb2.get("cicp-transfer-characteristics") == 16
+
+        # peak lum should be close
+        max1 = thumb.CICP2scRGB().max()
+        max2 = thumb2.CICP2scRGB().max()
+        assert abs(max1 - max2) < 2
+
+    def test_thumnail_avif_to_uhdr(self):
+        image = pyvips.Image.thumbnail(UHDR_FILE, 300)
+        avif = image.write_to_buffer(".avif")
+
+        thumb = pyvips.Image.thumbnail_buffer(avif, 100)
+        buffer = thumb.write_to_buffer(".jpg")
+        thumb2 = pyvips.Image.new_from_buffer(buffer, "")
+
+        # should come back as uhdr
+        assert thumb2.format == "uchar"
+        assert thumb2.get("gainmap-hdr-capacity-min") == 1
+
+        # peak lum should be close
+        max1 = thumb.CICP2scRGB().max()
+        max2 = thumb2.uhdr2scRGB().max()
+        assert abs(max1 - max2) < 1
+
