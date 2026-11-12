@@ -646,10 +646,8 @@ class TestCICP:
                              primaries=PRIMARIES_BT2020,
                              transfer=TRANSFER_PQ)
         add_clli(im, max_content_light_level=70000)
-        buf = im.heifsave_buffer(compression="av1")
-        out = pyvips.Image.new_from_buffer(buf, "")
-        assert out.get_typeof("clli-max-content-light-level") == 0
-        assert out.get_typeof("clli-max-frame-average-light-level") == 0
+        with pytest.raises(pyvips.error.Error, match="CLLI: values out of range"):
+            im.heifsave_buffer(compression="av1")
 
     @skip_if_no("heifsave")
     @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif >= 1.19.0")
