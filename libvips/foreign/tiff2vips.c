@@ -2711,7 +2711,7 @@ rtiff_strip_read_interleaved(Rtiff *rtiff,
 		int strips_per_plane = 1 + (page_height - 1) / read_height;
 		int strip_height = VIPS_MIN(read_height,
 			page_height - strip_y);
-		int pels_per_strip = page_width * strip_height;
+		gint64 pels_per_strip = (gint64) page_width * strip_height;
 		int bytes_per_sample = bits_per_sample >> 3;
 
 		int i, j, k;
@@ -2940,6 +2940,18 @@ rtiff_read_stripwise(Rtiff *rtiff, VipsImage *out)
 	 * function runs inside the cache lock.
 	 */
 	if (rtiff->header.separate) {
+		/* We interleave planes a sample at a time, so we can only
+		 * handle a whole number of bytes per sample. Sub-byte images
+		 * used to be decoded as all zeros, since the interleave loop
+		 * copied nothing.
+		 */
+		if (rtiff->header.bits_per_sample % 8 != 0 ||
+			rtiff->header.bits_per_sample == 0) {
+			vips_error("tiff2vips", "%s", _("plane-separated images "
+											"with sub-byte samples not supported"));
+			return -1;
+		}
+
 		if (!(rtiff->plane_buf = VIPS_MALLOC(out,
 				  rtiff->header.read_size)))
 			return -1;
