@@ -638,7 +638,7 @@ static int
 rad2vips_process_line(char *line, Read *read)
 {
 	if (isformat(line)) {
-		if (formatval(line, read->format))
+		if (!formatval(read->format, line))
 			return -1;
 	}
 	else if (isexpos(line)) {
@@ -695,12 +695,19 @@ rad2vips_get_header(Read *read, VipsImage *out)
 		return -1;
 	}
 
-	if (strcmp(read->format, COLRFMT) == 0)
-		interpretation = VIPS_INTERPRETATION_scRGB;
-	else if (strcmp(read->format, CIEFMT) == 0)
-		interpretation = VIPS_INTERPRETATION_XYZ;
-	else
-		interpretation = VIPS_INTERPRETATION_MULTIBAND;
+	/* The FORMAT= header line used to be ignored because the arguments
+	 * of formatval() were swapped, so any file was tagged as scRGB.
+	 * We can only decode 32-bit RLE RGBE, so be honest and reject
+	 * anything else, rather than silently mislabelling it. XYZE files
+	 * (CIEFMT) could never have worked anyway: RAD coding is restricted
+	 * to scRGB, see vips_image_sanity().
+	 */
+	if (strcmp(read->format, COLRFMT) != 0) {
+		vips_error("rad2vips",
+			_("unsupported Radiance format \"%s\""), read->format);
+		return -1;
+	}
+	interpretation = VIPS_INTERPRETATION_scRGB;
 
 	width = scanlen(&read->rs);
 	height = numscans(&read->rs);
