@@ -1457,7 +1457,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		vips__image_is_uhdr(in) &&
 		in->Type == VIPS_INTERPRETATION_sRGB) {
 
-		if (vips_uhdr2scRGB(in, &out, NULL)) {
+		if (vips_UHDR2scRGB(in, &out, NULL)) {
 			g_object_unref(in);
 			return -1;
 		}
@@ -1473,6 +1473,7 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 
 		if (vips_scRGB2CICP(in, &out,
 			"transfer-characteristics", VIPS_CICP_TRANSFER_PQ,
+			"colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_BT2020,
 			"depth", 16,
 			NULL)) {
 			g_object_unref(in);

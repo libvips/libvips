@@ -1,4 +1,4 @@
-/* Turn uhdr (RGB plus a gainmap) to scRGB colourspace.
+/* Turn UHDR (RGB plus a gainmap) to scRGB colourspace.
  *
  * 26/11/25
  * 	- from XYZ2scRGB.c.c
@@ -54,7 +54,7 @@ vips__image_is_uhdr(VipsImage *image)
 		vips_image_get_typeof(image, "gainmap-offset-hdr");
 }
 
-typedef struct _VipsUhdr2scRGB {
+typedef struct _VipsUHDR2scRGB {
 	VipsColour parent;
 
 	VipsImage *in;
@@ -71,11 +71,11 @@ typedef struct _VipsUhdr2scRGB {
 	 */
 	VipsImage *gainmap;
 
-} VipsUhdr2scRGB;
+} VipsUHDR2scRGB;
 
-typedef VipsColourClass VipsUhdr2scRGBClass;
+typedef VipsColourClass VipsUHDR2scRGBClass;
 
-G_DEFINE_TYPE(VipsUhdr2scRGB, vips_uhdr2scRGB, VIPS_TYPE_COLOUR);
+G_DEFINE_TYPE(VipsUHDR2scRGB, vips_UHDR2scRGB, VIPS_TYPE_COLOUR);
 
 /* Derived from the apache-licensed applyGain() method of libuhdr.
  */
@@ -83,7 +83,7 @@ G_DEFINE_TYPE(VipsUhdr2scRGB, vips_uhdr2scRGB, VIPS_TYPE_COLOUR);
 /* Monochrome gainmap, colour image. Probably the most common case.
  */
 static void
-vips_uhdr2scRGB_mono(VipsUhdr2scRGB *uhdr,
+vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 	VipsPel *out, VipsPel **in, int width)
 {
 	VipsPel *restrict p1 = in[0];
@@ -118,7 +118,7 @@ vips_uhdr2scRGB_mono(VipsUhdr2scRGB *uhdr,
 /* Colour image, colour gainmap. Allowed, but not common.
  */
 static void
-vips_uhdr2scRGB_rgb(VipsUhdr2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
+vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 {
 	VipsPel *restrict p1 = in[0];
 	VipsPel *restrict p2 = in[1];
@@ -161,17 +161,17 @@ vips_uhdr2scRGB_rgb(VipsUhdr2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 }
 
 static void
-vips_uhdr2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
+vips_UHDR2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
-	VipsUhdr2scRGB *uhdr = (VipsUhdr2scRGB *) colour;
+	VipsUHDR2scRGB *uhdr = (VipsUHDR2scRGB *) colour;
 
 	g_assert(colour->in[0]->Xsize == colour->in[1]->Xsize);
 	g_assert(colour->in[0]->Ysize == colour->in[1]->Ysize);
 
 	if (uhdr->gainmap->Bands == 1)
-		vips_uhdr2scRGB_mono(uhdr, out, in, width);
+		vips_UHDR2scRGB_mono(uhdr, out, in, width);
 	else
-		vips_uhdr2scRGB_rgb(uhdr, out, in, width);
+		vips_UHDR2scRGB_rgb(uhdr, out, in, width);
 }
 
 // pass in the array to fill, size must match
@@ -195,11 +195,11 @@ image_get_array_float(VipsImage *image, const char *name,
 }
 
 static int
-vips_uhdr2scRGB_build(VipsObject *object)
+vips_UHDR2scRGB_build(VipsObject *object)
 {
 	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsColour *colour = VIPS_COLOUR(object);
-	VipsUhdr2scRGB *uhdr = (VipsUhdr2scRGB *) object;
+	VipsUHDR2scRGB *uhdr = (VipsUHDR2scRGB *) object;
 
 	/* We allow one-band gainmap plus 3 band main image, so we have to turn
 	 * off the automatic detach-attach alpha processing.
@@ -268,14 +268,14 @@ vips_uhdr2scRGB_build(VipsObject *object)
 		colour->in[1] = uhdr->gainmap;
 	}
 
-	if (VIPS_OBJECT_CLASS(vips_uhdr2scRGB_parent_class)->build(object))
+	if (VIPS_OBJECT_CLASS(vips_UHDR2scRGB_parent_class)->build(object))
 		return -1;
 
 	return 0;
 }
 
 static void
-vips_uhdr2scRGB_class_init(VipsUhdr2scRGBClass *class)
+vips_UHDR2scRGB_class_init(VipsUHDR2scRGBClass *class)
 {
 	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
 	VipsObjectClass *object_class = (VipsObjectClass *) class;
@@ -284,11 +284,78 @@ vips_uhdr2scRGB_class_init(VipsUhdr2scRGBClass *class)
 	gobject_class->set_property = vips_object_set_property;
 	gobject_class->get_property = vips_object_get_property;
 
+	object_class->nickname = "UHDR2scRGB";
+	object_class->description = _("transform UHDR to scRGB");
+	object_class->build = vips_UHDR2scRGB_build;
+
+	colour_class->process_line = vips_UHDR2scRGB_line;
+
+	VIPS_ARG_IMAGE(class, "in", 1,
+		_("Input"),
+		_("Input image"),
+		VIPS_ARGUMENT_REQUIRED_INPUT,
+		G_STRUCT_OFFSET(VipsColourTransform, in));
+}
+
+static void
+vips_UHDR2scRGB_init(VipsUHDR2scRGB *uhdr)
+{
+	VipsColour *colour = VIPS_COLOUR(uhdr);
+
+	colour->interpretation = VIPS_INTERPRETATION_scRGB;
+	colour->format = VIPS_FORMAT_FLOAT;
+	colour->bands = 3;
+}
+
+/**
+ * vips_UHDR2scRGB: (method)
+ * @in: input image
+ * @out: (out): output image
+ * @...: `NULL`-terminated list of optional named arguments
+ *
+ * Transform a UHDR image (three band sRGB with an attached gainmap) to
+ * scRGB.
+ *
+ * Returns: 0 on success, -1 on error
+ */
+int
+vips_UHDR2scRGB(VipsImage *in, VipsImage **out, ...)
+{
+	va_list ap;
+	int result;
+
+	va_start(ap, out);
+	result = vips_call_split("UHDR2scRGB", ap, in, out);
+	va_end(ap);
+
+	return result;
+}
+
+/* Kept for compat. Use vips_UHDR2scRGB() instead.
+ */
+typedef VipsUHDR2scRGB VipsUhdr2scRGB;
+typedef VipsColourClass VipsUhdr2scRGBClass;
+
+G_DEFINE_TYPE(VipsUhdr2scRGB, vips_uhdr2scRGB, VIPS_TYPE_COLOUR);
+
+static void
+vips_uhdr2scRGB_class_init(VipsUhdr2scRGBClass *class)
+{
+	GObjectClass *gobject_class = G_OBJECT_CLASS(class);
+	VipsObjectClass *object_class = (VipsObjectClass *) class;
+	VipsOperationClass *operation_class = (VipsOperationClass *) class;
+	VipsColourClass *colour_class = VIPS_COLOUR_CLASS(class);
+
+	gobject_class->set_property = vips_object_set_property;
+	gobject_class->get_property = vips_object_get_property;
+
 	object_class->nickname = "uhdr2scRGB";
 	object_class->description = _("transform uhdr to scRGB");
-	object_class->build = vips_uhdr2scRGB_build;
+	object_class->build = vips_UHDR2scRGB_build;
 
-	colour_class->process_line = vips_uhdr2scRGB_line;
+	operation_class->flags |= VIPS_OPERATION_DEPRECATED;
+
+	colour_class->process_line = vips_UHDR2scRGB_line;
 
 	VIPS_ARG_IMAGE(class, "in", 1,
 		_("Input"),
@@ -308,13 +375,12 @@ vips_uhdr2scRGB_init(VipsUhdr2scRGB *uhdr)
 }
 
 /**
- * vips_uhdr2scRGB: (method)
+ * vips_uhdr2scRGB: (skip)
  * @in: input image
  * @out: (out): output image
  * @...: `NULL`-terminated list of optional named arguments
  *
- * Transform a uhdr image (three band sRGB with an attached gainmap) to
- * scRGB.
+ * Deprecated, please use [method@Image.UHDR2scRGB].
  *
  * Returns: 0 on success, -1 on error
  */

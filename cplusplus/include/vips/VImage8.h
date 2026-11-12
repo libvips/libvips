@@ -2249,6 +2249,13 @@ public:
 	VImage Oklch2Oklab(VOption *options = nullptr) const;
 
 	/**
+	 * Transform uhdr to scrgb.
+	 * @param options Set of options.
+	 * @return Output image.
+	 */
+	VImage UHDR2scRGB(VOption *options = nullptr) const;
+
+	/**
 	 * Transform xyz to cmyk.
 	 * @param options Set of options.
 	 * @return Output image.
@@ -6460,6 +6467,7 @@ public:
 	 * @param options Set of options.
 	 * @return Output image.
 	 */
+	G_DEPRECATED
 	VImage uhdr2scRGB(VOption *options = nullptr) const;
 
 	/**

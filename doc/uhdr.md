@@ -165,14 +165,14 @@ path in libvips avoids this problem.
 ## Full HDR processing
 
 You can transform an UltraHDR SDR plus gainmap image to full HDR with
-[method@Image.uhdr2scRGB]. This will compute an scRGB image: a three-band
+[method@Image.UHDR2scRGB]. This will compute an scRGB image: a three-band
 float with sRGB primaries, black to white as linear 0-1, and out of range
 values used to represent HDR.
 
 For example:
 
 ```
-$ vips uhdr2scRGB ultra-hdr.jpg x.v
+$ vips UHDR2scRGB ultra-hdr.jpg x.v
 $ vipsheader x.v
 x.v: 3840x2160 float, 3 bands, scrgb, uhdrload
 $ vips max x.v

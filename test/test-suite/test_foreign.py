@@ -474,16 +474,16 @@ class TestForeign:
     def test_uhdrsave_roundtrip(self):
         im = pyvips.Image.uhdrload(UHDR_FILE)
         data = im.uhdrsave_buffer()
-        im_hdr2 = pyvips.Image.uhdrload_buffer(data).uhdr2scRGB()
-        im_hdr = pyvips.Image.uhdrload(UHDR_FILE).uhdr2scRGB()
+        im_hdr2 = pyvips.Image.uhdrload_buffer(data).UHDR2scRGB()
+        im_hdr = pyvips.Image.uhdrload(UHDR_FILE).UHDR2scRGB()
 
         assert (im_hdr2 - im_hdr).abs().avg() < 0.02
 
     @skip_if_no("uhdrsave")
     def test_uhdrsave_roundtrip_hdr(self):
-        im = pyvips.Image.uhdrload(UHDR_FILE).uhdr2scRGB()
+        im = pyvips.Image.uhdrload(UHDR_FILE).UHDR2scRGB()
         data = im.uhdrsave_buffer()
-        im2 = pyvips.Image.uhdrload_buffer(data).uhdr2scRGB()
+        im2 = pyvips.Image.uhdrload_buffer(data).UHDR2scRGB()
 
         assert (im2 - im).abs().avg() < 0.05
 
