@@ -19,6 +19,7 @@ tdb 8.18.8
 - pngload: allow PNG images containing invalid CMF [lovell]
 - heifload: raise security limits on references, again
 - tiffload: missing free on error path [AploSec]
+- text: prevent fontconfig init race condition [lovell]
 
 20/9/26 8.18.7
 

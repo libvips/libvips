@@ -380,14 +380,14 @@ if libwebp_dep.found()
     cfg_var.set('HAVE_LIBWEBP', true)
 endif
 
-pangocairo_dep = dependency('pangocairo', version: '>=1.32.6', required: get_option('pangocairo'))
+pangocairo_dep = dependency('pangocairo', version: '>=1.38.0', required: get_option('pangocairo'))
 if pangocairo_dep.found()
     external_deps += pangocairo_dep
     cfg_var.set('HAVE_PANGOCAIRO', true)
 endif
 
 # text rendering with fontconfig requires pangoft2
-pangoft2_dep = dependency('pangoft2', version: '>=1.32.6', required: get_option('fontconfig'))
+pangoft2_dep = dependency('pangoft2', version: '>=1.38.0', required: get_option('fontconfig'))
 fontconfig_dep = dependency('fontconfig', required: get_option('fontconfig'))
 fontconfig_found = pangoft2_dep.found() and fontconfig_dep.found() and pangocairo_dep.found()
 if fontconfig_found
