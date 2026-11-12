@@ -1885,12 +1885,22 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 	/* Read any IPTC metadata.
 	 */
 	if (TIFFGetField(rtiff->tiff, TIFFTAG_RICHTIFFIPTC, &data_len, &data)) {
-		vips_image_set_blob_copy(out, VIPS_META_IPTC_NAME, data, data_len);
+		/* Before libtiff 4.3.0, this tag was an array of 32-bit words,
+		 * so the count needs scaling to bytes for older libtiff.
+		 */
+		const TIFFField *field = TIFFFieldWithTag(rtiff->tiff,
+			TIFFTAG_RICHTIFFIPTC);
+		size_t iptc_size = data_len;
+
+		if (field && TIFFFieldDataType(field) == TIFF_LONG)
+			iptc_size *= 4;
+
+		vips_image_set_blob_copy(out, VIPS_META_IPTC_NAME, data, iptc_size);
 
 		/* Older versions of libvips used this misspelt name :-( attach
 		 * under this name too for compatibility.
 		 */
-		vips_image_set_blob_copy(out, "ipct-data", data, data_len);
+		vips_image_set_blob_copy(out, "ipct-data", data, iptc_size);
 	}
 
 	/* Read any photoshop metadata.
