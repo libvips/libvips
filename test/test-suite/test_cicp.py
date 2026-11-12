@@ -821,14 +821,22 @@ class TestCICP:
         (".jpg", ".avif"),
         (".jpg", ".png"),
         (".jpg", ".jpg"),
+        (".jpg", ".jxl"),
 
         (".avif", ".avif"),
         (".avif", ".png"),
         (".avif", ".jpg"),
+        (".avif", ".jxl"),
 
         (".png", ".avif"),
         (".png", ".png"),
         (".png", ".jpg"),
+        (".png", ".jxl"),
+
+        (".jxl", ".avif"),
+        (".jxl", ".png"),
+        (".jxl", ".jpg"),
+        (".jxl", ".jxl"),
     ])
     def test_thumnail_hdr_format(self, begin_format, end_format):
         uhdr = pyvips.Image.thumbnail(UHDR_FILE, 100)
