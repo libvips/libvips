@@ -347,6 +347,11 @@ struct _Wtiff {
 	VipsPel *tbuf; /* TIFF output buffer */
 	int tls;	   /* Tile line size */
 
+	/* Padded copy of the IPTC blob. libtiff < 4.3.0 counts RICHTIFFIPTC
+	 * in 32-bit words, so we need a buffer rounded up to a whole number
+	 * of words.
+	 */
+	VipsPel *iptc_padded;
 	int compression;				/* libtiff compression type */
 	int Q;							/* JPEG q-factor, webp level */
 	int predictor;					/* libtiff predictor type */
@@ -603,18 +608,33 @@ wtiff_embed_iptc(Wtiff *wtiff, TIFF *tif)
 			&data, &size))
 		return -1;
 
-	/* For no very good reason, libtiff stores IPTC as an array of
-	 * long, not byte.
+	if (size == 0)
+		return 0;
+
+	/* Before libtiff 4.3.0, RICHTIFFIPTC was an array of 32-bit words,
+	 * so the count had to be given in words; since 4.3.0 the count has
+	 * been a byte count. Ask libtiff which convention this build uses
+	 * rather than guessing.
 	 */
-	if (size & 3) {
-		g_warning("rounding up IPTC data length");
-		size /= 4;
-		size += 1;
+	const TIFFField *field = TIFFFieldWithTag(tif, TIFFTAG_RICHTIFFIPTC);
+
+	if (field && TIFFFieldDataType(field) == TIFF_LONG) {
+		/* Word count: libtiff writes count * 4 bytes, so we must copy
+		 * the blob to a buffer rounded up to a whole number of words.
+		 */
+		size_t words = (size + 3) / 4;
+		VipsPel *padded;
+
+		VIPS_FREE(wtiff->iptc_padded);
+		if (!(padded = g_malloc0(words * 4)))
+			return -1;
+		memcpy(padded, data, size);
+		wtiff->iptc_padded = padded;
+
+		set_data64(tif, TIFFTAG_RICHTIFFIPTC, words, padded);
 	}
 	else
-		size /= 4;
-
-	set_data64(tif, TIFFTAG_RICHTIFFIPTC, size, data);
+		set_data64(tif, TIFFTAG_RICHTIFFIPTC, size, data);
 
 #ifdef DEBUG
 	printf("vips2tiff: attached IPTC from meta\n");
@@ -1237,6 +1257,7 @@ wtiff_free(Wtiff *wtiff)
 
 	VIPS_UNREF(wtiff->ready);
 	VIPS_FREE(wtiff->tbuf);
+	VIPS_FREE(wtiff->iptc_padded);
 	g_mutex_clear(&wtiff->lock);
 	VIPS_FREE(wtiff);
 }
