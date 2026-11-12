@@ -906,8 +906,18 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 			return -1;
 	}
 
+	/* Compute the total height of all pages in 64 bits: ysize * n can
+	 * wrap in 32 bits. Check like the other multipage loaders do.
+	 */
+	gint64 final_height = (gint64) jxl->info.ysize * jxl->n;
+	if (final_height < 1 ||
+		final_height >= VIPS_MAX_COORD) {
+		vips_error(class->nickname, "%s", _("image dimensions overflow"));
+		return -1;
+	}
+
 	vips_image_init_fields(out,
-		jxl->info.xsize, jxl->info.ysize * jxl->n, jxl->format.num_channels,
+		jxl->info.xsize, final_height, jxl->format.num_channels,
 		format, VIPS_CODING_NONE, interpretation, 1.0, 1.0);
 
 	/* Even though this is a full image reader, we hint thinstrip since
