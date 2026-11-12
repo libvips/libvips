@@ -817,6 +817,7 @@ class TestCICP:
 
     @skip_if_no("heifsave")
     @skip_if_no("pngsave")
+    @skip_if_no("uhdrsave")
     @pytest.mark.parametrize("begin_format,end_format", [
         (".jpg", ".avif"),
         (".jpg", ".png"),
