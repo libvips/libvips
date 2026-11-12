@@ -268,11 +268,13 @@ vips_premultiply_build(VipsObject *object)
 		in->BandFmt == VIPS_FORMAT_UCHAR) {
 		conversion->out->BandFmt = VIPS_FORMAT_UCHAR;
 
-		for (int i = 0; i < 256; i++) {
-			double clip = VIPS_CLIP(0, i, premultiply->max_alpha);
+		if (in->Bands != 4 ||
+			premultiply->max_alpha != 255.0)
+			for (int i = 0; i < 256; i++) {
+				double clip = VIPS_CLIP(0, i, premultiply->max_alpha);
 
-			premultiply->scale[i] = 256 * clip / premultiply->max_alpha;
-		}
+				premultiply->scale[i] = 256 * clip / premultiply->max_alpha;
+			}
 	}
 	else if (in->BandFmt == VIPS_FORMAT_DOUBLE)
 		conversion->out->BandFmt = VIPS_FORMAT_DOUBLE;
