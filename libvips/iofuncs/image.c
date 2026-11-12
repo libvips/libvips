@@ -3564,6 +3564,20 @@ vips_image_wio_input(VipsImage *image)
 			   "converting openin image for wio input\n");
 #endif /*DEBUG_IO*/
 
+		/* Only a warning is issued on a truncated file at open time, so
+		 * check again here: we are about to point data at the whole
+		 * image, so any missing pixels would be read past the end of
+		 * the mapping. The windowed pixel path makes the same check,
+		 * see vips_window_set().
+		 */
+		if (image->file_length < image->sizeof_header +
+				(gint64) VIPS_IMAGE_SIZEOF_IMAGE(image)) {
+			vips_error("vips_image_wio_input",
+				_("unable to read data for \"%s\", %s"),
+				image->filename, _("file has been truncated"));
+			return -1;
+		}
+
 		/* just mmap() the whole thing.
 		 */
 		if (vips_mapfile(image))
