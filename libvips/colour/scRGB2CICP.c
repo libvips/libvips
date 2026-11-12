@@ -455,7 +455,7 @@ vips_scRGB2CICP_build(VipsObject *object)
 	 * full range is supported.
 	 */
 	if (cicp->matrix_coefficients != VIPS_CICP_MATRIX_RGB)
-		g_warning("scRGB2CICP: only matrix-coefficients 0 (identity/RGB) "
+		g_info("scRGB2CICP: only matrix-coefficients 0 (identity/RGB) "
 			  "currently supported");
 
 	memcpy(cicp->conversion_matrix,
