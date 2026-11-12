@@ -336,6 +336,14 @@ static nsgif_error nsgif__recover_frame(
 	size_t height = gif->info.height;
 	size_t width  = gif->info.width;
 
+	/* The allocation of prev_frame in nsgif__record_frame() can have
+	 * failed; the caller falls back to restoring the background on
+	 * error.
+	 */
+	if (prev_frame == NULL) {
+		return NSGIF_ERR_OOM;
+	}
+
 	memcpy(bitmap, prev_frame, height * width * pixel_bytes);
 
 	return NSGIF_OK;
