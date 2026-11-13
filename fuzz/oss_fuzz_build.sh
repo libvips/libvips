@@ -294,3 +294,11 @@ rm -v $OUT/generate_vips_dict
 # Copy options and remaining dictionary files to $OUT
 find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT \;
 find fuzz -name '*_fuzzer.options' -exec cp -v '{}' $OUT \;
+
+# Generate seed corpus for mosaic_balance_fuzzer
+mosaic_seed_dir=$(mktemp -d)
+LD_LIBRARY_PATH="$OUT/lib" $OUT/generate_mosaic_seeds "$mosaic_seed_dir"
+rm -f $OUT/mosaic_balance_fuzzer_seed_corpus.zip
+zip -rq $OUT/mosaic_balance_fuzzer_seed_corpus.zip "$mosaic_seed_dir"
+rm -rf "$mosaic_seed_dir"
+rm -v $OUT/generate_mosaic_seeds
