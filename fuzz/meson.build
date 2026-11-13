@@ -19,6 +19,7 @@ fuzz_progs = [
     'thumbnail_fuzzer',
     'smartcrop_fuzzer',
     'mosaic_fuzzer',
+    'sink_screen_fuzzer',
     'vips_fuzzer'
 ]
 
