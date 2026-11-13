@@ -19,6 +19,7 @@ fuzz_progs = [
     'thumbnail_fuzzer',
     'smartcrop_fuzzer',
     'mosaic_fuzzer',
+    'save_options_fuzzer',
     'vips_fuzzer'
 ]
 
@@ -110,5 +111,10 @@ fuzz_execs += executable('generic_buffer_with_args_fuzzer',
 
 executable('generate_vips_dict',
     'generate_vips_dict.c',
+    dependencies: libvips_dep,
+)
+
+executable('generate_save_options_seeds',
+    'generate_save_options_seeds.c',
     dependencies: libvips_dep,
 )
