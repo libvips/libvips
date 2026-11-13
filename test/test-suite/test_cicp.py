@@ -5,71 +5,6 @@ import pytest
 import pyvips
 from helpers import *
 
-
-def make_cicp_image(r, g, b, primaries=1, transfer=1, mc=0, fmt="uchar",
-                    width=1, height=1):
-    """Create a CICP-tagged image with given pixel values."""
-
-    if fmt == "uchar":
-        im = (pyvips.Image.black(width, height, bands=3) +
-              [r, g, b]).cast("uchar")
-    elif fmt == "ushort":
-        im = (pyvips.Image.black(width, height, bands=3) +
-              [r, g, b]).cast("ushort")
-    else:
-        raise ValueError(f"unsupported format: {fmt}")
-
-    im = im.copy(interpretation="rgb16" if fmt == "ushort" else "srgb")
-    im.set_type(pyvips.GValue.gint_type, "cicp-colour-primaries", primaries)
-    im.set_type(
-        pyvips.GValue.gint_type, "cicp-transfer-characteristics", transfer
-    )
-    im.set_type(pyvips.GValue.gint_type, "cicp-matrix-coefficients", mc)
-    im.set_type(pyvips.GValue.gint_type, "cicp-full-range-flag", 1)
-
-    return im
-
-
-def add_clli(im, max_content_light_level=1624,
-             max_frame_average_light_level=182):
-    im.set_type(
-        pyvips.GValue.gint_type,
-        "clli-max-content-light-level",
-        max_content_light_level
-    )
-    im.set_type(
-        pyvips.GValue.gint_type,
-        "clli-max-frame-average-light-level",
-        max_frame_average_light_level
-    )
-
-    return im
-
-
-def set_cicp(im, primaries, transfer, mc=0, full_range=1):
-    for name, value in [("colour-primaries", primaries),
-                        ("transfer-characteristics", transfer),
-                        ("matrix-coefficients", mc),
-                        ("full-range-flag", full_range)]:
-        im.set_type(pyvips.GValue.gint_type, f"cicp-{name}", value)
-
-    return im
-
-
-def is_hdr(image):
-    return image.get_typeof("cicp-transfer-characteristics") or \
-        image.get_typeof("gainmap-hdr-capacity-min")
-
-
-def to_scRGB(image):
-    if image.get_typeof("cicp-transfer-characteristics"):
-        return image.CICP2scRGB()
-    elif image.get_typeof("gainmap-hdr-capacity-min"):
-        return image.UHDR2scRGB()
-    else:
-        return image.colourspace("scrgb")
-
-
 # CICP transfer characteristic codes
 TRANSFER_BT709 = 1
 TRANSFER_UNSPECIFIED = 2
@@ -818,6 +753,7 @@ class TestCICP:
     @skip_if_no("heifsave")
     @skip_if_no("pngsave")
     @skip_if_no("uhdrsave")
+    @skip_if_no_CICP_PNG()
     @pytest.mark.parametrize("begin_format,end_format", [
         (".jpg", ".avif"),
         (".jpg", ".png"),

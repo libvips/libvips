@@ -1183,7 +1183,7 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	 */
 	VipsBandFormat format =
 		in->BandFmt == VIPS_FORMAT_USHORT && jxl->bitdepth <= 8 ?
-		VIPS_FORMAT_UCHAR : VIPS_FORMAT_USHORT;
+		VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
 	if (vips_cast(in, &t[2], format, NULL))
 		return -1;
 	in = t[2];
