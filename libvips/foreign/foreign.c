@@ -1420,12 +1420,18 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	 */
 	g_object_ref(in);
 
+	/* Early exit phase.
+	 */
+
 	/* ANY? we are done.
 	 */
 	if (saveable == VIPS_FOREIGN_SAVEABLE_ANY) {
 		*ready = in;
 		return 0;
 	}
+
+	/* Preprocessing for all images phase.
+	 */
 
 	/* If this is VIPS_CODING_LABQ, we can go straight to RGB.
 	 */
@@ -1465,19 +1471,24 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If we have an scRGB image and this saver supports scRGB, we are done.
+	/* Pick an exit path phase.
 	 */
-	if (in->Type == VIPS_INTERPRETATION_scRGB &&
-		(saveable & VIPS_FOREIGN_SAVEABLE_scRGB)) {
+
+	/* If this saver supports scRGB and we have an scRGB image that hasn't
+	 * come from uhdr, we are done.
+	 */
+	if ((saveable & VIPS_FOREIGN_SAVEABLE_scRGB) &&
+		in->Type == VIPS_INTERPRETATION_scRGB &&
+		!vips__image_is_uhdr(in)) {
 		*ready = in;
 		return 0;
 	}
 
-	/* If we have an scRGB image and this saver supports CICP,
-	 * transform to CICP.
+	/* If this saver supports CICP and we have an scRGB image,
+	 * transform to CICP and we are done.
 	 */
-	if (in->Type == VIPS_INTERPRETATION_scRGB &&
-		(saveable & VIPS_FOREIGN_SAVEABLE_CICP)) {
+	if ((saveable & VIPS_FOREIGN_SAVEABLE_CICP) &&
+		in->Type == VIPS_INTERPRETATION_scRGB) {
 		if (vips_scRGB2CICP(in, &out,
 			"transfer-characteristics", VIPS_CICP_TRANSFER_PQ,
 			"colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_BT2020,
@@ -1488,6 +1499,18 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		}
 		g_object_unref(in);
 		in = out;
+
+		*ready = in;
+		return 0;
+	}
+
+	/* If this save supports scRGB and we have scRGB, we are done.
+	 */
+	if ((saveable & VIPS_FOREIGN_SAVEABLE_scRGB) &&
+		in->Type == VIPS_INTERPRETATION_scRGB &&
+		in->Bands >= 3) {
+		*ready = in;
+		return 0;
 	}
 
 	/* If this is a mono-ish looking image and our saver supports mono, we
@@ -1525,11 +1548,10 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If the saver supports RGB but not scRGB, go to RGB, or RGB16 if
+	/* If the saver supports RGB, go to RGB, or RGB16 if
 	 * this is a RGB16 source.
 	 */
-	if ((saveable & VIPS_FOREIGN_SAVEABLE_RGB) &&
-		!(saveable & VIPS_FOREIGN_SAVEABLE_scRGB)) {
+	if ((saveable & VIPS_FOREIGN_SAVEABLE_RGB)) {
 		interpretation = in->Type == VIPS_INTERPRETATION_RGB16 ?
 			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
 
