@@ -1465,12 +1465,19 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If this saver supports CICP and this is an scRGB image, transform to
-	 * CICP.
+	/* If we have an scRGB image and this saver supports scRGB, we are done.
 	 */
-	if ((saveable & VIPS_FOREIGN_SAVEABLE_CICP) &&
-		in->Type == VIPS_INTERPRETATION_scRGB) {
+	if (in->Type == VIPS_INTERPRETATION_scRGB &&
+		(saveable & VIPS_FOREIGN_SAVEABLE_scRGB)) {
+		*ready = in;
+		return 0;
+	}
 
+	/* If we have an scRGB image and this saver supports CICP,
+	 * transform to CICP.
+	 */
+	if (in->Type == VIPS_INTERPRETATION_scRGB &&
+		(saveable & VIPS_FOREIGN_SAVEABLE_CICP)) {
 		if (vips_scRGB2CICP(in, &out,
 			"transfer-characteristics", VIPS_CICP_TRANSFER_PQ,
 			"colour-primaries", VIPS_CICP_COLOUR_PRIMARIES_BT2020,
@@ -1484,7 +1491,9 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 	}
 
 	/* If this is a mono-ish looking image and our saver supports mono, we
-	 * are done. We are not too strict about what a mono image is! We need to
+	 * are done.
+	 *
+	 * We are not too strict about what a mono image is! We need to
 	 * work for things like "extract_band 1" on an RGB image.
 	 */
 	if ((saveable & VIPS_FOREIGN_SAVEABLE_MONO) &&
@@ -1516,10 +1525,11 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		in = out;
 	}
 
-	/* If the saver supports RGB, go to RGB, or RGB16 if this is a RGB16
-	 * source.
+	/* If the saver supports RGB but not scRGB, go to RGB, or RGB16 if
+	 * this is a RGB16 source.
 	 */
-	if (saveable & VIPS_FOREIGN_SAVEABLE_RGB) {
+	if ((saveable & VIPS_FOREIGN_SAVEABLE_RGB) &&
+		!(saveable & VIPS_FOREIGN_SAVEABLE_scRGB)) {
 		interpretation = in->Type == VIPS_INTERPRETATION_RGB16 ?
 			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
 

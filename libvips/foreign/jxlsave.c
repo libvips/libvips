@@ -36,8 +36,8 @@
  */
 
 /*
-#define DEBUG
  */
+#define DEBUG
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -1308,7 +1308,8 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 		VIPS_FOREIGN_SAVEABLE_MONO |
 		VIPS_FOREIGN_SAVEABLE_RGB |
 		VIPS_FOREIGN_SAVEABLE_ALPHA |
-		VIPS_FOREIGN_SAVEABLE_CICP;
+		VIPS_FOREIGN_SAVEABLE_CICP |
+		VIPS_FOREIGN_SAVEABLE_scRGB;
 	save_class->format_table = bandfmt_jxl;
 
 	VIPS_ARG_INT(class, "tier", 10,

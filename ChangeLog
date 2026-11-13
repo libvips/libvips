@@ -67,7 +67,7 @@ date-tbd 8.19.0
 - add vips_image_get_blob_value()
 - dzsave: reject imagename containing path separator [lovell]
 - heifsave: force identity matrix for lossless cicp [mertalev]
-- add VIPS_FOREIGN_SAVEABLE_CICP
+- add VIPS_FOREIGN_SAVEABLE_CICP, SAVEABLE_scRGB
 - rename uhdr2scRGB as UHDR2scRGB
 
 tdb 8.18.8
