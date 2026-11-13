@@ -217,7 +217,7 @@ vips_UHDR2scRGB_build(VipsObject *object)
 	if (uhdr->in &&
 		!vips__image_is_uhdr(uhdr->in)) {
 		vips_error(class->nickname, "%s", _("not a UHDR image, "
-				"or uhdr is not enabled"));
+				"or UHDR is not enabled"));
 		return -1;
 	}
 

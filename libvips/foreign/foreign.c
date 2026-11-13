@@ -1392,19 +1392,6 @@ vips_foreign_save_new_from_string(const char *string)
 }
 
 /* Apply a set of saveable flags.
- *
- *  - unpack rad and labq
- *  - if the saver supports CICP and we have an scRGB-looking image,
- *		transform to CICP
- *	- if the saver supports mono and we have a mono-looking image, we are done
- *	- if the saver supports CMYK and we have a CMYK-looking image, we are done
- *	- if this is a CMYK-looking image, import to XYZ
- *	- if the saver supports rgb, go to rgb
- *	- if the saver supports cmyk, go to cmyk
- *	- if the saver supports mono, go to mono
- *
- * we output 16 bit images if the source is 16 bits ... a later stage
- * uses the format[] table to cut this down to the size the saver wants
  */
 static int
 vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
