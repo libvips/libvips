@@ -685,7 +685,7 @@ parser_element_end_handler(void *user_data, const XML_Char *name)
 
 	if (strcmp(name, "field") == 0) {
 		if (vep->header) {
-			if (strcmp(name, "Hist") == 0)
+			if (strcmp(vep->name, "Hist") == 0)
 				set_history(vep->image,
 					(char *) vips_dbuf_string(&vep->dbuf,
 						NULL));
