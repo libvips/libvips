@@ -12,7 +12,7 @@
  *	- corrected default gamma curve from BT.709 to sRGB
  *	- removed ICC profile, it was incorrect and most raw files don't
  *	  have one
- 
+
  */
 
 /*
@@ -444,15 +444,14 @@ static VipsInterpretation
 vips_foreign_load_dcraw_interpretation(VipsForeignLoadDcRaw *raw, int bands)
 {
 	if (bands < 3)
-		return raw->bitdepth > 8 ?
-			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
+		return raw->bitdepth > 8 ? VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
 
 	if (raw->bitdepth > 8)
 		return VIPS_INTERPRETATION_RGB16;
 
-	if(raw->output_color == 1)
+	if (raw->output_color == 1)
 		return VIPS_INTERPRETATION_sRGB;
-		
+
 	return VIPS_INTERPRETATION_RGB;
 }
 
@@ -853,7 +852,7 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * default 8.
  *
  * Set @output_color to control the output colorspace.
- * 0=raw, 1=sRGB, 2=Adobe, 3=Wide, 4=ProPhoto, 5=XYZ (Unsupported), 
+ * 0=raw, 1=sRGB, 2=Adobe, 3=Wide, 4=ProPhoto, 5=XYZ (Unsupported),
  * 6=ACES, 7=DCI-P3, 8=Rec. 2020
  * default 1.
  *
