@@ -155,9 +155,8 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 	 */
 	raw->raw_processor->params.half_size = raw->half_size;
 
-
 	/* Not supporting XYZ
-	*/
+	 */
 	if (raw->output_color == 5) {
 		vips_error(class->nickname, "%s", _("bad output_color"));
 		return -1;
@@ -471,11 +470,9 @@ vips_foreign_load_dcraw_interpretation(VipsForeignLoadDcRaw *raw, int bands)
 		return VIPS_INTERPRETATION_XYZ;
 
 	if (raw->bitdepth > 8)
-		return bands < 3 ?
-			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_RGB16;
+		return bands < 3 ? VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_RGB16;
 
-	return bands < 3 ?
-		VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB;
+	return bands < 3 ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB;
 }
 
 static int
