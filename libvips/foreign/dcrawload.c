@@ -1,13 +1,18 @@
 /* load RAW camera files with libraw
  *
  *
- * 10/11/26 chrisabra
- *  - change the default gamma curve and report back correct ICC profile
  *  15/8/25 dvdkon
  *	- handle image rotation
  * 15/6/26
  *	- add raw-preview-data, the largest embedded preview jpeg
  *	- add half_size
+ * 14/11/26 chrisabra
+ *	- add output_color
+ *	- add no_auto_bright
+ *	- corrected default gamma curve from BT.709 to sRGB
+ *	- removed ICC profile, it was incorrect and most raw files don't
+ *	  have one
+ 
  */
 
 /*
@@ -158,7 +163,7 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 	/* Not supporting XYZ
 	 */
 	if (raw->output_color == 5) {
-		vips_error(class->nickname, "%s", _("bad output_color"));
+		vips_error(class->nickname, "%s", _("unsupported output_color"));
 		return -1;
 	}
 
@@ -192,11 +197,6 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 		raw->raw_processor->params.gamm[1] = 16.0;
 		break;
 
-	case 5: // CIE XYZ
-		raw->raw_processor->params.gamm[0] = 1.0;
-		raw->raw_processor->params.gamm[1] = 1.0;
-		break;
-
 	case 6: // ACES
 		raw->raw_processor->params.gamm[0] = 1.0;
 		raw->raw_processor->params.gamm[1] = 1.0;
@@ -214,13 +214,14 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 
 	default:
 		vips_error(class->nickname, "%s", _("bad output_color"));
+		return -1;
 	}
 
 	/* Apply camera white balance.
 	 */
 	raw->raw_processor->params.use_camera_wb = 1;
 
-	/* Apply camera white balance.
+	/* Set 'No auto brightness'.
 	 */
 	raw->raw_processor->params.no_auto_bright = raw->no_auto_bright;
 
@@ -317,27 +318,6 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	vips_image_set_string(image, "raw-lens",
 		raw->raw_processor->lens.Lens);
 #endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)*/
-
-	VipsBlob *profile = NULL;
-
-	const char *profile_name =
-		raw->processed ? (raw->processed->colors == 1 ? "sgrey" : "srgb") : (raw->raw_processor->idata.colors == 1 ? "sgrey" : "srgb");
-
-	if (vips_profile_load(profile_name, &profile, NULL))
-		return -1;
-
-	if (profile) {
-		size_t length;
-		const void *data = vips_blob_get(profile, &length);
-
-		vips_image_set_blob_copy(
-			image,
-			VIPS_META_ICC_NAME,
-			data,
-			length);
-
-		vips_area_unref((VipsArea *) profile);
-	}
 
 	int orientation;
 	switch (raw->raw_processor->sizes.flip) {
@@ -463,16 +443,10 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 static VipsInterpretation
 vips_foreign_load_dcraw_interpretation(VipsForeignLoadDcRaw *raw, int bands)
 {
-	if (raw->output_color == 0)
-		return VIPS_INTERPRETATION_RGB;
-
-	if (raw->output_color == 5)
-		return VIPS_INTERPRETATION_XYZ;
-
 	if (raw->bitdepth > 8)
 		return bands < 3 ? VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_RGB16;
 
-	return bands < 3 ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB;
+	return bands < 3 ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_RGB;
 }
 
 static int
@@ -635,7 +609,7 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 		0, 8, 1);
 
 	VIPS_ARG_BOOL(class, "no_auto_bright", 15,
-		_("No Auto Brightness"),
+		_("No auto-brightness"),
 		_("Disables histogram based auto-brightness"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, no_auto_bright),
@@ -860,7 +834,7 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * many others.
  *
  * The loader applies demosaicing and basic processing to produce an RGB or
- * grayscale image suitable for further processing. It attaches an ICC profile
+ * grayscale image suitable for further processing. It sets the interpretation
  * matching the output colour space, and copies XMP metadata if present.
  *
  * The loader will search for embedded, JPEG-encoded thumbnail and preview
@@ -872,7 +846,8 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * default 8.
  *
  * Set @output_color to control the output colorspace.
- * 0=raw, 1=sRGB, 2=Adobe, 3=Wide, 4=ProPhoto, 5=XYZ, 6=ACES, 7=DCI-P3, 8=Rec. 2020
+ * 0=raw, 1=sRGB, 2=Adobe, 3=Wide, 4=ProPhoto, 5=XYZ (Unsupported), 
+ * 6=ACES, 7=DCI-P3, 8=Rec. 2020
  * default 1.
  *
  * Set @no_auto_bright to disable auto-brightness
@@ -881,6 +856,7 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
+ *     * @output_color: `gint`, Output colorspace
  *     * @no_auto_bright: `gboolean`, disable auto-brightening
  *
  * Returns: 0 on success, -1 on error.
