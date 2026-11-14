@@ -1487,6 +1487,16 @@ vips_foreign_apply_saveable(VipsImage *in, VipsImage **ready,
 		g_object_unref(in);
 		in = out;
 
+		/* Any ICC profile will now be useless.
+		 */
+		if (vips_copy(in, &out, NULL)) {
+			g_object_unref(in);
+			return -1;
+		}
+		g_object_unref(in);
+		in = out;
+		vips_image_remove(in, VIPS_META_ICC_NAME);
+
 		*ready = in;
 		return 0;
 	}
