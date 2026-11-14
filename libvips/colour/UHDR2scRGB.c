@@ -43,6 +43,17 @@
 
 #include "pcolour.h"
 
+gboolean
+vips__image_is_uhdr(VipsImage *image)
+{
+	return
+		vips_image_get_typeof(image, "gainmap-max-content-boost") &&
+		vips_image_get_typeof(image, "gainmap-min-content-boost") &&
+		vips_image_get_typeof(image, "gainmap-gamma") &&
+		vips_image_get_typeof(image, "gainmap-offset-sdr") &&
+		vips_image_get_typeof(image, "gainmap-offset-hdr");
+}
+
 typedef struct _VipsUHDR2scRGB {
 	VipsColour parent;
 
@@ -197,6 +208,18 @@ vips_UHDR2scRGB_build(VipsObject *object)
 
 	colour->n = 2;
 	colour->in = (VipsImage **) vips_object_local_array(object, 2);
+
+	/* Helpful error if this is not a UHDR image.
+	 *
+	 * UHDR images can also be missing fields if we've been built without
+	 * UHDR support.
+	 */
+	if (uhdr->in &&
+		!vips__image_is_uhdr(uhdr->in)) {
+		vips_error(class->nickname, "%s", _("not a UHDR image, "
+				"or UHDR is not enabled"));
+		return -1;
+	}
 
 	/* Get the gainmap image metadata.
 	 */

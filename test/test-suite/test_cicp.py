@@ -5,57 +5,6 @@ import pytest
 import pyvips
 from helpers import *
 
-
-def make_cicp_image(r, g, b, primaries=1, transfer=1, mc=0, fmt="uchar",
-                    width=1, height=1):
-    """Create a CICP-tagged image with given pixel values."""
-
-    if fmt == "uchar":
-        im = (pyvips.Image.black(width, height, bands=3) +
-              [r, g, b]).cast("uchar")
-    elif fmt == "ushort":
-        im = (pyvips.Image.black(width, height, bands=3) +
-              [r, g, b]).cast("ushort")
-    else:
-        raise ValueError(f"unsupported format: {fmt}")
-
-    im = im.copy(interpretation="rgb16" if fmt == "ushort" else "srgb")
-    im.set_type(pyvips.GValue.gint_type, "cicp-colour-primaries", primaries)
-    im.set_type(
-        pyvips.GValue.gint_type, "cicp-transfer-characteristics", transfer
-    )
-    im.set_type(pyvips.GValue.gint_type, "cicp-matrix-coefficients", mc)
-    im.set_type(pyvips.GValue.gint_type, "cicp-full-range-flag", 1)
-
-    return im
-
-
-def add_clli(im, max_content_light_level=1624,
-             max_frame_average_light_level=182):
-    im.set_type(
-        pyvips.GValue.gint_type,
-        "clli-max-content-light-level",
-        max_content_light_level
-    )
-    im.set_type(
-        pyvips.GValue.gint_type,
-        "clli-max-frame-average-light-level",
-        max_frame_average_light_level
-    )
-
-    return im
-
-
-def set_cicp(im, primaries, transfer, mc=0, full_range=1):
-    for name, value in [("colour-primaries", primaries),
-                        ("transfer-characteristics", transfer),
-                        ("matrix-coefficients", mc),
-                        ("full-range-flag", full_range)]:
-        im.set_type(pyvips.GValue.gint_type, f"cicp-{name}", value)
-
-    return im
-
-
 # CICP transfer characteristic codes
 TRANSFER_BT709 = 1
 TRANSFER_UNSPECIFIED = 2
@@ -166,7 +115,6 @@ PRIMARIES_GREY_CASES = [
 ]
 
 
-@skip_if_no("CICP2scRGB")
 class TestCICP:
     """Test CICP to scRGB conversion accuracy and colourspace routing."""
 
@@ -633,10 +581,8 @@ class TestCICP:
                              primaries=PRIMARIES_BT2020,
                              transfer=TRANSFER_PQ)
         add_clli(im, max_content_light_level=70000)
-        buf = im.heifsave_buffer(compression="av1")
-        out = pyvips.Image.new_from_buffer(buf, "")
-        assert out.get_typeof("clli-max-content-light-level") == 0
-        assert out.get_typeof("clli-max-frame-average-light-level") == 0
+        with pytest.raises(pyvips.error.Error, match="CLLI: values out of range"):
+            im.heifsave_buffer(compression="av1")
 
     @skip_if_no("heifsave")
     @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libheif >= 1.19.0")
@@ -801,3 +747,44 @@ class TestCICP:
 
         # we can get tiny rounding errors at the corners
         assert (a.colourspace("srgb") - b.colourspace("srgb")).abs().max() < 2
+
+    @skip_if_no("heifsave")
+    @skip_if_no("pngsave")
+    @skip_if_no("uhdrsave")
+    @skip_if_no_CICP_PNG()
+    @pytest.mark.parametrize("begin_format,end_format", [
+        (".jpg", ".avif"),
+        (".jpg", ".png"),
+        (".jpg", ".jpg"),
+        (".jpg", ".jxl"),
+
+        (".avif", ".avif"),
+        (".avif", ".png"),
+        (".avif", ".jpg"),
+        (".avif", ".jxl"),
+
+        (".png", ".avif"),
+        (".png", ".png"),
+        (".png", ".jpg"),
+        (".png", ".jxl"),
+
+        (".jxl", ".avif"),
+        (".jxl", ".png"),
+        (".jxl", ".jpg"),
+        (".jxl", ".jxl"),
+    ])
+    def test_thumnail_hdr_format(self, begin_format, end_format):
+        uhdr = pyvips.Image.thumbnail(UHDR_FILE, 100)
+        base = uhdr.write_to_buffer(begin_format)
+
+        # copy_memory() to make sure we can reuse this result
+        thumb = pyvips.Image.thumbnail_buffer(base, 50).copy_memory()
+        buffer = thumb.write_to_buffer(end_format)
+        thumb2 = pyvips.Image.new_from_buffer(buffer, "")
+
+        assert is_hdr(thumb)
+        assert is_hdr(thumb2)
+
+        max1 = to_scRGB(thumb).max()
+        max2 = to_scRGB(thumb2).max()
+        assert abs(max1 - max2) < 2

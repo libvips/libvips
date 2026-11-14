@@ -269,3 +269,77 @@ def run_image2(message, left, right, fn):
              lambda x, y: run_fn2(fn, x, y))
     run_cmp2(message, left, right, 10, 10,
              lambda x, y: run_fn2(fn, x, y))
+
+
+def make_cicp_image(r, g, b, primaries=1, transfer=1, mc=0, fmt="uchar",
+                    width=1, height=1):
+    """Create a CICP-tagged image with given pixel values."""
+
+    if fmt == "uchar":
+        im = (pyvips.Image.black(width, height, bands=3) +
+              [r, g, b]).cast("uchar")
+    elif fmt == "ushort":
+        im = (pyvips.Image.black(width, height, bands=3) +
+              [r, g, b]).cast("ushort")
+    else:
+        raise ValueError(f"unsupported format: {fmt}")
+
+    im = im.copy(interpretation="rgb16" if fmt == "ushort" else "srgb")
+    im.set_type(pyvips.GValue.gint_type, "cicp-colour-primaries", primaries)
+    im.set_type(
+        pyvips.GValue.gint_type, "cicp-transfer-characteristics", transfer
+    )
+    im.set_type(pyvips.GValue.gint_type, "cicp-matrix-coefficients", mc)
+    im.set_type(pyvips.GValue.gint_type, "cicp-full-range-flag", 1)
+
+    return im
+
+
+def add_clli(im, max_content_light_level=1624,
+             max_frame_average_light_level=182):
+    im.set_type(
+        pyvips.GValue.gint_type,
+        "clli-max-content-light-level",
+        max_content_light_level
+    )
+    im.set_type(
+        pyvips.GValue.gint_type,
+        "clli-max-frame-average-light-level",
+        max_frame_average_light_level
+    )
+
+    return im
+
+
+def set_cicp(im, primaries, transfer, mc=0, full_range=1):
+    for name, value in [("colour-primaries", primaries),
+                        ("transfer-characteristics", transfer),
+                        ("matrix-coefficients", mc),
+                        ("full-range-flag", full_range)]:
+        im.set_type(pyvips.GValue.gint_type, f"cicp-{name}", value)
+
+    return im
+
+
+def is_hdr(image):
+    return image.get_typeof("cicp-transfer-characteristics") or \
+        image.get_typeof("gainmap-hdr-capacity-min")
+
+
+def to_scRGB(image):
+    if image.get_typeof("cicp-transfer-characteristics"):
+        return image.CICP2scRGB()
+    elif image.get_typeof("gainmap-hdr-capacity-min"):
+        return image.UHDR2scRGB()
+    else:
+        return image.colourspace("scrgb")
+
+
+def skip_if_no_CICP_PNG():
+    cicp_image = make_cicp_image(1,0, 1.0, 1.0, fmt="ushort")
+    buffer = cicp_image.pngsave_buffer()
+    image = pyvips.Image.pngload_buffer(buffer)
+    has_cicp = image.get_typeof("cicp-transfer-characteristics") != 0
+
+    return pytest.mark.skipif(not has_cicp,
+                              reason="available libpng does not support CICP")

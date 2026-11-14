@@ -211,18 +211,16 @@ static const CICPTransferEntry cicp_transfer_table[] = {
 /* Build a JxlColorEncoding from CICP metadata on a VipsImage.
  * Primaries xy coordinates are from ITU-T H.273.
  */
-static gboolean
-vips_foreign_save_jxl_cicp_to_color_encoding(VipsImage *image,
-	JxlColorEncoding *enc)
+static int
+vips_foreign_save_jxl_cicp_to_jxl(VipsImage *image, JxlColorEncoding *enc)
 {
 	int colour_primaries;
 	int transfer_characteristics;
 	int matrix_coefficients;
 	int full_range_flag;
-
-	if (vips__image_get_cicp(image, &colour_primaries,
-			&transfer_characteristics, &matrix_coefficients,
-			&full_range_flag))
+	if (vips__image_get_cicp(image,
+		&colour_primaries, &transfer_characteristics,
+		&matrix_coefficients, &full_range_flag))
 		return FALSE;
 
 	/* JXL pixel data is always RGB, so we only need identity matrix
@@ -696,15 +694,12 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 	}
 
 	/* For HDR transfers (PQ, HLG), prefer the structured CICP encoding
-	 * over ICC since ICC profiles cannot describe these transfer
+	 * over ICC since pre-V4 ICC profiles cannot describe these transfer
 	 * functions. For SDR, ICC takes priority as it may be more precise.
 	 */
-	if (vips_foreign_save_jxl_cicp_to_color_encoding(in,
-		&jxl->color_encoding) &&
-		(jxl->color_encoding.transfer_function ==
-				JXL_TRANSFER_FUNCTION_PQ ||
-			jxl->color_encoding.transfer_function ==
-				JXL_TRANSFER_FUNCTION_HLG)) {
+	if (vips__image_is_cicp(in) &&
+		vips__image_is_cicp_hdr(in) &&
+		vips_foreign_save_jxl_cicp_to_jxl(in, &jxl->color_encoding)) {
 #ifdef DEBUG
 		printf("setting HDR CICP colourspace\n");
 #endif /*DEBUG*/
@@ -717,7 +712,6 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 	else if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
 		const void *data;
 		size_t length;
-
 		if (vips_image_get_blob(in, VIPS_META_ICC_NAME, &data, &length))
 			return -1;
 
@@ -728,10 +722,10 @@ vips_foreign_save_jxl_set_header(VipsForeignSaveJxl *jxl, VipsImage *in)
 		if (JxlEncoderSetICCProfile(jxl->encoder, (guint8 *) data, length))
 			g_debug("bad ICC profile not saved");
 	}
-	else if (vips_foreign_save_jxl_cicp_to_color_encoding(in,
-		&jxl->color_encoding)) {
+	else if (vips__image_is_cicp(in) &&
+		vips_foreign_save_jxl_cicp_to_jxl(in, &jxl->color_encoding)) {
 #ifdef DEBUG
-		printf("setting CICP colourspace\n");
+		printf("setting SDR CICP colourspace\n");
 #endif /*DEBUG*/
 
 		if (JxlEncoderSetColorEncoding(jxl->encoder, &jxl->color_encoding)) {
@@ -1123,7 +1117,6 @@ vips_foreign_save_jxl_build(VipsObject *object)
 	VipsImage **t = (VipsImage **) vips_object_local_array(object, 6);
 
 	VipsImage *in;
-	VipsBandFormat format;
 
 	if (VIPS_OBJECT_CLASS(vips_foreign_save_jxl_parent_class)->build(object))
 		return -1;
@@ -1159,57 +1152,21 @@ vips_foreign_save_jxl_build(VipsObject *object)
 
 	in = save->ready;
 
-	/* Convert CMYK images to sRGB. CMYK is not well supported by libjxl.
-	 * We could just change save_class->saveable, but we would not support scRGB
-	 * if we did that
-	 */
-	if (in->Type == VIPS_INTERPRETATION_CMYK) {
-		if (vips_icc_import(in, &t[4],
-				"pcs", VIPS_PCS_XYZ,
-				"embedded", TRUE,
-				"input_profile", "cmyk",
-				NULL) ||
-			vips_colourspace(t[4], &t[5], VIPS_INTERPRETATION_sRGB, NULL)) {
-			return -1;
-		}
-		in = t[5];
-	}
-
-	/* Fix the input image format. JXL uses float for 0-1 linear (ie.
-	 * scRGB) only. We must convert eg. sRGB float to 8-bit for save.
-	 */
-	if (in->Type == VIPS_INTERPRETATION_scRGB)
-		format = VIPS_FORMAT_FLOAT;
-	else if (in->Type == VIPS_INTERPRETATION_RGB16 ||
-		in->Type == VIPS_INTERPRETATION_GREY16)
-		format = VIPS_FORMAT_USHORT;
-	else
-		format = VIPS_FORMAT_UCHAR;
+	//vips_image_write_to_file(in, "x.v", NULL);
 
 	/* bitdepth defaults to 16 for ushort images.
 	 */
 	if (!vips_object_argument_isset(object, "bitdepth") &&
-		format == VIPS_FORMAT_USHORT)
+		in->BandFmt == VIPS_FORMAT_USHORT)
 		jxl->bitdepth = 16;
-
-	/* Mimics VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA.
-	 * FIXME: add support encoding images with > 4 bands.
-	 */
-	if (in->Bands > 4) {
-		if (vips_extract_band(in, &t[0], 0,
-				"n", 4,
-				NULL))
-			return -1;
-		in = t[0];
-	}
 
 	/* The user can set bitdepth to size the number of bits down for int
 	 * formats. libjxl expects input image bits to be right-justified, so
 	 * we must shift.
 	 */
-	if (format == VIPS_FORMAT_UCHAR ||
-		format == VIPS_FORMAT_USHORT) {
-		int image_bits_per_sample = format == VIPS_FORMAT_UCHAR ? 8 : 16;
+	if (in->BandFmt == VIPS_FORMAT_UCHAR ||
+		in->BandFmt == VIPS_FORMAT_USHORT) {
+		int image_bits_per_sample = in->BandFmt == VIPS_FORMAT_UCHAR ? 8 : 16;
 		int bits_per_sample = VIPS_MIN(jxl->bitdepth, image_bits_per_sample);
 #ifndef HAVE_LIBJXL_0_8
 		/* libjxl < 0.8 does not support setting input buffer bitdepth, so clamp to 8 or 16.
@@ -1221,18 +1178,17 @@ vips_foreign_save_jxl_build(VipsObject *object)
 		if (vips_rshift_const1(in, &t[1], shift, NULL))
 			return -1;
 		in = t[1];
+
+		/* libjxl throws an error if we give it ushort data with <= 8
+		 * bitdepth, we must cast down in this case.
+		 */
+		VipsBandFormat format =
+			in->BandFmt == VIPS_FORMAT_USHORT && bits_per_sample > 8 ?
+			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR;
+		if (vips_cast(in, &t[2], format, NULL))
+			return -1;
+		in = t[2];
 	}
-
-	/* libjxl throws an error if we give it ushort data with <= 8 bitdepth.
-	 */
-	if (format == VIPS_FORMAT_USHORT && jxl->bitdepth <= 8)
-		format = VIPS_FORMAT_UCHAR;
-
-	/* Cast the image to conform to the format we will give to libjxl.
-	 */
-	if (vips_cast(in, &t[2], format, NULL))
-		return -1;
-	in = t[2];
 
 	/* We need to cache a complete line of jxl 2k x 2k tiles, plus a bit.
 	 * We don't need to allow threaded access -- libjxl will never try to
@@ -1348,7 +1304,14 @@ vips_foreign_save_jxl_class_init(VipsForeignSaveJxlClass *class)
 
 	foreign_class->suffs = vips__jxl_suffs;
 
-	save_class->saveable = VIPS_FOREIGN_SAVEABLE_ANY;
+	/* jxl CMYK is still a bit wonky, stick to RGB.
+	 */
+	save_class->saveable =
+		VIPS_FOREIGN_SAVEABLE_MONO |
+		VIPS_FOREIGN_SAVEABLE_RGB |
+		VIPS_FOREIGN_SAVEABLE_ALPHA |
+		VIPS_FOREIGN_SAVEABLE_CICP |
+		VIPS_FOREIGN_SAVEABLE_scRGB;
 	save_class->format_table = bandfmt_jxl;
 
 	VIPS_ARG_INT(class, "tier", 10,
