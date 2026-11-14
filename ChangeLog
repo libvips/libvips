@@ -1,4 +1,4 @@
-tdb 8.18.8
+tbd 8.18.8
 
 - jxlsave: don't save bad profiles [Lumaraf]
 - invertlut: prevent possible integer overflow [Shubham Raj]
@@ -14,7 +14,7 @@ tdb 8.18.8
 - tiffload: limit total height [JiHeun]
 - sink_screen: move render_free() inside the global render lock [octopus-kkk]
 - icc_transform: copy blob, not raw pointer [chehov]
-- heifload, pdfload, webpload, gifload: check total height in multipage images
+- heifload, pdfload, webpload, gifload, jxlload: check total multipage height
 - libnsgif: update from upstream
 - pngload: allow PNG images containing invalid CMF [lovell]
 - heifload: raise security limits on references, again
