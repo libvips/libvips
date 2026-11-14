@@ -199,6 +199,10 @@ vips_rad2float_init(VipsRad2float *rad2float)
 	colour->input_bands = 4;
 
 	code->input_coding = VIPS_CODING_RAD;
+	code->input_format = VIPS_FORMAT_UCHAR;
+
+	// We can't set code->input_interpretation, since RAD images can be
+	// scRGB or XYZ.
 }
 
 /**

@@ -549,6 +549,10 @@ vips_LabQ2sRGB_init(VipsLabQ2sRGB *LabQ2sRGB)
 	colour->bands = 3;
 
 	code->input_coding = VIPS_CODING_LABQ;
+	code->input_format = VIPS_FORMAT_UCHAR;
+
+	// We can't set code->input_interpretation, since LABQ images can be
+	// LAB or LABQ.
 }
 
 /**
