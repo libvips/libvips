@@ -443,10 +443,17 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 static VipsInterpretation
 vips_foreign_load_dcraw_interpretation(VipsForeignLoadDcRaw *raw, int bands)
 {
-	if (raw->bitdepth > 8)
-		return bands < 3 ? VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_RGB16;
+	if (bands < 3)
+		return raw->bitdepth > 8 ?
+			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
 
-	return bands < 3 ? VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_RGB;
+	if (raw->bitdepth > 8)
+		return VIPS_INTERPRETATION_RGB16;
+
+	if(raw->output_color == 1)
+		return VIPS_INTERPRETATION_sRGB;
+		
+	return VIPS_INTERPRETATION_RGB;
 }
 
 static int
