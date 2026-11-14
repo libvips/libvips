@@ -640,6 +640,7 @@ vips_colour_operation_init(void)
 	extern GType vips_Oklab2Oklch_get_type(void);
 	extern GType vips_Oklch2Oklab_get_type(void);
 	extern GType vips_uhdr2scRGB_get_type(void);
+	extern GType vips_UHDR2scRGB_get_type(void);
 	extern GType vips_CICP2scRGB_get_type(void);
 	extern GType vips_scRGB2CICP_get_type(void);
 	extern GType vips_profile_load_get_type(void);
@@ -684,6 +685,7 @@ vips_colour_operation_init(void)
 	vips_CMYK2XYZ_get_type();
 	vips_XYZ2CMYK_get_type();
 	vips_uhdr2scRGB_get_type();
+	vips_UHDR2scRGB_get_type();
 	vips_CICP2scRGB_get_type();
 	vips_scRGB2CICP_get_type();
 	vips_profile_load_get_type();

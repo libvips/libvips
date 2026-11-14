@@ -32,7 +32,7 @@ colour_sources = files(
     'scRGB2XYZ.c',
     'sRGB2HSV.c',
     'sRGB2scRGB.c',
-    'uhdr2scRGB.c',
+    'UHDR2scRGB.c',
     'UCS2LCh.c',
     'XYZ2CMYK.c',
     'XYZ2Lab.c',

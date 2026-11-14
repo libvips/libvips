@@ -1088,19 +1088,9 @@ vips_thumbnail_build(VipsObject *object)
 		 */
 		if (have_cicped) {
 			g_info("re-encoding to CICP");
-
-			int cicp_primaries;
-			int cicp_transfer;
-			int cicp_matrix;
-			int cicp_range;
-			if (vips__image_get_cicp(in,
-					&cicp_primaries, &cicp_transfer,
-					&cicp_matrix, &cicp_range) ||
-				vips_scRGB2CICP(in, &t[11],
-					"colour_primaries", cicp_primaries,
-					"transfer_characteristics", cicp_transfer,
-					"depth", source_depth,
-					NULL))
+			if (vips_scRGB2CICP(in, &t[11],
+				"depth", source_depth,
+				NULL))
 				return -1;
 			in = t[11];
 		}

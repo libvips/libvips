@@ -273,8 +273,16 @@ VIPS_API
 int vips_Oklab2Oklch(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
-VIPS_API
+#ifndef __GI_SCANNER__
+
+VIPS_DEPRECATED_FOR(vips_UHDR2scRGB)
 int vips_uhdr2scRGB(VipsImage *in, VipsImage **out, ...)
+	G_GNUC_NULL_TERMINATED;
+
+#endif /* !__GI_SCANNER__ */
+
+VIPS_API
+int vips_UHDR2scRGB(VipsImage *in, VipsImage **out, ...)
 	G_GNUC_NULL_TERMINATED;
 
 VIPS_API

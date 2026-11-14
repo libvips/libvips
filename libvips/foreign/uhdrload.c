@@ -858,7 +858,7 @@ vips_foreign_load_uhdr_source_init(VipsForeignLoadUhdrSource *source)
  * plus a gainmap attached as image metadata.
  *
  * Either process the SDR image and update the gainmap if necessary, or use
- * [method@Image.uhdr2scRGB] to convert the SDR + gainmap image to full scRGB
+ * [method@Image.UHDR2scRGB] to convert the SDR + gainmap image to full scRGB
  * HDR.
  *
  * [method@Image.uhdrsave] can write both scRGB HDR and SDR plus gainmap
@@ -870,7 +870,7 @@ vips_foreign_load_uhdr_source_init(VipsForeignLoadUhdrSource *source)
  *     * @shrink: `gint`, shrink by this factor on load
  *
  * ::: seealso
- *     [ctor@Image.new_from_file], [method@Image.uhdr2scRGB].
+ *     [ctor@Image.new_from_file], [method@Image.UHDR2scRGB].
  *
  * Returns: 0 on success, -1 on error.
  */

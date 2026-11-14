@@ -219,6 +219,18 @@ VImage::Oklch2Oklab(VOption *options) const
 }
 
 VImage
+VImage::UHDR2scRGB(VOption *options) const
+{
+	VImage out;
+
+	call("UHDR2scRGB", (options ? options : VImage::option())
+			->set("in", *this)
+			->set("out", &out));
+
+	return out;
+}
+
+VImage
 VImage::XYZ2CMYK(VOption *options) const
 {
 	VImage out;
