@@ -67,10 +67,6 @@ typedef struct _VipsUHDR2scRGB {
 	float offset_hdr[3];
 	float offset_sdr[3];
 
-	/* And the actual map.
-	 */
-	VipsImage *gainmap;
-
 } VipsUHDR2scRGB;
 
 typedef VipsColourClass VipsUHDR2scRGBClass;
@@ -86,31 +82,36 @@ static void
 vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 	VipsPel *out, VipsPel **in, int width)
 {
-	VipsPel *restrict p1 = in[0];
-	VipsPel *restrict p2 = in[1];
+	float *restrict p1 = (float *) in[0];
+	VipsPel *restrict p2 = (VipsPel *) in[1];
 	float *restrict q = (float *) out;
 
 	for (int i = 0; i < width; i++) {
-		float r = vips_v2Y_8[p1[0]];
-		float g = vips_v2Y_8[p1[1]];
-		float b = vips_v2Y_8[p1[2]];
+		float x = p1[0] / VIPS_D65_X0;
+		float y = p1[1] / VIPS_D65_Y0;
+		float z = p1[2] / VIPS_D65_Z0;
 		p1 += 3;
 
-		// the gainmap is not gamma corrected in libultrahdr, confusingly
-		float gg = p2[0] / 255.0;
+		// gainmaps are already linear
+		float gy = p2[0] / 255.0;
 		p2 += 1;
 
 		if (uhdr->gamma[1] != 1.0f)
-			gg = powf(gg, 1.0f / uhdr->gamma[1]);
+			gy = powf(gy, 1.0f / uhdr->gamma[1]);
 
-		float boostg = log2f(uhdr->min_content_boost[1]) * (1.0f - gg) +
-			log2f(uhdr->max_content_boost[1]) * gg;
+		float boosty = log2f(uhdr->min_content_boost[1]) * (1.0f - gy) +
+			log2f(uhdr->max_content_boost[1]) * gy;
 
-		float gaing = exp2f(boostg);
+		float gainy = exp2f(boosty);
 
-		q[0] = ((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
-		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
-		q[2] = ((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		float nx = ((x + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1];
+		float ny = ((y + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1];
+		float nz = ((z + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1];
+
+		// back to scrgb
+		q[0] =  3.240625F * nx + -1.537208F * ny + -0.498629F * nz;
+		q[1] = -0.968931F * nx +  1.875756F * ny +  0.041518F * nz;
+		q[2] =  0.055710F * nx + -0.204021F * ny +  1.056996F * nz;
 		q += 3;
 	}
 }
@@ -120,42 +121,48 @@ vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 static void
 vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 {
-	VipsPel *restrict p1 = in[0];
-	VipsPel *restrict p2 = in[1];
+	float *restrict p1 = (float *) in[0];
+	VipsPel *restrict p2 = (VipsPel *) in[1];
 	float *restrict q = (float *) out;
 
 	for (int i = 0; i < width; i++) {
-		float r = vips_v2Y_8[p1[0]];
-		float g = vips_v2Y_8[p1[1]];
-		float b = vips_v2Y_8[p1[2]];
+		float x = p1[0] / VIPS_D65_X0;
+		float y = p1[1] / VIPS_D65_Y0;
+		float z = p1[2] / VIPS_D65_Z0;
 		p1 += 3;
 
-		float gr = vips_v2Y_8[p2[0]];
-		float gg = vips_v2Y_8[p2[1]];
-		float gb = vips_v2Y_8[p2[2]];
+		// gainmaps are already linear
+		float gx = p2[0] / 255.0;
+		float gy = p2[1] / 255.0;
+		float gz = p2[2] / 255.0;
 		p2 += 3;
 
 		if (uhdr->gamma[0] != 1.0f)
-			gr = powf(gr, 1.0f / uhdr->gamma[0]);
+			gx = powf(gx, 1.0f / uhdr->gamma[0]);
 		if (uhdr->gamma[1] != 1.0f)
-			gg = powf(gg, 1.0f / uhdr->gamma[1]);
+			gy = powf(gy, 1.0f / uhdr->gamma[1]);
 		if (uhdr->gamma[2] != 1.0f)
-			gb = powf(gb, 1.0f / uhdr->gamma[2]);
+			gz = powf(gz, 1.0f / uhdr->gamma[2]);
 
-		float boostr = log2f(uhdr->min_content_boost[0]) * (1.0f - gr) +
-			log2f(uhdr->max_content_boost[0]) * gr;
-		float boostg = log2f(uhdr->min_content_boost[1]) * (1.0f - gg) +
-			log2f(uhdr->max_content_boost[1]) * gg;
-		float boostb = log2f(uhdr->min_content_boost[2]) * (1.0f - gb) +
-			log2f(uhdr->max_content_boost[2]) * gb;
+		float boostx = log2f(uhdr->min_content_boost[0]) * (1.0f - gx) +
+			log2f(uhdr->max_content_boost[0]) * gx;
+		float boosty = log2f(uhdr->min_content_boost[1]) * (1.0f - gy) +
+			log2f(uhdr->max_content_boost[1]) * gy;
+		float boostz = log2f(uhdr->min_content_boost[2]) * (1.0f - gz) +
+			log2f(uhdr->max_content_boost[2]) * gz;
 
-		float gainr = exp2f(boostr);
-		float gaing = exp2f(boostg);
-		float gainb = exp2f(boostb);
+		float gainx = exp2f(boostx);
+		float gainy = exp2f(boosty);
+		float gainz = exp2f(boostz);
 
-		q[0] = ((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0];
-		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
-		q[2] = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
+		float nx = ((x + uhdr->offset_sdr[0]) * gainx) - uhdr->offset_hdr[0];
+		float ny = ((y + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1];
+		float nz = ((z + uhdr->offset_sdr[2]) * gainz) - uhdr->offset_hdr[2];
+
+		// back to scrgb
+		q[0] =  3.240625F * nx + -1.537208F * ny + -0.498629F * nz;
+		q[1] = -0.968931F * nx +  1.875756F * ny +  0.041518F * nz;
+		q[2] =  0.055710F * nx + -0.204021F * ny +  1.056996F * nz;
 		q += 3;
 	}
 }
@@ -168,7 +175,7 @@ vips_UHDR2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 	g_assert(colour->in[0]->Xsize == colour->in[1]->Xsize);
 	g_assert(colour->in[0]->Ysize == colour->in[1]->Ysize);
 
-	if (uhdr->gainmap->Bands == 1)
+	if (colour->in[1]->Bands == 1)
 		vips_UHDR2scRGB_mono(uhdr, out, in, width);
 	else
 		vips_UHDR2scRGB_rgb(uhdr, out, in, width);
@@ -231,9 +238,14 @@ vips_UHDR2scRGB_build(VipsObject *object)
 			return -1;
 		}
 
-		/* Need this for fast srgb -> scRGB.
+		/* Import the main image to XYZ to get linear light.
 		 */
-		vips_col_make_tables_RGB_8();
+		if (vips_icc_import(uhdr->in, &colour->in[0],
+			"embedded", TRUE,
+			"pcs", VIPS_PCS_XYZ,
+			"input_profile", "srgb",
+			NULL))
+			return -1;
 
 		if (image_get_array_float(uhdr->in,
 				"gainmap-max-content-boost", &uhdr->max_content_boost[0], 3) ||
@@ -250,22 +262,22 @@ vips_UHDR2scRGB_build(VipsObject *object)
 		VipsImage *gainmap;
 		if (!(gainmap = vips_image_get_gainmap(uhdr->in)))
 			return -1;
-		if (vips_check_bands_1or3(class->nickname, gainmap))
+		if (vips_check_bands_1or3(class->nickname, gainmap)) {
+			VIPS_UNREF(gainmap);
 			return -1;
+		}
 
-		/* Scale the gainmap image to match the main image 1:1.
+		/* And now scale the gainmap image to match the main image 1:1.
 		 */
-		if (vips_resize(gainmap, &uhdr->gainmap,
-				(double) uhdr->in->Xsize / gainmap->Xsize,
-				"vscale", (double) uhdr->in->Ysize / gainmap->Ysize,
-				"kernel", VIPS_KERNEL_LINEAR,
-				NULL))
+		if (vips_resize(gainmap, &colour->in[1],
+			(double) uhdr->in->Xsize / gainmap->Xsize,
+			"vscale", (double) uhdr->in->Ysize / gainmap->Ysize,
+			"kernel", VIPS_KERNEL_LINEAR,
+			NULL)) {
+			VIPS_UNREF(gainmap);
 			return -1;
-		g_object_unref(gainmap);
-
-		colour->in[0] = uhdr->in;
-		g_object_ref(uhdr->in);
-		colour->in[1] = uhdr->gainmap;
+		}
+		VIPS_UNREF(gainmap);
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_UHDR2scRGB_parent_class)->build(object))
@@ -369,7 +381,7 @@ vips_uhdr2scRGB_init(VipsUhdr2scRGB *uhdr)
 {
 	VipsColour *colour = VIPS_COLOUR(uhdr);
 
-	colour->interpretation = VIPS_INTERPRETATION_scRGB;
+	colour->interpretation = VIPS_INTERPRETATION_XYZ;
 	colour->format = VIPS_FORMAT_FLOAT;
 	colour->bands = 3;
 }
