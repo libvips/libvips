@@ -202,6 +202,7 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 		raw->raw_processor->params.gamm[1] = 1.0;
 		break;
 
+#if LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 22)
 	case 7: // DCI-P3
 		raw->raw_processor->params.gamm[0] = 1.0 / 2.6;
 		raw->raw_processor->params.gamm[1] = 0.0;
@@ -211,9 +212,10 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 		raw->raw_processor->params.gamm[0] = 0.45;
 		raw->raw_processor->params.gamm[1] = 4.5;
 		break;
+#endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)*/
 
 	default:
-		vips_error(class->nickname, "%s", _("bad output_color"));
+		vips_error(class->nickname, "%s", _("unsupported output_color"));
 		return -1;
 	}
 
