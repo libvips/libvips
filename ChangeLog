@@ -20,6 +20,7 @@ tbd 8.18.8
 - heifload: raise security limits on references, again
 - tiffload: missing free on error path [AploSec]
 - text: prevent fontconfig init race condition [lovell]
+- dbuf: fix return value of `vips_dbuf_writef()` [fuzzyrichie]
 
 20/9/26 8.18.7
 
