@@ -10,7 +10,7 @@
  *	- add output_color
  *	- add no_auto_bright
  *	- corrected default gamma curve from BT.709 to sRGB
- *	- removed ICC profile, it was incorrect and most raw files don't
+ *	- removed ICC profile setting
  *	  have one
 
  */
@@ -160,7 +160,7 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 	 */
 	raw->raw_processor->params.half_size = raw->half_size;
 
-	/* Not supporting XYZ
+	/* XZY requires shifting to float returns
 	 */
 	if (raw->output_color == 5) {
 		vips_error(class->nickname, "%s", _("unsupported output_color"));
@@ -223,7 +223,7 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 	 */
 	raw->raw_processor->params.use_camera_wb = 1;
 
-	/* Set 'No auto brightness'.
+	/* Disable histogram-based auto-brightness if requested.
 	 */
 	raw->raw_processor->params.no_auto_bright = raw->no_auto_bright;
 
