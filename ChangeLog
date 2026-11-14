@@ -20,6 +20,7 @@ tdb 8.18.8
 - heifload: raise security limits on references, again
 - tiffload: missing free on error path [AploSec]
 - text: prevent fontconfig init race condition [lovell]
+- ensure image history is restored on load [fuzzyrichie]
 
 20/9/26 8.18.7
 

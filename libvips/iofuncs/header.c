@@ -2264,9 +2264,9 @@ vips_image_set_array_double(VipsImage *image, const char *name,
  * "vips invert /home/john/fred.v /home/john/jim.v # Fri Apr 3 23:30:35 2009\n"
  * ```
  *
- * VIPS operations don't add history lines for you because a single action at
- * the application level might involve many VIPS operations. History must be
- * recorded by the application.
+ * libvips operations don't add history lines for you because a single action
+ * at the application level might involve many libvips operations. History must
+ * be recorded by the application.
  *
  * Returns: 0 on success, -1 on error.
  */
