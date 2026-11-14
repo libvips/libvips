@@ -1809,6 +1809,26 @@ class TestForeign:
         self.file_loader("radload", RAD_FILE, hdr_valid)
         self.buffer_loader("radload_buffer", RAD_FILE, hdr_valid)
 
+        def hdr_xyz_valid(im):
+            # might still be in RADIANCE coding
+            if im.coding == "rad":
+                im = im.rad2float()
+
+            assert_almost_equal_objects(im(10, 10),
+                                        [1108, 1124, 1052],
+                                        threshold=0.1)
+
+            assert_almost_equal_objects(im(85, 59),
+                                        [431104, 443392, 490496],
+                                        threshold=1)
+
+            assert im.width == 141
+            assert im.height == 980
+            assert im.bands == 3
+
+        self.file_loader("radload", RAD_FILE_XYZ, hdr_xyz_valid)
+        self.buffer_loader("radload_buffer", RAD_FILE_XYZ, hdr_xyz_valid)
+
         rad = pyvips.Image.radload(RAD_FILE)
         self.save_load("%s.hdr", rad)
         self.save_load("%s.pfm", rad)
