@@ -886,7 +886,7 @@ vips_foreign_load_heif_header(VipsForeignLoad *load)
 	if (heif->page_width <= 0 ||
 		heif->page_width > VIPS_MAX_COORD ||
 		heif->page_height <= 0 ||
-		heif->page_width > VIPS_MAX_COORD) {
+		heif->page_height > VIPS_MAX_COORD) {
 		vips_error("heifload", "%s", _("bad dimensions"));
 		return -1;
 	}

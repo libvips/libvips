@@ -753,6 +753,13 @@ vips_foreign_load_jxl_set_header(VipsForeignLoadJxl *jxl, VipsImage *out)
 		if (jxl->n > 1)
 			vips_image_set_int(out, VIPS_META_PAGE_HEIGHT, jxl->info.ysize);
 
+		gint64 final_height = (gint64) jxl->info.ysize * jxl->n;
+		if (final_height <= 0 ||
+			final_height >= VIPS_MAX_COORD) {
+			vips_error(class->nickname, "%s", _("image too large"));
+			return -1;
+		}
+
 		if (jxl->is_animated) {
 			int *delay = (int *) jxl->delay->data;
 

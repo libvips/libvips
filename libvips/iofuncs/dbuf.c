@@ -199,7 +199,7 @@ vips_dbuf_writef(VipsDbuf *dbuf, const char *fmt, ...)
 	char *line = g_strdup_vprintf(fmt, ap);
 	va_end(ap);
 
-	if (vips_dbuf_write(dbuf, (unsigned char *) line, strlen(line))) {
+	if (!vips_dbuf_write(dbuf, (unsigned char *) line, strlen(line))) {
 		g_free(line);
 		return FALSE;
 	}
