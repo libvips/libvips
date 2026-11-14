@@ -155,6 +155,14 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 	 */
 	raw->raw_processor->params.half_size = raw->half_size;
 
+
+	/* Not supporting XYZ
+	*/
+	if (raw->output_color == 5) {
+		vips_error(class->nickname, "%s", _("bad output_color"));
+		return -1;
+	}
+
 	/* Set output colourspace
 	 */
 	raw->raw_processor->params.output_color = raw->output_color;
@@ -453,6 +461,23 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	return 0;
 }
 
+static VipsInterpretation
+vips_foreign_load_dcraw_interpretation(VipsForeignLoadDcRaw *raw, int bands)
+{
+	if (raw->output_color == 0)
+		return VIPS_INTERPRETATION_RGB;
+
+	if (raw->output_color == 5)
+		return VIPS_INTERPRETATION_XYZ;
+
+	if (raw->bitdepth > 8)
+		return bands < 3 ?
+			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_RGB16;
+
+	return bands < 3 ?
+		VIPS_INTERPRETATION_B_W : VIPS_INTERPRETATION_sRGB;
+}
+
 static int
 vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 {
@@ -485,9 +510,8 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 		bands,
 		raw->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
-		VIPS_INTERPRETATION_ERROR,
+		vips_foreign_load_dcraw_interpretation(raw, bands),
 		1.0, 1.0);
-	load->out->Type = vips_image_guess_interpretation(load->out);
 
 	/* This is no longer valid, since we have called
 	 * libraw_adjust_sizes_info_only() on it.
@@ -540,15 +564,8 @@ vips_foreign_load_dcraw_load(VipsForeignLoad *load)
 			  raw->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR)))
 		return -1;
 
-	if (raw->bitdepth > 8)
-		if (raw->processed->colors < 3)
-			image->Type = VIPS_INTERPRETATION_GREY16;
-		else
-			image->Type = VIPS_INTERPRETATION_RGB16;
-	else if (raw->processed->colors < 3)
-		image->Type = VIPS_INTERPRETATION_B_W;
-	else
-		image->Type = VIPS_INTERPRETATION_sRGB;
+	image->Type = vips_foreign_load_dcraw_interpretation(raw,
+		raw->processed->colors);
 
 	if (vips_foreign_load_dcraw_set_metadata(raw, image)) {
 		VIPS_UNREF(image);
@@ -621,7 +638,7 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 		0, 8, 1);
 
 	VIPS_ARG_BOOL(class, "no_auto_bright", 15,
-		_("Half-size"),
+		_("No Auto Brightness"),
 		_("Disables histogram based auto-brightness"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, no_auto_bright),
@@ -860,8 +877,8 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * Set @output_color to control the output colorspace.
  * 0=raw, 1=sRGB, 2=Adobe, 3=Wide, 4=ProPhoto, 5=XYZ, 6=ACES, 7=DCI-P3, 8=Rec. 2020
  * default 1.
- * 
- * Set @no_auto_bright to disable auto-brightness 
+ *
+ * Set @no_auto_bright to disable auto-brightness
  * default false
  *
  * ::: tip "Optional arguments"
