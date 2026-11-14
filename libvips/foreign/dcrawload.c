@@ -73,6 +73,8 @@ typedef struct _VipsForeignLoadDcRaw {
 
 	int bitdepth;
 	gboolean half_size;
+	int output_color;
+	gboolean no_auto_bright;
 
 	/* LibRaw processor.
 	 */
@@ -153,16 +155,67 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 	 */
 	raw->raw_processor->params.half_size = raw->half_size;
 
-	/* sRGB */
-	raw->raw_processor->params.output_color = 1;
+	/* Set output colourspace
+	 */
+	raw->raw_processor->params.output_color = raw->output_color;
 
-	/* LibRaw defaults to the BT.709 transfer curve. Request sRGB instead. */
-	raw->raw_processor->params.gamm[0] = 1.0 / 2.4;
-	raw->raw_processor->params.gamm[1] = 12.92;
+	switch (raw->output_color) {
+	case 0: // Raw / camera space
+		raw->raw_processor->params.gamm[0] = 1.0;
+		raw->raw_processor->params.gamm[1] = 1.0;
+		break;
+
+	case 1: // sRGB
+		raw->raw_processor->params.gamm[0] = 1.0 / 2.4;
+		raw->raw_processor->params.gamm[1] = 12.92;
+		break;
+
+	case 2: // Adobe RGB (1998)
+		raw->raw_processor->params.gamm[0] = 1.0 / 2.19921875;
+		raw->raw_processor->params.gamm[1] = 0.0;
+		break;
+
+	case 3: // Wide Gamut RGB
+		raw->raw_processor->params.gamm[0] = 1.0 / 2.2;
+		raw->raw_processor->params.gamm[1] = 0.0;
+		break;
+
+	case 4: // ProPhoto RGB
+		raw->raw_processor->params.gamm[0] = 1.0 / 1.8;
+		raw->raw_processor->params.gamm[1] = 16.0;
+		break;
+
+	case 5: // CIE XYZ
+		raw->raw_processor->params.gamm[0] = 1.0;
+		raw->raw_processor->params.gamm[1] = 1.0;
+		break;
+
+	case 6: // ACES
+		raw->raw_processor->params.gamm[0] = 1.0;
+		raw->raw_processor->params.gamm[1] = 1.0;
+		break;
+
+	case 7: // DCI-P3
+		raw->raw_processor->params.gamm[0] = 1.0 / 2.6;
+		raw->raw_processor->params.gamm[1] = 0.0;
+		break;
+
+	case 8: // Rec. 2020 (BT.2020 OETF)
+		raw->raw_processor->params.gamm[0] = 0.45;
+		raw->raw_processor->params.gamm[1] = 4.5;
+		break;
+
+	default:
+		vips_error(class->nickname, "%s", _("bad output_color"));
+	}
 
 	/* Apply camera white balance.
 	 */
 	raw->raw_processor->params.use_camera_wb = 1;
+
+	/* Apply camera white balance.
+	 */
+	raw->raw_processor->params.no_auto_bright = raw->no_auto_bright;
 
 	/* Don't autorotate, we set EXIF rotation later instead. If we enable
 	 * autorotate, then the image size reported during libraw_open_buffer()
@@ -559,12 +612,27 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, half_size),
 		FALSE);
+
+	VIPS_ARG_INT(class, "output_color", 14,
+		_("Output colorspace"),
+		_("Libraw's output colour space properties"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, output_color),
+		0, 8, 1);
+
+	VIPS_ARG_BOOL(class, "no_auto_bright", 15,
+		_("Half-size"),
+		_("Disables histogram based auto-brightness"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, no_auto_bright),
+		FALSE);
 }
 
 static void
 vips_foreign_load_dcraw_init(VipsForeignLoadDcRaw *raw)
 {
 	raw->bitdepth = 8;
+	raw->output_color = 1;
 }
 
 typedef struct _VipsForeignLoadDcRawSource {
@@ -789,9 +857,17 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * Set @bitdepth to control the number of bits to decode to. Either 8 or 16,
  * default 8.
  *
+ * Set @output_color to control the output colorspace.
+ * 0=raw, 1=sRGB, 2=Adobe, 3=Wide, 4=ProPhoto, 5=XYZ, 6=ACES, 7=DCI-P3, 8=Rec. 2020
+ * default 1.
+ * 
+ * Set @no_auto_bright to disable auto-brightness 
+ * default false
+ *
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
+ *     * @no_auto_bright: `gboolean`, disable auto-brightening
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -819,6 +895,8 @@ vips_dcrawload(const char *filename, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
+ *     * @output_color: `gint`, Output colorspace
+ *     * @no_auto_bright: `gboolean`, disable auto-brightening
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
@@ -850,6 +928,8 @@ vips_dcrawload_source(VipsSource *source, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
+ *     * @output_color: `gint`, Output colorspace
+ *     * @no_auto_bright: `gboolean`, disable auto-brightening
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
