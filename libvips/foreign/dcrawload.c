@@ -8,7 +8,7 @@
  *	- add half_size
  * 14/11/26 chrisabra
  *	- add output_color
- *	- add no_auto_bright
+ *	- add use_auto_brightness
  *	- corrected default gamma curve from BT.709 to sRGB
  *	- removed ICC profile setting
 
@@ -78,7 +78,8 @@ typedef struct _VipsForeignLoadDcRaw {
 	int bitdepth;
 	gboolean half_size;
 	int output_color;
-	gboolean no_auto_bright;
+	int demosaic_algorithm;
+	gboolean use_auto_brightness;
 
 	/* LibRaw processor.
 	 */
@@ -224,13 +225,18 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 
 	/* Disable histogram-based auto-brightness if requested.
 	 */
-	raw->raw_processor->params.no_auto_bright = raw->no_auto_bright;
+	raw->raw_processor->params.no_auto_bright = !raw->use_auto_brightness;
 
 	/* Don't autorotate, we set EXIF rotation later instead. If we enable
 	 * autorotate, then the image size reported during libraw_open_buffer()
 	 * may not match the decoded size.
 	 */
 	raw->raw_processor->params.user_flip = 0;
+
+	/* Set demosaic algorithm
+	 */
+
+	raw->raw_processor->params.user_qual = 1;
 
 	/* We can use the libraw file interface for filename sources. This
 	 * interface can often read more metadata, since it can open secondary
@@ -618,11 +624,11 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, output_color),
 		0, 8, 1);
 
-	VIPS_ARG_BOOL(class, "no_auto_bright", 15,
-		_("No auto-brightness"),
-		_("Disables histogram based auto-brightness"),
+	VIPS_ARG_BOOL(class, "use_auto_brightness", 15,
+		_("Apply auto-brightness"),
+		_("Applies histogram based auto-brightness"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, no_auto_bright),
+		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, use_auto_brightness),
 		FALSE);
 }
 
@@ -860,14 +866,14 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * 6=ACES, 7=DCI-P3, 8=Rec. 2020
  * default 1.
  *
- * Set @no_auto_bright to disable auto-brightness
+ * Set @use_auto_brightness to enable auto-brightness
  * default false
  *
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
  *     * @output_color: `gint`, Output colorspace
- *     * @no_auto_bright: `gboolean`, disable auto-brightening
+ *     * @use_auto_brightness: `gboolean`, disable auto-brightening
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -896,7 +902,7 @@ vips_dcrawload(const char *filename, VipsImage **out, ...)
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
  *     * @output_color: `gint`, Output colorspace
- *     * @no_auto_bright: `gboolean`, disable auto-brightening
+ *     * @use_auto_brightness: `gboolean`, disable auto-brightening
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
@@ -929,7 +935,7 @@ vips_dcrawload_source(VipsSource *source, VipsImage **out, ...)
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
  *     * @output_color: `gint`, Output colorspace
- *     * @no_auto_bright: `gboolean`, disable auto-brightening
+ *     * @use_auto_brightness: `gboolean`, Apply a historam based auto-brightness
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
