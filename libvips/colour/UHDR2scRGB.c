@@ -163,7 +163,6 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float gaing = exp2f(boostg);
 		float gainb = exp2f(boostb);
 
-
 		q[0] = VIPS_D65_X0 / 100.0F *
 			(((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0]);
 		q[1] = VIPS_D65_Y0 / 100.0F *
