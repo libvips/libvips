@@ -568,7 +568,7 @@ vips_colourspace_build(VipsObject *object)
 	x = colourspace->in;
 
 	/* Unpack radiance-coded images. We can't use interpretation for this,
-	 * since rad images can be scRGB or XYZ.
+	 * since RAD images can be scRGB or XYZ.
 	 */
 	if (x->Coding == VIPS_CODING_RAD) {
 		if (vips_rad2float(x, &t[0], NULL))
