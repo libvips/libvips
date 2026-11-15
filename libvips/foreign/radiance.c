@@ -638,7 +638,7 @@ static int
 rad2vips_process_line(char *line, Read *read)
 {
 	if (isformat(line)) {
-		if (formatval(line, read->format))
+		if (!formatval(read->format, line))
 			return -1;
 	}
 	else if (isexpos(line)) {
@@ -699,8 +699,11 @@ rad2vips_get_header(Read *read, VipsImage *out)
 		interpretation = VIPS_INTERPRETATION_scRGB;
 	else if (strcmp(read->format, CIEFMT) == 0)
 		interpretation = VIPS_INTERPRETATION_XYZ;
-	else
-		interpretation = VIPS_INTERPRETATION_MULTIBAND;
+	else {
+		vips_error("rad2vips", "%s",
+			_("unsupported image format"));
+		return -1;
+	}
 
 	width = scanlen(&read->rs);
 	height = numscans(&read->rs);

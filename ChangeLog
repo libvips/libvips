@@ -69,6 +69,7 @@ date-tbd 8.19.0
 - heifsave: force identity matrix for lossless cicp [mertalev]
 - rename uhdr2scRGB as UHDR2scRGB
 - dcrawlaod: support for more colour spaces and corrected srgb gamma [chrisabra]
+- radload: support packed XYZE images [fuzzyrichie]
 
 tdb 8.18.8
 

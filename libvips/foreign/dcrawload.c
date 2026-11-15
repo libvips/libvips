@@ -233,11 +233,6 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 	 */
 	raw->raw_processor->params.user_flip = 0;
 
-	/* Set demosaic algorithm
-	 */
-
-	raw->raw_processor->params.user_qual = 1;
-
 	/* We can use the libraw file interface for filename sources. This
 	 * interface can often read more metadata, since it can open secondary
 	 * files.
