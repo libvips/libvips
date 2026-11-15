@@ -87,15 +87,17 @@ vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 	float *restrict q = (float *) out;
 
 	for (int i = 0; i < width; i++) {
-		float x = p1[0] / VIPS_D65_X0;
-		float y = p1[1] / VIPS_D65_Y0;
-		float z = p1[2] / VIPS_D65_Z0;
+		float x = p1[0];
+		float y = p1[1];
+		float z = p1[2];
 		p1 += 3;
 
-		// to scrgb
-		float r =  3.240625F * x + -1.537208F * y + -0.498629F * z;
-		float g = -0.968931F * x +  1.875756F * y +  0.041518F * z;
-		float b =  0.055710F * x + -0.204021F * y +  1.056996F * z;
+		/* XYZ -> sRGB, including scale down from 100, D65 balance, and
+		 * equi-energy output.
+		 */
+		float r =  0.02829956F * x + -0.01275916F * y + -0.00380109F * z;
+		float g = -0.01074952F * x +  0.01977930F * y +  0.00040208F * z;
+		float b =  0.00064503F * x + -0.00224523F * y +  0.01068319F * z;
 
 		// gainmaps are already linear
 		float gg = p2[0] / 255.0;
@@ -109,12 +111,9 @@ vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 
 		float gaing = exp2f(boostg);
 
-		q[0] = VIPS_D65_X0 / 100.0F *
-			(((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
-		q[1] = VIPS_D65_Y0 / 100.0F *
-			(((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
-		q[2] = VIPS_D65_Z0 / 100.0F *
-			(((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
+		q[0] = ((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		q[2] = ((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
 		q += 3;
 	}
 }
@@ -129,15 +128,17 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 	float *restrict q = (float *) out;
 
 	for (int i = 0; i < width; i++) {
-		float x = p1[0] / VIPS_D65_X0;
-		float y = p1[1] / VIPS_D65_Y0;
-		float z = p1[2] / VIPS_D65_Z0;
+		float x = p1[0];
+		float y = p1[1];
+		float z = p1[2];
 		p1 += 3;
 
-		// to scrgb
-		float r =  3.240625F * x + -1.537208F * y + -0.498629F * z;
-		float g = -0.968931F * x +  1.875756F * y +  0.041518F * z;
-		float b =  0.055710F * x + -0.204021F * y +  1.056996F * z;
+		/* XYZ -> sRGB, including scale down from 100, D65 balance, and
+		 * equi-energy output.
+		 */
+		float r =  0.02829956F * x + -0.01275916F * y + -0.00380109F * z;
+		float g = -0.01074952F * x +  0.01977930F * y +  0.00040208F * z;
+		float b =  0.00064503F * x + -0.00224523F * y +  0.01068319F * z;
 
 		// gainmaps are already linear
 		float gr = p2[0] / 255.0;
@@ -163,12 +164,9 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float gaing = exp2f(boostg);
 		float gainb = exp2f(boostb);
 
-		q[0] = VIPS_D65_X0 / 100.0F *
-			(((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0]);
-		q[1] = VIPS_D65_Y0 / 100.0F *
-			(((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
-		q[2] = VIPS_D65_Z0 / 100.0F *
-			(((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2]);
+		q[0] = ((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0];
+		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		q[2] = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
 		q += 3;
 	}
 }
@@ -272,8 +270,6 @@ vips_UHDR2scRGB_build(VipsObject *object)
 			VIPS_UNREF(gainmap);
 			return -1;
 		}
-
-		printf("UHDR2scRGB: gainmap has %d bands\n", gainmap->Bands);
 
 		/* And now scale the gainmap image to match the main image 1:1.
 		 */
