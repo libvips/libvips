@@ -1805,6 +1805,7 @@ class TestForeign:
             assert im.width == 141
             assert im.height == 980
             assert im.bands == 3
+            assert im.interpretation == "scrgb"
 
         self.file_loader("radload", RAD_FILE, hdr_valid)
         self.buffer_loader("radload_buffer", RAD_FILE, hdr_valid)
@@ -1825,6 +1826,7 @@ class TestForeign:
             assert im.width == 141
             assert im.height == 980
             assert im.bands == 3
+            assert im.interpretation == "xyz"
 
         self.file_loader("radload", RAD_FILE_XYZ, hdr_xyz_valid)
         self.buffer_loader("radload_buffer", RAD_FILE_XYZ, hdr_xyz_valid)
