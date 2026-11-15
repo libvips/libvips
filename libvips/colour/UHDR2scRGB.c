@@ -155,9 +155,12 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float gainy = exp2f(boosty);
 		float gainz = exp2f(boostz);
 
-		float nx = ((x + uhdr->offset_sdr[0]) * gainx) - uhdr->offset_hdr[0];
-		float ny = ((y + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1];
-		float nz = ((z + uhdr->offset_sdr[2]) * gainz) - uhdr->offset_hdr[2];
+		float nx = VIPS_D65_X0 / 100.0F *
+			(((x + uhdr->offset_sdr[0]) * gainx) - uhdr->offset_hdr[0]);
+		float ny = VIPS_D65_Y0 / 100.0F *
+			(((y + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1]);
+		float nz = VIPS_D65_Z0 / 100.0F *
+			(((z + uhdr->offset_sdr[2]) * gainz) - uhdr->offset_hdr[2]);
 
 		// back to scrgb
 		q[0] =  3.240625F * nx + -1.537208F * ny + -0.498629F * nz;
