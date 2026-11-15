@@ -385,7 +385,7 @@ vips_uhdr2scRGB_init(VipsUhdr2scRGB *uhdr)
 {
 	VipsColour *colour = VIPS_COLOUR(uhdr);
 
-	colour->interpretation = VIPS_INTERPRETATION_XYZ;
+	colour->interpretation = VIPS_INTERPRETATION_scRGB;
 	colour->format = VIPS_FORMAT_FLOAT;
 	colour->bands = 3;
 }
