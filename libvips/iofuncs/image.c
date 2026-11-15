@@ -695,7 +695,8 @@ vips_image_sanity(VipsObject *object, VipsBuf *buf)
 	case VIPS_CODING_RAD:
 		if (image->BandFmt != VIPS_FORMAT_UCHAR ||
 			image->Bands != 4 ||
-			image->Type != VIPS_INTERPRETATION_scRGB)
+			(image->Type != VIPS_INTERPRETATION_scRGB &&
+			 image->Type != VIPS_INTERPRETATION_XYZ))
 			vips_buf_appends(buf, "bad rad format\n");
 		break;
 

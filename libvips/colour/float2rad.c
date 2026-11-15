@@ -195,6 +195,31 @@ vips_float2rad_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 	}
 }
 
+static int
+vips_float2rad_build(VipsObject *object)
+{
+	VipsColour *colour = VIPS_COLOUR(object);
+	VipsColourCode *code = VIPS_COLOUR_CODE(object);
+
+	// input image we want
+	code->input_coding = VIPS_CODING_NONE;
+	code->input_format = VIPS_FORMAT_FLOAT;
+	colour->input_bands = 3;
+
+	// output image we make
+	colour->coding = VIPS_CODING_RAD;
+	if (code->in &&
+		code->in->Type == VIPS_INTERPRETATION_XYZ)
+		colour->interpretation = VIPS_INTERPRETATION_XYZ;
+	else
+		colour->interpretation = VIPS_INTERPRETATION_scRGB;
+
+	colour->format = VIPS_FORMAT_UCHAR;
+	colour->bands = 4;
+
+	return VIPS_OBJECT_CLASS(vips_float2rad_parent_class)->build(object);
+}
+
 static void
 vips_float2rad_class_init(VipsFloat2radClass *class)
 {
@@ -204,6 +229,7 @@ vips_float2rad_class_init(VipsFloat2radClass *class)
 	object_class->nickname = "float2rad";
 	object_class->description =
 		_("transform float RGB to Radiance coding");
+	object_class->build = vips_float2rad_build;
 
 	colour_class->process_line = vips_float2rad_line;
 }
@@ -211,17 +237,6 @@ vips_float2rad_class_init(VipsFloat2radClass *class)
 static void
 vips_float2rad_init(VipsFloat2rad *float2rad)
 {
-	VipsColour *colour = VIPS_COLOUR(float2rad);
-	VipsColourCode *code = VIPS_COLOUR_CODE(float2rad);
-
-	colour->coding = VIPS_CODING_RAD;
-	colour->interpretation = VIPS_INTERPRETATION_scRGB;
-	colour->format = VIPS_FORMAT_UCHAR;
-	colour->input_bands = 3;
-	colour->bands = 4;
-
-	code->input_coding = VIPS_CODING_NONE;
-	code->input_format = VIPS_FORMAT_FLOAT;
 }
 
 /**
