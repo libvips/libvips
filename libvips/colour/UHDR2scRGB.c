@@ -92,26 +92,29 @@ vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 		float z = p1[2] / VIPS_D65_Z0;
 		p1 += 3;
 
+		// to scrgb
+		float r =  3.240625F * x + -1.537208F * y + -0.498629F * z;
+		float g = -0.968931F * x +  1.875756F * y +  0.041518F * z;
+		float b =  0.055710F * x + -0.204021F * y +  1.056996F * z;
+
 		// gainmaps are already linear
-		float gy = p2[0] / 255.0;
+		float gg = p2[0] / 255.0;
 		p2 += 1;
 
 		if (uhdr->gamma[1] != 1.0f)
-			gy = powf(gy, 1.0f / uhdr->gamma[1]);
+			gg = powf(gg, 1.0f / uhdr->gamma[1]);
 
-		float boosty = log2f(uhdr->min_content_boost[1]) * (1.0f - gy) +
-			log2f(uhdr->max_content_boost[1]) * gy;
+		float boostg = log2f(uhdr->min_content_boost[1]) * (1.0f - gg) +
+			log2f(uhdr->max_content_boost[1]) * gg;
 
-		float gainy = exp2f(boosty);
+		float gaing = exp2f(boostg);
 
-		float nx = ((x + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1];
-		float ny = ((y + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1];
-		float nz = ((z + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1];
-
-		// back to scrgb
-		q[0] =  3.240625F * nx + -1.537208F * ny + -0.498629F * nz;
-		q[1] = -0.968931F * nx +  1.875756F * ny +  0.041518F * nz;
-		q[2] =  0.055710F * nx + -0.204021F * ny +  1.056996F * nz;
+		q[0] = VIPS_D65_X0 / 100.0F *
+			(((r + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
+		q[1] = VIPS_D65_Y0 / 100.0F *
+			(((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
+		q[2] = VIPS_D65_Z0 / 100.0F *
+			(((b + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
 		q += 3;
 	}
 }
@@ -131,38 +134,42 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float z = p1[2] / VIPS_D65_Z0;
 		p1 += 3;
 
+		// to scrgb
+		float r =  3.240625F * x + -1.537208F * y + -0.498629F * z;
+		float g = -0.968931F * x +  1.875756F * y +  0.041518F * z;
+		float b =  0.055710F * x + -0.204021F * y +  1.056996F * z;
+
 		// gainmaps are already linear
-		float gx = p2[0] / 255.0;
-		float gy = p2[1] / 255.0;
-		float gz = p2[2] / 255.0;
+		float gr = p2[0] / 255.0;
+		float gg = p2[1] / 255.0;
+		float gb = p2[2] / 255.0;
 		p2 += 3;
 
 		if (uhdr->gamma[0] != 1.0f)
-			gx = powf(gx, 1.0f / uhdr->gamma[0]);
+			gr = powf(gr, 1.0f / uhdr->gamma[0]);
 		if (uhdr->gamma[1] != 1.0f)
-			gy = powf(gy, 1.0f / uhdr->gamma[1]);
+			gg = powf(gg, 1.0f / uhdr->gamma[1]);
 		if (uhdr->gamma[2] != 1.0f)
-			gz = powf(gz, 1.0f / uhdr->gamma[2]);
+			gb = powf(gb, 1.0f / uhdr->gamma[2]);
 
-		float boostx = log2f(uhdr->min_content_boost[0]) * (1.0f - gx) +
-			log2f(uhdr->max_content_boost[0]) * gx;
-		float boosty = log2f(uhdr->min_content_boost[1]) * (1.0f - gy) +
-			log2f(uhdr->max_content_boost[1]) * gy;
-		float boostz = log2f(uhdr->min_content_boost[2]) * (1.0f - gz) +
-			log2f(uhdr->max_content_boost[2]) * gz;
+		float boostr = log2f(uhdr->min_content_boost[0]) * (1.0f - gr) +
+			log2f(uhdr->max_content_boost[0]) * gr;
+		float boostg = log2f(uhdr->min_content_boost[1]) * (1.0f - gg) +
+			log2f(uhdr->max_content_boost[1]) * gg;
+		float boostb = log2f(uhdr->min_content_boost[2]) * (1.0f - gb) +
+			log2f(uhdr->max_content_boost[2]) * gb;
 
-		float gainx = exp2f(boostx);
-		float gainy = exp2f(boosty);
-		float gainz = exp2f(boostz);
+		float gainr = exp2f(boostr);
+		float gaing = exp2f(boostg);
+		float gainb = exp2f(boostb);
 
-		float nx = ((x + uhdr->offset_sdr[0]) * gainx) - uhdr->offset_hdr[0];
-		float ny = ((y + uhdr->offset_sdr[1]) * gainy) - uhdr->offset_hdr[1];
-		float nz = ((z + uhdr->offset_sdr[2]) * gainz) - uhdr->offset_hdr[2];
 
-		// back to scrgb
-		q[0] =  3.240625F * nx + -1.537208F * ny + -0.498629F * nz;
-		q[1] = -0.968931F * nx +  1.875756F * ny +  0.041518F * nz;
-		q[2] =  0.055710F * nx + -0.204021F * ny +  1.056996F * nz;
+		q[0] = VIPS_D65_X0 / 100.0F *
+			(((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0]);
+		q[1] = VIPS_D65_Y0 / 100.0F *
+			(((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1]);
+		q[2] = VIPS_D65_Z0 / 100.0F *
+			(((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2]);
 		q += 3;
 	}
 }
@@ -266,6 +273,8 @@ vips_UHDR2scRGB_build(VipsObject *object)
 			VIPS_UNREF(gainmap);
 			return -1;
 		}
+
+		printf("UHDR2scRGB: gainmap has %d bands\n", gainmap->Bands);
 
 		/* And now scale the gainmap image to match the main image 1:1.
 		 */
