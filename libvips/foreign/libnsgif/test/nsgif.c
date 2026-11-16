@@ -29,6 +29,7 @@
 static struct nsgif_options {
 	const char *file;
 	const char *ppm;
+	const char *pbm;
 	uint64_t loops;
 	bool palette;
 	bool version;
@@ -66,6 +67,13 @@ static const struct cli_table_entry cli_entries[] = {
 		.t = CLI_STRING,
 		.v.s = &nsgif_options.ppm,
 		.d = "Convert frames to PPM image at given path."
+	},
+	{
+		.s = 'b',
+		.l = "pbm",
+		.t = CLI_STRING,
+		.v.s = &nsgif_options.pbm,
+		.d = "Convert frames' transparency to PBM mask at given path."
 	},
 	{
 		.s = 'p',
@@ -272,7 +280,92 @@ static bool save_local_palette(const nsgif_t *gif, uint32_t frame)
 	return save_palette(nsgif_options.file, filename, table, entries);
 }
 
-static void decode(FILE* ppm, const char *name, nsgif_t *gif, bool first)
+/**
+ * Write a frame's colour channels as PPM rows.
+ *
+ * \param[in] f      The file to write to.
+ * \param[in] info   The GIF's info.
+ * \param[in] image  The frame's R8G8B8A8 bitmap.
+ */
+static void write_ppm_rows(
+		FILE *f,
+		const nsgif_info_t *info,
+		const uint8_t *image)
+{
+	for (uint32_t y = 0; y != info->height; y++) {
+		for (uint32_t x = 0; x != info->width; x++) {
+			size_t z = (y * info->width + x) * BYTES_PER_PIXEL;
+			fprintf(f, "%s%u %u %u",
+					x == 0 ? "" : " ",
+					image[z],
+					image[z + 1],
+					image[z + 2]);
+		}
+		fprintf(f, "\n");
+	}
+}
+
+/**
+ * Write a frame's alpha channel as PBM rows.
+ *
+ * 0 (white) is opaque and 1 (black) is transparent.
+ *
+ * \param[in] f      The file to write to.
+ * \param[in] info   The GIF's info.
+ * \param[in] image  The frame's R8G8B8A8 bitmap.
+ * \param[in] frame  The frame number, for reporting errors.
+ */
+static void write_pbm_rows(
+		FILE *f,
+		const nsgif_info_t *info,
+		const uint8_t *image,
+		uint32_t frame)
+{
+	for (uint32_t y = 0; y != info->height; y++) {
+		for (uint32_t x = 0; x != info->width; x++) {
+			size_t z = (y * info->width + x) * BYTES_PER_PIXEL;
+			uint8_t alpha = image[z + 3];
+
+			if (alpha != 0x00 && alpha != 0xFF) {
+				fprintf(stderr, "Frame %"PRIu32": "
+						"Pixel (%"PRIu32",%"PRIu32") "
+						"has alpha %u; expected 0 or 255\n",
+						frame, x, y, alpha);
+				exit(EXIT_FAILURE);
+			}
+			fprintf(f, "%s%u", x == 0 ? "" : " ", alpha == 0);
+		}
+		fprintf(f, "\n");
+	}
+}
+
+/**
+ * Write the start of the header of a plain Netpbm image of all the frames.
+ *
+ * The frames are stacked vertically, and their rows are each preceded by
+ * a comment naming the frame.  The caller writes the rest of the header.
+ *
+ * \param[in] f      The file to write to.
+ * \param[in] magic  The image type, e.g. "P3" for PPM.
+ * \param[in] name   The GIF's filename.
+ * \param[in] info   The GIF's info.
+ */
+static void write_plain_header(
+		FILE *f,
+		const char *magic,
+		const char *name,
+		const nsgif_info_t *info)
+{
+	fprintf(f, "%s\n", magic);
+	fprintf(f, "# %s\n", name);
+	fprintf(f, "# width                %u\n", info->width);
+	fprintf(f, "# height               %u\n", info->height);
+	fprintf(f, "# frame_count          %u\n", info->frame_count);
+	fprintf(f, "# loop_max             %d\n", info->loop_max);
+}
+
+static void decode(FILE* ppm, FILE *pbm, const char *name, nsgif_t *gif,
+		bool first)
 {
 	nsgif_error err;
 	uint32_t frame_prev = 0;
@@ -281,13 +374,13 @@ static void decode(FILE* ppm, const char *name, nsgif_t *gif, bool first)
 	info = nsgif_get_info(gif);
 
 	if (first && ppm != NULL) {
-		fprintf(ppm, "P3\n");
-		fprintf(ppm, "# %s\n", name);
-		fprintf(ppm, "# width                %u \n", info->width);
-		fprintf(ppm, "# height               %u \n", info->height);
-		fprintf(ppm, "# frame_count          %u \n", info->frame_count);
-		fprintf(ppm, "# loop_max             %u \n", info->loop_max);
+		write_plain_header(ppm, "P3", name, info);
 		fprintf(ppm, "%u %u 256\n", info->width,
+				info->height * info->frame_count);
+	}
+	if (first && pbm != NULL) {
+		write_plain_header(pbm, "P1", name, info);
+		fprintf(pbm, "%u %u\n", info->width,
 				info->height * info->frame_count);
 	}
 
@@ -339,18 +432,15 @@ static void decode(FILE* ppm, const char *name, nsgif_t *gif, bool first)
 					frame_new, nsgif_strerror(err));
 			/* Continue decoding the rest of the frames. */
 
-		} else if (first && ppm != NULL) {
-			fprintf(ppm, "# frame %u:\n", frame_new);
+		} else if (first) {
 			image = (const uint8_t *) bitmap;
-			for (uint32_t y = 0; y != info->height; y++) {
-				for (uint32_t x = 0; x != info->width; x++) {
-					size_t z = (y * info->width + x) * 4;
-					fprintf(ppm, "%u %u %u ",
-							image[z],
-							image[z + 1],
-							image[z + 2]);
-				}
-				fprintf(ppm, "\n");
+			if (ppm != NULL) {
+				fprintf(ppm, "# frame %u:\n", frame_new);
+				write_ppm_rows(ppm, info, image);
+			}
+			if (pbm != NULL) {
+				fprintf(pbm, "# frame %u:\n", frame_new);
+				write_pbm_rows(pbm, info, image, frame_new);
 			}
 		}
 
@@ -373,6 +463,7 @@ int main(int argc, char *argv[])
 	uint8_t *data;
 	nsgif_error err;
 	FILE *ppm = NULL;
+	FILE *pbm = NULL;
 
 	/* Override default options with any command line args */
 	if (!cli_parse(&cli, argc, (void *)argv)) {
@@ -395,6 +486,15 @@ int main(int argc, char *argv[])
 		if (ppm == NULL) {
 			fprintf(stderr, "Unable to open %s for writing\n",
 					nsgif_options.ppm);
+			return EXIT_FAILURE;
+		}
+	}
+
+	if (nsgif_options.pbm != NULL) {
+		pbm = fopen(nsgif_options.pbm, "w+");
+		if (pbm == NULL) {
+			fprintf(stderr, "Unable to open %s for writing\n",
+					nsgif_options.pbm);
 			return EXIT_FAILURE;
 		}
 	}
@@ -424,7 +524,7 @@ int main(int argc, char *argv[])
 	}
 
 	for (uint64_t i = 0; i < nsgif_options.loops; i++) {
-		decode(ppm, nsgif_options.file, gif, i == 0);
+		decode(ppm, pbm, nsgif_options.file, gif, i == 0);
 
 		/* We want to ignore any loop limit in the GIF. */
 		nsgif_reset(gif);
@@ -432,6 +532,9 @@ int main(int argc, char *argv[])
 
 	if (ppm != NULL) {
 		fclose(ppm);
+	}
+	if (pbm != NULL) {
+		fclose(pbm);
 	}
 
 	/* clean up */

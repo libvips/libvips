@@ -7,7 +7,7 @@ but within the libvips build system.
 
 Run `./update.sh` to update this copy of libnsgif from the upstream repo.
 
-Last updated 26 Oct 2026
+Last updated 16 Nov 2026.
 
 # To do
 
