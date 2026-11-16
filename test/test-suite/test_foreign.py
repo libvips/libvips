@@ -958,6 +958,16 @@ class TestForeign:
         assert y.get("tile-height") == 224
 
     @skip_if_no("tiffload")
+    @pytest.mark.xfail(raises=pyvips.error.Error, reason="requires libtiff >= 4.2.0")
+    def test_tiff_iptc(self):
+        x = pyvips.Image.new_from_file(TIF_FILE)
+        x = x.copy()
+        x.set_type(pyvips.GValue.blob_type, "iptc-data", b"hello world")
+        buf = x.tiffsave_buffer()
+        y = pyvips.Image.new_from_buffer(buf, "")
+        assert y.get("iptc-data") == b"hello world"
+
+    @skip_if_no("tiffload")
     @pytest.mark.xfail(raises=AssertionError, reason="fails when libtiff was configured with --disable-old-jpeg")
     def test_tiff_ojpeg(self):
         def tiff_ojpeg_tile_valid(im):

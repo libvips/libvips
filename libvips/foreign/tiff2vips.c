@@ -1905,7 +1905,14 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 	if (TIFFGetField(rtiff->tiff, TIFFTAG_XMLPACKET, &data_len, &data))
 		vips_image_set_blob_copy(out, VIPS_META_XMP_NAME, data, data_len);
 
-	/* Read any IPTC metadata.
+#ifdef HAVE_TIFF_IPTC_METADATA
+	/* libtiff < 4.2.0 defines RichTIFFIPTC as LONG rather than UNDEFINED,
+	 * so the count returned by TIFFGetField() is in 32-bit values rather
+	 * than bytes. libtiff 4.5.0 added compatibility for reading tags
+	 * written with the legacy LONG type.
+	 * See:
+	 * https://gitlab.com/libtiff/libtiff/-/merge_requests/99
+	 * https://gitlab.com/libtiff/libtiff/-/merge_requests/374
 	 */
 	if (TIFFGetField(rtiff->tiff, TIFFTAG_RICHTIFFIPTC, &data_len, &data)) {
 		vips_image_set_blob_copy(out, VIPS_META_IPTC_NAME, data, data_len);
@@ -1915,6 +1922,7 @@ rtiff_set_header(Rtiff *rtiff, VipsImage *out)
 		 */
 		vips_image_set_blob_copy(out, "ipct-data", data, data_len);
 	}
+#endif /*HAVE_TIFF_IPTC_METADATA*/
 
 	/* Read any photoshop metadata.
 	 */

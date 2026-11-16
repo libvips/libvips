@@ -22,6 +22,7 @@ tbd 8.18.8
 - text: prevent fontconfig init race condition [lovell]
 - ensure image history is restored on load [fuzzyrichie]
 - dbuf: fix return value of `vips_dbuf_writef()` [fuzzyrichie]
+- tiffsave: fix IPTC write with libtiff >= 4.2.0 [fuzzyrichie]
 
 20/9/26 8.18.7
 

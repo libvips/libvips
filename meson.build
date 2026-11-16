@@ -402,6 +402,8 @@ if libtiff_dep.found()
     cfg_var.set('HAVE_TIFF', true)
     # ZSTD and WEBP in TIFF added in libtiff 4.0.10
     cfg_var.set('HAVE_TIFF_COMPRESSION_WEBP', cc.get_define('COMPRESSION_WEBP', prefix: '#include <tiff.h>', dependencies: libtiff_dep) != '')
+    # RichTIFFIPTC tag was incorrectly specified as LONG before libtiff 4.2.0
+    cfg_var.set('HAVE_TIFF_IPTC_METADATA', libtiff_dep.version().version_compare('>=4.2.0'))
     # TIFFOpenOptions added in libtiff 4.5.0
     cfg_var.set('HAVE_TIFF_OPEN_OPTIONS', cc.has_function('TIFFOpenOptionsAlloc', prefix: '#include <tiffio.h>', dependencies: libtiff_dep))
     # TIFFOpenOptionsSetMaxCumulatedMemAlloc added in libtiff 4.7.0
