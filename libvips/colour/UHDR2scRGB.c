@@ -92,12 +92,11 @@ vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 		float z = p1[2];
 		p1 += 3;
 
-		/* XYZ -> sRGB, including scale down from 100, D65 balance, and
-		 * equi-energy output.
+		/* XYZ -> sRGB, including scale down from 100.
 		 */
-		float r =  0.02829956F * x + -0.01275916F * y + -0.00380109F * z;
-		float g = -0.01074952F * x +  0.01977930F * y +  0.00040208F * z;
-		float b =  0.00064503F * x + -0.00224523F * y +  0.01068319F * z;
+		float r =  0.03240626F * x +  -0.01537208F * y +  -0.004986286F * z;
+		float g = -0.009689307F * x +  0.01875756F * y +   0.000415175F * z;
+		float b =  0.000557101F * x + -0.002040211F * y +  0.01056996F * z;
 
 		// gainmaps are already linear
 		float gg = p2[0] / 255.0;
@@ -133,12 +132,11 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float z = p1[2];
 		p1 += 3;
 
-		/* XYZ -> sRGB, including scale down from 100, D65 balance, and
-		 * equi-energy output.
+		/* XYZ -> sRGB, including scale down from 100.
 		 */
-		float r =  0.02829956F * x + -0.01275916F * y + -0.00380109F * z;
-		float g = -0.01074952F * x +  0.01977930F * y +  0.00040208F * z;
-		float b =  0.00064503F * x + -0.00224523F * y +  0.01068319F * z;
+		float r =  0.03240626F * x +  -0.01537208F * y +  -0.004986286F * z;
+		float g = -0.009689307F * x +  0.01875756F * y +   0.000415175F * z;
+		float b =  0.000557101F * x + -0.002040211F * y +  0.01056996F * z;
 
 		// gainmaps are already linear
 		float gr = p2[0] / 255.0;
