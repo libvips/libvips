@@ -267,6 +267,20 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		raw->raw_processor->lens.Lens);
 #endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)*/
 
+	/* Set Linear Rec.2020 icc profile
+	 */
+	VipsBlob *profile = NULL;
+
+	if (vips_profile_load("LinearRec2020", &profile, NULL))
+		return -1;
+	if (profile) {
+		size_t length;
+		const void *data = vips_blob_get(profile, &length);
+
+		vips_image_set_blob_copy(image, VIPS_META_ICC_NAME, data, length);
+		vips_area_unref(VIPS_AREA(profile));
+	}
+	
 	/* Set CICP flags for Linear Rec.2020
 	 */
 	vips_image_set_int(image, VIPS_META_CICP_COLOUR_PRIMARIES, VIPS_CICP_COLOUR_PRIMARIES_BT2020);
