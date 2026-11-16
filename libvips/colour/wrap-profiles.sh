@@ -11,7 +11,7 @@ in=$1
 out=$2
 
 echo "/* this file is generated automatically, do not edit! */" > $out
-echo "/* clang-format off */" > $out
+echo "/* clang-format off */" >> $out
 echo "" >> $out
 echo "#include \"profiles.h\"" >> $out
 echo "" >> $out
