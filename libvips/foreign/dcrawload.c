@@ -7,10 +7,8 @@
  *	- add raw-preview-data, the largest embedded preview jpeg
  *	- add half_size
  * 14/11/26 chrisabra
- *	- add output_color
- *	- add use_auto_brightness
- *	- corrected default gamma curve from BT.709 to sRGB
- *	- removed ICC profile setting
+ *	- return CICP tagged Linear Rec.2020
+ *	- disabled default auto-brightness and parameterised
 
  */
 
@@ -77,9 +75,7 @@ typedef struct _VipsForeignLoadDcRaw {
 
 	int bitdepth;
 	gboolean half_size;
-	int output_color;
-	int demosaic_algorithm;
-	gboolean use_auto_brightness;
+	gboolean auto_brightness;
 
 	/* LibRaw processor.
 	 */
@@ -160,64 +156,14 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 	 */
 	raw->raw_processor->params.half_size = raw->half_size;
 
-	/* XZY requires shifting to float returns
+	/* Set output color primaries Rec.2020
 	 */
-	if (raw->output_color == 5) {
-		vips_error(class->nickname, "%s", _("unsupported output_color"));
-		return -1;
-	}
+	raw->raw_processor->params.output_color = 8;
 
-	/* Set output colourspace
+	/* Set transfer function Linear
 	 */
-	raw->raw_processor->params.output_color = raw->output_color;
-
-	switch (raw->output_color) {
-	case 0: // Raw / camera space
-		raw->raw_processor->params.gamm[0] = 1.0;
-		raw->raw_processor->params.gamm[1] = 1.0;
-		break;
-
-	case 1: // sRGB
-		raw->raw_processor->params.gamm[0] = 1.0 / 2.4;
-		raw->raw_processor->params.gamm[1] = 12.92;
-		break;
-
-	case 2: // Adobe RGB (1998)
-		raw->raw_processor->params.gamm[0] = 1.0 / 2.19921875;
-		raw->raw_processor->params.gamm[1] = 0.0;
-		break;
-
-	case 3: // Wide Gamut RGB
-		raw->raw_processor->params.gamm[0] = 1.0 / 2.2;
-		raw->raw_processor->params.gamm[1] = 0.0;
-		break;
-
-	case 4: // ProPhoto RGB
-		raw->raw_processor->params.gamm[0] = 1.0 / 1.8;
-		raw->raw_processor->params.gamm[1] = 16.0;
-		break;
-
-	case 6: // ACES
-		raw->raw_processor->params.gamm[0] = 1.0;
-		raw->raw_processor->params.gamm[1] = 1.0;
-		break;
-
-#if LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 22)
-	case 7: // DCI-P3
-		raw->raw_processor->params.gamm[0] = 1.0 / 2.6;
-		raw->raw_processor->params.gamm[1] = 0.0;
-		break;
-
-	case 8: // Rec. 2020 (BT.2020 OETF)
-		raw->raw_processor->params.gamm[0] = 0.45;
-		raw->raw_processor->params.gamm[1] = 4.5;
-		break;
-#endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)*/
-
-	default:
-		vips_error(class->nickname, "%s", _("unsupported output_color"));
-		return -1;
-	}
+	raw->raw_processor->params.gamm[0] = 1.0;
+	raw->raw_processor->params.gamm[1] = 1.0;
 
 	/* Apply camera white balance.
 	 */
@@ -225,7 +171,7 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 
 	/* Disable histogram-based auto-brightness if requested.
 	 */
-	raw->raw_processor->params.no_auto_bright = !raw->use_auto_brightness;
+	raw->raw_processor->params.no_auto_bright = !raw->auto_brightness;
 
 	/* Don't autorotate, we set EXIF rotation later instead. If we enable
 	 * autorotate, then the image size reported during libraw_open_buffer()
@@ -300,7 +246,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 		g_date_time_unref(dt);
 	}
-#else /*!GLIB_CHECK_VERSION(2, 62, 0)*/
+#else  /*!GLIB_CHECK_VERSION(2, 62, 0)*/
 	GTimeVal val = { raw->raw_processor->other.timestamp, 0 };
 
 	char *str = g_time_val_to_iso8601(&val);
@@ -320,6 +266,13 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	vips_image_set_string(image, "raw-lens",
 		raw->raw_processor->lens.Lens);
 #endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)*/
+
+	/* Set CICP flags for Linear Rec.2020
+	 */
+	vips_image_set_int(image, VIPS_META_CICP_COLOUR_PRIMARIES, VIPS_CICP_COLOUR_PRIMARIES_BT2020);
+	vips_image_set_int(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS, VIPS_CICP_TRANSFER_LINEAR);
+	vips_image_set_int(image, VIPS_META_CICP_MATRIX_COEFFICIENTS, VIPS_CICP_MATRIX_RGB);
+	vips_image_set_int(image, VIPS_META_CICP_FULL_RANGE_FLAG, 1);
 
 	int orientation;
 	switch (raw->raw_processor->sizes.flip) {
@@ -369,7 +322,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 #ifdef DEBUG
 		printf("dcrawload: thumb %d, width = %d, height = %d, format = %d\n",
-				i, this->twidth, this->twidth, this->tformat);
+			i, this->twidth, this->twidth, this->tformat);
 #endif /*DEBUG*/
 
 		// only support JPEG thumbnails for now
@@ -386,8 +339,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 		// thumbnails must be under 1mb
 		if (this->tlength < 1024 * 1024) {
-			libraw_thumbnail_item_t *thumb = thumb_index == -1 ?
-				NULL : &thumbs_list->thumblist[thumb_index];
+			libraw_thumbnail_item_t *thumb = thumb_index == -1 ? NULL : &thumbs_list->thumblist[thumb_index];
 
 			if (!thumb ||
 				this->twidth > thumb->twidth ||
@@ -396,8 +348,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		}
 
 		// preview is just the largest
-		libraw_thumbnail_item_t *preview = preview_index == -1 ?
-			NULL : &thumbs_list->thumblist[preview_index];
+		libraw_thumbnail_item_t *preview = preview_index == -1 ? NULL : &thumbs_list->thumblist[preview_index];
 
 		if (!preview ||
 			this->twidth > preview->twidth ||
@@ -449,14 +400,8 @@ vips_foreign_load_dcraw_interpretation(VipsForeignLoadDcRaw *raw, int bands)
 {
 	if (bands < 3)
 		return raw->bitdepth > 8 ? VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
-
-	if (raw->bitdepth > 8)
-		return VIPS_INTERPRETATION_RGB16;
-
-	if (raw->output_color == 1)
-		return VIPS_INTERPRETATION_sRGB;
-
-	return VIPS_INTERPRETATION_RGB;
+	else
+		return raw->bitdepth > 8 ? VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
 }
 
 static int
@@ -489,8 +434,7 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 		raw->raw_processor->sizes.iwidth,
 		raw->raw_processor->sizes.iheight,
 		bands,
-		raw->bitdepth > 8 ?
-			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
+		raw->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
 		vips_foreign_load_dcraw_interpretation(raw, bands),
 		1.0, 1.0);
@@ -533,17 +477,17 @@ vips_foreign_load_dcraw_load(VipsForeignLoad *load)
 	}
 
 	if (!(raw->processed =
-			libraw_dcraw_make_mem_image(raw->raw_processor, &result))) {
+				libraw_dcraw_make_mem_image(raw->raw_processor, &result))) {
 		vips_foreign_load_dcraw_error(raw, _("unable to build image"), result);
 		return -1;
 	}
 
 	VipsImage *image;
 	if (!(image = vips_image_new_from_memory(
-		raw->processed->data, raw->processed->data_size,
-		raw->processed->width, raw->processed->height,
-		raw->processed->colors,
-		raw->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR)))
+			  raw->processed->data, raw->processed->data_size,
+			  raw->processed->width, raw->processed->height,
+			  raw->processed->colors,
+			  raw->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR)))
 		return -1;
 
 	image->Type = vips_foreign_load_dcraw_interpretation(raw,
@@ -612,18 +556,11 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, half_size),
 		FALSE);
 
-	VIPS_ARG_INT(class, "output_color", 14,
-		_("Output colorspace"),
-		_("Libraw's output colour space properties"),
-		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, output_color),
-		0, 8, 1);
-
-	VIPS_ARG_BOOL(class, "use_auto_brightness", 15,
+	VIPS_ARG_BOOL(class, "auto_brightness", 14,
 		_("Apply auto-brightness"),
 		_("Applies histogram based auto-brightness"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
-		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, use_auto_brightness),
+		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, auto_brightness),
 		FALSE);
 }
 
@@ -631,7 +568,6 @@ static void
 vips_foreign_load_dcraw_init(VipsForeignLoadDcRaw *raw)
 {
 	raw->bitdepth = 8;
-	raw->output_color = 1;
 }
 
 typedef struct _VipsForeignLoadDcRawSource {
@@ -856,19 +792,13 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * Set @bitdepth to control the number of bits to decode to. Either 8 or 16,
  * default 8.
  *
- * Set @output_color to control the output colorspace.
- * 0=raw, 1=sRGB, 2=Adobe, 3=Wide, 4=ProPhoto, 5=XYZ (Unsupported),
- * 6=ACES, 7=DCI-P3, 8=Rec. 2020
- * default 1.
- *
- * Set @use_auto_brightness to enable auto-brightness
+ * Set @auto_brightness to enable auto-brightness
  * default false
  *
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
- *     * @output_color: `gint`, Output colorspace
- *     * @use_auto_brightness: `gboolean`, disable auto-brightening
+ *     * @auto_brightness: `gboolean`, disable auto-brightening
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -896,8 +826,7 @@ vips_dcrawload(const char *filename, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
- *     * @output_color: `gint`, Output colorspace
- *     * @use_auto_brightness: `gboolean`, disable auto-brightening
+ *     * @auto_brightness: `gboolean`, disable auto-brightening
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
@@ -929,8 +858,7 @@ vips_dcrawload_source(VipsSource *source, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
- *     * @output_color: `gint`, Output colorspace
- *     * @use_auto_brightness: `gboolean`, Apply a historam based auto-brightness
+ *     * @auto_brightness: `gboolean`, Apply a historam based auto-brightness
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
