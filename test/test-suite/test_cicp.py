@@ -788,3 +788,61 @@ class TestCICP:
         max1 = to_scRGB(thumb).max()
         max2 = to_scRGB(thumb2).max()
         assert abs(max1 - max2) < 2
+
+    @skip_if_no("heifsave")
+    @skip_if_no("jxlsave")
+    @skip_if_no_CICP_PNG()
+    @pytest.mark.parametrize("value,format", [
+        ([1.0, 1.0, 1.0], ".avif"),
+        ([0.04, 0.04, 1.7], ".avif"),
+        ([0.04, 1.7, 0.04], ".avif"),
+        ([1.7, 0.04, 0.04], ".avif"),
+
+        ([1.0, 1.0, 1.0], ".jxl"),
+        ([0.04, 0.04, 1.7], ".jxl"),
+        ([0.04, 1.7, 0.04], ".jxl"),
+        ([1.7, 0.04, 0.04], ".jxl"),
+
+        ([1.0, 1.0, 1.0], ".png"),
+        ([0.04, 0.04, 1.7], ".png"),
+        ([0.04, 1.7, 0.04], ".png"),
+        ([1.7, 0.04, 0.04], ".png"),
+    ])
+    def test_hdr_scrgb(self, value, format):
+        image = pyvips.Image \
+            .new_from_list(value) \
+            .bandfold() \
+            .copy(interpretation="scrgb")
+
+        buffer = image.write_to_buffer(format)
+        image2 = pyvips.Image.new_from_buffer(buffer, "").CICP2scRGB()
+
+        for band in range(3):
+            assert abs(image(0, 0)[band] - image2(0, 0)[band]) < 0.1
+
+    @skip_if_no("uhdrsave")
+    @pytest.mark.parametrize("value,format", [
+        ([1.0, 1.0, 1.0], ".jpg"),
+        ([0.04, 0.04, 1.7], ".jpg"),
+        ([0.04, 1.7, 0.04], ".jpg"),
+        ([1.7, 0.04, 0.04], ".jpg"),
+
+    ])
+    def test_hdr_scrgb_uhdr(self, value, format):
+        image = pyvips.Image \
+            .new_from_list(value) \
+            .bandfold() \
+            .copy(interpretation="scrgb") \
+            .replicate(8, 8)
+
+        buffer = image.write_to_buffer(format)
+        image2 = pyvips.Image.new_from_buffer(buffer, "").UHDR2scRGB()
+
+        for band in range(3):
+            assert abs(image(0, 0)[band] - image2(0, 0)[band]) < 0.1
+
+
+
+
+
+
