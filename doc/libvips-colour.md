@@ -207,5 +207,8 @@ The colour spaces supported by libvips are:
 
 ## Enumerations
 
+* [enum@CICPColourPrimaries]
+* [enum@CICPTransferCharacteristics]
+* [enum@CICPMatrixCoefficients]
 * [enum@Intent]
 * [enum@PCS]
