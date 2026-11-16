@@ -516,6 +516,11 @@ vips_CICP2scRGB_build(VipsObject *object)
 		code->input_format = VIPS_FORMAT_USHORT;
 		code->input_interpretation = VIPS_INTERPRETATION_RGB16;
 	}
+	else if (code->in &&
+		code->in->Type == VIPS_INTERPRETATION_scRGB) {
+		code->input_format = VIPS_FORMAT_FLOAT;
+		code->input_interpretation = VIPS_INTERPRETATION_scRGB;
+	}
 	else {
 		code->input_format = VIPS_FORMAT_UCHAR;
 		code->input_interpretation = VIPS_INTERPRETATION_sRGB;
@@ -582,6 +587,30 @@ vips_CICP2scRGB_build(VipsObject *object)
 	} \
 }
 
+#define CICP2SCRGB_LOOPF(TYPE) \
+{ \
+	TYPE *restrict p = (TYPE *) in[0]; \
+	float *restrict q = (float *) out; \
+	const float *matrix = cicp->conversion_matrix; \
+	const float *luminance = cicp->luminance_coeffs; \
+	const gboolean is_hlg = \
+		cicp->transfer_characteristics == VIPS_CICP_TRANSFER_HLG; \
+\
+	for (int i = 0; i < width; i++) { \
+		float r = p[0]; \
+		float g = p[1]; \
+		float b = p[2]; \
+		p += 3; \
+\
+		if (is_hlg) \
+			vips_hlg_ootf(&r, &g, &b, luminance); \
+\
+		vips_cicp_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]); \
+\
+		q += 3; \
+	} \
+}
+
 static void
 vips_CICP2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
@@ -594,6 +623,10 @@ vips_CICP2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 
 	case VIPS_FORMAT_USHORT:
 		CICP2SCRGB_LOOP(unsigned short);
+		break;
+
+	case VIPS_FORMAT_FLOAT:
+		CICP2SCRGB_LOOPF(float);
 		break;
 
 	default:
