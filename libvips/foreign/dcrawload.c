@@ -5,6 +5,9 @@
  * 15/6/26
  *	- add raw-preview-data, the largest embedded preview jpeg
  *	- add half_size
+ * 14/11/26 chrisabra
+ *	- load as CICP tagged Linear Rec.2020
+ *	- add auto_brightness
  */
 
 /*
@@ -70,6 +73,7 @@ typedef struct _VipsForeignLoadDcRaw {
 
 	int bitdepth;
 	gboolean half_size;
+	gboolean auto_brightness;
 
 	/* LibRaw processor.
 	 */
@@ -150,9 +154,22 @@ vips_foreign_load_dcraw_open(VipsForeignLoadDcRaw *raw)
 	 */
 	raw->raw_processor->params.half_size = raw->half_size;
 
+	/* Set output color primaries Rec.2020
+	 */
+	raw->raw_processor->params.output_color = 8;
+
+	/* Set transfer function Linear
+	 */
+	raw->raw_processor->params.gamm[0] = 1.0;
+	raw->raw_processor->params.gamm[1] = 1.0;
+
 	/* Apply camera white balance.
 	 */
 	raw->raw_processor->params.use_camera_wb = 1;
+
+	/* Disable histogram-based auto-brightness if requested.
+	 */
+	raw->raw_processor->params.no_auto_bright = !raw->auto_brightness;
 
 	/* Don't autorotate, we set EXIF rotation later instead. If we enable
 	 * autorotate, then the image size reported during libraw_open_buffer()
@@ -248,10 +265,29 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		raw->raw_processor->lens.Lens);
 #endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)*/
 
-	if (raw->raw_processor->color.profile)
-		vips_image_set_blob_copy(image, VIPS_META_ICC_NAME,
-			raw->raw_processor->color.profile,
-			raw->raw_processor->color.profile_length);
+	/* Set Linear Rec.2020 ICC profile.
+	 */
+	VipsBlob *profile = NULL;
+
+	if (vips_profile_load("Linear-Rec2020", &profile, NULL))
+		return -1;
+	if (profile) {
+		size_t length;
+		const void *data = vips_blob_get(profile, &length);
+
+		vips_image_set_blob_copy(image, VIPS_META_ICC_NAME, data, length);
+		vips_area_unref(VIPS_AREA(profile));
+	}
+
+	/* Set CICP flags for Linear Rec.2020.
+	 */
+	vips_image_set_int(image, VIPS_META_CICP_COLOUR_PRIMARIES,
+		VIPS_CICP_COLOUR_PRIMARIES_BT2020);
+	vips_image_set_int(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS,
+		VIPS_CICP_TRANSFER_LINEAR);
+	vips_image_set_int(image, VIPS_META_CICP_MATRIX_COEFFICIENTS,
+		VIPS_CICP_MATRIX_RGB);
+	vips_image_set_int(image, VIPS_META_CICP_FULL_RANGE_FLAG, 1);
 
 	int orientation;
 	switch (raw->raw_processor->sizes.flip) {
@@ -377,6 +413,18 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	return 0;
 }
 
+static VipsInterpretation
+vips_foreign_load_dcraw_interpretation(VipsForeignLoadDcRaw *raw,
+	int bands)
+{
+	if (bands < 3)
+		return raw->bitdepth > 8 ?
+			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
+	else
+		return raw->bitdepth > 8 ?
+			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
+}
+
 static int
 vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 {
@@ -410,9 +458,8 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 		raw->bitdepth > 8 ?
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
-		VIPS_INTERPRETATION_ERROR,
+		vips_foreign_load_dcraw_interpretation(raw, bands),
 		1.0, 1.0);
-	load->out->Type = vips_image_guess_interpretation(load->out);
 
 	/* This is no longer valid, since we have called
 	 * libraw_adjust_sizes_info_only() on it.
@@ -466,16 +513,8 @@ vips_foreign_load_dcraw_load(VipsForeignLoad *load)
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR)))
 		return -1;
 
-	if (raw->bitdepth > 8)
-		if (raw->processed->colors < 3)
-			image->Type = VIPS_INTERPRETATION_GREY16;
-		else
-			image->Type = VIPS_INTERPRETATION_RGB16;
-	else
-		if (raw->processed->colors < 3)
-			image->Type = VIPS_INTERPRETATION_B_W;
-		else
-			image->Type = VIPS_INTERPRETATION_sRGB;
+	image->Type = vips_foreign_load_dcraw_interpretation(raw,
+		raw->processed->colors);
 
 	if (vips_foreign_load_dcraw_set_metadata(raw, image)) {
 		VIPS_UNREF(image);
@@ -540,6 +579,12 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, half_size),
 		FALSE);
 
+	VIPS_ARG_BOOL(class, "auto_brightness", 14,
+		_("Enable auto-brightness"),
+		_("Applies histogram based auto-brightness"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, auto_brightness),
+		FALSE);
 }
 
 static void
@@ -759,8 +804,8 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * many others.
  *
  * The loader applies demosaicing and basic processing to produce an RGB or
- * grayscale image suitable for further processing. It attaches XMP and ICC
- * metadata, if present.
+ * grayscale image suitable for further processing. It sets the interpretation
+ * matching the output colour space, and copies XMP metadata if present.
  *
  * The loader will search for embedded, JPEG-encoded thumbnail and preview
  * images, attaching them as `jpeg-thumbnail-data` and `jpeg-preview-data`.
@@ -770,9 +815,12 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * Set @bitdepth to control the number of bits to decode to. Either 8 or 16,
  * default 8.
  *
+ * Set @auto_brightness to enable auto-brightness.
+ *
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
+ *     * @auto_brightness: `gboolean`, apply a histogram based auto-brightness
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -800,6 +848,7 @@ vips_dcrawload(const char *filename, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
+ *     * @auto_brightness: `gboolean`, apply a histogram based auto-brightness
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
@@ -831,6 +880,7 @@ vips_dcrawload_source(VipsSource *source, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
+ *     * @auto_brightness: `gboolean`, apply a histogram based auto-brightness
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
