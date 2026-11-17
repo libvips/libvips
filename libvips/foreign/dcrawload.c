@@ -455,7 +455,7 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 		raw->raw_processor->sizes.iwidth,
 		raw->raw_processor->sizes.iheight,
 		bands,
-		raw->bitdepth > 8 ? 
+		raw->bitdepth > 8 ?
 			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
 		vips_foreign_load_dcraw_interpretation(raw, bands),
