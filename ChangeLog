@@ -69,6 +69,7 @@ date-tbd 8.19.0
 - heifsave: force identity matrix for lossless cicp [mertalev]
 - add VIPS_FOREIGN_SAVEABLE_CICP, SAVEABLE_scRGB
 - rename uhdr2scRGB as UHDR2scRGB
+- radload: support packed XYZE images [fuzzyrichie]
 
 tdb 8.18.8
 

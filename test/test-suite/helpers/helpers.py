@@ -10,6 +10,7 @@ import pyvips
 IMAGES = os.path.join(os.path.dirname(__file__), os.pardir, 'images')
 FONTS = os.path.join(os.path.dirname(__file__), os.pardir, 'fonts')
 RAD_FILE = os.path.join(IMAGES, "sample.hdr")
+RAD_FILE_XYZ = os.path.join(IMAGES, "sample-xyz.hdr")
 JPEG_FILE = os.path.join(IMAGES, "sample.jpg")
 JPEG_FILE_XYB = os.path.join(IMAGES, "sample-xyb.jpg")
 TRUNCATED_FILE = os.path.join(IMAGES, "truncated.jpg")

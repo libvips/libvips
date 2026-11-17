@@ -112,7 +112,7 @@ vips_sRGB2scRGB_build(VipsObject *object)
 	VipsColourCode *code = (VipsColourCode *) object;
 
 	// input image we want
-	if (vips_object_argument_isset(object, "in") &&
+	if (code->in &&
 		code->in->Type == VIPS_INTERPRETATION_RGB16) {
 		vips_col_make_tables_RGB_16();
 		code->input_format = VIPS_FORMAT_USHORT;
