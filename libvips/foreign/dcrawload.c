@@ -271,7 +271,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	 */
 	VipsBlob *profile = NULL;
 
-	if (vips_profile_load("LinearRec2020", &profile, NULL))
+	if (vips_profile_load("Linear-Rec2020", &profile, NULL))
 		return -1;
 	if (profile) {
 		size_t length;
@@ -280,12 +280,15 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		vips_image_set_blob_copy(image, VIPS_META_ICC_NAME, data, length);
 		vips_area_unref(VIPS_AREA(profile));
 	}
-	
+
 	/* Set CICP flags for Linear Rec.2020
 	 */
-	vips_image_set_int(image, VIPS_META_CICP_COLOUR_PRIMARIES, VIPS_CICP_COLOUR_PRIMARIES_BT2020);
-	vips_image_set_int(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS, VIPS_CICP_TRANSFER_LINEAR);
-	vips_image_set_int(image, VIPS_META_CICP_MATRIX_COEFFICIENTS, VIPS_CICP_MATRIX_RGB);
+	vips_image_set_int(image, VIPS_META_CICP_COLOUR_PRIMARIES, 
+		VIPS_CICP_COLOUR_PRIMARIES_BT2020);
+	vips_image_set_int(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS, 
+		VIPS_CICP_TRANSFER_LINEAR);
+	vips_image_set_int(image, VIPS_META_CICP_MATRIX_COEFFICIENTS, 
+		VIPS_CICP_MATRIX_RGB);
 	vips_image_set_int(image, VIPS_META_CICP_FULL_RANGE_FLAG, 1);
 
 	int orientation;
@@ -353,8 +356,8 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 		// thumbnails must be under 1mb
 		if (this->tlength < 1024 * 1024) {
-			libraw_thumbnail_item_t *thumb = thumb_index == -1 ? NULL : &thumbs_list->thumblist[thumb_index];
-
+			libraw_thumbnail_item_t *thumb = thumb_index == -1 ?
+				NULL : &thumbs_list->thumblist[thumb_index];
 			if (!thumb ||
 				this->twidth > thumb->twidth ||
 				this->theight > thumb->theight)
@@ -362,8 +365,9 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		}
 
 		// preview is just the largest
-		libraw_thumbnail_item_t *preview = preview_index == -1 ? NULL : &thumbs_list->thumblist[preview_index];
-
+		libraw_thumbnail_item_t *preview = preview_index == -1 ?
+			NULL : &thumbs_list->thumblist[preview_index];
+			
 		if (!preview ||
 			this->twidth > preview->twidth ||
 			this->theight > preview->theight)
@@ -571,7 +575,7 @@ vips_foreign_load_dcraw_class_init(VipsForeignLoadDcRawClass *class)
 		FALSE);
 
 	VIPS_ARG_BOOL(class, "auto_brightness", 14,
-		_("Apply auto-brightness"),
+		_("Enable auto-brightness"),
 		_("Applies histogram based auto-brightness"),
 		VIPS_ARGUMENT_OPTIONAL_INPUT,
 		G_STRUCT_OFFSET(VipsForeignLoadDcRaw, auto_brightness),
