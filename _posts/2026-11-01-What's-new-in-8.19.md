@@ -79,6 +79,33 @@ To make:
 
 ![Animated GIF](/assets/images/numbers.gif)
 
+## Better RAW load
+
+The [`dcrawload`](/API/8.19/ctor.Image.dcrawload.html) operator has been
+improved. It should now make more stable images, be more accurate, and be
+quite a lot faster.
+
+The defaults have been improved:
+
+- We were not disabling libraw's auto brightness feature, so there was no
+  consistency between shots. Thanks to chrisabra, it's now off and the output
+  should be more predictable. This also means you can see the full range
+  of the sensor.
+
+- It also sets the output colourspace to linear rec2020, and will use dcraw's 
+  table of camera models to pick the right matrix. You should see more
+  consistent colour between cameras too. Images are tagged with the matching ICC
+  profile and CICP tags.
+
+- We've made it attach the JPEG preview images as metadata, and `thumbnail`
+  will use these if it can. You should see much quicker thumbnails.
+
+- There's also a new `half-size` option that can make thumbnailing quicker
+  too.
+
+The linear default is especially good for scientific work -- it makes getting
+useful colour measurements from RAW files much simpler.
+
 ## Improvements to file format support
 
 The other file format operations have seen some improvements:
@@ -93,9 +120,6 @@ The other file format operations have seen some improvements:
 
 - [`uhdrsave`](/API/8.19/method.Image.uhdrsave.html) has new options
   to control peak brightness and maximum content boost.
-
-- [`dcrawload`](/API/8.19/ctor.Image.dcrawload.html) has better preview
-  support and a `half-size` option.
 
 ## Improvements to libvips operations
 
