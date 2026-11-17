@@ -121,8 +121,8 @@
  * @VIPS_PCS_XYZ: use XYZ as the Profile Connection Space
  *
  * Pick a Profile Connection Space for [method@Image.icc_import] and
- * [method@Image.icc_export]. LAB is usually best, XYZ can be more convenient in some
- * cases.
+ * [method@Image.icc_export]. LAB is usually best, XYZ can be more
+ * convenient in some cases.
  */
 
 /**

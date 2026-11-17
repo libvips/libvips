@@ -43,6 +43,17 @@
 
 #include "pcolour.h"
 
+gboolean
+vips__image_is_uhdr(VipsImage *image)
+{
+	return
+		vips_image_get_typeof(image, "gainmap-max-content-boost") &&
+		vips_image_get_typeof(image, "gainmap-min-content-boost") &&
+		vips_image_get_typeof(image, "gainmap-gamma") &&
+		vips_image_get_typeof(image, "gainmap-offset-sdr") &&
+		vips_image_get_typeof(image, "gainmap-offset-hdr");
+}
+
 typedef struct _VipsUHDR2scRGB {
 	VipsColour parent;
 
@@ -55,10 +66,6 @@ typedef struct _VipsUHDR2scRGB {
 	float max_content_boost[3];
 	float offset_hdr[3];
 	float offset_sdr[3];
-
-	/* And the actual map.
-	 */
-	VipsImage *gainmap;
 
 } VipsUHDR2scRGB;
 
@@ -75,17 +82,23 @@ static void
 vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 	VipsPel *out, VipsPel **in, int width)
 {
-	VipsPel *restrict p1 = in[0];
-	VipsPel *restrict p2 = in[1];
+	float *restrict p1 = (float *) in[0];
+	VipsPel *restrict p2 = (VipsPel *) in[1];
 	float *restrict q = (float *) out;
 
 	for (int i = 0; i < width; i++) {
-		float r = vips_v2Y_8[p1[0]];
-		float g = vips_v2Y_8[p1[1]];
-		float b = vips_v2Y_8[p1[2]];
+		float x = p1[0];
+		float y = p1[1];
+		float z = p1[2];
 		p1 += 3;
 
-		// the gainmap is not gamma corrected in libultrahdr, confusingly
+		/* XYZ -> sRGB, including scale down from 100.
+		 */
+		float r =  0.03240626F * x +  -0.01537208F * y +  -0.004986286F * z;
+		float g = -0.009689307F * x +  0.01875756F * y +   0.000415175F * z;
+		float b =  0.000557101F * x + -0.002040211F * y +  0.01056996F * z;
+
+		// gainmaps are already linear
 		float gg = p2[0] / 255.0;
 		p2 += 1;
 
@@ -109,19 +122,26 @@ vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 static void
 vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 {
-	VipsPel *restrict p1 = in[0];
-	VipsPel *restrict p2 = in[1];
+	float *restrict p1 = (float *) in[0];
+	VipsPel *restrict p2 = (VipsPel *) in[1];
 	float *restrict q = (float *) out;
 
 	for (int i = 0; i < width; i++) {
-		float r = vips_v2Y_8[p1[0]];
-		float g = vips_v2Y_8[p1[1]];
-		float b = vips_v2Y_8[p1[2]];
+		float x = p1[0];
+		float y = p1[1];
+		float z = p1[2];
 		p1 += 3;
 
-		float gr = vips_v2Y_8[p2[0]];
-		float gg = vips_v2Y_8[p2[1]];
-		float gb = vips_v2Y_8[p2[2]];
+		/* XYZ -> sRGB, including scale down from 100.
+		 */
+		float r =  0.03240626F * x +  -0.01537208F * y +  -0.004986286F * z;
+		float g = -0.009689307F * x +  0.01875756F * y +   0.000415175F * z;
+		float b =  0.000557101F * x + -0.002040211F * y +  0.01056996F * z;
+
+		// gainmaps are already linear
+		float gr = p2[0] / 255.0;
+		float gg = p2[1] / 255.0;
+		float gb = p2[2] / 255.0;
 		p2 += 3;
 
 		if (uhdr->gamma[0] != 1.0f)
@@ -157,7 +177,7 @@ vips_UHDR2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 	g_assert(colour->in[0]->Xsize == colour->in[1]->Xsize);
 	g_assert(colour->in[0]->Ysize == colour->in[1]->Ysize);
 
-	if (uhdr->gainmap->Bands == 1)
+	if (colour->in[1]->Bands == 1)
 		vips_UHDR2scRGB_mono(uhdr, out, in, width);
 	else
 		vips_UHDR2scRGB_rgb(uhdr, out, in, width);
@@ -198,6 +218,18 @@ vips_UHDR2scRGB_build(VipsObject *object)
 	colour->n = 2;
 	colour->in = (VipsImage **) vips_object_local_array(object, 2);
 
+	/* Helpful error if this is not a UHDR image.
+	 *
+	 * UHDR images can also be missing fields if we've been built without
+	 * UHDR support.
+	 */
+	if (uhdr->in &&
+		!vips__image_is_uhdr(uhdr->in)) {
+		vips_error(class->nickname, "%s", _("not a UHDR image, "
+				"or UHDR is not enabled"));
+		return -1;
+	}
+
 	/* Get the gainmap image metadata.
 	 */
 	if (uhdr->in) {
@@ -208,9 +240,14 @@ vips_UHDR2scRGB_build(VipsObject *object)
 			return -1;
 		}
 
-		/* Need this for fast srgb -> scRGB.
+		/* Import the main image to XYZ to get linear light.
 		 */
-		vips_col_make_tables_RGB_8();
+		if (vips_icc_import(uhdr->in, &colour->in[0],
+			"embedded", TRUE,
+			"pcs", VIPS_PCS_XYZ,
+			"input_profile", "srgb",
+			NULL))
+			return -1;
 
 		if (image_get_array_float(uhdr->in,
 				"gainmap-max-content-boost", &uhdr->max_content_boost[0], 3) ||
@@ -227,22 +264,22 @@ vips_UHDR2scRGB_build(VipsObject *object)
 		VipsImage *gainmap;
 		if (!(gainmap = vips_image_get_gainmap(uhdr->in)))
 			return -1;
-		if (vips_check_bands_1or3(class->nickname, gainmap))
+		if (vips_check_bands_1or3(class->nickname, gainmap)) {
+			VIPS_UNREF(gainmap);
 			return -1;
+		}
 
-		/* Scale the gainmap image to match the main image 1:1.
+		/* And now scale the gainmap image to match the main image 1:1.
 		 */
-		if (vips_resize(gainmap, &uhdr->gainmap,
-				(double) uhdr->in->Xsize / gainmap->Xsize,
-				"vscale", (double) uhdr->in->Ysize / gainmap->Ysize,
-				"kernel", VIPS_KERNEL_LINEAR,
-				NULL))
+		if (vips_resize(gainmap, &colour->in[1],
+			(double) uhdr->in->Xsize / gainmap->Xsize,
+			"vscale", (double) uhdr->in->Ysize / gainmap->Ysize,
+			"kernel", VIPS_KERNEL_LINEAR,
+			NULL)) {
+			VIPS_UNREF(gainmap);
 			return -1;
-		g_object_unref(gainmap);
-
-		colour->in[0] = uhdr->in;
-		g_object_ref(uhdr->in);
-		colour->in[1] = uhdr->gainmap;
+		}
+		VIPS_UNREF(gainmap);
 	}
 
 	if (VIPS_OBJECT_CLASS(vips_UHDR2scRGB_parent_class)->build(object))

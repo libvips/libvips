@@ -81,8 +81,16 @@ bits-per-sample: 16
 ```
 
 As well as the four pieces of CICP metadata, two extra tags give the peak and
-average luminance for the image. These help displays map general image
-pixel values to values appropriate for this specific display.
+average luminance for the image. These help screens map general image
+pixel values to values appropriate for this specific panel.
+
+Enums for the first three CICP values are available as
+[enum@CICPColourPrimaries], [enum@CICPTransferCharacteristics], and
+[enum@CICPMatrixCoefficients].
+
+`cicp-matrix-coefficients` should always be 0 (the identity matrix), and
+`cicp-full-range-flag` should always be 1 (meaning no effect), but all the
+primaries and transfer functions are supported.
 
 ### Save
 

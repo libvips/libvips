@@ -44,6 +44,67 @@
 
 #include "pcolour.h"
 
+/**
+ * VipsCICPColourPrimaries:
+ * @VIPS_CICP_COLOUR_PRIMARIES_BT709:
+ * @VIPS_CICP_COLOUR_PRIMARIES_UNSPECIFIED:
+ * @VIPS_CICP_COLOUR_PRIMARIES_BT470M:
+ * @VIPS_CICP_COLOUR_PRIMARIES_BT470BG:
+ * @VIPS_CICP_COLOUR_PRIMARIES_BT601:
+ * @VIPS_CICP_COLOUR_PRIMARIES_SMPTE240:
+ * @VIPS_CICP_COLOUR_PRIMARIES_GENERIC_FILM:
+ * @VIPS_CICP_COLOUR_PRIMARIES_BT2020:
+ * @VIPS_CICP_COLOUR_PRIMARIES_SMPTE428:
+ * @VIPS_CICP_COLOUR_PRIMARIES_SMPTE431: Also knows as dci-p3
+ * @VIPS_CICP_COLOUR_PRIMARIES_SMPTE432: Also known as display-p3
+ * @VIPS_CICP_COLOUR_PRIMARIES_EBU3213:
+ *
+ * The set of supported CICP primaries. See [method@Image.CICP2scRGB].
+ */
+
+/**
+ * VipsCICPTransferCharacteristics:
+ * @VIPS_CICP_TRANSFER_BT709:
+ * @VIPS_CICP_TRANSFER_UNSPECIFIED:
+ * @VIPS_CICP_TRANSFER_BT470M: Gamma 2.2
+ * @VIPS_CICP_TRANSFER_BT470BG: Gamma 2.8
+ * @VIPS_CICP_TRANSFER_BT601:
+ * @VIPS_CICP_TRANSFER_SMPTE240:
+ * @VIPS_CICP_TRANSFER_LINEAR:
+ * @VIPS_CICP_TRANSFER_LOG_100:
+ * @VIPS_CICP_TRANSFER_LOG_100_SQRT10:
+ * @VIPS_CICP_TRANSFER_IEC61966:
+ * @VIPS_CICP_TRANSFER_BT1361:
+ * @VIPS_CICP_TRANSFER_SRGB:
+ * @VIPS_CICP_TRANSFER_BT2020_10BIT:
+ * @VIPS_CICP_TRANSFER_BT2020_12BIT:
+ * @VIPS_CICP_TRANSFER_PQ : Also known as ITU-R BT.2100 PQ
+ * @VIPS_CICP_TRANSFER_SMPTE428:
+ * @VIPS_CICP_TRANSFER_HLG: Also known as ITU-R BT.2100 HLG
+ *
+ * The set of supported CICP transfer functions. See [method@Image.CICP2scRGB].
+ */
+
+/**
+ * VipsCICPMatrixCoefficients:
+ * @VIPS_CICP_MATRIX_RGB: Identity
+ * @VIPS_CICP_MATRIX_BT709:
+ * @VIPS_CICP_MATRIX_UNSPECIFIED:
+ * @VIPS_CICP_MATRIX_FCC:
+ * @VIPS_CICP_MATRIX_BT470BG:
+ * @VIPS_CICP_MATRIX_BT601:
+ * @VIPS_CICP_MATRIX_SMPTE240:
+ * @VIPS_CICP_MATRIX_YCGCO:
+ * @VIPS_CICP_MATRIX_BT2020_NCL:
+ * @VIPS_CICP_MATRIX_BT2020_CL:
+ * @VIPS_CICP_MATRIX_SMPTE2085:
+ * @VIPS_CICP_MATRIX_CHROMA_NCL:
+ * @VIPS_CICP_MATRIX_CHROMA_CL:
+ * @VIPS_CICP_MATRIX_ICTCP:
+ *
+ * The CICP matrix coefficients. Only the identity matrix is supported.
+ */
+
 gboolean
 vips__image_is_cicp(VipsImage *image)
 {
@@ -516,6 +577,11 @@ vips_CICP2scRGB_build(VipsObject *object)
 		code->input_format = VIPS_FORMAT_USHORT;
 		code->input_interpretation = VIPS_INTERPRETATION_RGB16;
 	}
+	else if (code->in &&
+		code->in->Type == VIPS_INTERPRETATION_scRGB) {
+		code->input_format = VIPS_FORMAT_FLOAT;
+		code->input_interpretation = VIPS_INTERPRETATION_scRGB;
+	}
 	else {
 		code->input_format = VIPS_FORMAT_UCHAR;
 		code->input_interpretation = VIPS_INTERPRETATION_sRGB;
@@ -582,6 +648,30 @@ vips_CICP2scRGB_build(VipsObject *object)
 	} \
 }
 
+#define CICP2SCRGB_LOOPF(TYPE) \
+{ \
+	TYPE *restrict p = (TYPE *) in[0]; \
+	float *restrict q = (float *) out; \
+	const float *matrix = cicp->conversion_matrix; \
+	const float *luminance = cicp->luminance_coeffs; \
+	const gboolean is_hlg = \
+		cicp->transfer_characteristics == VIPS_CICP_TRANSFER_HLG; \
+\
+	for (int i = 0; i < width; i++) { \
+		float r = p[0]; \
+		float g = p[1]; \
+		float b = p[2]; \
+		p += 3; \
+\
+		if (is_hlg) \
+			vips_hlg_ootf(&r, &g, &b, luminance); \
+\
+		vips_cicp_apply_matrix(matrix, r, g, b, &q[0], &q[1], &q[2]); \
+\
+		q += 3; \
+	} \
+}
+
 static void
 vips_CICP2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 {
@@ -594,6 +684,10 @@ vips_CICP2scRGB_line(VipsColour *colour, VipsPel *out, VipsPel **in, int width)
 
 	case VIPS_FORMAT_USHORT:
 		CICP2SCRGB_LOOP(unsigned short);
+		break;
+
+	case VIPS_FORMAT_FLOAT:
+		CICP2SCRGB_LOOPF(float);
 		break;
 
 	default:
