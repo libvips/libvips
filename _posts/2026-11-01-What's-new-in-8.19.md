@@ -14,11 +14,11 @@ libvips core.
 ## Better HDR support
 
 Thanks to great work by starbix and mertalev, libvips 8.19 and later now
-loading and saving images with CICP tags from AVIF, JXL, and PNG images,
-it supports loading and saving these images to UltraHDR formats like JPG
-with automatic conversion of tags.  libvips also supports generating and
-modifying CICP tags programmatically, including support for computing some
-image properties, such as target illumination.
+support loading and saving images with CICP tags to and from AVIF, JXL, and
+PNG images. It also supports loading and saving these images to UltraHDR
+formats like JPG with automatic conversion of tags. libvips supports
+generating and modifying CICP tags programmatically, including support
+for computing some image properties, such as target illumination.
 
 As an example, here's an HDR PNG image. It'll probably look very dark on your
 screen, since almost no one supports this strange HDR image format:
@@ -32,14 +32,13 @@ $ vips copy cicp-car-small.png x.jpg
 ```
 
 This will make a JPEG image, but the JPEG saver will automatically spot the
-CICP tags on this image and generate a UltraHDR image.
+CICP tags on this image and generate a UltraHDR file with a gainmap.
 
 This might now display as HDR, depending on your screen and browser:
 
 ![UltraHDR JPEG image](/API/8.19/uhdr-car-small.jpg)
 
-You can also convert to AVIF, of course. Since AVIF supports CICP, this is
-much simpler.
+You can also convert to AVIF, of course. 
 
 ![CICP AVIF image](/API/8.19/cicp-car-small.avif)
 
@@ -48,17 +47,18 @@ screens, these two versions of the original probably won't match well,
 since the UltraHDR image has been tonemapped, whereas the AVIF will display
 the SDR component of the CICP data.
 
-These automatic conversions should work everywhere and in all libvips
-bindings. You can also take charge of the HDR pipeline yourself if you
-need more control, the [new chapter in the documentation for
-CICP](https://www.libvips.org/API/8.19/cicp.html) has the details.
+These automatic conversions should work everywhere (they work with `thumbnail`,
+for example) and in all libvips bindings. You can also take charge of the
+HDR pipeline yourself if you need more control, the [new chapter in the
+documentation for CICP](https://www.libvips.org/API/8.19/cicp.html) has
+the details.
 
 ## Animated PNG
 
-Thanks to support from the EU, libvips now supports animated PNG with the
-upcoming libpng 2.0. For now, you'll need to [build against libpng
-1.8](https://github.com/pnggroup/libpng/tree/libpng18), the
-development version.
+Thanks to generous support from the EU, libvips now supports animated PNG
+with the upcoming libpng 2.0. For now, you'll need to [build against libpng
+1.8](https://github.com/pnggroup/libpng/tree/libpng18), the development
+version.
 
 Animated PNG images are a bit larger than GIFs, but they support full alpha
 transparency and full colour with no need for dithering. For example, this
