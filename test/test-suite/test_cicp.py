@@ -828,6 +828,7 @@ class TestCICP:
         ([1.7, 0.04, 0.04], ".jpg"),
 
     ])
+    @pytest.mark.xfail(raises=AssertionError, reason="fails on Arm64 due to https://github.com/google/libultrahdr/pull/447")
     def test_hdr_scrgb_uhdr(self, value, format):
         image = pyvips.Image \
             .new_from_list(value) \
