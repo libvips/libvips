@@ -283,11 +283,11 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 	/* Set CICP flags for Linear Rec.2020
 	 */
-	vips_image_set_int(image, VIPS_META_CICP_COLOUR_PRIMARIES, 
+	vips_image_set_int(image, VIPS_META_CICP_COLOUR_PRIMARIES,
 		VIPS_CICP_COLOUR_PRIMARIES_BT2020);
-	vips_image_set_int(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS, 
+	vips_image_set_int(image, VIPS_META_CICP_TRANSFER_CHARACTERISTICS,
 		VIPS_CICP_TRANSFER_LINEAR);
-	vips_image_set_int(image, VIPS_META_CICP_MATRIX_COEFFICIENTS, 
+	vips_image_set_int(image, VIPS_META_CICP_MATRIX_COEFFICIENTS,
 		VIPS_CICP_MATRIX_RGB);
 	vips_image_set_int(image, VIPS_META_CICP_FULL_RANGE_FLAG, 1);
 
@@ -356,8 +356,9 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 		// thumbnails must be under 1mb
 		if (this->tlength < 1024 * 1024) {
-			libraw_thumbnail_item_t *thumb = thumb_index == -1 ?
+			libraw_thumbnail_item_t *thumb = thumb_index == -1 ? 
 				NULL : &thumbs_list->thumblist[thumb_index];
+				
 			if (!thumb ||
 				this->twidth > thumb->twidth ||
 				this->theight > thumb->theight)
@@ -365,9 +366,9 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		}
 
 		// preview is just the largest
-		libraw_thumbnail_item_t *preview = preview_index == -1 ?
+		libraw_thumbnail_item_t *preview = preview_index == -1 ? 
 			NULL : &thumbs_list->thumblist[preview_index];
-			
+
 		if (!preview ||
 			this->twidth > preview->twidth ||
 			this->theight > preview->theight)
