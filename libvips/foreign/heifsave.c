@@ -267,25 +267,6 @@ vips_foreign_save_heif_add_orig_icc(VipsForeignSaveHeif *heif)
 	return 0;
 }
 
-#ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
-static gboolean
-vips_foreign_save_heif_get_clli(VipsImage *image,
-	struct heif_content_light_level *content_light_level)
-{
-	int max_content_light_level;
-	int max_frame_average_light_level;
-	if (vips__image_get_clli(image,
-		&max_content_light_level, &max_frame_average_light_level))
-		return FALSE;
-
-	content_light_level->max_content_light_level = max_content_light_level;
-	content_light_level->max_pic_average_light_level =
-		max_frame_average_light_level;
-
-	return TRUE;
-}
-#endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
-
 static int
 vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 {
@@ -312,14 +293,34 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	options = heif_encoding_options_alloc();
 	options->save_alpha_channel = save->ready->Bands > 3;
 
+#ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
+	if (vips__image_is_clli(save->ready)) {
+		int max_content_light_level;
+		int max_frame_average_light_level;
+		if (vips__image_get_clli(save->ready,
+			&max_content_light_level, &max_frame_average_light_level)) {
+			heif_encoding_options_free(options);
+			return -1;
+		}
+
+		struct heif_content_light_level clli = {
+			.max_content_light_level = max_content_light_level,
+			.max_pic_average_light_level = max_frame_average_light_level,
+		};
+		heif_image_set_content_light_level(heif->img, &clli);
+	}
+#endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
+
 #ifdef HAVE_HEIF_ENCODING_OPTIONS_OUTPUT_NCLX_PROFILE
-	int colour_primaries;
-	int transfer_characteristics;
-	int matrix_coefficients;
-	int full_range_flag;
-	if (!vips__image_get_cicp(save->ready, &colour_primaries,
-		&transfer_characteristics, &matrix_coefficients, &full_range_flag)) {
-		if (!(nclx = heif_nclx_color_profile_alloc())) {
+	if (vips__image_is_cicp(save->ready)) {
+		int colour_primaries;
+		int transfer_characteristics;
+		int matrix_coefficients;
+		int full_range_flag;
+		if (vips__image_get_cicp(save->ready,
+				&colour_primaries, &transfer_characteristics,
+				&matrix_coefficients, &full_range_flag) ||
+			(!(nclx = heif_nclx_color_profile_alloc()))) {
 			heif_encoding_options_free(options);
 			return -1;
 		}
@@ -338,8 +339,7 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 		 */
 		if ((save->profile ||
 				vips_image_get_typeof(save->ready, VIPS_META_ICC_NAME)) &&
-			(transfer_characteristics == VIPS_CICP_TRANSFER_PQ ||
-				transfer_characteristics == VIPS_CICP_TRANSFER_HLG))
+			vips__image_is_cicp_hdr(save->ready))
 			options->save_two_colr_boxes_when_ICC_and_nclx_available = 1;
 #endif
 	}
@@ -371,13 +371,6 @@ vips_foreign_save_heif_write_page(VipsForeignSaveHeif *heif, int page)
 	 */
 	options->image_orientation = vips_image_get_orientation(save->ready);
 #endif
-
-#ifdef HAVE_HEIF_CONTENT_LIGHT_LEVEL
-	struct heif_content_light_level clli;
-
-	if (vips_foreign_save_heif_get_clli(save->ready, &clli))
-		heif_image_set_content_light_level(heif->img, &clli);
-#endif /*HAVE_HEIF_CONTENT_LIGHT_LEVEL*/
 
 #ifdef DEBUG
 	GTimer *timer = g_timer_new();
@@ -849,7 +842,9 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 	object_class->build = vips_foreign_save_heif_build;
 
 	save_class->saveable =
-		VIPS_FOREIGN_SAVEABLE_RGB | VIPS_FOREIGN_SAVEABLE_ALPHA;
+		VIPS_FOREIGN_SAVEABLE_RGB |
+		VIPS_FOREIGN_SAVEABLE_ALPHA |
+		VIPS_FOREIGN_SAVEABLE_CICP;
 	save_class->format_table = vips_heif_bandfmt;
 
 	VIPS_ARG_INT(class, "Q", 10,
