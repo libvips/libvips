@@ -1152,8 +1152,6 @@ vips_foreign_save_jxl_build(VipsObject *object)
 
 	in = save->ready;
 
-	//vips_image_write_to_file(in, "x.v", NULL);
-
 	/* bitdepth defaults to 16 for ushort images.
 	 */
 	if (!vips_object_argument_isset(object, "bitdepth") &&

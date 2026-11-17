@@ -840,9 +840,3 @@ class TestCICP:
 
         for band in range(3):
             assert abs(image(0, 0)[band] - image2(0, 0)[band]) < 0.1
-
-
-
-
-
-
