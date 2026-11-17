@@ -446,7 +446,12 @@ vips_text_build(VipsObject *object)
 			g_mutex_unlock(&vips_text_lock);
 			return -1;
 		}
-		if (!FcConfigAppFontAddFile(NULL, (const FcChar8 *) text->fontfile)) {
+
+		FcConfig *config = NULL;
+		if (PANGO_IS_FC_FONT_MAP(vips_text_fontmap))
+			config = pango_fc_font_map_get_config(
+				PANGO_FC_FONT_MAP(vips_text_fontmap));
+		if (!FcConfigAppFontAddFile(config, (const FcChar8 *) text->fontfile)) {
 			g_warning("unable to load fontfile \"%s\": "
 					  "invalid or already registered", text->fontfile);
 			if (!PANGO_IS_FC_FONT_MAP(vips_text_fontmap))
