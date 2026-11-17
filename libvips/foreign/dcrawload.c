@@ -1,6 +1,5 @@
 /* load RAW camera files with libraw
  *
- *
  * 15/8/25 dvdkon
  *	- handle image rotation
  * 15/6/26
@@ -8,8 +7,7 @@
  *	- add half_size
  * 14/11/26 chrisabra
  *	- return CICP tagged Linear Rec.2020
- *	- disabled default auto-brightness and parameterised
-
+ *	- add auto_brightness
  */
 
 /*
@@ -246,7 +244,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 		g_date_time_unref(dt);
 	}
-#else  /*!GLIB_CHECK_VERSION(2, 62, 0)*/
+#else /*!GLIB_CHECK_VERSION(2, 62, 0)*/
 	GTimeVal val = { raw->raw_processor->other.timestamp, 0 };
 
 	char *str = g_time_val_to_iso8601(&val);
@@ -267,7 +265,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		raw->raw_processor->lens.Lens);
 #endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 17)*/
 
-	/* Set Linear Rec.2020 icc profile
+	/* Set Linear Rec.2020 ICC profile.
 	 */
 	VipsBlob *profile = NULL;
 
@@ -281,7 +279,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		vips_area_unref(VIPS_AREA(profile));
 	}
 
-	/* Set CICP flags for Linear Rec.2020
+	/* Set CICP flags for Linear Rec.2020.
 	 */
 	vips_image_set_int(image, VIPS_META_CICP_COLOUR_PRIMARIES,
 		VIPS_CICP_COLOUR_PRIMARIES_BT2020);
@@ -339,7 +337,7 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 #ifdef DEBUG
 		printf("dcrawload: thumb %d, width = %d, height = %d, format = %d\n",
-			i, this->twidth, this->twidth, this->tformat);
+				i, this->twidth, this->twidth, this->tformat);
 #endif /*DEBUG*/
 
 		// only support JPEG thumbnails for now
@@ -356,9 +354,9 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 
 		// thumbnails must be under 1mb
 		if (this->tlength < 1024 * 1024) {
-			libraw_thumbnail_item_t *thumb = thumb_index == -1 ? 
+			libraw_thumbnail_item_t *thumb = thumb_index == -1 ?
 				NULL : &thumbs_list->thumblist[thumb_index];
-				
+
 			if (!thumb ||
 				this->twidth > thumb->twidth ||
 				this->theight > thumb->theight)
@@ -366,13 +364,14 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		}
 
 		// preview is just the largest
-		libraw_thumbnail_item_t *preview = preview_index == -1 ? 
+		libraw_thumbnail_item_t *preview = preview_index == -1 ?
 			NULL : &thumbs_list->thumblist[preview_index];
 
 		if (!preview ||
 			this->twidth > preview->twidth ||
 			this->theight > preview->theight)
 			preview_index = i;
+
 	}
 
 	if (thumb_index != -1) {
@@ -415,12 +414,15 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 }
 
 static VipsInterpretation
-vips_foreign_load_dcraw_interpretation(VipsForeignLoadDcRaw *raw, int bands)
+vips_foreign_load_dcraw_interpretation(VipsForeignLoadDcRaw *raw,
+	int bands)
 {
 	if (bands < 3)
-		return raw->bitdepth > 8 ? VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
+		return raw->bitdepth > 8 ?
+			VIPS_INTERPRETATION_GREY16 : VIPS_INTERPRETATION_B_W;
 	else
-		return raw->bitdepth > 8 ? VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
+		return raw->bitdepth > 8 ?
+			VIPS_INTERPRETATION_RGB16 : VIPS_INTERPRETATION_sRGB;
 }
 
 static int
@@ -453,7 +455,8 @@ vips_foreign_load_dcraw_header(VipsForeignLoad *load)
 		raw->raw_processor->sizes.iwidth,
 		raw->raw_processor->sizes.iheight,
 		bands,
-		raw->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
+		raw->bitdepth > 8 ? 
+			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR,
 		VIPS_CODING_NONE,
 		vips_foreign_load_dcraw_interpretation(raw, bands),
 		1.0, 1.0);
@@ -496,17 +499,18 @@ vips_foreign_load_dcraw_load(VipsForeignLoad *load)
 	}
 
 	if (!(raw->processed =
-				libraw_dcraw_make_mem_image(raw->raw_processor, &result))) {
+			libraw_dcraw_make_mem_image(raw->raw_processor, &result))) {
 		vips_foreign_load_dcraw_error(raw, _("unable to build image"), result);
 		return -1;
 	}
 
 	VipsImage *image;
 	if (!(image = vips_image_new_from_memory(
-			  raw->processed->data, raw->processed->data_size,
-			  raw->processed->width, raw->processed->height,
-			  raw->processed->colors,
-			  raw->bitdepth > 8 ? VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR)))
+		raw->processed->data, raw->processed->data_size,
+		raw->processed->width, raw->processed->height,
+		raw->processed->colors,
+		raw->bitdepth > 8 ?
+			VIPS_FORMAT_USHORT : VIPS_FORMAT_UCHAR)))
 		return -1;
 
 	image->Type = vips_foreign_load_dcraw_interpretation(raw,
@@ -811,13 +815,12 @@ vips_foreign_load_dcraw_buffer_init(VipsForeignLoadDcRawBuffer *buffer)
  * Set @bitdepth to control the number of bits to decode to. Either 8 or 16,
  * default 8.
  *
- * Set @auto_brightness to enable auto-brightness
- * default false
+ * Set @auto_brightness to enable auto-brightness.
  *
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
- *     * @auto_brightness: `gboolean`, disable auto-brightening
+ *     * @auto_brightness: `gboolean`, apply a histogram based auto-brightness
  *
  * Returns: 0 on success, -1 on error.
  */
@@ -845,7 +848,7 @@ vips_dcrawload(const char *filename, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
- *     * @auto_brightness: `gboolean`, disable auto-brightening
+ *     * @auto_brightness: `gboolean`, apply a histogram based auto-brightness
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
@@ -877,7 +880,7 @@ vips_dcrawload_source(VipsSource *source, VipsImage **out, ...)
  * ::: tip "Optional arguments"
  *     * @bitdepth: `gint`, number of bits to decode to
  *     * @half_size: `gboolean`, decode at half-size
- *     * @auto_brightness: `gboolean`, Apply a historam based auto-brightness
+ *     * @auto_brightness: `gboolean`, apply a histogram based auto-brightness
  *
  * ::: seealso
  *     [ctor@Image.dcrawload].
