@@ -6,7 +6,7 @@
  *	- add raw-preview-data, the largest embedded preview jpeg
  *	- add half_size
  * 14/11/26 chrisabra
- *	- return CICP tagged Linear Rec.2020
+ *	- load as CICP tagged Linear Rec.2020
  *	- add auto_brightness
  */
 

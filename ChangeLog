@@ -68,7 +68,8 @@ date-tbd 8.19.0
 - dzsave: reject imagename containing path separator [lovell]
 - heifsave: force identity matrix for lossless cicp [mertalev]
 - rename uhdr2scRGB as UHDR2scRGB
-- dcrawload: returns CICP tagged Linear Rec.2020 [chrisabra]
+- dcrawload: load as CICP tagged Linear Rec.2020 [chrisabra]
+- dcrawload: add auto-brightness option [chrisabra]
 - radload: support packed XYZE images [fuzzyrichie]
 
 tdb 8.18.8
