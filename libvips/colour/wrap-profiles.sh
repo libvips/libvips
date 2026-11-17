@@ -11,7 +11,7 @@ in=$1
 out=$2
 
 echo "/* this file is generated automatically, do not edit! */" > $out
-echo "/* clang-format off */" > $out
+echo "/* clang-format off */" >> $out
 echo "" >> $out
 echo "#include \"profiles.h\"" >> $out
 echo "" >> $out
@@ -22,7 +22,7 @@ for file in $in/*.icm; do
   base=${root##*/} 
   profile_name=vips__profile_fallback_$base
   profile_names="$profile_names $profile_name"
-  echo "static VipsProfileFallback $profile_name = {" >> $out
+  echo "static VipsProfileFallback ${profile_name//-/_} = {" >> $out
   echo -e "\t\"$base\"," >> $out
   echo -e "\t$(stat --format=%s $file)," >> $out
   echo -e "\t{" >> $out
@@ -34,7 +34,7 @@ done
 
 echo "VipsProfileFallback *vips__profile_fallback_table[] = {" >> $out
 for profile_name in $profile_names; do
-  echo -e "\t&$profile_name," >> $out
+  echo -e "\t&${profile_name//-/_}," >> $out
 done
 echo -e "\tNULL" >> $out
 echo "};" >> $out
