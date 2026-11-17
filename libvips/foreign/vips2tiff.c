@@ -591,6 +591,11 @@ wtiff_embed_xmp(Wtiff *wtiff, TIFF *tif)
 	return 0;
 }
 
+#ifdef HAVE_TIFF_IPTC_METADATA
+/* libtiff < 4.2.0 defines RichTIFFIPTC as LONG rather than UNDEFINED,
+ * producing TIFF files with incompatible IPTC metadata.
+ * See: https://gitlab.com/libtiff/libtiff/-/merge_requests/99
+ */
 static int
 wtiff_embed_iptc(Wtiff *wtiff, TIFF *tif)
 {
@@ -603,17 +608,6 @@ wtiff_embed_iptc(Wtiff *wtiff, TIFF *tif)
 			&data, &size))
 		return -1;
 
-	/* For no very good reason, libtiff stores IPTC as an array of
-	 * long, not byte.
-	 */
-	if (size & 3) {
-		g_warning("rounding up IPTC data length");
-		size /= 4;
-		size += 1;
-	}
-	else
-		size /= 4;
-
 	set_data64(tif, TIFFTAG_RICHTIFFIPTC, size, data);
 
 #ifdef DEBUG
@@ -622,6 +616,7 @@ wtiff_embed_iptc(Wtiff *wtiff, TIFF *tif)
 
 	return 0;
 }
+#endif /*HAVE_TIFF_IPTC_METADATA*/
 
 static int
 wtiff_embed_photoshop(Wtiff *wtiff, TIFF *tif)
@@ -938,7 +933,9 @@ wtiff_write_header(Wtiff *wtiff, Layer *layer)
 		VIPS_FCLIP(0.01, wtiff->yres, 1000000));
 
 	if (wtiff_embed_xmp(wtiff, tif) ||
+#ifdef HAVE_TIFF_IPTC_METADATA
 		wtiff_embed_iptc(wtiff, tif) ||
+#endif /*HAVE_TIFF_IPTC_METADATA*/
 		wtiff_embed_photoshop(wtiff, tif) ||
 		wtiff_embed_imagedescription(wtiff, tif) ||
 		wtiff_embed_profile(wtiff, tif))
@@ -2424,7 +2421,9 @@ wtiff_copy_tiff(Wtiff *wtiff, TIFF *out, TIFF *in)
 	/* We can't copy profiles or xmp :( Set again from wtiff.
 	 */
 	if (wtiff_embed_xmp(wtiff, out) ||
+#ifdef HAVE_TIFF_IPTC_METADATA
 		wtiff_embed_iptc(wtiff, out) ||
+#endif /*HAVE_TIFF_IPTC_METADATA*/
 		wtiff_embed_photoshop(wtiff, out) ||
 		wtiff_embed_imagedescription(wtiff, out) ||
 		wtiff_embed_profile(wtiff, out))

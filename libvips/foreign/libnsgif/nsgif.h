@@ -387,7 +387,11 @@ typedef struct nsgif_info {
 	uint32_t frame_count;
 	/** number of times to play animation (zero means loop forever) */
 	int loop_max;
-	/** background colour in same pixel format as \ref nsgif_bitmap_t. */
+	/**
+	 * background colour in same pixel format as \ref nsgif_bitmap_t.
+	 * Transparent if there is no global palette, or the background index
+	 * is outside the palette.
+	 */
 	uint32_t background;
 	/** whether the GIF has a global colour table */
 	bool global_palette;
