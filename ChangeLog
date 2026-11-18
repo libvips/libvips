@@ -73,6 +73,7 @@ date-tbd 8.19.0
 - colour: add built-in Linear Rec.2020 profile [chrisabra]
 - dcrawload: load as CICP tagged Linear Rec.2020 [chrisabra]
 - dcrawload: add auto-brightness option [chrisabra]
+- meson: bump min ver to 0.63
 
 tbd 8.18.8
 
