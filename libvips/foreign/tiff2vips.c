@@ -2099,10 +2099,9 @@ rtiff_decompress_jpeg_set_memory(j_decompress_ptr cinfo,
 
 static int
 rtiff_decompress_jpeg_run(Rtiff *rtiff, j_decompress_ptr cinfo,
-	void *data, size_t data_len, void *out)
+	void *data, size_t data_len, void *tables, uint32_t tables_len,
+	void *out)
 {
-	void *tables;
-	uint32_t tables_len;
 	int bytes_per_pixel;
 	size_t bytes_per_scanline;
 	VipsPel *q;
@@ -2115,11 +2114,6 @@ rtiff_decompress_jpeg_run(Rtiff *rtiff, j_decompress_ptr cinfo,
 
 	/* Tables are optional.
 	 */
-	tables = NULL;
-	tables_len = 0;
-	(void) TIFFGetField(rtiff->tiff,
-		TIFFTAG_JPEGTABLES, &tables_len, &tables);
-
 	if (tables) {
 		rtiff_decompress_jpeg_set_memory(cinfo, tables, tables_len);
 		if (jpeg_read_header(cinfo, FALSE) !=
@@ -2221,7 +2215,8 @@ rtiff_decompress_jpeg_emit_message(j_common_ptr cinfo, int msg_level)
 /* Decompress a tile of size coefficients into out.
  */
 static int
-rtiff_decompress_jpeg(Rtiff *rtiff, void *data, size_t data_len, void *out)
+rtiff_decompress_jpeg(Rtiff *rtiff, void *data, size_t data_len,
+	void *jpeg_tables, uint32_t jpeg_tables_len, void *out)
 {
 	struct jpeg_decompress_struct cinfo = { 0 };
 	ErrorManager eman;
@@ -2239,7 +2234,7 @@ rtiff_decompress_jpeg(Rtiff *rtiff, void *data, size_t data_len, void *out)
 		jpeg_create_decompress(&cinfo);
 
 		if (rtiff_decompress_jpeg_run(rtiff, &cinfo,
-				data, data_len, out)) {
+				data, data_len, jpeg_tables, jpeg_tables_len, out)) {
 			jpeg_destroy_decompress(&cinfo);
 			return -1;
 		}
@@ -2260,7 +2255,8 @@ rtiff_decompress_jpeg(Rtiff *rtiff, void *data, size_t data_len, void *out)
 #endif /*HAVE_JPEG*/
 
 static int
-rtiff_decompress_tile(Rtiff *rtiff, tdata_t *in, tsize_t size, tdata_t *out)
+rtiff_decompress_tile(Rtiff *rtiff, tdata_t *in, tsize_t size,
+	void *jpeg_tables, uint32_t jpeg_tables_len, tdata_t *out)
 {
 	g_assert(rtiff->header.we_decompress);
 
@@ -2280,7 +2276,8 @@ rtiff_decompress_tile(Rtiff *rtiff, tdata_t *in, tsize_t size, tdata_t *out)
 
 #ifdef HAVE_JPEG
 	case COMPRESSION_JPEG:
-		if (rtiff_decompress_jpeg(rtiff, in, size, out))
+		if (rtiff_decompress_jpeg(rtiff, in, size,
+				jpeg_tables, jpeg_tables_len, out))
 			return -1;
 		break;
 #endif /*HAVE_JPEG*/
@@ -2331,6 +2328,8 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 	Rtiff *rtiff = seq->rtiff;
 
 	tsize_t size;
+	void *jpeg_tables = NULL;
+	uint32_t jpeg_tables_len = 0;
 
 #ifdef DEBUG_VERBOSE
 	printf("rtiff_read_tile: page = %d, x = %d, y = %d, "
@@ -2360,14 +2359,35 @@ rtiff_read_tile(RtiffSeq *seq, tdata_t *buf, int page, int x, int y)
 			return -1;
 		}
 
+#ifdef HAVE_JPEG
+		if (rtiff->header.compression == COMPRESSION_JPEG) {
+			void *tables = NULL;
+			uint32_t tables_len = 0;
+
+			if (TIFFGetField(rtiff->tiff, TIFFTAG_JPEGTABLES,
+					&tables_len, &tables) &&
+				tables_len > 0) {
+				if (!(jpeg_tables = vips_malloc(NULL, tables_len))) {
+					g_rec_mutex_unlock(&rtiff->lock);
+					return -1;
+				}
+				memcpy(jpeg_tables, tables, tables_len);
+				jpeg_tables_len = tables_len;
+			}
+		}
+#endif /*HAVE_JPEG*/
+
 		g_rec_mutex_unlock(&rtiff->lock);
 
 		/* Decompress outside the lock, so we get parallelism.
 		 */
-		if (rtiff_decompress_tile(rtiff, seq->compressed_buf, size, buf)) {
+		if (rtiff_decompress_tile(rtiff, seq->compressed_buf, size,
+				jpeg_tables, jpeg_tables_len, buf)) {
+			VIPS_FREE(jpeg_tables);
 			vips_error("tiff2vips", _("decompress error tile %d x %d"), x, y);
 			return -1;
 		}
+		VIPS_FREE(jpeg_tables);
 	}
 	else {
 		g_rec_mutex_lock(&rtiff->lock);
