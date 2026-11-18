@@ -60,6 +60,7 @@ libvips is used as an image processing engine by:
 | [Ruby on Rails](https://edgeguides.rubyonrails.org/active_storage_overview.html) |
 | [CarrierWave](https://github.com/carrierwaveuploader/carrierwave#using-vips) |
 | [MediaWiki](https://www.mediawiki.org/wiki/Extension:Thumbro) |
+| [Hokusai (on Swift)](https://github.com/ivantokar/hokusai) |
 
 and others. The official libvips GUI is
 [nip4](https://github.com/libvips/nip4), a strange combination of a
