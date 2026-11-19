@@ -203,10 +203,29 @@ vips_unpremultiply_gen(VipsRegion *out_region,
 		return -1;
 
 	for (int y = 0; y < r->height; y++) {
-		VipsPel *in = VIPS_REGION_ADDR(ir, r->left, r->top + y);
-		VipsPel *out = VIPS_REGION_ADDR(out_region, r->left, r->top + y);
+		VipsPel *restrict in =
+			VIPS_REGION_ADDR(ir, r->left, r->top + y);
+		VipsPel *restrict out =
+			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
-		if (unpremultiply->uchar)
+		if (unpremultiply->uchar &&
+			bands == 4)
+			for (int x = 0; x < width; x++) {
+				VipsPel alpha = in[3];
+				int scale = unpremultiply->scale[alpha];
+				int red = (in[0] * scale + 128) >> 8;
+				int green = (in[1] * scale + 128) >> 8;
+				int blue = (in[2] * scale + 128) >> 8;
+
+				out[0] = VIPS_MIN(red, UCHAR_MAX);
+				out[1] = VIPS_MIN(green, UCHAR_MAX);
+				out[2] = VIPS_MIN(blue, UCHAR_MAX);
+				out[3] = alpha;
+
+				in += 4;
+				out += 4;
+			}
+		else if (unpremultiply->uchar)
 			// fast uchar -> uchar path
 			for (int x = 0; x < width; x++) {
 				VipsPel alpha = in[bands - 1];
