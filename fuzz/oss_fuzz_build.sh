@@ -252,6 +252,9 @@ elif [ "$SANITIZER" = "thread" ]; then
   # TSan instrumentation as well.
   # https://github.com/google/sanitizers/wiki/threadsanitizercppmanual#non-instrumented-code
   TSAN_ARGS="--force-fallback-for=glib -Dglib:glib_debug=disabled -Dglib:nls=disabled -Dglib:dtrace=disabled -Dglib:sysprof=disabled -Dglib:tests=false"
+
+  mkdir -p subprojects
+  meson wrap install glib
 fi
 
 # libvips
