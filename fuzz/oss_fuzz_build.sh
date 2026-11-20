@@ -294,3 +294,11 @@ rm -v $OUT/generate_vips_dict
 # Copy options and remaining dictionary files to $OUT
 find fuzz -name '*_fuzzer.dict' -exec cp -v '{}' $OUT \;
 find fuzz -name '*_fuzzer.options' -exec cp -v '{}' $OUT \;
+
+# Generate seed corpus for save_options_fuzzer
+save_options_seed_dir=$(mktemp -d)
+LD_LIBRARY_PATH="$OUT/lib" $OUT/generate_save_options_seeds "$save_options_seed_dir"
+rm -f $OUT/save_options_fuzzer_seed_corpus.zip
+zip -rq $OUT/save_options_fuzzer_seed_corpus.zip "$save_options_seed_dir"
+rm -rf "$save_options_seed_dir"
+rm -v $OUT/generate_save_options_seeds
