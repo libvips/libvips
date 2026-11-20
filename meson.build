@@ -1,6 +1,6 @@
 project('vips', 'c', 'cpp',
     version: '8.19.0',
-    meson_version: '>=0.55',
+    meson_version: '>=0.63',
     default_options: [
         # this is what glib uses (one of our required deps), so we use it too
         'c_std=gnu11',
