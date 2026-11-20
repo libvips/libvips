@@ -1,6 +1,0 @@
-glib-*/
-packagecache/
-.wraplock
-
-# ignore promoted wraps
-gvdb.wrap
