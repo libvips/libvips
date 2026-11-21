@@ -35,6 +35,34 @@
 
 VIPS_NAMESPACE_START
 
+/**
+ * Helper class to copy the libvips error buffer into a std::string.
+ */
+class VErrorBuffer {
+public:
+	VErrorBuffer() : buffer(vips_error_buffer_copy()) {}
+
+	VErrorBuffer(const VErrorBuffer &) = delete;
+	VErrorBuffer &operator=(const VErrorBuffer &) = delete;
+
+	~VErrorBuffer() noexcept
+	{
+		g_free(buffer);
+	}
+
+	operator std::string() const
+	{
+		return buffer;
+	}
+
+private:
+	char *buffer;
+};
+
+VError::VError() : std::runtime_error(VErrorBuffer())
+{
+}
+
 std::ostream &
 operator<<(std::ostream &file, const VError &err)
 {

@@ -30,7 +30,6 @@
 #ifndef VIPS_VERROR_H
 #define VIPS_VERROR_H
 
-#include <cstring>
 #include <ostream>
 #include <stdexcept>
 
@@ -47,10 +46,10 @@ public:
 	using std::runtime_error::runtime_error;
 
 	/**
-	 * Construct a VError, fetching the error message from the libvips
-	 * error buffer.
+	 * Construct a VError, copying the error message from the libvips
+	 * error buffer and clearing it afterward.
 	 */
-	VError() : std::runtime_error(vips_error_buffer()) {}
+	VError();
 
 	/**
 	 * Get a reference to the underlying C string.
