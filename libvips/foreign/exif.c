@@ -1179,8 +1179,7 @@ vips_exif_set_thumbnail(ExifData *ed, VipsImage *im)
 		const void *data;
 		size_t size;
 
-		if (vips_image_get_blob(im, "jpeg-thumbnail-data",
-				&data, &size))
+		if (vips_image_get_blob(im, "jpeg-thumbnail-data", &data, &size))
 			return -1;
 
 		/* Again, we should use the exif allocator attached to this
