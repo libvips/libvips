@@ -70,6 +70,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <limits.h>
 
 #include <vips/vips.h>
 
@@ -97,14 +98,16 @@ vips_abs_build(VipsObject *object)
 
 /* Integer abs operation: just test and negate.
  */
-#define ABS_INT(TYPE) \
+#define ABS_INT(TYPE, MIN, MAX) \
 	{ \
 		TYPE *restrict p = (TYPE *) in[0]; \
 		TYPE *restrict q = (TYPE *) out; \
 		int x; \
 \
 		for (x = 0; x < sz; x++) \
-			q[x] = p[x] < 0 ? 0 - p[x] : p[x]; \
+			q[x] = G_UNLIKELY(p[x] == MIN) \
+				? MAX \
+				: (p[x] < 0 ? -p[x] : p[x]); \
 	}
 
 /* Float abs operation: call fabs().
@@ -144,13 +147,13 @@ vips_abs_buffer(VipsArithmetic *arithmetic,
 
 	switch (vips_image_get_format(im)) {
 	case VIPS_FORMAT_CHAR:
-		ABS_INT(signed char);
+		ABS_INT(signed char, SCHAR_MIN, SCHAR_MAX);
 		break;
 	case VIPS_FORMAT_SHORT:
-		ABS_INT(signed short);
+		ABS_INT(signed short, SHRT_MIN, SHRT_MAX);
 		break;
 	case VIPS_FORMAT_INT:
-		ABS_INT(signed int);
+		ABS_INT(signed int, INT_MIN, INT_MAX);
 		break;
 	case VIPS_FORMAT_FLOAT:
 		ABS_FLOAT(float);
