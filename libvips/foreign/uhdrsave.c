@@ -483,17 +483,23 @@ vips_foreign_save_uhdr_build(VipsObject *object)
 			VIPS_UNREF(image);
 			return -1;
 		}
-		uhdr_mem_block_t exif = {
-			.data = (void *) data,
-			.data_sz = length,
-			.capacity = length,
-		};
-		error_info = uhdr_enc_set_exif_data(uhdr->enc, &exif);
-		if (error_info.error_code) {
-			vips__uhdr_error(&error_info);
-			VIPS_UNREF(image);
-			return -1;
+		if (length <= MAX_BYTES_IN_MARKER) {
+			uhdr_mem_block_t exif = {
+				.data = (void *) data,
+				.data_sz = length,
+				.capacity = length,
+			};
+			error_info = uhdr_enc_set_exif_data(uhdr->enc, &exif);
+			if (error_info.error_code) {
+				vips__uhdr_error(&error_info);
+				VIPS_UNREF(image);
+				return -1;
+			}
 		}
+		else
+			g_warning("uhdrsave: "
+				"\"%s\" is too large for a single JPEG marker, ignoring",
+				VIPS_META_EXIF_NAME);
 	}
 
 	// libuhdr has no set_icc API, that's done for us from the gainmap metadata

@@ -39,6 +39,10 @@ extern "C" {
  */
 #define MAX_PNG_TEXT_CHUNKS 50
 
+/* Maximum data len of a JPEG marker.
+ */
+#define MAX_BYTES_IN_MARKER 65533
+
 int vips__foreign_update_metadata(VipsImage *in,
 	VipsForeignKeep keep);
 
