@@ -54,10 +54,6 @@
 
 #include <ultrahdr_api.h>
 
-/* Maximum data len of a JPEG marker.
- */
-#define MAX_BYTES_IN_MARKER 65533
-
 // no suffs, we don't want to trigger directly for jpeg save
 const char *vips__uhdr_suffs[] = { NULL };
 
