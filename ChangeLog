@@ -25,6 +25,7 @@ tbd 8.18.8
 - dbuf: fix return value of `vips_dbuf_writef()` [fuzzyrichie]
 - tiffsave: fix IPTC write with libtiff >= 4.2.0 [fuzzyrichie]
 - abs: guard against integer overflow [lovell]
+- tiffload: take a copy of the JPEG Huffman tables inside mutex [Socialpranker]
 
 20/9/26 8.18.7
 
