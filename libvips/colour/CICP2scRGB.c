@@ -751,7 +751,9 @@ vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
  * @out: (out): output image
  * @...: `NULL`-terminated list of optional named arguments
  *
- * Transform an image with CICP signal to scRGB.
+ * Transform an image with CICP signal to scRGB. If present, the target colour
+ * encoding is set by the CICP tags on @in. These can be overridden with those
+ * specified via the optional CICP arguments.
  *
  * PQ and HLG are scaled so that 1.0 is BT.2408 reference white (203 nits).
  *
@@ -761,6 +763,11 @@ vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
  * - [const@META_CICP_TRANSFER_CHARACTERISTICS]
  * - [const@META_CICP_MATRIX_COEFFICIENTS]
  * - [const@META_CICP_FULL_RANGE_FLAG]
+ *
+ * ::: tip "Optional arguments"
+ *     * @colour_primaries: #VipsCICPColourPrimaries, target primaries (default %VIPS_CICP_COLOUR_PRIMARIES_BT709)
+ *     * @transfer_characteristics: #VipsCICPTransferCharacteristics, target transfer (default %VIPS_CICP_TRANSFER_SRGB)
+ *     * @matrix_coefficients: #VipsCICPMatrixCoefficients, target matrix (default %VIPS_CICP_MATRIX_RGB)
  *
  * ::: seealso
  *     [method@Image.scRGB2CICP].

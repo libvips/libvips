@@ -544,8 +544,8 @@ vips_scRGB2CICP_init(VipsscRGB2CICP *cicp)
  * @...: `NULL`-terminated list of optional named arguments
  *
  * Transform an scRGB image to CICP signal. If present, the target colour
- * encoding is set by the CICP tags on @in. These can be overridden with the
- * is specified via the optional CICP arguments.
+ * encoding is set by the CICP tags on @in. These can be overridden with those
+ * specified via the optional CICP arguments.
  *
  * PQ and HLG take 1.0 as BT.2408 reference white (203 nits).
  *
