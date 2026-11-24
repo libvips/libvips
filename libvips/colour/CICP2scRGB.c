@@ -220,9 +220,8 @@ typedef struct _VipsCICP2scRGB {
 
 	VipsCICPColourPrimaries colour_primaries;
 	VipsCICPTransferCharacteristics transfer_characteristics;
-
-	VipsCICPMatrixCoefficients matrix_coefficients; // unused
-	int full_range_flag; // unused
+	VipsCICPMatrixCoefficients matrix_coefficients;
+	int full_range_flag;
 
 	/* Conversion matrix from source primaries to BT.709 (scRGB).
 	 */
@@ -560,16 +559,9 @@ vips_CICP2scRGB_build_lut(VipsCICPTransferCharacteristics transfer, int n)
 static int
 vips_CICP2scRGB_build(VipsObject *object)
 {
-	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsColour *colour = VIPS_COLOUR(object);
 	VipsColourCode *code = VIPS_COLOUR_CODE(object);
 	VipsCICP2scRGB *cicp = (VipsCICP2scRGB *) object;
-
-	if (code->in &&
-		!vips__image_is_cicp(code->in)) {
-		vips_error(class->nickname, "%s", _("no CICP metadata"));
-		return -1;
-	}
 
 	// input image we want
 	if (code->in &&
@@ -594,18 +586,24 @@ vips_CICP2scRGB_build(VipsObject *object)
 	colour->format = VIPS_FORMAT_FLOAT;
 
 	if (code->in) {
+		/* Override CICP settings with image values, unless the settings have
+		 * come from operation parameters.
+		 */
 		int cicp_primaries;
 		int cicp_transfer;
 		int cicp_matrix;
 		int cicp_range;
-		if (vips__image_get_cicp(code->in,
-				&cicp_primaries, &cicp_transfer, &cicp_matrix, &cicp_range))
-			return -1;
-
-		cicp->colour_primaries = cicp_primaries;
-		cicp->transfer_characteristics = cicp_transfer;
-		cicp->matrix_coefficients = cicp_matrix;
-		cicp->full_range_flag = cicp_range;
+		if (vips__image_is_cicp(code->in) &&
+			!vips__image_get_cicp(code->in,
+				&cicp_primaries, &cicp_transfer, &cicp_matrix, &cicp_range)) {
+			if (!vips_object_argument_isset(object, "colour_primaries"))
+				cicp->colour_primaries = cicp_primaries;
+			if (!vips_object_argument_isset(object, "transfer_characteristics"))
+				cicp->transfer_characteristics = cicp_transfer;
+			if (!vips_object_argument_isset(object, "matrix_coefficients"))
+				cicp->matrix_coefficients = cicp_matrix;
+			cicp->full_range_flag = cicp_range;
+		}
 
 		memcpy(cicp->conversion_matrix,
 			vips_CICP2scRGB_get_matrix(cicp_primaries), 9 * sizeof(float));
@@ -713,11 +711,38 @@ vips_CICP2scRGB_class_init(VipsCICP2scRGBClass *class)
 
 	colour_class->process_line = vips_CICP2scRGB_line;
 
+	VIPS_ARG_ENUM(class, "colour_primaries", 2,
+		_("Colour primaries"),
+		_("CICP colour primaries (H.273 Table 2)"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsCICP2scRGB, colour_primaries),
+		VIPS_TYPE_CICP_COLOUR_PRIMARIES,
+		VIPS_CICP_COLOUR_PRIMARIES_BT709);
+
+	VIPS_ARG_ENUM(class, "transfer_characteristics", 3,
+		_("Transfer characteristics"),
+		_("CICP transfer characteristics (H.273 Table 3)"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsCICP2scRGB, transfer_characteristics),
+		VIPS_TYPE_CICP_TRANSFER_CHARACTERISTICS,
+		VIPS_CICP_TRANSFER_SRGB);
+
+	VIPS_ARG_ENUM(class, "matrix_coefficients", 4,
+		_("Matrix coefficients"),
+		_("CICP matrix coefficients (H.273 Table 4)"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsCICP2scRGB, matrix_coefficients),
+		VIPS_TYPE_CICP_MATRIX_COEFFICIENTS,
+		VIPS_CICP_MATRIX_RGB);
+
 }
 
 static void
 vips_CICP2scRGB_init(VipsCICP2scRGB *cicp)
 {
+	cicp->colour_primaries = VIPS_CICP_COLOUR_PRIMARIES_BT709;
+	cicp->transfer_characteristics = VIPS_CICP_TRANSFER_SRGB;
+	cicp->matrix_coefficients = VIPS_CICP_MATRIX_RGB;
 }
 
 /**
