@@ -235,6 +235,15 @@ class TestArithmetic:
         im = -self.colour
         self.run_unary([im], my_abs)
 
+        im_char = pyvips.Image.new_from_array([[-128]]).cast("char")
+        assert im_char.abs()(0, 0)[0] == 127
+
+        im_short = pyvips.Image.new_from_array([[-32768]]).cast("short")
+        assert im_short.abs()(0, 0)[0] == 32767
+
+        im_int = pyvips.Image.new_from_array([[-2147483648]]).cast("int")
+        assert im_int.abs()(0, 0)[0] == 2147483647
+
     def test_lshift(self):
         def my_lshift(x):
             # python doesn't allow float << int
