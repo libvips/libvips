@@ -2120,6 +2120,12 @@ public:
 
 	/**
 	 * Transform cicp to scrgb.
+	 *
+	 * **Optional parameters**
+	 *   - **colour_primaries** -- CICP colour primaries (H.273 Table 2), VipsCICPColourPrimaries.
+	 *   - **transfer_characteristics** -- CICP transfer characteristics (H.273 Table 3), VipsCICPTransferCharacteristics.
+	 *   - **matrix_coefficients** -- CICP matrix coefficients (H.273 Table 4), VipsCICPMatrixCoefficients.
+	 *
 	 * @param options Set of options.
 	 * @return Output image.
 	 */
@@ -2857,6 +2863,7 @@ public:
 	 * **Optional parameters**
 	 *   - **bitdepth** -- Number of bits to decode to, int.
 	 *   - **half_size** -- Decode image at half size, bool.
+	 *   - **auto_brightness** -- Applies histogram based auto-brightness, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -2874,6 +2881,7 @@ public:
 	 * **Optional parameters**
 	 *   - **bitdepth** -- Number of bits to decode to, int.
 	 *   - **half_size** -- Decode image at half size, bool.
+	 *   - **auto_brightness** -- Applies histogram based auto-brightness, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -2891,6 +2899,7 @@ public:
 	 * **Optional parameters**
 	 *   - **bitdepth** -- Number of bits to decode to, int.
 	 *   - **half_size** -- Decode image at half size, bool.
+	 *   - **auto_brightness** -- Applies histogram based auto-brightness, bool.
 	 *   - **memory** -- Force open via memory, bool.
 	 *   - **access** -- Required access pattern for this file, VipsAccess.
 	 *   - **fail_on** -- Error level to fail on, VipsFailOn.
@@ -3578,6 +3587,7 @@ public:
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
 	 *   - **tune** -- Tuning parameters, const char *.
+	 *   - **options** -- Encoder-specific options, const char *.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3600,6 +3610,7 @@ public:
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
 	 *   - **tune** -- Tuning parameters, const char *.
+	 *   - **options** -- Encoder-specific options, const char *.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
@@ -3622,6 +3633,7 @@ public:
 	 *   - **subsample_mode** -- Select chroma subsample operation mode, VipsForeignSubsample.
 	 *   - **encoder** -- Select encoder to use, VipsForeignHeifEncoder.
 	 *   - **tune** -- Tuning parameters, const char *.
+	 *   - **options** -- Encoder-specific options, const char *.
 	 *   - **keep** -- Which metadata to retain, VipsForeignKeep.
 	 *   - **background** -- Background value, std::vector<double>.
 	 *   - **page_height** -- Set page height for multipage save, int.
