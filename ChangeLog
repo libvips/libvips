@@ -1,6 +1,5 @@
 date-tbd 8.19.0
 
-- heifsave: add options string for encoder-specific parameters [xiujunwang]
 - cpp: add orientation() to VImage [pszemus]
 - smartcrop: introduce cropping by a specific point of interest [pszemus]
 - pngload: support for EXIF data in zTXt chunks [pszemus]
@@ -74,6 +73,7 @@ date-tbd 8.19.0
 - colour: add built-in Linear Rec.2020 profile [chrisabra]
 - dcrawload: load as CICP tagged Linear Rec.2020 [chrisabra]
 - dcrawload: add auto-brightness option [chrisabra]
+- heifsave: add options string for encoder-specific parameters [xiujunwang]
 
 tbd 8.18.8
 
