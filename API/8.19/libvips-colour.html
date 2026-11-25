@@ -120,7 +120,7 @@ slightly different format:
 <p>Use <a href="method.Image.colourspace.html"><code>vips_colourspace()</code></a> to move an image to a target colourspace
 using the best sequence of colour transform&nbsp;operations.</p>
 <p>Use <a href="method.Image.CICP2scRGB.html"><code>vips_CICP2scRGB()</code></a> to convert an image with <span class="caps">CICP</span> signals to&nbsp;scRGB.</p>
-<p>Use <a href="method.Image.uhdr2scRGB.html"><code>vips_uhdr2scRGB()</code></a> to convert an <span class="caps">SDR</span> image with an attached gainmap
+<p>Use <a href="method.Image.UHDR2scRGB.html"><code>vips_UHDR2scRGB()</code></a> to convert an <span class="caps">SDR</span> image with an attached gainmap
 to a full <span class="caps">HDR</span> scRGB&nbsp;image.</p>
 <p>Secondly, there are a set of operations for calculating colour difference
 metrics. Finally, libvips wraps LittleCMS and uses it to provide a set of
@@ -223,7 +223,7 @@ operations for reading and writing images with <span class="caps">ICC</span>&nbs
 <li><a href="method.Image.Lab2LabS.html"><code>vips_Lab2LabS()</code></a></li>
 <li><a href="method.Image.CMYK2XYZ.html"><code>vips_CMYK2XYZ()</code></a></li>
 <li><a href="method.Image.XYZ2CMYK.html"><code>vips_XYZ2CMYK()</code></a></li>
-<li><a href="method.Image.uhdr2scRGB.html"><code>vips_uhdr2scRGB()</code></a></li>
+<li><a href="method.Image.UHDR2scRGB.html"><code>vips_UHDR2scRGB()</code></a></li>
 <li><a href="method.Image.CICP2scRGB.html"><code>vips_CICP2scRGB()</code></a></li>
 <li><a href="ctor.Blob.profile_load.html"><code>vips_profile_load()</code></a></li>
 <li><a href="func.icc_present.html"><code>vips_icc_present()</code></a></li>
@@ -295,6 +295,9 @@ operations for reading and writing images with <span class="caps">ICC</span>&nbs
 </ul>
 <h2 id="enumerations">Enumerations<a class="md-anchor" href="#enumerations" title="Permanent link"></a></h2>
 <ul>
+<li><a href="enum.CICPColourPrimaries.html"><code>VipsCICPColourPrimaries</code></a></li>
+<li><a href="enum.CICPTransferCharacteristics.html"><code>VipsCICPTransferCharacteristics</code></a></li>
+<li><a href="enum.CICPMatrixCoefficients.html"><code>VipsCICPMatrixCoefficients</code></a></li>
 <li><a href="enum.Intent.html"><code>VipsIntent</code></a></li>
 <li><a href="enum.PCS.html"><code>VipsPCS</code></a></li>
 </ul>

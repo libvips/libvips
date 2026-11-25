@@ -806,7 +806,7 @@ for&nbsp;example.</p>
             <td><a title="CICPColourPrimaries" class="symbol" href="enum.CICPColourPrimaries.html">CICPColourPrimaries</a></td>
             
             <td class="docblock-summary">
-            
+            <p>The set of supported <span class="caps">CICP</span> primaries. See <code>vips_CICP2scRGB()</code>.</p>
             <p></p>
             </td>
             
@@ -816,7 +816,7 @@ for&nbsp;example.</p>
             <td><a title="CICPMatrixCoefficients" class="symbol" href="enum.CICPMatrixCoefficients.html">CICPMatrixCoefficients</a></td>
             
             <td class="docblock-summary">
-            
+            <p>The <span class="caps">CICP</span> matrix coefficients. Only the identity matrix is&nbsp;supported.</p>
             <p></p>
             </td>
             
@@ -826,7 +826,7 @@ for&nbsp;example.</p>
             <td><a title="CICPTransferCharacteristics" class="symbol" href="enum.CICPTransferCharacteristics.html">CICPTransferCharacteristics</a></td>
             
             <td class="docblock-summary">
-            
+            <p>The set of supported <span class="caps">CICP</span> transfer functions. See <code>vips_CICP2scRGB()</code>.</p>
             <p></p>
             </td>
             
@@ -1189,7 +1189,8 @@ pixels interpreted as coordinates in <span class="caps">CIE</span> Lab&nbsp;spac
             
             <td class="docblock-summary">
             <p>Pick a Profile Connection Space for <code>vips_icc_import()</code> and
-<code>vips_icc_export()</code>. <span class="caps">LAB</span> is usually best, <span class="caps">XYZ</span> can be more convenient in some&nbsp;cases.</p>
+<code>vips_icc_export()</code>. <span class="caps">LAB</span> is usually best, <span class="caps">XYZ</span> can be more
+convenient in some&nbsp;cases.</p>
             <p></p>
             </td>
             
@@ -4081,6 +4082,16 @@ Do not&nbsp;free.</p>
           </tr>
           
           <tr class="section-item">
+            <td><a title="DEPRECATED_ENUMERATOR_IN_8_18_FOR" class="symbol" href="func.DEPRECATED_ENUMERATOR_IN_8_18_FOR.html">DEPRECATED_ENUMERATOR_IN_8_18_FOR</a></td>
+            
+            <td class="docblock-summary">
+            
+            <p></p>
+            </td>
+            
+          </tr>
+          
+          <tr class="section-item">
             <td><a title="DEPRECATED_FOR" class="symbol" href="func.DEPRECATED_FOR.html">DEPRECATED_FOR</a></td>
             
             <td class="docblock-summary">
@@ -5084,6 +5095,36 @@ require characters of&nbsp;input.</p>
           </tr>
           
           <tr class="section-item">
+            <td><a title="FOREIGN_CODING_ALL_MASK" class="symbol" href="const.FOREIGN_CODING_ALL_MASK.html">FOREIGN_CODING_ALL_MASK</a></td>
+            
+            <td class="docblock-summary">
+            <p>A mask for all <code>VipsForeignCoding</code> bits.</p>
+            <p></p>
+            </td>
+            
+          </tr>
+          
+          <tr class="section-item">
+            <td><a title="FOREIGN_KEEP_ALL_MASK" class="symbol" href="const.FOREIGN_KEEP_ALL_MASK.html">FOREIGN_KEEP_ALL_MASK</a></td>
+            
+            <td class="docblock-summary">
+            <p>A mask for all <code>VipsForeignKeep</code> bits.</p>
+            <p></p>
+            </td>
+            
+          </tr>
+          
+          <tr class="section-item">
+            <td><a title="FOREIGN_SAVEABLE_ALL_MASK" class="symbol" href="const.FOREIGN_SAVEABLE_ALL_MASK.html">FOREIGN_SAVEABLE_ALL_MASK</a></td>
+            
+            <td class="docblock-summary">
+            <p>A mask for all <code>VipsForeignSaveable</code> bits.</p>
+            <p></p>
+            </td>
+            
+          </tr>
+          
+          <tr class="section-item">
             <td><a title="INTERPOLATE_SCALE" class="symbol" href="const.INTERPOLATE_SCALE.html">INTERPOLATE_SCALE</a></td>
             
             <td class="docblock-summary">
@@ -5500,16 +5541,6 @@ operations (eg. <code>vips_shrinkv()</code>) add extra caches if they see it on 
             <td class="docblock-summary">
             <p>Many of the libvips interpolators use fixed-point arithmetic for coordinate
 calculation. This is how many bits of precision they&nbsp;use.</p>
-            <p></p>
-            </td>
-            
-          </tr>
-          
-          <tr class="section-item">
-            <td><a title="UHDR_TO_SCRGB" class="symbol" href="const.UHDR_TO_SCRGB.html">UHDR_TO_SCRGB</a></td>
-            
-            <td class="docblock-summary">
-            
             <p></p>
             </td>
             

@@ -328,7 +328,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a href="#declaration" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L927">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L957">[src]</a>
         
       </h4>
 
@@ -349,7 +349,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/dcrawload.c#L751">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/dcrawload.c#L794">[src]</a>
         
       </h4>
 
@@ -359,19 +359,21 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 <span class="caps">ARW</span>, <span class="caps">CR2</span>, <span class="caps">CR3</span>, <span class="caps">CRW</span>, <span class="caps">DNG</span>, <span class="caps">NEF</span>, <span class="caps">NRW</span>, <span class="caps">ORF</span>, <span class="caps">PEF</span>, <span class="caps">RAF</span>, <span class="caps">RAW</span>, <span class="caps">RW2</span>, <span class="caps">SRW</span>, <span class="caps">X3F</span>, and
 many&nbsp;others.</p>
 <p>The loader applies demosaicing and basic processing to produce an <span class="caps">RGB</span> or
-grayscale image suitable for further processing. It attaches <span class="caps">XMP</span> and <span class="caps">ICC</span>
-metadata, if&nbsp;present.</p>
+grayscale image suitable for further processing. It sets the interpretation
+matching the output colour space, and copies <span class="caps">XMP</span> metadata if&nbsp;present.</p>
 <p>The loader will search for embedded, <span class="caps">JPEG</span>-encoded thumbnail and preview
 images, attaching them as <code>jpeg-thumbnail-data</code> and <code>jpeg-preview-data</code>.
 Set <code>half_size</code> to decode at half-size. This can be much faster, though of
 course the image is&nbsp;smaller.</p>
-<p>Set <code>bit_depth</code> to control the number of bits to decode to. Either 8 or 16,
-default&nbsp;8,</p>
+<p>Set <code>bitdepth</code> to control the number of bits to decode to. Either 8 or 16,
+default&nbsp;8.</p>
+<p>Set <code>auto_brightness</code> to enable&nbsp;auto-brightness.</p>
 <div class="admonition tip">
 <p class="admonition-title">Optional&nbsp;arguments</p>
 <ul>
 <li><code>bitdepth</code>: <code>gint</code>, number of bits to decode&nbsp;to</li>
-<li><code>half_size</code>: <code>gboolean</code>, decode at&nbsp;half-size.</li>
+<li><code>half_size</code>: <code>gboolean</code>, decode at&nbsp;half-size</li>
+<li><code>auto_brightness</code>: <code>gboolean</code>, apply a histogram based&nbsp;auto-brightness.</li>
 </ul>
 </div>
       </div>

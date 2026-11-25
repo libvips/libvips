@@ -116,6 +116,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.Oklch2Oklab.html">Oklch2Oklab</a>
   
+    <a class="method" href="method.Image.UHDR2scRGB.html">UHDR2scRGB</a>
+  
     <a class="method" href="method.Image.XYZ2CMYK.html">XYZ2CMYK</a>
   
     <a class="method" href="method.Image.XYZ2Lab.html">XYZ2Lab</a>
@@ -397,6 +399,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.get_bands.html">get_bands</a>
   
     <a class="method" href="method.Image.get_blob.html">get_blob</a>
+  
+    <a class="method" href="method.Image.get_blob_value.html">get_blob_value</a>
   
     <a class="method" href="method.Image.get_coding.html">get_coding</a>
   
@@ -914,8 +918,6 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.transpose3d.html">transpose3d</a>
   
-    <a class="method" href="method.Image.uhdr2scRGB.html">uhdr2scRGB</a>
-  
     <a class="method" href="method.Image.uhdrsave.html">uhdrsave</a>
   
     <a class="method" href="method.Image.uhdrsave_buffer.html">uhdrsave_buffer</a>
@@ -989,7 +991,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a class="anchor" href="#declaration"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/colour.h#L286">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/colour.h#L289">[src]</a>
         
       </h4>
 
@@ -1010,18 +1012,29 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/colour/CICP2scRGB.c#L574">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/colour/CICP2scRGB.c#L748">[src]</a>
         
       </h4>
 
       <div class="docblock">
-        <p>Transform an image with <span class="caps">CICP</span> signal to&nbsp;scRGB.</p>
+        <p>Transform an image with <span class="caps">CICP</span> signal to scRGB. If present, the target colour
+encoding is set by the <span class="caps">CICP</span> tags on <code>in</code>. These can be overridden with those
+specified via the optional <span class="caps">CICP</span>&nbsp;arguments.</p>
+<p><span class="caps">PQ</span> and <span class="caps">HLG</span> are scaled so that 1.0 is <span class="caps">BT</span>.2408 reference white (203&nbsp;nits).</p>
 <p>This operation does not remove <span class="caps">CICP</span> metadata from <code>out</code>. The following tags
 should be updated or removed to reflect the conversion:
 - <a href="const.META_CICP_COLOUR_PRIMARIES.html"><code>VIPS_META_CICP_COLOUR_PRIMARIES</code></a>
 - <a href="const.META_CICP_TRANSFER_CHARACTERISTICS.html"><code>VIPS_META_CICP_TRANSFER_CHARACTERISTICS</code></a>
 - <a href="const.META_CICP_MATRIX_COEFFICIENTS.html"><code>VIPS_META_CICP_MATRIX_COEFFICIENTS</code></a>
 - <a href="const.META_CICP_FULL_RANGE_FLAG.html"><code>VIPS_META_CICP_FULL_RANGE_FLAG</code></a></p>
+<div class="admonition tip">
+<p class="admonition-title">Optional&nbsp;arguments</p>
+<ul>
+<li><code>colour_primaries</code>: <code>VipsCICPColourPrimaries</code>, target primaries (default <code>VIPS_CICP_COLOUR_PRIMARIES_BT709</code>)</li>
+<li><code>transfer_characteristics</code>: <code>VipsCICPTransferCharacteristics</code>, target transfer (default <code>VIPS_CICP_TRANSFER_SRGB</code>)</li>
+<li><code>matrix_coefficients</code>: <code>VipsCICPMatrixCoefficients</code>, target matrix (default <code>VIPS_CICP_MATRIX_RGB</code>)</li>
+</ul>
+</div>
 <div class="admonition seealso">
 <p class="admonition-title">See&nbsp;also</p>
 <p><a href="method.Image.scRGB2CICP.html"><code>vips_scRGB2CICP()</code></a>.</p>

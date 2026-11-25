@@ -328,7 +328,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a href="#declaration" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L488">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/image.h#L487">[src]</a>
         
       </h4>
 
@@ -350,7 +350,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L2167">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/image.c#L2168">[src]</a>
         
       </h4>
 
@@ -362,6 +362,7 @@ To load an unformatted area of memory, use
 <p><span class="caps">VIPS</span> does not take
 responsibility for the area of memory, it&#8217;s up to you to make sure it&#8217;s
 freed when the image is closed. See for example <a href="signal.Object.close.html"><code>VipsObject::close</code></a>.</p>
+<p>Use <a href="ctor.Image.new_from_source.html"><code>vips_image_new_from_source()</code></a> for a reference counted memory&nbsp;area.</p>
 <p>Load options may be given in <code>option_string</code> as <code>[name=value,...]</code> or given as
 a <code>NULL</code>-terminated list of name-value pairs at the end of the arguments.
 Options given in the function call override options given in the&nbsp;filename.</p>

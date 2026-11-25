@@ -7,7 +7,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Vips.Image.uhdr2scRGB</title>
+  <title>Vips.Image.get_blob_value</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <meta charset="utf-8" />
@@ -18,10 +18,10 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
 
   
-  <meta priority="og:title" content="Vips.Image.uhdr2scRGB"/>
-  <meta priority="og:description" content="Reference for Vips.Image.uhdr2scRGB"/>
-  <meta name="twitter:title" content="Vips.Image.uhdr2scRGB"/>
-  <meta name="twitter:description" content="Reference for Vips.Image.uhdr2scRGB"/>
+  <meta priority="og:title" content="Vips.Image.get_blob_value"/>
+  <meta priority="og:description" content="Reference for Vips.Image.get_blob_value"/>
+  <meta name="twitter:title" content="Vips.Image.get_blob_value"/>
+  <meta name="twitter:description" content="Reference for Vips.Image.get_blob_value"/>
 
 
   
@@ -115,6 +115,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.Oklab2XYZ.html">Oklab2XYZ</a>
   
     <a class="method" href="method.Image.Oklch2Oklab.html">Oklch2Oklab</a>
+  
+    <a class="method" href="method.Image.UHDR2scRGB.html">UHDR2scRGB</a>
   
     <a class="method" href="method.Image.XYZ2CMYK.html">XYZ2CMYK</a>
   
@@ -397,6 +399,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.get_bands.html">get_bands</a>
   
     <a class="method" href="method.Image.get_blob.html">get_blob</a>
+  
+    <a class="method current" href="method.Image.get_blob_value.html">get_blob_value</a>
   
     <a class="method" href="method.Image.get_coding.html">get_coding</a>
   
@@ -914,8 +918,6 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.transpose3d.html">transpose3d</a>
   
-    <a class="method current" href="method.Image.uhdr2scRGB.html">uhdr2scRGB</a>
-  
     <a class="method" href="method.Image.uhdrsave.html">uhdrsave</a>
   
     <a class="method" href="method.Image.uhdrsave_buffer.html">uhdrsave_buffer</a>
@@ -976,7 +978,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 <section id="main" class="content">
   <header>
     <h3>Method</h3>
-    <h1><a href="index.html">Vips</a><span class="sep"></span><a href="class.Image.html">Image</a><span class="sep"></span>uhdr2scRGB</h1>
+    <h1><a href="index.html">Vips</a><span class="sep"></span><a href="class.Image.html">Image</a><span class="sep"></span>get_blob_value</h1>
   </header>
 
   <section>
@@ -989,16 +991,16 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a class="anchor" href="#declaration"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/colour.h#L282">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/header.h#L317">[src]</a>
         
       </h4>
 
       <div class="docblock c-decl">
         <pre><code><div class="highlight"><pre><span></span><span class="kt">int</span>
-<span class="n">vips_uhdr2scRGB</span><span class="w"> </span><span class="p">(</span>
-<span class="w">  </span><span class="n">VipsImage</span><span class="o">*</span><span class="w"> </span><span class="n">in</span><span class="p">,</span>
-<span class="w">  </span><span class="n">VipsImage</span><span class="o">**</span><span class="w"> </span><span class="n">out</span><span class="p">,</span>
-<span class="w">  </span><span class="p">...</span>
+<span class="n">vips_image_get_blob_value</span><span class="w"> </span><span class="p">(</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="n">VipsImage</span><span class="o">*</span><span class="w"> </span><span class="n">image</span><span class="p">,</span>
+<span class="w">  </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">name</span><span class="p">,</span>
+<span class="w">  </span><span class="n">VipsBlob</span><span class="o">**</span><span class="w"> </span><span class="n">blob</span>
 <span class="p">)</span>
 </pre></div>
 </code></pre>
@@ -1010,12 +1012,18 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/colour/uhdr2scRGB.c#L293">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/iofuncs/header.c#L1867">[src]</a>
         
       </h4>
 
       <div class="docblock">
-        <p>Transform a uhdr image (three band sRGB with an attached gainmap) to&nbsp;scRGB.</p>
+        <p>Gets <code>blob</code> from <code>image</code> under the name <code>name</code>.
+Use <a href="method.Image.get_typeof.html"><code>vips_image_get_typeof()</code></a> to test for the existence
+of a piece of&nbsp;metadata.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See&nbsp;also</p>
+<p><a href="method.Image.get.html"><code>vips_image_get()</code></a>, <a href="method.Image.get_typeof.html"><code>vips_image_get_typeof()</code></a>.</p>
+</div>
       </div>
 
       <div class="docblock">
@@ -1023,7 +1031,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         
         
         
-        <p>This method is not directly available to language bindings.</p>
+        
         
         
       </div>
@@ -1043,10 +1051,27 @@ SPDX-License-Identifier: LGPL-2.1-or-later
           
 
           
-          <dt class="arg-name"><code>out</code></dt>
+          <dt class="arg-name"><code>name</code></dt>
           <dd class="arg-description">
-            <p><em>Type:</em>&nbsp;<a href="class.Image.html"><code>VipsImage</code></a></p>
-            <p>Output&nbsp;image.</p>
+            <p><em>Type:</em>&nbsp;<code>const char*</code></p>
+            <p>Metadata&nbsp;name.</p>
+            <table>
+            
+            
+            
+            
+            
+            
+            
+            <tr><td title="transfer: none">The data is owned by the caller of the method.</td></tr>
+            <tr><td>The value is a NUL terminated UTF-8 string.</td></tr>
+            </table>
+          </dd>
+          
+          <dt class="arg-name"><code>blob</code></dt>
+          <dd class="arg-description">
+            <p><em>Type:</em>&nbsp;<a href="struct.Blob.html"><code>VipsBlob</code></a></p>
+            <p>Return field&nbsp;value.</p>
             <table>
             <tr><td title="direction: out">The argument will be set by the function.</td></tr>
             
@@ -1055,24 +1080,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
             
             
             
-            <tr><td title="transfer: full">The caller of the method takes ownership of the returned data, and is responsible for freeing it.</td></tr>
-            
-            </table>
-          </dd>
-          
-          <dt class="arg-name"><code>...</code></dt>
-          <dd class="arg-description">
-            <p><em>Type:</em>&nbsp;<code></code></p>
-            <p><code>NULL</code>-terminated list of optional named&nbsp;arguments.</p>
-            <table>
-            
-            
-            
-            
-            
-            
-            
-            
+            <tr><td title="transfer: none">The returned data is owned by the instance.</td></tr>
             
             </table>
           </dd>
@@ -1095,7 +1103,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         <div class="returns">
           <div class="arg-description">
             <p><em>Type:</em>&nbsp;<code>int</code></p>
-            <p>0 on success, -1 on&nbsp;error.</p>
+            <p>0 on success, -1&nbsp;otherwise.</p>
           </div>
           <div>
             <table>

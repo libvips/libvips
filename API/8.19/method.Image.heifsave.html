@@ -116,6 +116,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.Oklch2Oklab.html">Oklch2Oklab</a>
   
+    <a class="method" href="method.Image.UHDR2scRGB.html">UHDR2scRGB</a>
+  
     <a class="method" href="method.Image.XYZ2CMYK.html">XYZ2CMYK</a>
   
     <a class="method" href="method.Image.XYZ2Lab.html">XYZ2Lab</a>
@@ -397,6 +399,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.get_bands.html">get_bands</a>
   
     <a class="method" href="method.Image.get_blob.html">get_blob</a>
+  
+    <a class="method" href="method.Image.get_blob_value.html">get_blob_value</a>
   
     <a class="method" href="method.Image.get_coding.html">get_coding</a>
   
@@ -914,8 +918,6 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.transpose3d.html">transpose3d</a>
   
-    <a class="method" href="method.Image.uhdr2scRGB.html">uhdr2scRGB</a>
-  
     <a class="method" href="method.Image.uhdrsave.html">uhdrsave</a>
   
     <a class="method" href="method.Image.uhdrsave_buffer.html">uhdrsave_buffer</a>
@@ -989,7 +991,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a class="anchor" href="#declaration"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L966">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L996">[src]</a>
         
       </h4>
 
@@ -1010,7 +1012,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/foreign.c#L2368">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/foreign.c#L2432">[src]</a>
         
       </h4>
 
@@ -1031,6 +1033,7 @@ least 8, 10 and 12 bits; other codecs may support more or fewer&nbsp;options.</p
 <p>Use <code>encoder</code> to set the encode library to use, e.g. aom, <span class="caps">SVT</span>-<span class="caps">AV1</span>, rav1e&nbsp;etc.</p>
 <p>Use <code>tune</code> to pass a set of tuning parameters to the encoder, see the
 libheif&nbsp;documentation.</p>
+<p>Use <code>options</code> to pass comma-separated key=value pairs to the&nbsp;encoder.</p>
 <div class="admonition tip">
 <p class="admonition-title">Optional&nbsp;arguments</p>
 <ul>
@@ -1042,6 +1045,7 @@ libheif&nbsp;documentation.</p>
 <li><code>subsample_mode</code>: <a href="enum.ForeignSubsample.html"><code>VipsForeignSubsample</code></a>, chroma subsampling&nbsp;mode</li>
 <li><code>encoder</code>: <a href="enum.ForeignHeifEncoder.html"><code>VipsForeignHeifEncoder</code></a>, select encoder to&nbsp;use</li>
 <li><code>tune</code>: <code>gchararray</code>, encoder tuning&nbsp;parameters</li>
+<li><code>options</code>: <code>gchararray</code>, encoder-specific&nbsp;options</li>
 </ul>
 </div>
 <div class="admonition seealso">

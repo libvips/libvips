@@ -116,6 +116,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.Oklch2Oklab.html">Oklch2Oklab</a>
   
+    <a class="method" href="method.Image.UHDR2scRGB.html">UHDR2scRGB</a>
+  
     <a class="method" href="method.Image.XYZ2CMYK.html">XYZ2CMYK</a>
   
     <a class="method" href="method.Image.XYZ2Lab.html">XYZ2Lab</a>
@@ -397,6 +399,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.get_bands.html">get_bands</a>
   
     <a class="method" href="method.Image.get_blob.html">get_blob</a>
+  
+    <a class="method" href="method.Image.get_blob_value.html">get_blob_value</a>
   
     <a class="method" href="method.Image.get_coding.html">get_coding</a>
   
@@ -914,8 +918,6 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.transpose3d.html">transpose3d</a>
   
-    <a class="method" href="method.Image.uhdr2scRGB.html">uhdr2scRGB</a>
-  
     <a class="method" href="method.Image.uhdrsave.html">uhdrsave</a>
   
     <a class="method" href="method.Image.uhdrsave_buffer.html">uhdrsave_buffer</a>
@@ -989,7 +991,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a class="anchor" href="#declaration"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/colour.h#L289">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/colour.h#L292">[src]</a>
         
       </h4>
 
@@ -1010,13 +1012,15 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/colour/scRGB2CICP.c#L503">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/colour/scRGB2CICP.c#L540">[src]</a>
         
       </h4>
 
       <div class="docblock">
-        <p>Transform an scRGB image to <span class="caps">CICP</span> signal. The target colour encoding
-is specified via the optional <span class="caps">CICP</span>&nbsp;arguments.</p>
+        <p>Transform an scRGB image to <span class="caps">CICP</span> signal. If present, the target colour
+encoding is set by the <span class="caps">CICP</span> tags on <code>in</code>. These can be overridden with those
+specified via the optional <span class="caps">CICP</span>&nbsp;arguments.</p>
+<p><span class="caps">PQ</span> and <span class="caps">HLG</span> take 1.0 as <span class="caps">BT</span>.2408 reference white (203&nbsp;nits).</p>
 <p>Currently only <code>matrix_coefficients</code> <code>VIPS_CICP_MATRIX_RGB</code> and
 full-range output is&nbsp;supported.</p>
 <p>The target <span class="caps">CICP</span> encoding is written to <code>out</code> as the following tags:

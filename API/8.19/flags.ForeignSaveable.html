@@ -116,7 +116,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L310">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L323">[src]</a>
         
       </h4>
 
@@ -151,7 +151,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
             <a class="anchor" href="#any"></a>
           </dt>
           <dd>
-            <div><p>Saver supports everything (eg. <span class="caps">TIFF</span>).</p></div>
+            <div><p>Does anything, no preprocessing (eg. <span class="caps">TIFF</span>).</p></div>
             <ul>
               <li>Value: <code>0</code></li>
               
@@ -212,13 +212,39 @@ SPDX-License-Identifier: LGPL-2.1-or-later
           </dd>
         
           <dt>
+            <code id="cicp">VIPS_FOREIGN_SAVEABLE_CICP</code>
+            <a class="anchor" href="#cicp"></a>
+          </dt>
+          <dd>
+            <div><p>Can save <span class="caps">CICP</span>&nbsp;images.</p></div>
+            <ul>
+              <li>Value: <code>16</code></li>
+              
+              <li>Available since: 8.0</li>
+            </ul>
+          </dd>
+        
+          <dt>
+            <code id="scrgb">VIPS_FOREIGN_SAVEABLE_scRGB</code>
+            <a class="anchor" href="#scrgb"></a>
+          </dt>
+          <dd>
+            <div><p>Can save scRGB&nbsp;images.</p></div>
+            <ul>
+              <li>Value: <code>32</code></li>
+              
+              <li>Available since: 8.0</li>
+            </ul>
+          </dd>
+        
+          <dt>
             <code id="all">VIPS_FOREIGN_SAVEABLE_ALL</code>
             <a class="anchor" href="#all"></a>
           </dt>
           <dd>
             <div><p>No description available.</p></div>
             <ul>
-              <li>Value: <code>15</code></li>
+              <li>Value: <code>63</code></li>
               
               <li>Available since: 8.0</li>
             </ul>

@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['join_0',['join',['../classVImage.html#afe2e38e01b4e988dbacb999dad593379',1,'VImage']]],
+  ['jp2kload_1',['jp2kload',['../classVImage.html#a39482ee3aebab8626aa01e561386d5f8',1,'VImage']]],
+  ['jp2kload_5fbuffer_2',['jp2kload_buffer',['../classVImage.html#a613b39b67dc7fb8e35ae2d8b130a39a0',1,'VImage']]],
+  ['jp2kload_5fsource_3',['jp2kload_source',['../classVImage.html#a0da6bb0744daaf65919bae54dde70d45',1,'VImage']]],
+  ['jp2ksave_4',['jp2ksave',['../classVImage.html#a424c6e2e04df62d970a09b52a9e46f77',1,'VImage']]],
+  ['jp2ksave_5fbuffer_5',['jp2ksave_buffer',['../classVImage.html#a7f93a027cacd3cf226c784a9d47a8b73',1,'VImage']]],
+  ['jp2ksave_5ftarget_6',['jp2ksave_target',['../classVImage.html#a2cb82ede8752e1d54b37af959d3c95ff',1,'VImage']]],
+  ['jpegload_7',['jpegload',['../classVImage.html#a4ec52bb38e5d8f1c36feab49a6cbc00b',1,'VImage']]],
+  ['jpegload_5fbuffer_8',['jpegload_buffer',['../classVImage.html#a2c2bbf4d4ffabccd942334584e47f0af',1,'VImage']]],
+  ['jpegload_5fsource_9',['jpegload_source',['../classVImage.html#a327f7ec2e3881cbfaae31cded0c34ae0',1,'VImage']]],
+  ['jpegsave_10',['jpegsave',['../classVImage.html#ae80a2608273ab2897ccf99de00429edd',1,'VImage']]],
+  ['jpegsave_5fbuffer_11',['jpegsave_buffer',['../classVImage.html#aa24416f90eeaf75f0ece76888ee14733',1,'VImage']]],
+  ['jpegsave_5fmime_12',['jpegsave_mime',['../classVImage.html#aed8b235dd6d476f34152257de75d7178',1,'VImage']]],
+  ['jpegsave_5ftarget_13',['jpegsave_target',['../classVImage.html#ada0d4bfa026abc8dbab12a8b62b93fa2',1,'VImage']]],
+  ['jxlload_14',['jxlload',['../classVImage.html#a5d463f05424ddc367801555470cd2db9',1,'VImage']]],
+  ['jxlload_5fbuffer_15',['jxlload_buffer',['../classVImage.html#a81e28d3db7a3b1667741d644b81a410b',1,'VImage']]],
+  ['jxlload_5fsource_16',['jxlload_source',['../classVImage.html#a3a50fcc8f46bef703a933d9d0cea7b1f',1,'VImage']]],
+  ['jxlsave_17',['jxlsave',['../classVImage.html#af59072b0dbb2c570e61458509ba638fb',1,'VImage']]],
+  ['jxlsave_5fbuffer_18',['jxlsave_buffer',['../classVImage.html#a3f717001a9f3c3ef76c5e2de37ce3dbd',1,'VImage']]],
+  ['jxlsave_5ftarget_19',['jxlsave_target',['../classVImage.html#a95b9d0fbcb136f3472dbcea183102598',1,'VImage']]]
+];

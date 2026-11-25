@@ -97,8 +97,7 @@ displayed. It serves roughly the same purpose as an <span class="caps">ICC</span
 very small, simple, and is designed for <span class="caps">HDR</span>.</p>
 <p>libvips supports loading and saving images with <span class="caps">CICP</span> tags from <span class="caps">AVIF</span>, <span class="caps">JXL</span>,
 and <span class="caps">PNG</span> images, it supports loading and saving these images to UltraHDR
-formats like <span class="caps">JPG</span> with automatic conversion of tags, and it supports save to
-<span class="caps">ICC</span>-only formats with automatic profile generation. libvips also supports
+formats like <span class="caps">JPG</span> with automatic conversion of tags.  libvips also supports
 generating and modifying <span class="caps">CICP</span> tags programmatically, including support for
 computing some image properties, such as target&nbsp;illumination.</p>
 <p>As with other colour tagging systems, like <span class="caps">ICC</span> and UtraHDR, there are two main
@@ -160,8 +159,14 @@ bits-per-sample: 16
 </code></pre></div>
 
 <p>As well as the four pieces of <span class="caps">CICP</span> metadata, two extra tags give the peak and
-average luminance for the image. These help displays map general image
-pixel values to values appropriate for this specific&nbsp;display.</p>
+average luminance for the image. These help screens map general image
+pixel values to values appropriate for this specific&nbsp;panel.</p>
+<p>Enums for the first three <span class="caps">CICP</span> values are available as
+<a href="enum.CICPColourPrimaries.html"><code>VipsCICPColourPrimaries</code></a>, <a href="enum.CICPTransferCharacteristics.html"><code>VipsCICPTransferCharacteristics</code></a>, and
+<a href="enum.CICPMatrixCoefficients.html"><code>VipsCICPMatrixCoefficients</code></a>.</p>
+<p><code>cicp-matrix-coefficients</code> should always be 0 (the identity matrix), and
+<code>cicp-full-range-flag</code> should always be 1 (meaning no effect), but all the
+primaries and transfer functions are&nbsp;supported.</p>
 <h3 id="save">Save<a class="md-anchor" href="#save" title="Permanent link"></a></h3>
 <p>When you save an image like this in another format, the saver will attempt to
 generate the best image it can&nbsp;automatically.</p>
@@ -209,8 +214,7 @@ gainmap-scale-factor: 2
 </code></pre></div>
 
 <p>The <span class="caps">JPEG</span> saver has seen the <span class="caps">CICP</span> tags and generated an UltraHDR image
-automatically using libultrahdr. Additionally, it has used the <span class="caps">CICP</span> tags to
-make a synthetic <span class="caps">ICC</span> profile which should preserve <span class="caps">CICP</span> colour&nbsp;information.</p>
+automatically using&nbsp;libultrahdr.</p>
 <p>This might now display as <span class="caps">HDR</span>, depending on your screen and&nbsp;browser:</p>
 <p><img alt="UltraHDR JPEG image" src="uhdr-car-small.jpg" /></p>
 <p>You can also convert to <span class="caps">AVIF</span>, of course. Since <span class="caps">AVIF</span> supports <span class="caps">CICP</span>, this is
@@ -275,17 +279,20 @@ exif-ifd2-PixelXDimension: 640 (640, Long, 1 components, 4 bytes)
 exif-ifd2-PixelYDimension: 360 (360, Long, 1 components, 4 bytes)
 orientation: 1
 $ vips max x.v
-9.637010
+3.797757
 $ vips min x.v
-0.000118
+0.000046
 </code></pre></div>
 
 <p>So the image has been converted to linear float, with the range 0-1 for
-black to paper white. Values above 1.0 (the maximum for this image is 9.77,
-for example) represent <span class="caps">HDR</span>&nbsp;pixels.</p>
+black to reference white, which is 203 nits for <span class="caps">HDR</span>. Values above 1.0 (the
+maximum for this image is 3.80, for example) represent <span class="caps">HDR</span>&nbsp;pixels.</p>
 <p>The <span class="caps">ICC</span> profile and the <span class="caps">CICP</span> metadata are untouched. If you convert back the
 other way with <a href="method.Image.scRGB2CICP.html"><code>vips_scRGB2CICP()</code></a>, this metadata is used to generate the
 inverse&nbsp;transform.</p>
+<p>Note that since there <span class="caps">CICP</span> metadata is still attached to the scRGB image, this
+can cause double-conversion on save. You should remove the <span class="caps">CICP</span> tags once they
+are no longer&nbsp;needed.</p>
 <p>You can use the libvips metadata <span class="caps">API</span> (<a href="method.Image.get_double.html"><code>vips_image_get_double()</code></a> and friends)
 to get and set the various <span class="caps">HDR</span> fields and change the&nbsp;presentation.</p>
 <p>You can use <a href="method.Image.percent_lum.html"><code>vips_percent_lum()</code></a> to compute new values for

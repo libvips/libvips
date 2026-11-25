@@ -116,6 +116,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.Oklch2Oklab.html">Oklch2Oklab</a>
   
+    <a class="method" href="method.Image.UHDR2scRGB.html">UHDR2scRGB</a>
+  
     <a class="method" href="method.Image.XYZ2CMYK.html">XYZ2CMYK</a>
   
     <a class="method" href="method.Image.XYZ2Lab.html">XYZ2Lab</a>
@@ -397,6 +399,8 @@ SPDX-License-Identifier: LGPL-2.1-or-later
     <a class="method" href="method.Image.get_bands.html">get_bands</a>
   
     <a class="method" href="method.Image.get_blob.html">get_blob</a>
+  
+    <a class="method" href="method.Image.get_blob_value.html">get_blob_value</a>
   
     <a class="method" href="method.Image.get_coding.html">get_coding</a>
   
@@ -914,8 +918,6 @@ SPDX-License-Identifier: LGPL-2.1-or-later
   
     <a class="method" href="method.Image.transpose3d.html">transpose3d</a>
   
-    <a class="method" href="method.Image.uhdr2scRGB.html">uhdr2scRGB</a>
-  
     <a class="method" href="method.Image.uhdrsave.html">uhdrsave</a>
   
     <a class="method" href="method.Image.uhdrsave_buffer.html">uhdrsave_buffer</a>
@@ -989,7 +991,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Declaration
         <a class="anchor" href="#declaration"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L1076">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/include/vips/foreign.h#L1106">[src]</a>
         
       </h4>
 
@@ -1011,13 +1013,13 @@ SPDX-License-Identifier: LGPL-2.1-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/dzsave.c#L2886">[src]</a>
+        <a class="srclink" title="go to source location" href="https://github.com/libvips/libvips/blob/master/libvips/foreign/dzsave.c#L2893">[src]</a>
         
       </h4>
 
       <div class="docblock">
         <p>As <a href="method.Image.dzsave.html"><code>vips_dzsave()</code></a>, but save to a memory&nbsp;buffer.</p>
-<p>Output is always in a zip container. Use <code>basename</code> to set the name of the
+<p>Output is always in a zip container. Use <code>imagename</code> to set the name of the
 directory that the zip will create when&nbsp;unzipped.</p>
 <p>The address of the buffer is returned in <code>buf</code>, the length of the buffer in
 <code>len</code>. You are responsible for freeing the buffer with <a href="javascript:void(0)" data-namespace="GLib" data-link="func.free.html" class="external"><code>g_free()</code></a> when you
@@ -1025,7 +1027,7 @@ are done with&nbsp;it.</p>
 <div class="admonition tip">
 <p class="admonition-title">Optional&nbsp;arguments</p>
 <ul>
-<li><code>basename</code>: <code>gchararray</code>, base part of&nbsp;name</li>
+<li><code>imagename</code>: <code>gchararray</code>, base part of&nbsp;name</li>
 <li><code>layout</code>: <a href="enum.ForeignDzLayout.html"><code>VipsForeignDzLayout</code></a>, directory layout&nbsp;convention</li>
 <li><code>suffix</code>: <code>gchararray</code>, suffix for&nbsp;tiles</li>
 <li><code>overlap</code>: <code>gint</code>, set tile&nbsp;overlap</li>
