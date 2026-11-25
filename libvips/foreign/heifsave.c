@@ -136,6 +136,8 @@ typedef struct _VipsForeignSaveHeif {
 	 */
 	const char *tune;
 
+	const char *options;
+
 } VipsForeignSaveHeif;
 
 typedef VipsForeignSaveClass VipsForeignSaveHeifClass;
@@ -560,6 +562,7 @@ vips_foreign_save_heif_write(struct heif_context *ctx,
 static int
 vips_foreign_save_heif_build(VipsObject *object)
 {
+	VipsObjectClass *class = VIPS_OBJECT_GET_CLASS(object);
 	VipsForeignSave *save = (VipsForeignSave *) object;
 	VipsForeignSaveHeif *heif = (VipsForeignSaveHeif *) object;
 
@@ -744,9 +747,42 @@ vips_foreign_save_heif_build(VipsObject *object)
 		}
 	}
 
-	/* TODO .. support extra per-encoder params with
-	 * heif_encoder_list_parameters().
-	 */
+	if (heif->options) {
+		const char *p = heif->options;
+		VipsToken token;
+		char name[VIPS_PATH_MAX];
+		char value[VIPS_PATH_MAX];
+
+		if (strlen(p) >= VIPS_PATH_MAX) {
+			vips_error(class->nickname, "%s", _("options string too long"));
+			return -1;
+		}
+
+		while ((p = vips__token_get(p, &token, name, sizeof(name) - 1))) {
+			if (token != VIPS_TOKEN_STRING) {
+				vips_error(class->nickname, "%s", _("expected parameter name"));
+				return -1;
+			}
+			if (!(p = vips__token_need(p, VIPS_TOKEN_EQUALS,
+					  value, sizeof(value) - 1)) ||
+				!(p = vips__token_need(p, VIPS_TOKEN_STRING,
+					  value, sizeof(value) - 1)))
+				return -1;
+
+			error = heif_encoder_set_parameter(heif->encoder, name, value);
+			if (error.code) {
+				vips__heif_error(&error);
+				return -1;
+			}
+
+			if (!(p = vips__token_get(p, &token, value, sizeof(value) - 1)))
+				break;
+			if (token != VIPS_TOKEN_COMMA) {
+				vips_error(class->nickname, "%s", _("expected comma"));
+				return -1;
+			}
+		}
+	}
 
 	heif->page_width = save->ready->Xsize;
 	heif->page_height = vips_image_get_page_height(save->ready);
@@ -913,6 +949,12 @@ vips_foreign_save_heif_class_init(VipsForeignSaveHeifClass *class)
 		G_STRUCT_OFFSET(VipsForeignSaveHeif, tune),
 		NULL);
 
+	VIPS_ARG_STRING(class, "options", 20,
+		_("Options"),
+		_("Encoder-specific options"),
+		VIPS_ARGUMENT_OPTIONAL_INPUT,
+		G_STRUCT_OFFSET(VipsForeignSaveHeif, options),
+		NULL);
 }
 
 static void

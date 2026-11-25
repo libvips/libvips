@@ -412,16 +412,6 @@ gint64 vips__seek_no_error(int fd, gint64 pos, int whence);
 
 int vips__ftruncate(int fd, gint64 pos);
 
-const char *vips__token_must(const char *buffer, VipsToken *token,
-	char *string, int size);
-const char *vips__token_need(const char *buffer, VipsToken need_token,
-	char *string, int size);
-const char *vips__token_segment(const char *p, VipsToken *token,
-	char *string, int size);
-const char *vips__token_segment_need(const char *p, VipsToken need_token,
-	char *string, int size);
-const char *vips__find_rightmost_brackets(const char *p);
-
 void vips__change_suffix(const char *name, char *out, int mx,
 	const char *new_suff, const char **olds, int nolds);
 

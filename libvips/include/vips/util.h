@@ -354,10 +354,24 @@ typedef enum {
 
 #ifndef __GI_SCANNER__
 
-// we expose this one in the API for testing
+// used in some modules
 VIPS_API
 const char *vips__token_get(const char *buffer,
 	VipsToken *token, char *string, int size);
+VIPS_API
+const char *vips__token_must(const char *buffer, VipsToken *token,
+	char *string, int size);
+VIPS_API
+const char *vips__token_need(const char *buffer, VipsToken need_token,
+	char *string, int size);
+VIPS_API
+const char *vips__token_segment(const char *p, VipsToken *token,
+	char *string, int size);
+VIPS_API
+const char *vips__token_segment_need(const char *p, VipsToken need_token,
+	char *string, int size);
+VIPS_API
+const char *vips__find_rightmost_brackets(const char *p);
 
 #endif /* !__GI_SCANNER__ */
 
