@@ -16,9 +16,13 @@ libvips core.
 Thanks to great work by starbix and mertalev, libvips 8.19 and later now
 support loading and saving images with CICP tags to and from AVIF, JXL, and
 PNG images. It also supports loading and saving these images to UltraHDR
-formats like JPG with automatic conversion of tags. libvips supports
-generating and modifying CICP tags programmatically, including support
-for computing some image properties, such as target illumination.
+formats like JPG with automatic conversion of tags.  libvips supports
+generating and modifying CICP tags programmatically, including support for
+computing some image properties, such as target illumination.
+
+You can also take charge of the HDR pipeline yourself if you need more
+control, the [new chapter in the documentation for
+CICP](https://www.libvips.org/API/8.19/cicp.html) has the details.
 
 As an example, here's an HDR PNG image. It'll probably look very dark on your
 screen, since almost no one supports this strange HDR image format:
@@ -40,18 +44,19 @@ This might now display as HDR, depending on your screen and browser:
 
 You can also convert to AVIF, of course. 
 
+```console
+$ vips copy cicp-car-small.png x.avif
+```
+
 ![CICP AVIF image](/API/8.19/cicp-car-small.avif)
 
 Again, the appearance will depend on your browser and display. On SDR
 screens, these two versions of the original probably won't match well,
-since the UltraHDR image has been tonemapped, whereas the AVIF will display
+since the UltraHDR image has been tone mapped, whereas the AVIF will display
 the SDR component of the CICP data.
 
 These automatic conversions should work everywhere (they work with `thumbnail`,
-for example) and in all libvips bindings. You can also take charge of the
-HDR pipeline yourself if you need more control, the [new chapter in the
-documentation for CICP](https://www.libvips.org/API/8.19/cicp.html) has
-the details.
+for example) and in all libvips bindings. 
 
 ## Animated PNG
 
@@ -88,23 +93,29 @@ quite a lot faster.
 The defaults have been improved:
 
 - We were not disabling libraw's auto brightness feature, so there was no
-  consistency between shots. Thanks to chrisabra, it's now off and the output
-  should be more predictable. This also means you can see the full range
-  of the sensor.
+  consistency between shots. Thanks to chrisabra, it's now off and the
+  output should be more predictable. This also means you can see the full
+  range of the sensor.
 
-- It also sets the output colourspace to linear rec2020, and will use dcraw's 
+- It also sets the output colourspace to linear rec2020, and will use dcraw's
   table of camera models to pick the right matrix. You should see more
-  consistent colour between cameras too. Images are tagged with the matching ICC
-  profile and CICP tags.
+  consistent colour between cameras too. Images are tagged with the matching
+  ICC profile and CICP tags.
 
 - We've made it attach the JPEG preview images as metadata, and `thumbnail`
   will use these if it can. You should see much quicker thumbnails.
 
-- There's also a new `half-size` option that can make thumbnailing quicker
-  too.
-
 The linear default is especially good for scientific work -- it makes getting
-useful colour measurements from RAW files much simpler.
+useful colour measurements from RAW files much simpler. On the other hand,
+images may look rather dark and flat and need more downstream processing.
+
+There are two new options:
+
+- `half-size` makes `dcrawload` decode at 50% size. This lets you skip
+  demosaicing and is a lot faster.
+
+- `auto-brightness` turns on libraw's auto brightness feature. You'll
+  probably want this off if you are doing your own colour processing.
 
 ## Improvements to file format support
 
@@ -120,6 +131,10 @@ The other file format operations have seen some improvements:
 
 - [`uhdrsave`](/API/8.19/method.Image.uhdrsave.html) has new options
   to control peak brightness and maximum content boost.
+
+- [`heifsave`](/API/8.19/method.Image.heifsave.html) has a new option to set
+  encoder options. This can give you more control over the compression
+  settings.
 
 ## Improvements to libvips operations
 
@@ -141,7 +156,7 @@ There have been some useful improvements to some basic libvips operations.
 
 - [`premultiply`](/API/8.19/method.Image.premultiply.html) and
   [`unpremultiply`](/API/8.19/method.Image.unpremultiply.html) now
-  includes a fast 8-bit path.
+  include a fast 8-bit path.
 
 ## Improvements to the libvips core
 
