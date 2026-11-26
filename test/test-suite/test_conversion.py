@@ -571,6 +571,19 @@ class TestConversion:
         unpremultiplied = im.unpremultiply(uchar=True)
         assert unpremultiplied(0, 0) == [255, 10]
 
+        im = (pyvips.Image.black(1, 1, bands=4) + [30, 20, 10, 128]).cast("float")
+        unpremultiplied = im.unpremultiply(uchar=True)
+        assert unpremultiplied.format == "float"
+        assert_almost_equal_objects(
+            unpremultiplied(0, 0),
+            [
+                30 * 255 / 128,
+                20 * 255 / 128,
+                10 * 255 / 128,
+                128
+            ]
+        )
+
     def test_flip(self):
         for fmt in all_formats:
             test = self.colour.cast(fmt)

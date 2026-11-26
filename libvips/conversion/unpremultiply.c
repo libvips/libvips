@@ -209,6 +209,7 @@ vips_unpremultiply_gen(VipsRegion *out_region,
 			VIPS_REGION_ADDR(out_region, r->left, r->top + y);
 
 		if (unpremultiply->uchar &&
+			im->BandFmt == VIPS_FORMAT_UCHAR &&
 			bands == 4)
 			for (int x = 0; x < width; x++) {
 				VipsPel alpha = in[3];
@@ -225,7 +226,8 @@ vips_unpremultiply_gen(VipsRegion *out_region,
 				in += 4;
 				out += 4;
 			}
-		else if (unpremultiply->uchar)
+		else if (unpremultiply->uchar &&
+			im->BandFmt == VIPS_FORMAT_UCHAR)
 			// fast uchar -> uchar path
 			for (int x = 0; x < width; x++) {
 				VipsPel alpha = in[bands - 1];
