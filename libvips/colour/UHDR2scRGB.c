@@ -40,6 +40,7 @@
 #include <math.h>
 
 #include <vips/vips.h>
+#include <vips/internal.h>
 
 #include "pcolour.h"
 
@@ -66,6 +67,11 @@ typedef struct _VipsUHDR2scRGB {
 	float max_content_boost[3];
 	float offset_hdr[3];
 	float offset_sdr[3];
+
+	/* XYZ to the linear RGB the gains apply in, and back.
+	 */
+	float to_gamut[9];
+	float from_gamut[9];
 
 } VipsUHDR2scRGB;
 
@@ -122,6 +128,9 @@ vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 static void
 vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 {
+	const float *m = uhdr->to_gamut;
+	const float *n = uhdr->from_gamut;
+
 	float *restrict p1 = (float *) in[0];
 	VipsPel *restrict p2 = (VipsPel *) in[1];
 	float *restrict q = (float *) out;
@@ -132,11 +141,9 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float z = p1[2];
 		p1 += 3;
 
-		/* XYZ -> sRGB, including scale down from 100.
-		 */
-		float r =  0.03240626F * x +  -0.01537208F * y +  -0.004986286F * z;
-		float g = -0.009689307F * x +  0.01875756F * y +   0.000415175F * z;
-		float b =  0.000557101F * x + -0.002040211F * y +  0.01056996F * z;
+		float r = m[0] * x + m[1] * y + m[2] * z;
+		float g = m[3] * x + m[4] * y + m[5] * z;
+		float b = m[6] * x + m[7] * y + m[8] * z;
 
 		// gainmaps are already linear
 		float gr = p2[0] / 255.0;
@@ -162,9 +169,19 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float gaing = exp2f(boostg);
 		float gainb = exp2f(boostb);
 
-		q[0] = ((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0];
-		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
-		q[2] = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
+		r = ((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0];
+		g = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		b = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
+
+		x = n[0] * r + n[1] * g + n[2] * b;
+		y = n[3] * r + n[4] * g + n[5] * b;
+		z = n[6] * r + n[7] * g + n[8] * b;
+
+		/* XYZ -> sRGB, including scale down from 100.
+		 */
+		q[0] =  0.03240626F * x +  -0.01537208F * y +  -0.004986286F * z;
+		q[1] = -0.009689307F * x +  0.01875756F * y +   0.000415175F * z;
+		q[2] =  0.000557101F * x + -0.002040211F * y +  0.01056996F * z;
 		q += 3;
 	}
 }
@@ -199,6 +216,27 @@ image_get_array_float(VipsImage *image, const char *name,
 
 	for (int i = 0; i < n; i++)
 		out[i] = d[i];
+
+	return 0;
+}
+
+/* RGB gainmaps apply in the RGB of the base image or of the gainmap.
+ */
+static int
+vips_UHDR2scRGB_set_gamut(VipsUHDR2scRGB *uhdr, VipsImage *gamut)
+{
+	VipsImage **t =
+		(VipsImage **) vips_object_local_array(VIPS_OBJECT(uhdr), 2);
+
+	if (vips__icc_primaries(gamut, &t[0]) ||
+		vips_matrixinvert(t[0], &t[1], NULL))
+		return -1;
+
+	for (int y = 0; y < 3; y++)
+		for (int x = 0; x < 3; x++) {
+			uhdr->from_gamut[3 * y + x] = *VIPS_MATRIX(t[0], x, y);
+			uhdr->to_gamut[3 * y + x] = *VIPS_MATRIX(t[1], x, y);
+		}
 
 	return 0;
 }
@@ -267,6 +305,21 @@ vips_UHDR2scRGB_build(VipsObject *object)
 		if (vips_check_bands_1or3(class->nickname, gainmap)) {
 			VIPS_UNREF(gainmap);
 			return -1;
+		}
+
+		/* One gain for all three channels gives the same result in any RGB.
+		 */
+		if (gainmap->Bands == 3) {
+			int use_base_cg = 1;
+			if (vips_image_get_typeof(uhdr->in, "gainmap-use-base-cg"))
+				(void) vips_image_get_int(uhdr->in,
+					"gainmap-use-base-cg", &use_base_cg);
+
+			if (vips_UHDR2scRGB_set_gamut(uhdr,
+					use_base_cg ? uhdr->in : gainmap)) {
+				VIPS_UNREF(gainmap);
+				return -1;
+			}
 		}
 
 		/* And now scale the gainmap image to match the main image 1:1.
