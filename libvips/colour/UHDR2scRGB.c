@@ -271,12 +271,9 @@ vips_UHDR2scRGB_build(VipsObject *object)
 	/* Get the gainmap image metadata.
 	 */
 	if (uhdr->in) {
-		if (vips_check_bands(class->nickname, uhdr->in, 3))
+		if (vips_check_bands(class->nickname, uhdr->in, 3) ||
+			vips_check_u8or16(class->nickname, uhdr->in))
 			return -1;
-		if (uhdr->in->BandFmt != VIPS_FORMAT_UCHAR) {
-			vips_error(class->nickname, "%s", _("image must be uchar"));
-			return -1;
-		}
 
 		/* Import the main image to XYZ to get linear light.
 		 */

@@ -885,3 +885,10 @@ class TestCICP:
         for band in range(3):
             assert abs(image.UHDR2scRGB()(0, 0)[band] -
                        expected(0, 0)[band]) < 0.01
+
+    @skip_if_no("uhdrload")
+    def test_uhdr_16bit(self):
+        image = pyvips.Image.new_from_file(UHDR_FILE)
+        wide = (image * 257).cast("ushort").copy(interpretation="rgb16")
+
+        assert (image.UHDR2scRGB() - wide.UHDR2scRGB()).abs().max() < 0.01
