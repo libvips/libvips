@@ -207,6 +207,8 @@ static int
 vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	VipsImage *image)
 {
+	VipsForeignLoad *load = VIPS_FOREIGN_LOAD(raw);
+
 	VIPS_SETSTR(image->filename,
 		vips_connection_filename(VIPS_CONNECTION(raw->source)));
 
@@ -377,12 +379,6 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	if (thumb_index != -1) {
 		int result;
 		result = libraw_unpack_thumb_ex(raw->raw_processor, thumb_index);
-		if (LIBRAW_FATAL_ERROR(result)) {
-			vips_foreign_load_dcraw_error(raw,
-				_("unable to unpack thumbnail"), result);
-			return -1;
-		}
-
 		if (result == LIBRAW_SUCCESS) {
 			vips_image_set_blob_copy(image, "jpeg-thumbnail-data",
 				raw->raw_processor->thumbnail.thumb,
@@ -393,6 +389,12 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 				raw->raw_processor->thumbnail.thumb,
 				raw->raw_processor->thumbnail.tlength);
 		}
+		else if (LIBRAW_FATAL_ERROR(result) ||
+			load->fail_on >= VIPS_FAIL_ON_WARNING) {
+			vips_foreign_load_dcraw_error(raw,
+				_("unable to unpack thumbnail"), result);
+			return -1;
+		}
 		else
 			g_warning("dcrawload: unable to unpack thumbnail: %s",
 				libraw_strerror(result));
@@ -402,16 +404,16 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 		preview_index != thumb_index) {
 		int result;
 		result = libraw_unpack_thumb_ex(raw->raw_processor, preview_index);
-		if (LIBRAW_FATAL_ERROR(result)) {
-			vips_foreign_load_dcraw_error(raw,
-				_("unable to unpack preview"), result);
-			return -1;
-		}
-
 		if (result == LIBRAW_SUCCESS)
 			vips_image_set_blob_copy(image, "jpeg-preview-data",
 				raw->raw_processor->thumbnail.thumb,
 				raw->raw_processor->thumbnail.tlength);
+		else if (LIBRAW_FATAL_ERROR(result) ||
+			load->fail_on >= VIPS_FAIL_ON_WARNING) {
+			vips_foreign_load_dcraw_error(raw,
+				_("unable to unpack preview"), result);
+			return -1;
+		}
 		else
 			g_warning("dcrawload: unable to unpack preview: %s",
 				libraw_strerror(result));
