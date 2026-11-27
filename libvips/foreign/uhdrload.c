@@ -247,8 +247,7 @@ vips_foreign_load_uhdr_build(VipsObject *object)
 static VipsForeignFlags
 vips_foreign_load_uhdr_get_flags(VipsForeignLoad *load)
 {
-	// since we always decode the whole thing to memory
-	return VIPS_FOREIGN_PARTIAL;
+	return VIPS_FOREIGN_SEQUENTIAL;
 }
 
 #ifdef DEBUG
@@ -583,6 +582,8 @@ vips_foreign_load_uhdr_load(VipsForeignLoad *load)
 	VipsImage *out;
 	if (vips_jpegload_buffer(base_image->data, base_image->data_sz, &out,
 		"shrink", uhdr->shrink,
+		"access", VIPS_ACCESS_SEQUENTIAL,
+		"fail_on", load->fail_on,
 		NULL))
 		return -1;
 	if (vips_image_write(out, load->real)) {

@@ -451,6 +451,16 @@ class TestForeign:
         assert len(value) > 100
 
     @skip_if_no("uhdrload")
+    def test_uhdrload_fail_on(self):
+        with open(UHDR_FILE, "rb") as f:
+            data = bytearray(f.read())
+        data[100000:100100] = b"\xff" * 100
+
+        pyvips.Image.uhdrload_buffer(bytes(data)).avg()
+        with pytest.raises(Exception) as e_info:
+            pyvips.Image.uhdrload_buffer(bytes(data), fail_on="warning").avg()
+
+    @skip_if_no("uhdrload")
     def test_uhdrload_odd_dimensions(self):
         # 129x97 image with 65x49 gain map
         im = pyvips.Image.uhdrload(UHDR_ODD_DIMENSIONS_FILE)
