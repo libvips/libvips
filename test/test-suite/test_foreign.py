@@ -509,6 +509,19 @@ class TestForeign:
         assert im2.get_gainmap().get_typeof("icc-profile-data") != 0
 
     @skip_if_no("uhdrsave")
+    def test_jpegsave_uhdr(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE)
+        data = im.jpegsave_buffer(interlace=True)
+        assert pyvips.Image.jpegload_buffer(data).get("interlaced") == 1
+
+        im = im.copy()
+        gainmap = pyvips.Image.new_from_buffer(im.get("gainmap-data"), "")
+        im.remove("gainmap-data")
+        im.set_type(pyvips.GValue.image_type, "gainmap", gainmap)
+        data = im.jpegsave_buffer()
+        assert pyvips.Image.new_from_buffer(data, "").get_typeof("gainmap-data")
+
+    @skip_if_no("uhdrsave")
     def test_uhdrsave_roundtrip_hdr(self):
         im = pyvips.Image.uhdrload(UHDR_FILE).UHDR2scRGB()
         data = im.uhdrsave_buffer()
