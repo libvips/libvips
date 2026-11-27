@@ -67,7 +67,7 @@ typedef struct _VipsUHDR2scRGB {
 	float offset_hdr[3];
 	float offset_sdr[3];
 
-	/* XYZ to the linear RGB the gains apply in, and back.
+	/* XYZ to the linear RGB the gains apply in, and that RGB to scRGB.
 	 */
 	float to_gamut[9];
 	float from_gamut[9];
@@ -172,15 +172,9 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		g = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
 		b = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
 
-		x = n[0] * r + n[1] * g + n[2] * b;
-		y = n[3] * r + n[4] * g + n[5] * b;
-		z = n[6] * r + n[7] * g + n[8] * b;
-
-		/* XYZ -> sRGB, including scale down from 100.
-		 */
-		q[0] =  0.03240626F * x +  -0.01537208F * y +  -0.004986286F * z;
-		q[1] = -0.009689307F * x +  0.01875756F * y +   0.000415175F * z;
-		q[2] =  0.000557101F * x + -0.002040211F * y +  0.01056996F * z;
+		q[0] = n[0] * r + n[1] * g + n[2] * b;
+		q[1] = n[3] * r + n[4] * g + n[5] * b;
+		q[2] = n[6] * r + n[7] * g + n[8] * b;
 		q += 3;
 	}
 }
@@ -241,7 +235,7 @@ static int
 vips_UHDR2scRGB_set_gamut(VipsUHDR2scRGB *uhdr, VipsImage *gainmap)
 {
 	VipsImage **t =
-		(VipsImage **) vips_object_local_array(VIPS_OBJECT(uhdr), 2);
+		(VipsImage **) vips_object_local_array(VIPS_OBJECT(uhdr), 4);
 
 	int use_base_cg = 1;
 	if (vips_image_get_typeof(uhdr->in, "gainmap-use-base-cg"))
@@ -264,14 +258,23 @@ vips_UHDR2scRGB_set_gamut(VipsUHDR2scRGB *uhdr, VipsImage *gainmap)
 		vips_area_unref(VIPS_AREA(srgb));
 	}
 
+	/* XYZ -> sRGB, including scale down from 100.
+	 */
+	t[2] = vips_image_new_matrixv(3, 3,
+		0.03240626, -0.01537208, -0.004986286,
+		-0.009689307, 0.01875756, 0.000415175,
+		0.000557101, -0.002040211, 0.01056996);
+
 	if (!t[0] ||
-		vips_matrixinvert(t[0], &t[1], NULL))
+		!t[2] ||
+		vips_matrixinvert(t[0], &t[1], NULL) ||
+		vips_matrixmultiply(t[2], t[0], &t[3], NULL))
 		return -1;
 
 	for (int y = 0; y < 3; y++)
 		for (int x = 0; x < 3; x++) {
-			uhdr->from_gamut[3 * y + x] = *VIPS_MATRIX(t[0], x, y);
 			uhdr->to_gamut[3 * y + x] = *VIPS_MATRIX(t[1], x, y);
+			uhdr->from_gamut[3 * y + x] = *VIPS_MATRIX(t[3], x, y);
 		}
 
 	return 0;
