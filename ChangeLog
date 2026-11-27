@@ -1,3 +1,7 @@
+date-tbd 8.20.0
+
+- tiff: improve alpha range handling for 16-bit LAB images
+
 date-tbd 8.19.0
 
 - cpp: add orientation() to VImage [pszemus]

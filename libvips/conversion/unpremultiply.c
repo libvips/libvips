@@ -442,9 +442,7 @@ vips_unpremultiply_init(VipsUnpremultiply *unpremultiply)
  * [method@Image.premultiply]. This option only works if @alpha_band is at the
  * default setting.
  *
- * @max_alpha has the default value 255, or 65535 for images tagged as
- * [enum@Vips.Interpretation.RGB16] or [enum@Vips.Interpretation.GREY16], and
- * 1.0 for images tagged as  [enum@Vips.Interpretation.scRGB.
+ * @max_alpha defaults to [func@interpretation.max_alpha],
  *
  * Non-complex images only.
  *

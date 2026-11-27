@@ -1091,18 +1091,21 @@ rtiff_labs_line(Rtiff *rtiff, VipsPel *q, VipsPel *p, int n, void *dummy)
 
 	unsigned short *p1;
 	short *q1;
-	int x;
-	int i;
 
 	p1 = (unsigned short *) p;
 	q1 = (short *) q;
-	for (x = 0; x < n; x++) {
-		/* We use signed int16 for L.
+	for (int x = 0; x < n; x++) {
+		/* We use signed int16 for L. a and b use the full range.
 		 */
 		q1[0] = p1[0] >> 1;
+		q1[1] = p1[1];
+		q1[2] = p1[2];
 
-		for (i = 1; i < samples_per_pixel; i++)
-			q1[i] = p1[i];
+		/* Any alphas are scaled down, since we are writing a signed short
+		 * vips image.
+		 */
+		for (int i = 3; i < samples_per_pixel; i++)
+			q1[i] = p1[i] >> 1;
 
 		q1 += samples_per_pixel;
 		p1 += samples_per_pixel;
@@ -2093,8 +2096,7 @@ rtiff_decompress_jpeg_run(Rtiff *rtiff, j_decompress_ptr cinfo,
 	 */
 	if (tables) {
 		rtiff_decompress_jpeg_set_memory(cinfo, tables, tables_len);
-		if (jpeg_read_header(cinfo, FALSE) !=
-			JPEG_HEADER_TABLES_ONLY)
+		if (jpeg_read_header(cinfo, FALSE) != JPEG_HEADER_TABLES_ONLY)
 			return -1;
 	}
 
