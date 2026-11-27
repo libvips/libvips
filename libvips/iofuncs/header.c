@@ -198,8 +198,14 @@ vips_interpretation_max_alpha(VipsInterpretation interpretation)
 	case VIPS_INTERPRETATION_GREY16:
 	case VIPS_INTERPRETATION_RGB16:
 		return 65535.0;
+
+	case VIPS_INTERPRETATION_LABS:
+		// signed short
+		return 32767.0;
+
 	case VIPS_INTERPRETATION_scRGB:
 		return 1.0;
+
 	default:
 		return 255.0;
 	}

@@ -1692,17 +1692,17 @@ LabS2Lab16(VipsPel *q, VipsPel *p, int n, int samples_per_pixel)
 	short *p1 = (short *) p;
 	unsigned short *q1 = (unsigned short *) q;
 
-	int x;
-
-	for (x = 0; x < n; x++) {
-		int i;
-
-		/* LABS L can be negative.
+	for (int x = 0; x < n; x++) {
+		/* LABS L can be negative. ab use the full range.
 		 */
 		q1[0] = VIPS_LSHIFT_INT(VIPS_MAX(0, p1[0]), 1);
+		q1[1] = p1[1];
+		q1[2] = p1[2];
 
-		for (i = 1; i < samples_per_pixel; i++)
-			q1[i] = p1[i];
+		/* TIFF uses unsigned for any alphas.
+		 */
+		for (int i = 3; i < samples_per_pixel; i++)
+			q1[i] = VIPS_LSHIFT_INT(p1[0], 1);
 
 		q1 += samples_per_pixel;
 		p1 += samples_per_pixel;
