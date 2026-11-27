@@ -377,35 +377,44 @@ vips_foreign_load_dcraw_set_metadata(VipsForeignLoadDcRaw *raw,
 	if (thumb_index != -1) {
 		int result;
 		result = libraw_unpack_thumb_ex(raw->raw_processor, thumb_index);
-		if (result != LIBRAW_SUCCESS) {
+		if (LIBRAW_FATAL_ERROR(result)) {
 			vips_foreign_load_dcraw_error(raw,
 				_("unable to unpack thumbnail"), result);
 			return -1;
 		}
 
-		vips_image_set_blob_copy(image, "jpeg-thumbnail-data",
-			raw->raw_processor->thumbnail.thumb,
-			raw->raw_processor->thumbnail.tlength);
+		if (result == LIBRAW_SUCCESS) {
+			vips_image_set_blob_copy(image, "jpeg-thumbnail-data",
+				raw->raw_processor->thumbnail.thumb,
+				raw->raw_processor->thumbnail.tlength);
 
-		// old deprecated name for compat
-		vips_image_set_blob_copy(image, "raw-thumbnail-data",
-			raw->raw_processor->thumbnail.thumb,
-			raw->raw_processor->thumbnail.tlength);
+			// old deprecated name for compat
+			vips_image_set_blob_copy(image, "raw-thumbnail-data",
+				raw->raw_processor->thumbnail.thumb,
+				raw->raw_processor->thumbnail.tlength);
+		}
+		else
+			g_warning("dcrawload: unable to unpack thumbnail: %s",
+				libraw_strerror(result));
 	}
 
 	if (preview_index != -1 &&
 		preview_index != thumb_index) {
 		int result;
 		result = libraw_unpack_thumb_ex(raw->raw_processor, preview_index);
-		if (result != LIBRAW_SUCCESS) {
+		if (LIBRAW_FATAL_ERROR(result)) {
 			vips_foreign_load_dcraw_error(raw,
 				_("unable to unpack preview"), result);
 			return -1;
 		}
 
-		vips_image_set_blob_copy(image, "jpeg-preview-data",
-			raw->raw_processor->thumbnail.thumb,
-			raw->raw_processor->thumbnail.tlength);
+		if (result == LIBRAW_SUCCESS)
+			vips_image_set_blob_copy(image, "jpeg-preview-data",
+				raw->raw_processor->thumbnail.thumb,
+				raw->raw_processor->thumbnail.tlength);
+		else
+			g_warning("dcrawload: unable to unpack preview: %s",
+				libraw_strerror(result));
 	}
 
 #endif /*LIBRAW_COMPILE_CHECK_VERSION_NOTLESS(0, 21)*/
