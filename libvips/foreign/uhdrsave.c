@@ -258,6 +258,8 @@ static int
 vips_foreign_save_uhdr_set_compressed_gainmap(VipsForeignSaveUhdr *uhdr,
 	VipsImage *image)
 {
+	VipsForeignSave *save = VIPS_FOREIGN_SAVE(uhdr);
+
 	g_info("attaching compressed gainmap");
 
 	uhdr_gainmap_metadata_t metadata;
@@ -296,6 +298,7 @@ vips_foreign_save_uhdr_set_compressed_gainmap(VipsForeignSaveUhdr *uhdr,
 		/* Never chroma subsample gainmaps, they are exponents, not RGB images.
 		 */
 		if (vips_jpegsave_buffer(gainmap, &to_free, &length,
+			"keep", save->keep,
 			"subsample-mode", VIPS_FOREIGN_SUBSAMPLE_OFF,
 			"Q", uhdr->Q,
 			NULL)) {

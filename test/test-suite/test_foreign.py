@@ -480,6 +480,19 @@ class TestForeign:
         assert (im_hdr2 - im_hdr).abs().avg() < 0.02
 
     @skip_if_no("uhdrsave")
+    def test_uhdrsave_gainmap_keep(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE).copy()
+        gainmap = im.get_gainmap().copy()
+        gainmap.set_type(pyvips.GValue.blob_type, "xmp-data", b"<x:xmpmeta/>")
+        im.remove("gainmap-data")
+        im.set_type(pyvips.GValue.image_type, "gainmap", gainmap)
+
+        for keep, kept in [("all", True), ("gainmap", False)]:
+            im2 = pyvips.Image.uhdrload_buffer(im.uhdrsave_buffer(keep=keep))
+            gainmap2 = im2.get_gainmap()
+            assert (gainmap2.get_typeof("xmp-data") != 0) == kept
+
+    @skip_if_no("uhdrsave")
     def test_uhdrsave_roundtrip_hdr(self):
         im = pyvips.Image.uhdrload(UHDR_FILE).UHDR2scRGB()
         data = im.uhdrsave_buffer()
