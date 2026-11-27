@@ -424,7 +424,6 @@ const char *vips__windows_prefix(void);
 char *vips__get_iso8601(void);
 
 gboolean vips__image_is_uhdr(VipsImage *image);
-int vips__icc_primaries(VipsImage *in, VipsImage **out);
 
 /* TODO(kleisauke): VIPS_API is required by the heif and jxl modules.
  */

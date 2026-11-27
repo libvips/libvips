@@ -40,7 +40,6 @@
 #include <math.h>
 
 #include <vips/vips.h>
-#include <vips/internal.h>
 
 #include "pcolour.h"
 
@@ -220,15 +219,52 @@ image_get_array_float(VipsImage *image, const char *name,
 	return 0;
 }
 
+/* The RGB -> XYZ matrix of the profile on an image.
+ */
+static VipsImage *
+vips_UHDR2scRGB_primaries(VipsImage *image)
+{
+	const void *data;
+	size_t length;
+
+	if (vips_image_get_typeof(image, VIPS_META_ICC_NAME) &&
+		!vips_image_get_blob(image, VIPS_META_ICC_NAME, &data, &length) &&
+		vips_icc_is_compatible_profile(image, data, length))
+		return vips__icc_primaries(data, length);
+
+	return NULL;
+}
+
 /* RGB gainmaps apply in the RGB of the base image or of the gainmap.
  */
 static int
-vips_UHDR2scRGB_set_gamut(VipsUHDR2scRGB *uhdr, VipsImage *gamut)
+vips_UHDR2scRGB_set_gamut(VipsUHDR2scRGB *uhdr, VipsImage *gainmap)
 {
 	VipsImage **t =
 		(VipsImage **) vips_object_local_array(VIPS_OBJECT(uhdr), 2);
 
-	if (vips__icc_primaries(gamut, &t[0]) ||
+	int use_base_cg = 1;
+	if (vips_image_get_typeof(uhdr->in, "gainmap-use-base-cg"))
+		(void) vips_image_get_int(uhdr->in,
+			"gainmap-use-base-cg", &use_base_cg);
+
+	if (!use_base_cg)
+		t[0] = vips_UHDR2scRGB_primaries(gainmap);
+	if (!t[0])
+		t[0] = vips_UHDR2scRGB_primaries(uhdr->in);
+	if (!t[0]) {
+		VipsBlob *srgb;
+		const void *data;
+		size_t length;
+
+		if (vips_profile_load("srgb", &srgb, NULL))
+			return -1;
+		data = vips_blob_get(srgb, &length);
+		t[0] = vips__icc_primaries(data, length);
+		vips_area_unref(VIPS_AREA(srgb));
+	}
+
+	if (!t[0] ||
 		vips_matrixinvert(t[0], &t[1], NULL))
 		return -1;
 
@@ -306,17 +342,10 @@ vips_UHDR2scRGB_build(VipsObject *object)
 
 		/* One gain for all three channels gives the same result in any RGB.
 		 */
-		if (gainmap->Bands == 3) {
-			int use_base_cg = 1;
-			if (vips_image_get_typeof(uhdr->in, "gainmap-use-base-cg"))
-				(void) vips_image_get_int(uhdr->in,
-					"gainmap-use-base-cg", &use_base_cg);
-
-			if (vips_UHDR2scRGB_set_gamut(uhdr,
-					use_base_cg ? uhdr->in : gainmap)) {
-				VIPS_UNREF(gainmap);
-				return -1;
-			}
+		if (gainmap->Bands == 3 &&
+			vips_UHDR2scRGB_set_gamut(uhdr, gainmap)) {
+			VIPS_UNREF(gainmap);
+			return -1;
 		}
 
 		/* And now scale the gainmap image to match the main image 1:1.

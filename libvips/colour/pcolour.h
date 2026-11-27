@@ -212,6 +212,8 @@ extern float vips_v2Y_8[256];
 
 void vips_col_make_tables_RGB_8(void);
 
+VipsImage *vips__icc_primaries(const void *data, size_t length);
+
 /* A colour-transforming function.
  */
 typedef int (*VipsColourTransformFn)(VipsImage *in, VipsImage **out, ...);

@@ -1364,6 +1364,49 @@ vips_icc_is_compatible_profile(VipsImage *image,
 	return TRUE;
 }
 
+/* The RGB -> XYZ matrix of a profile from its colorants.
+ */
+VipsImage *
+vips__icc_primaries(const void *data, size_t length)
+{
+	static const cmsTagSignature tags[3] = {
+		cmsSigRedColorantTag,
+		cmsSigGreenColorantTag,
+		cmsSigBlueColorantTag
+	};
+
+	cmsHPROFILE profile;
+	VipsImage *out;
+
+	if (!(profile = cmsOpenProfileFromMem(data, length)))
+		return NULL;
+	if (!(out = vips_image_new_matrix(3, 3))) {
+		cmsCloseProfile(profile);
+		return NULL;
+	}
+
+	for (int x = 0; x < 3; x++) {
+		cmsCIEXYZ *colorant;
+		guint16 fixed[3];
+		float xyz[3];
+
+		if (!(colorant = cmsReadTag(profile, tags[x]))) {
+			cmsCloseProfile(profile);
+			VIPS_UNREF(out);
+			return NULL;
+		}
+
+		cmsFloat2XYZEncoded(fixed, colorant);
+		decode_xyz(fixed, xyz, 1);
+		for (int y = 0; y < 3; y++)
+			*VIPS_MATRIX(out, x, y) = xyz[y];
+	}
+
+	cmsCloseProfile(profile);
+
+	return out;
+}
+
 #else /*!HAVE_LCMS2*/
 
 #include <vips/vips.h>
@@ -1387,6 +1430,12 @@ vips_icc_is_compatible_profile(VipsImage *image,
 	const void *data, size_t data_length)
 {
 	return TRUE;
+}
+
+VipsImage *
+vips__icc_primaries(const void *data, size_t length)
+{
+	return NULL;
 }
 
 #endif /*HAVE_LCMS2*/
@@ -1538,60 +1587,4 @@ vips_icc_transform(VipsImage *in, VipsImage **out,
 	va_end(ap);
 
 	return result;
-}
-
-/* The RGB -> XYZ matrix of the profile vips_icc_import() uses for @in. The
- * primaries go through that import, so the matrix agrees with the pixels.
- */
-int
-vips__icc_primaries(VipsImage *in, VipsImage **out)
-{
-	static const VipsPel primaries[9] = { 255, 0, 0, 0, 255, 0, 0, 0, 255 };
-
-	VipsImage *scope = vips_image_new();
-	VipsImage **t = (VipsImage **)
-		vips_object_local_array(VIPS_OBJECT(scope), 3);
-
-	float *xyz;
-
-	if (!(t[0] = vips_image_new_from_memory_copy(primaries, 9,
-			  3, 1, 3, VIPS_FORMAT_UCHAR)) ||
-		vips_copy(t[0], &t[1],
-			"interpretation", VIPS_INTERPRETATION_sRGB,
-			NULL)) {
-		g_object_unref(scope);
-		return -1;
-	}
-
-	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-		const void *data;
-		size_t length;
-
-		if (vips_image_get_blob(in, VIPS_META_ICC_NAME, &data, &length)) {
-			g_object_unref(scope);
-			return -1;
-		}
-		vips_image_set_blob_copy(t[1], VIPS_META_ICC_NAME, data, length);
-	}
-
-	if (vips_icc_import(t[1], &t[2],
-			"embedded", TRUE,
-			"pcs", VIPS_PCS_XYZ,
-			"input_profile", "srgb",
-			NULL) ||
-		!(xyz = (float *) vips_image_write_to_memory(t[2], NULL))) {
-		g_object_unref(scope);
-		return -1;
-	}
-	g_object_unref(scope);
-
-	/* A primary in each column.
-	 */
-	*out = vips_image_new_matrix(3, 3);
-	for (int y = 0; y < 3; y++)
-		for (int x = 0; x < 3; x++)
-			*VIPS_MATRIX(*out, x, y) = xyz[3 * x + y];
-	g_free(xyz);
-
-	return 0;
 }

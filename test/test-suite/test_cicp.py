@@ -842,10 +842,12 @@ class TestCICP:
         for band in range(3):
             assert abs(image(0, 0)[band] - image2(0, 0)[band]) < 0.1
 
+    @skip_if_no("icc_import")
     @pytest.mark.parametrize("base,gainmap,use_base_cg,primaries", [
         ("p3", None, 1, PRIMARIES_DISPLAY_P3),
         (None, "p3", 0, PRIMARIES_DISPLAY_P3),
-        ("p3", None, 0, PRIMARIES_BT709),
+        ("p3", None, 0, PRIMARIES_DISPLAY_P3),
+        ("p3", "srgb", 0, PRIMARIES_BT709),
         (None, None, 1, PRIMARIES_BT709),
     ])
     def test_uhdr_rgb_gainmap_gamut(self, base, gainmap, use_base_cg,
@@ -855,8 +857,8 @@ class TestCICP:
                 .new_from_list(value) \
                 .bandfold() \
                 .cast("uchar") \
-                .copy(interpretation="srgb") \
-                .replicate(8, 8)
+                .replicate(8, 8) \
+                .copy(interpretation="srgb")
             if profile:
                 image.set_type(pyvips.GValue.blob_type, "icc-profile-data",
                                pyvips.Image.profile_load(profile))
