@@ -1,0 +1,179 @@
+---
+title: What's new in libvips 8.19
+---
+
+Here's a summary of what's new in libvips 8.19. Check the
+[ChangeLog](https://github.com/libvips/libvips/blob/master/ChangeLog) if
+you need more details.
+
+The headline features are better HDR support, animated PNGs, and the [QOI
+image format](https://en.wikipedia.org/wiki/QOI_(image_format)).  Plus the
+usual improvements to file format handling, libvips operations, and the
+libvips core.
+
+## Better HDR support
+
+Thanks to great work by starbix and mertalev, libvips 8.19 and later now
+support loading and saving images with CICP tags to and from AVIF, JXL, and
+PNG images. It also supports loading and saving these images to UltraHDR
+formats like JPG with automatic conversion of tags.  libvips supports
+generating and modifying CICP tags programmatically, including support for
+computing some image properties, such as target illumination.
+
+You can also take charge of the HDR pipeline yourself if you need more
+control, the [new chapter in the documentation for
+CICP](https://www.libvips.org/API/8.19/cicp.html) has the details.
+
+As an example, here's an HDR PNG image. It'll probably look very dark on your
+screen, since almost no one supports this strange HDR image format:
+
+![CICP PNG image](/API/8.19/cicp-car-small.png)
+
+You can convert this terrible file to something more reasonable like this:
+
+```console
+$ vips copy cicp-car-small.png x.jpg
+```
+
+This will make a JPEG image, but the JPEG saver will automatically spot the
+CICP tags on this image and generate a UltraHDR file with a gainmap.
+
+This might now display as HDR, depending on your screen and browser:
+
+![UltraHDR JPEG image](/API/8.19/uhdr-car-small.jpg)
+
+You can also convert to AVIF, of course. 
+
+```console
+$ vips copy cicp-car-small.png x.avif
+```
+
+![CICP AVIF image](/API/8.19/cicp-car-small.avif)
+
+Again, the appearance will depend on your browser and display. On SDR
+screens, these two versions of the original probably won't match well,
+since the UltraHDR image has been tone mapped, whereas the AVIF will display
+the SDR component of the CICP data.
+
+These automatic conversions should work everywhere (they work with `thumbnail`,
+for example) and in all libvips bindings. 
+
+## Animated PNG
+
+Thanks to generous support from the EU, libvips now supports animated PNG
+with the upcoming libpng 2.0. For now, you'll need to [build against libpng
+1.8](https://github.com/pnggroup/libpng/tree/libpng18), the development
+version.
+
+Animated PNG images are a bit larger than GIFs, but they support full alpha
+transparency and full colour with no need for dithering. For example, this
+animated PNG has numbers moving over a textured background:
+
+![Animated PNG](/assets/images/numbers.png)
+
+Unlike a GIF, the edges of the characters should look nicely antialiased 
+whatever background you use. 
+
+You can convert them like any animated image, for example:
+
+```console
+$ vips copy numbers.png[n=-1] numbers.gif
+```
+
+To make:
+
+![Animated GIF](/assets/images/numbers.gif)
+
+## Better RAW load
+
+The [`dcrawload`](/API/8.19/ctor.Image.dcrawload.html) operator has been
+improved. It should now make more stable images, be more accurate, and be
+quite a lot faster.
+
+The defaults have been improved:
+
+- We were not disabling libraw's auto brightness feature, so there was no
+  consistency between shots. Thanks to chrisabra, it's now off and the
+  output should be more predictable. This also means you can see the full
+  range of the sensor.
+
+- It also sets the output colourspace to linear rec2020, and will use dcraw's
+  table of camera models to pick the right matrix. You should see more
+  consistent colour between cameras too. Images are tagged with the matching
+  ICC profile and CICP tags.
+
+- We've made it attach the JPEG preview images as metadata, and `thumbnail`
+  will use these if it can. You should see much quicker thumbnails.
+
+The linear default is especially good for scientific work -- it makes getting
+useful colour measurements from RAW files much simpler. On the other hand,
+images may look rather dark and flat and need more downstream processing.
+
+There are two new options:
+
+- `half-size` makes `dcrawload` decode at 50% size. This lets you skip
+  demosaicing and is a lot faster.
+
+- `auto-brightness` turns on libraw's auto brightness feature. You'll
+  probably want this off if you are doing your own colour processing.
+
+## Improvements to file format support
+
+The other file format operations have seen some improvements:
+
+- Thanks to work by Snafuh, libvips now has full support for the
+  [QOI image format](https://en.wikipedia.org/wiki/QOI_(image_format)).
+  There are new [`qoiload`](/API/8.19/ctor.Image.qoiload.html) and
+  [`qoisave`](/API/8.19/method.Image.qoisave.html) operations.
+
+- [`jxlsave`](/API/8.19/method.Image.jxlsave.html) has a new `interlace`
+  option.
+
+- [`uhdrsave`](/API/8.19/method.Image.uhdrsave.html) has new options
+  to control peak brightness and maximum content boost.
+
+- [`heifsave`](/API/8.19/method.Image.heifsave.html) has a new option to set
+  encoder options. This can give you more control over the compression
+  settings.
+
+## Improvements to libvips operations
+
+There have been some useful improvements to some basic libvips operations.
+
+- [`thumbnail`](/API/8.19/ctor.Image.thumbnail.html) now has support for
+  cropping by a specific point of interest, supports [`dcrawload`](
+  /API/8.19/ctor.Image.dcrawload.html) thumbnails, and supports CICP HDR
+  images.
+
+- The [`vipsthumbnail`](/API/8.19/using-vipsthumbnail.html) utility supports
+  the `@` modifier for sizing to a pixel count.
+
+- [`composite`](/API/8.19/type_func.Image.composite.html) now supports the
+  non-separable blending modes.
+
+- [`project`](/API/8.19/method.Image.project.html) lets you set the combining
+  mode.
+
+- [`premultiply`](/API/8.19/method.Image.premultiply.html) and
+  [`unpremultiply`](/API/8.19/method.Image.unpremultiply.html) now
+  include a fast 8-bit path.
+
+## Improvements to the libvips core
+
+The libvips core has also seen some improvements.
+
+- libvips is now C11.
+
+- The old and long-deprecated vips7 API is no longer built by default.
+
+- New meson options let you disable features like man pages and CLI tools if
+  you wish.
+
+- `VIPS_UNLIMITED`, `--vips-unlimited`, [`vips_unlimited_get()`](
+  /API/8.19/func.unlimited_get.html), [`vips_unlimited_set()`](
+  /API/8.19/func.unlimited_set.html) let you disable all DoS checks.
+
+- A new [`VIPS_MEMCPY()`](/API/8.19/func.MEMCPY.html) macro gives a good
+  speedup for small memory copies.
+
+And the usual range of smaller improvements, see the ChangeLog for details.
