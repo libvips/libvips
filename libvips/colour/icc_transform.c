@@ -1364,6 +1364,49 @@ vips_icc_is_compatible_profile(VipsImage *image,
 	return TRUE;
 }
 
+/* The RGB -> XYZ matrix of a profile from its colorants.
+ */
+VipsImage *
+vips__icc_primaries(const void *data, size_t length)
+{
+	static const cmsTagSignature tags[3] = {
+		cmsSigRedColorantTag,
+		cmsSigGreenColorantTag,
+		cmsSigBlueColorantTag
+	};
+
+	cmsHPROFILE profile;
+	VipsImage *out;
+
+	if (!(profile = cmsOpenProfileFromMem(data, length)))
+		return NULL;
+	if (!(out = vips_image_new_matrix(3, 3))) {
+		cmsCloseProfile(profile);
+		return NULL;
+	}
+
+	for (int x = 0; x < 3; x++) {
+		cmsCIEXYZ *colorant;
+		guint16 fixed[3];
+		float xyz[3];
+
+		if (!(colorant = cmsReadTag(profile, tags[x]))) {
+			cmsCloseProfile(profile);
+			VIPS_UNREF(out);
+			return NULL;
+		}
+
+		cmsFloat2XYZEncoded(fixed, colorant);
+		decode_xyz(fixed, xyz, 1);
+		for (int y = 0; y < 3; y++)
+			*VIPS_MATRIX(out, x, y) = xyz[y];
+	}
+
+	cmsCloseProfile(profile);
+
+	return out;
+}
+
 #else /*!HAVE_LCMS2*/
 
 #include <vips/vips.h>
@@ -1387,6 +1430,12 @@ vips_icc_is_compatible_profile(VipsImage *image,
 	const void *data, size_t data_length)
 {
 	return TRUE;
+}
+
+VipsImage *
+vips__icc_primaries(const void *data, size_t length)
+{
+	return NULL;
 }
 
 #endif /*HAVE_LCMS2*/

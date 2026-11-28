@@ -67,6 +67,11 @@ typedef struct _VipsUHDR2scRGB {
 	float offset_hdr[3];
 	float offset_sdr[3];
 
+	/* XYZ to the linear RGB the gains apply in, and that RGB to scRGB.
+	 */
+	float to_gamut[9];
+	float from_gamut[9];
+
 } VipsUHDR2scRGB;
 
 typedef VipsColourClass VipsUHDR2scRGBClass;
@@ -122,6 +127,9 @@ vips_UHDR2scRGB_mono(VipsUHDR2scRGB *uhdr,
 static void
 vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 {
+	const float *m = uhdr->to_gamut;
+	const float *n = uhdr->from_gamut;
+
 	float *restrict p1 = (float *) in[0];
 	VipsPel *restrict p2 = (VipsPel *) in[1];
 	float *restrict q = (float *) out;
@@ -132,11 +140,9 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float z = p1[2];
 		p1 += 3;
 
-		/* XYZ -> sRGB, including scale down from 100.
-		 */
-		float r =  0.03240626F * x +  -0.01537208F * y +  -0.004986286F * z;
-		float g = -0.009689307F * x +  0.01875756F * y +   0.000415175F * z;
-		float b =  0.000557101F * x + -0.002040211F * y +  0.01056996F * z;
+		float r = m[0] * x + m[1] * y + m[2] * z;
+		float g = m[3] * x + m[4] * y + m[5] * z;
+		float b = m[6] * x + m[7] * y + m[8] * z;
 
 		// gainmaps are already linear
 		float gr = p2[0] / 255.0;
@@ -162,9 +168,13 @@ vips_UHDR2scRGB_rgb(VipsUHDR2scRGB *uhdr, VipsPel *out, VipsPel **in, int width)
 		float gaing = exp2f(boostg);
 		float gainb = exp2f(boostb);
 
-		q[0] = ((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0];
-		q[1] = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
-		q[2] = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
+		r = ((r + uhdr->offset_sdr[0]) * gainr) - uhdr->offset_hdr[0];
+		g = ((g + uhdr->offset_sdr[1]) * gaing) - uhdr->offset_hdr[1];
+		b = ((b + uhdr->offset_sdr[2]) * gainb) - uhdr->offset_hdr[2];
+
+		q[0] = n[0] * r + n[1] * g + n[2] * b;
+		q[1] = n[3] * r + n[4] * g + n[5] * b;
+		q[2] = n[6] * r + n[7] * g + n[8] * b;
 		q += 3;
 	}
 }
@@ -203,6 +213,73 @@ image_get_array_float(VipsImage *image, const char *name,
 	return 0;
 }
 
+/* The RGB -> XYZ matrix of the profile on an image.
+ */
+static VipsImage *
+vips_UHDR2scRGB_primaries(VipsImage *image)
+{
+	const void *data;
+	size_t length;
+
+	if (vips_image_get_typeof(image, VIPS_META_ICC_NAME) &&
+		!vips_image_get_blob(image, VIPS_META_ICC_NAME, &data, &length) &&
+		vips_icc_is_compatible_profile(image, data, length))
+		return vips__icc_primaries(data, length);
+
+	return NULL;
+}
+
+/* RGB gainmaps apply in the RGB of the base image or of the gainmap.
+ */
+static int
+vips_UHDR2scRGB_set_gamut(VipsUHDR2scRGB *uhdr, VipsImage *gainmap)
+{
+	VipsImage **t =
+		(VipsImage **) vips_object_local_array(VIPS_OBJECT(uhdr), 4);
+
+	int use_base_cg = 1;
+	if (vips_image_get_typeof(uhdr->in, "gainmap-use-base-cg"))
+		(void) vips_image_get_int(uhdr->in,
+			"gainmap-use-base-cg", &use_base_cg);
+
+	if (!use_base_cg)
+		t[0] = vips_UHDR2scRGB_primaries(gainmap);
+	if (!t[0])
+		t[0] = vips_UHDR2scRGB_primaries(uhdr->in);
+	if (!t[0]) {
+		VipsBlob *srgb;
+		const void *data;
+		size_t length;
+
+		if (vips_profile_load("srgb", &srgb, NULL))
+			return -1;
+		data = vips_blob_get(srgb, &length);
+		t[0] = vips__icc_primaries(data, length);
+		vips_area_unref(VIPS_AREA(srgb));
+	}
+
+	/* XYZ -> sRGB, including scale down from 100.
+	 */
+	t[2] = vips_image_new_matrixv(3, 3,
+		0.03240626, -0.01537208, -0.004986286,
+		-0.009689307, 0.01875756, 0.000415175,
+		0.000557101, -0.002040211, 0.01056996);
+
+	if (!t[0] ||
+		!t[2] ||
+		vips_matrixinvert(t[0], &t[1], NULL) ||
+		vips_matrixmultiply(t[2], t[0], &t[3], NULL))
+		return -1;
+
+	for (int y = 0; y < 3; y++)
+		for (int x = 0; x < 3; x++) {
+			uhdr->to_gamut[3 * y + x] = *VIPS_MATRIX(t[1], x, y);
+			uhdr->from_gamut[3 * y + x] = *VIPS_MATRIX(t[3], x, y);
+		}
+
+	return 0;
+}
+
 static int
 vips_UHDR2scRGB_build(VipsObject *object)
 {
@@ -233,12 +310,9 @@ vips_UHDR2scRGB_build(VipsObject *object)
 	/* Get the gainmap image metadata.
 	 */
 	if (uhdr->in) {
-		if (vips_check_bands(class->nickname, uhdr->in, 3))
+		if (vips_check_bands(class->nickname, uhdr->in, 3) ||
+			vips_check_u8or16(class->nickname, uhdr->in))
 			return -1;
-		if (uhdr->in->BandFmt != VIPS_FORMAT_UCHAR) {
-			vips_error(class->nickname, "%s", _("image must be uchar"));
-			return -1;
-		}
 
 		/* Import the main image to XYZ to get linear light.
 		 */
@@ -265,6 +339,14 @@ vips_UHDR2scRGB_build(VipsObject *object)
 		if (!(gainmap = vips_image_get_gainmap(uhdr->in)))
 			return -1;
 		if (vips_check_bands_1or3(class->nickname, gainmap)) {
+			VIPS_UNREF(gainmap);
+			return -1;
+		}
+
+		/* One gain for all three channels gives the same result in any RGB.
+		 */
+		if (gainmap->Bands == 3 &&
+			vips_UHDR2scRGB_set_gamut(uhdr, gainmap)) {
 			VIPS_UNREF(gainmap);
 			return -1;
 		}
