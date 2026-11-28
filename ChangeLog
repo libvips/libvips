@@ -71,16 +71,16 @@ date-tbd 8.19.0
 - rename uhdr2scRGB as UHDR2scRGB
 - radload: support packed XYZE images [fuzzyrichie]
 - colour: add built-in Linear Rec.2020 profile [chrisabra]
-- dcrawload: load as CICP tagged Linear Rec.2020 [chrisabra]
-- dcrawload: add auto-brightness option [chrisabra]
-- heifsave: add options string for encoder-specific parameters [xiujunwang]
+- dcrawload: load as CICP tagged Linear Rec.2020, add auto-brightness
+  option [chrisabra]
 - dcrawload: don't fail when a preview can't be unpacked [mertalev]
+- heifsave: add options string for encoder-specific parameters [xiujunwang]
 - uhdrload: read the base image sequentially and with fail_on [mertalev]
 - UHDR2scRGB: apply RGB gainmaps in the base or gainmap gamut [mertalev]
 - uhdrsave: apply keep and the JPEG options to a gainmap image [mertalev]
 - jpegsave: pass options on to uhdrsave [mertalev]
 
-tbd 8.18.8
+27/11/26 8.18.8
 
 - jxlsave: don't save bad profiles [Lumaraf]
 - invertlut: prevent possible integer overflow [Shubham Raj]
