@@ -258,6 +258,8 @@ static int
 vips_foreign_save_uhdr_set_compressed_gainmap(VipsForeignSaveUhdr *uhdr,
 	VipsImage *image)
 {
+	VipsForeignSave *save = VIPS_FOREIGN_SAVE(uhdr);
+
 	g_info("attaching compressed gainmap");
 
 	uhdr_gainmap_metadata_t metadata;
@@ -293,11 +295,23 @@ vips_foreign_save_uhdr_set_compressed_gainmap(VipsForeignSaveUhdr *uhdr,
 		if (vips_image_get_image(image, "gainmap", &gainmap))
 			return -1;
 
+		VipsForeignKeep keep = save->keep & ~VIPS_FOREIGN_KEEP_GAINMAP;
+		if (!metadata.use_base_cg)
+			keep |= VIPS_FOREIGN_KEEP_ICC;
+
 		/* Never chroma subsample gainmaps, they are exponents, not RGB images.
 		 */
 		if (vips_jpegsave_buffer(gainmap, &to_free, &length,
+			"keep", keep,
 			"subsample-mode", VIPS_FOREIGN_SUBSAMPLE_OFF,
 			"Q", uhdr->Q,
+			"optimize_coding", uhdr->optimize_coding,
+			"interlace", uhdr->interlace,
+			"trellis_quant", uhdr->trellis_quant,
+			"overshoot_deringing", uhdr->overshoot_deringing,
+			"optimize_scans", uhdr->optimize_scans,
+			"quant_table", uhdr->quant_table,
+			"restart_interval", uhdr->restart_interval,
 			NULL)) {
 			VIPS_UNREF(gainmap);
 			return -1;

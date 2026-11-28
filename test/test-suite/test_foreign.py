@@ -480,6 +480,48 @@ class TestForeign:
         assert (im_hdr2 - im_hdr).abs().avg() < 0.02
 
     @skip_if_no("uhdrsave")
+    def test_uhdrsave_gainmap_keep(self):
+        uhdr = pyvips.Image.uhdrload(UHDR_FILE)
+        im = uhdr.copy()
+        gainmap = im.get_gainmap().copy()
+        im.remove("gainmap-data")
+        im.set_type(pyvips.GValue.image_type, "gainmap", gainmap)
+
+        for keep, kept in [("all", True), ("gainmap", False)]:
+            im2 = pyvips.Image.uhdrload_buffer(im.uhdrsave_buffer(keep=keep))
+            gainmap2 = im2.get_gainmap()
+            assert (gainmap2.get_typeof("exif-data") != 0) == kept
+
+        im2 = pyvips.Image.uhdrload_buffer(im.uhdrsave_buffer(interlace=True))
+        gainmap2 = pyvips.Image.jpegload_buffer(im2.get("gainmap-data"))
+        assert gainmap2.get("interlaced") == 1
+
+        im.set_type(pyvips.GValue.image_type, "gainmap", uhdr[1])
+        im2 = pyvips.Image.uhdrload_buffer(im.uhdrsave_buffer())
+        assert b"MPF" not in im2.get("gainmap-data")
+
+        rgb = gainmap.bandjoin([gainmap, gainmap]).copy(interpretation="srgb")
+        rgb.set_type(pyvips.GValue.blob_type, "icc-profile-data",
+                     pyvips.Image.profile_load("p3"))
+        im.set_type(pyvips.GValue.image_type, "gainmap", rgb)
+        im.set_type(pyvips.GValue.gint_type, "gainmap-use-base-cg", 0)
+        im2 = pyvips.Image.uhdrload_buffer(im.uhdrsave_buffer(keep="gainmap"))
+        assert im2.get_gainmap().get_typeof("icc-profile-data") != 0
+
+    @skip_if_no("uhdrsave")
+    def test_jpegsave_uhdr(self):
+        im = pyvips.Image.uhdrload(UHDR_FILE)
+        data = im.jpegsave_buffer(interlace=True)
+        assert pyvips.Image.jpegload_buffer(data).get("interlaced") == 1
+
+        im = im.copy()
+        gainmap = pyvips.Image.new_from_buffer(im.get("gainmap-data"), "")
+        im.remove("gainmap-data")
+        im.set_type(pyvips.GValue.image_type, "gainmap", gainmap)
+        data = im.jpegsave_buffer()
+        assert pyvips.Image.new_from_buffer(data, "").get_typeof("gainmap-data")
+
+    @skip_if_no("uhdrsave")
     def test_uhdrsave_roundtrip_hdr(self):
         im = pyvips.Image.uhdrload(UHDR_FILE).UHDR2scRGB()
         data = im.uhdrsave_buffer()
