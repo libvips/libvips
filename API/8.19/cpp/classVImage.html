@@ -2199,7 +2199,13 @@ out.write_to_file(argv[2]);
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Transform cicp to scrgb. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Transform cicp to scrgb.</p>
+<p><b>Optional parameters</b></p><ul>
+<li><b>colour_primaries</b> &ndash; CICP colour primaries (H.273 Table 2), VipsCICPColourPrimaries.</li>
+<li><b>transfer_characteristics</b> &ndash; CICP transfer characteristics (H.273 Table 3), VipsCICPTransferCharacteristics.</li>
+<li><b>matrix_coefficients</b> &ndash; CICP matrix coefficients (H.273 Table 4), VipsCICPMatrixCoefficients.</li>
+</ul>
+<dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">options</td><td>Set of options. </td></tr>
   </table>
@@ -3263,6 +3269,7 @@ out.write_to_file(argv[2]);
 <p><b>Optional parameters</b></p><ul>
 <li><b>bitdepth</b> &ndash; Number of bits to decode to, int.</li>
 <li><b>half_size</b> &ndash; Decode image at half size, bool.</li>
+<li><b>auto_brightness</b> &ndash; Applies histogram based auto-brightness, bool.</li>
 <li><b>memory</b> &ndash; Force open via memory, bool.</li>
 <li><b>access</b> &ndash; Required access pattern for this file, VipsAccess.</li>
 <li><b>fail_on</b> &ndash; Error level to fail on, VipsFailOn.</li>
@@ -3309,6 +3316,7 @@ out.write_to_file(argv[2]);
 <p><b>Optional parameters</b></p><ul>
 <li><b>bitdepth</b> &ndash; Number of bits to decode to, int.</li>
 <li><b>half_size</b> &ndash; Decode image at half size, bool.</li>
+<li><b>auto_brightness</b> &ndash; Applies histogram based auto-brightness, bool.</li>
 <li><b>memory</b> &ndash; Force open via memory, bool.</li>
 <li><b>access</b> &ndash; Required access pattern for this file, VipsAccess.</li>
 <li><b>fail_on</b> &ndash; Error level to fail on, VipsFailOn.</li>
@@ -3355,6 +3363,7 @@ out.write_to_file(argv[2]);
 <p><b>Optional parameters</b></p><ul>
 <li><b>bitdepth</b> &ndash; Number of bits to decode to, int.</li>
 <li><b>half_size</b> &ndash; Decode image at half size, bool.</li>
+<li><b>auto_brightness</b> &ndash; Applies histogram based auto-brightness, bool.</li>
 <li><b>memory</b> &ndash; Force open via memory, bool.</li>
 <li><b>access</b> &ndash; Required access pattern for this file, VipsAccess.</li>
 <li><b>fail_on</b> &ndash; Error level to fail on, VipsFailOn.</li>
@@ -6396,6 +6405,7 @@ out.write_to_file(argv[2]);
 <li><b>subsample_mode</b> &ndash; Select chroma subsample operation mode, VipsForeignSubsample.</li>
 <li><b>encoder</b> &ndash; Select encoder to use, VipsForeignHeifEncoder.</li>
 <li><b>tune</b> &ndash; Tuning parameters, const char *.</li>
+<li><b>options</b> &ndash; Encoder-specific options, const char *.</li>
 <li><b>keep</b> &ndash; Which metadata to retain, VipsForeignKeep.</li>
 <li><b>background</b> &ndash; Background value, std::vector&lt;double&gt;.</li>
 <li><b>page_height</b> &ndash; Set page height for multipage save, int.</li>
@@ -6435,6 +6445,7 @@ out.write_to_file(argv[2]);
 <li><b>subsample_mode</b> &ndash; Select chroma subsample operation mode, VipsForeignSubsample.</li>
 <li><b>encoder</b> &ndash; Select encoder to use, VipsForeignHeifEncoder.</li>
 <li><b>tune</b> &ndash; Tuning parameters, const char *.</li>
+<li><b>options</b> &ndash; Encoder-specific options, const char *.</li>
 <li><b>keep</b> &ndash; Which metadata to retain, VipsForeignKeep.</li>
 <li><b>background</b> &ndash; Background value, std::vector&lt;double&gt;.</li>
 <li><b>page_height</b> &ndash; Set page height for multipage save, int.</li>
@@ -6478,6 +6489,7 @@ out.write_to_file(argv[2]);
 <li><b>subsample_mode</b> &ndash; Select chroma subsample operation mode, VipsForeignSubsample.</li>
 <li><b>encoder</b> &ndash; Select encoder to use, VipsForeignHeifEncoder.</li>
 <li><b>tune</b> &ndash; Tuning parameters, const char *.</li>
+<li><b>options</b> &ndash; Encoder-specific options, const char *.</li>
 <li><b>keep</b> &ndash; Which metadata to retain, VipsForeignKeep.</li>
 <li><b>background</b> &ndash; Background value, std::vector&lt;double&gt;.</li>
 <li><b>page_height</b> &ndash; Set page height for multipage save, int.</li>
