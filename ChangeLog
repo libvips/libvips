@@ -75,6 +75,8 @@ date-tbd 8.19.0
 - dcrawload: add auto-brightness option [chrisabra]
 - heifsave: add options string for encoder-specific parameters [xiujunwang]
 - UHDR2scRGB: apply RGB gainmaps in the base or gainmap gamut [mertalev]
+- uhdrsave: apply keep and the JPEG options to a gainmap image [mertalev]
+- jpegsave: pass options on to uhdrsave [mertalev]
 
 tbd 8.18.8
 
