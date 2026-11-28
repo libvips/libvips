@@ -841,3 +841,56 @@ class TestCICP:
 
         for band in range(3):
             assert abs(image(0, 0)[band] - image2(0, 0)[band]) < 0.1
+
+    @skip_if_no("icc_import")
+    @pytest.mark.parametrize("base,gainmap,use_base_cg,primaries", [
+        ("p3", None, 1, PRIMARIES_DISPLAY_P3),
+        (None, "p3", 0, PRIMARIES_DISPLAY_P3),
+        ("p3", None, 0, PRIMARIES_DISPLAY_P3),
+        ("p3", "srgb", 0, PRIMARIES_BT709),
+        (None, None, 1, PRIMARIES_BT709),
+    ])
+    def test_uhdr_rgb_gainmap_gamut(self, base, gainmap, use_base_cg,
+                                    primaries):
+        def solid(value, profile):
+            image = pyvips.Image \
+                .new_from_list(value) \
+                .bandfold() \
+                .cast("uchar") \
+                .replicate(8, 8) \
+                .copy(interpretation="srgb")
+            if profile:
+                image.set_type(pyvips.GValue.blob_type, "icc-profile-data",
+                               pyvips.Image.profile_load(profile))
+            return image
+
+        image = solid([255, 255, 255], base)
+        image.set_type(pyvips.GValue.image_type, "gainmap",
+                       solid([0, 255, 0], gainmap))
+        for name, value in [("max-content-boost", 2.0),
+                            ("min-content-boost", 1.0),
+                            ("gamma", 1.0),
+                            ("offset-sdr", 0.0),
+                            ("offset-hdr", 0.0)]:
+            image.set_type(pyvips.GValue.array_double_type,
+                           f"gainmap-{name}", [value] * 3)
+        image.set_type(pyvips.GValue.gint_type, "gainmap-use-base-cg",
+                       use_base_cg)
+
+        half = pyvips.Image \
+            .new_from_list([32768, 65535, 32768]) \
+            .bandfold() \
+            .cast("ushort") \
+            .copy(interpretation="rgb16")
+        expected = set_cicp(half, primaries, TRANSFER_LINEAR).CICP2scRGB() * 2
+
+        for band in range(3):
+            assert abs(image.UHDR2scRGB()(0, 0)[band] -
+                       expected(0, 0)[band]) < 0.01
+
+    @skip_if_no("uhdrload")
+    def test_uhdr_16bit(self):
+        image = pyvips.Image.new_from_file(UHDR_FILE)
+        wide = (image * 257).cast("ushort").copy(interpretation="rgb16")
+
+        assert (image.UHDR2scRGB() - wide.UHDR2scRGB()).abs().max() < 0.01
