@@ -74,6 +74,7 @@ date-tbd 8.19.0
 - dcrawload: load as CICP tagged Linear Rec.2020 [chrisabra]
 - dcrawload: add auto-brightness option [chrisabra]
 - heifsave: add options string for encoder-specific parameters [xiujunwang]
+- uhdrload: read the base image sequentially and with fail_on [mertalev]
 - UHDR2scRGB: apply RGB gainmaps in the base or gainmap gamut [mertalev]
 - uhdrsave: apply keep and the JPEG options to a gainmap image [mertalev]
 - jpegsave: pass options on to uhdrsave [mertalev]
